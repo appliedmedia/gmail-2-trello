@@ -12,7 +12,7 @@ The Chrome Web Store automatically generates anonymatized data regarding downloa
 .
 
 ### Bug Reports Can Be Submitted on Our Trello Board
-You have the option to submit bug reports to us when an error occurs. If you choose to submit reports via the [Gmail-2-Trello Extension Trello site](https://trello.com/b/CGU9BYgd/gmail-2-trello-extension), the content of those reports will be available to the project developers and other customers, which may include third parties. We may disclose the information in the report to people as necessary to improve the software.
+You have the option to submit bug reports to us when an error occurs. If you choose to submit reports via the [Gmail-2-Trello Support site](http://g2t.support), the content of those reports will be available to the project developers and other customers, which may include third parties. We may disclose the information in the report to people as necessary to improve the software.
 .
 
 ### Personally Identifiable Information (PII) in a Gmail Will Be Transferred to Trello
@@ -23,7 +23,7 @@ We use Trello’s APIs to transfer data from Gmail to Trello. We use best effort
 .
 
 ### Use of Information Only for Improving
-In general, we use the information provided by you to make Gmail-2-Trello better.
+In general, we use the information provided by you to make Gmail-to-Trello better.
 .
 
 ### Disclosure of Your Information Only by Your Consent or by Legal Edict
@@ -33,7 +33,7 @@ If we are required by law to disclose the information that you have submitted, a
 .
 
 ### Security is Not Implied and is Your Responsibility
-We do not store any information collected in any system besides the [Gmail-2-Trello Extension Trello site](https://trello.com/b/CGU9BYgd/gmail-2-trello-extension). Your Gmail and Trello accounts are owned by you and are your responsibility. We cannot guarantee their security.
+We do not store any information collected in any system besides the [Gmail-2-Trello Support site](http://g2t.support). Your Gmail and Trello accounts are owned by you and are your responsibility. We cannot guarantee their security.
 .
 
 Updated: 2020-04-20
