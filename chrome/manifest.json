@@ -3,7 +3,7 @@
   "short_name": "G2T",
   "version": "2.8.0.006",
   "manifest_version": 2,
-  "description": "Gmail+Trello integration. Previously known as \"Gmail-to-Trello\". Create new Trello cards from Google mail threads with backlinks and attachments.",
+  "description": "Gmail+Trello integration. Was \"Gmail-to-Trello\". Create new Trello cards from Google mail with backlinks and attachments.",
   "icons": {
     "16": "images/icon-16.png",
     "48": "images/icon-48.png",
