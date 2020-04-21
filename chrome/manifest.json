@@ -1,0 +1,89 @@
+{
+  "name": "Gmail-2-Trello",
+  "short_name": "G2T",
+  "version": "2.8.0.006",
+  "manifest_version": 2,
+  "description": "Gmail+Trello integration. Previously known as \"Gmail-to-Trello\". Create new Trello cards from Google mail threads with backlinks and attachments.",
+  "icons": {
+    "16": "images/icon-16.png",
+    "48": "images/icon-48.png",
+    "64": "images/icon-64.png",
+    "128": "images/icon-128.png"
+  },
+  "page_action": {
+    "default_icon": "images/icon-16.png",
+    "default_title": "Gmail-2-Trello options",
+    "default_popup": "views/options.html"
+  },
+  "commands": {
+    "gtt_keyboard_shortcut": {
+      "suggested_key": {
+        "default": "Alt+Shift+G"
+      },
+      "description": "Show the Gmail-2-Trello popup"
+    }
+  },
+  "background": {"scripts": ["background.js"]},
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": [
+          "lib/jquery-3.4.1.min.js",
+          "lib/jquery-ui-1.12.1.min.js",
+          "lib/trello.min.js",
+          "lib/date.js",
+          "lib/google-analytics-bundle.js",
+          "lib/google-chrome-buy.js",
+          "lib/eventTarget.js",
+          "lib/menuControl.js",
+          "lib/waitCounter.js",
+          "views/gmailView.js",
+          "views/popupView.js",
+          "model.js",
+          "app.js",
+          "content-script.js"
+      ],
+      "css": [
+        "lib/jquery-ui-1.12.1.min.css",
+        "style.css"
+      ]
+    }
+  ],
+  "web_accessible_resources":[
+    "images/icon-48.png",
+    "images/icon-16.jpg",
+    "images/new_icon.gif",
+    "images/ui-icons_444444_256x240.png",
+    "images/doc-question-mark-512.png",
+    "views/popupView.html",
+    "views/signOut.html",
+    "views/error.html",
+    "views/subscribe.html",
+    "views/versionUpdate.html",
+    "lib/jquery-3.4.1.min.map",
+    "inject.js"
+  ],
+  "homepage_url": "https://trello.com/b/CGU9BYgd/gmail-2-trello-chrome-extension",
+  "offline_enabled": false,
+  "permissions": [
+    "browsingData",
+    "tabs",
+    "storage",
+    "identity",
+    "contextMenus",
+    "https://api.trello.com/",
+    "https://trello.com/",
+    "https://mail.google.com/",
+    "https://www.googleapis.com/",
+    "https://www.google-analytics.com/",
+    "https://*.googleusercontent.com/"
+  ],
+  "options_page": "views/options.html",
+  "oauth2": {
+    "client_id": "931090930005-ma9ieb9t6i4i1lndtgsc57opm6r3u728.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/plus.login",
+      "https://www.googleapis.com/auth/chromewebstore.readonly"
+    ]
+  }
+}

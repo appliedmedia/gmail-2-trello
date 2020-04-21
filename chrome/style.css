@@ -1,0 +1,195 @@
+/* NOTE (Ace, 15-Jan-2017): Latest Clearfix update as per http://cssmojo.com/the-very-latest-clearfix-reloaded/ */
+
+.clearfix:after {
+    content: "";
+    /* Seems to do better than "block": */
+    display: table;
+    clear: both;
+}
+
+/* NOTE (Ace, 15-Jan-2017): Was old Clearfix:
+/*
+.clearfix:before,
+.clearfix:after {
+    content: " ";
+    display: table;
+}
+.clearfix:after {
+    clear: both;
+}
+*/
+
+/* toolbar holder */
+/*.iH div {position: static} /* Caused bug on the new gmail, disabled on May 3rd  */
+
+#gttPopup {
+    position: absolute;
+    max-height: none;
+    min-height: 460px;
+    min-width: 620px;
+    max-width: 1400px;
+    -webkit-user-select: none;
+    border-top: 2px solid #ccc; /*#0088C3; */
+    border-bottom: 2px solid #ccc;
+    background: #FEFEFE;
+    padding: 0;
+    margin-top: 24px;
+    opacity: 0.95;
+    z-index: 9999;
+    overflow: hidden;
+    white-space: normal;
+}
+
+#gttTitle {
+    min-height: 1em;
+    max-height: 1em;
+    width: 100%;
+}
+
+#gttDesc {
+    min-height: 4em; /* was: 100px; style="height: 180px; width: 300px;" */
+    width: 100%; /* was: 339px; */
+    z-index: 2;
+    position: relative;
+    line-height: normal;
+    font-size: 13px;
+    -webkit-transition: none;
+    transition: none;
+    overflow: auto;
+    background: transparent;
+    resize: vertical;
+}
+
+#gttButton {
+    padding-left: 10px;
+    padding-right: 10px;
+    -webkit-user-select: none;
+    margin-bottom: 0px;
+    margin-top:-2px;
+    outline: none;
+}
+
+#gttButton * {outline:none}
+#gttButton img {vertical-align: middle; height: 20px; padding-right:2px;}
+
+#gttPopup .content {
+    position: relative;
+    left: 0;
+    padding: 5px;
+}
+
+#gttPopup .popupMsg {border:1px solid #EDC967; background: #F9EDB8; padding:5px 10px 15px; margin: 10px;}
+#gttPopup #resize-icon {position: relative; bottom: 24px; right: 24px;}
+
+#gttPopup .gttFormControl {min-height: 31px;}
+
+#gttLabelsMsg, #gttMembersMsg {background: #F9EDB8; height: 16px; width: 29%; padding-left: 1%; margin-right: 70%; margin-bottom: 50px;}
+
+#gttLabels {margin: 0; padding: 0; min-height: 40px; max-height: 96px; width: 100%; overflow: auto;}
+
+#gttMembers {margin: 0; padding: 0; min-height: 50px; max-height: 124px; width: 100%; overflow: auto;}
+
+ul#gttPosition {display: inline-block; float: left; padding: 0; margin: 0 0 2px 0;}
+
+#gttLabels li, #gttMembers li {
+    float: left;
+    margin: 0 2px 2px 0;
+    padding: 6px 6px;
+    list-style: none;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    border-top-width: 4px;
+    cursor: pointer;
+    background: #F2F2F2;
+    font-size: 11px;
+    font-weight: bold;
+    color: #888;
+}
+
+#gttPosition li {
+    float: left;
+    cursor: pointer;
+    list-style: none;
+    /* background: #F2F2F2; */
+    font-size: 20px;
+    font-weight: bold;
+    color: #ccc;
+    height: 26px;
+    width: 22px;
+    line-height: 26px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#gttLabels li:hover, #gttMembers li:hover, #gttLabels li.active:hover, #gttMembers li.active:hover {border-color: #52A8D9; color: #1789C0;}
+#gttLabels li.active, #gttMembers li.active {border-color: inherit; color: black; padding: 3px 3px; border: 4px solid; border-top-width:7px; background:linear-gradient(to bottom, #eeeeee 0, #999999 100%);}
+#gttPosition li:hover, #gttPosition li.active:hover {color: black;}
+#gttPosition li.active {color: darkgreen; background: #F2F2F2;}
+
+dl#gttPopup {vertical-align: baseline;}
+#gttPopup .gttFormLabel {width: 70px; float: left; text-align: right; padding-right: 5px; vertical-align: baseline;}
+#gttPopup .gttFormControl {display: block; margin: 8px; margin-left: 75px;}
+
+#gttPopup input,#gttPopup select,#gttPopup option {font-size:12px;}
+
+#gttPopup .gttTopRight {float: right; vertical-align: top; margin: 0;}
+
+#gttPopup #addToTrello /* input[type=button] */ {font-size: 14px; padding: 5px 18px; color: white; background:linear-gradient(to top, #24a828 0, #1b7e1e 100%); border: 0; border-radius: 3px; cursor: pointer}
+#gttPopup #addToTrello:hover /* input[type=button]:hover */ {background:linear-gradient(to bottom, #1f9323 0, #166919 100%);}
+#gttPopup input[type=text], #gttPopup textarea {padding: 3px; border: 1px solid #A1A1A1; border-radius: 3px;}
+
+#gttPopup #addToTrello[disabled], #gttPopup #addToTrello[disabled]:hover, #gttPopup input[disabled], #gttPopup input[disabled]:hover {background: #ccc; color:#666; cursor:default;}
+
+#gttPopup .header {font-weight: bold; vertical-align: middle; line-height: 30px; height: 30px; background:#ECEAED; border-bottom: 1px solid #ccc;}
+#gttPopup .header a {text-decoration: none; color: #1789C0;}
+#gttPopup .header a:hover {text-decoration: underline;}
+/* #gttPopup .header .item {float: left; margin-right: 10px;} */
+#gttPopup .member-avatar {float: left; width:30px; height: 30px; border-radius: 3px; background: lightgray; color: black; text-align: center;}
+#gttPopup .member-avatar:hover {color:lightblue; background:darkgray;}
+#gttPopup #close-button, #gttPopup .popupMsg .hideMsg {float: right; margin: 0; padding: 0 10px; border-radius: 3px; color: black; background: lightgray; font-weight: bold; font-size:200%; text-decoration: none;}
+#gttPopup #close-button:hover, #gttPopup .popupMsg .hideMsg:hover {color:red; background:darkgray;}
+#gttPopup .popupMsg .hideMsg {background: #EDC967; font-size: 150%; padding: 0 5px; margin-top:-5px; margin-right:-10px;} /* hideMsg close box is smaller */
+
+#gttPopup #gttAttachments, #gttPopup #gttImages {min-height: 60px; max-height: 120px; width: 100%; display: inline-block; overflow: auto; padding: 0; margin: 0;}
+#gttPopup #gttAttachments input[type=checkbox], #gttPopup #gttImages input[type=checkbox] {width: 15px;}
+#gttPopup #gttAttachments label, #gttPopup #gttImages label {display: inline-block; padding-left: 24px; text-indent: -18px;}
+
+#gttPopup #gttImages .img-container {width: 32px; height: 32px; display: inline-block; text-indent: 0; padding-right: 8px; margin: 5px 0}
+#gttPopup #gttImages img {vertical-align: middle; border: 1px solid lightgray; margin: 1px; padding: 1px; max-width: 100%; max-height: 100%; display: inline-block;}
+.ui-tooltip {max-height: 500px; max-width: 500px; width: 500px; overflow: auto}
+.ui-tooltip-content img {border: 1px solid lightgray; max-width: 100%; height: auto; width: auto}
+
+#gttPopup .popupMsg #error {font-weight: bold;}
+#gttPopup .popupMsg #error dt {float: left; clear: left; width: 110px; text-align: right; color: red;}
+
+#gttPopup .popupMsg dt {float: left; clear: left; width: 110px; text-align: right;}
+
+#gttPopup .gttWhere {width: 180px;}
+
+#gttPopup .positionGroup .gtt-button {
+    background-color: lightgray;
+    border: 1px solid black;
+    color: black;
+    padding: 2px 2px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 24px;
+    cursor: pointer;
+    width: 30px;
+    display: block;
+}
+
+#gttPopup .positionGroup .gtt-button:not(:last-child) {
+    border-bottom: none; /* Prevent double borders */
+}
+
+#gttPopup .positionGroup .gtt-button:hover {
+    background-color: #3e8e41;
+}
+
+#gttPopup .positionGroup .gtt-button:active {
+    background-color: darkgray;
+}
+
+/* End, style.css */
