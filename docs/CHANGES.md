@@ -1,3 +1,6 @@
+=== 2.8.0.007@2020-04-21 ===
+ * Update links from Trello to http://g2t.support
+
 === 2.8.0.006@2020-04-20 ===
  * Had to publish as new Extension "Gmail-2-Trello" due to old extension updates being disallowed.
  * Change "Arrows" to a pop-up for "Add below:" and "Add to:"
