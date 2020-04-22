@@ -5,7 +5,7 @@
  * Had to publish as new Extension "Gmail-2-Trello" due to old extension updates being disallowed.
  * Change "Arrows" to a pop-up for "Add below:" and "Add to:"
  * Try AspectRatio on for more reasonable resize experience [nope, doesn't work for what we'd want]
- * Posted in new github repo: https://github.com/appliedmedia/gmail-2-trello
+ * Posted in new github repo: http://g2t.pub/github
  
 === 2.8.0.003@2020-03-04 ===
  * Now uses background script for retrieval and upload of all attachments/images/embedded images, should resolve CORS/CORB new higher level of Chrome Security.
