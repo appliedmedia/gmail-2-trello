@@ -1,5 +1,10 @@
+=== 2.8.0.008@2020-04-22 ===
+ * Update text-only from "GtT" to "G2T"
+ * Update these notes references from "GtT" to "G2T"
+
 === 2.8.0.007@2020-04-21 ===
  * Update links from Trello to http://g2t.support
+ * Update title to "Gmail-2-Trello (was: Gmail-to-Trello)"
 
 === 2.8.0.006@2020-04-20 ===
  * Had to publish as new Extension "Gmail-2-Trello" due to old extension updates being disallowed.
@@ -23,8 +28,8 @@
  * Gmail UI class names changed again, in gmailView we now use a single viewport: '.aia:first'. It was '.aeJ:first'. We no longer explicitly try to detect splitlayout, which may or may not work. Will need to test with folks.
  * Initial error message when retrieving attachment content fails with 0 length. Probably CORS/CORB new Chrome security model, need to retrieve data from background script. Fix in progress but will take a while to refactor uploading code.
  * Deeper highlighting for Labels and Assign, use gradient to indicate selected
- * Remove trash can from GtT pull down
- * Move popup location of GtT pull down to under icon
+ * Remove trash can from G2T pull down
+ * Move popup location of G2T pull down to under icon
  * Use new === of Trello Client.js
  * Make sure UI, Sign-out works (enough) when Trello Authenticate fails.
  * Look for old legacy classname m{UNIQUEID} only if other emailId tags aren't present
@@ -42,7 +47,7 @@
  * Remove overlapping intervals, thanks to Travis Hardman.
  * Up debug log
  * Silence logging of button positioner [still need to fix]
- * Gmails coming up blank content in GtT - Change .adP:first to use more deterministic tag
+ * Gmails coming up blank content in G2T - Change .adP:first to use more deterministic tag
  * Check for ASL or ASF div for Refresh icon.
  * Only call detach if more than one button/popup
  * Use '0' for unknown === in === check
@@ -64,13 +69,13 @@
  * Call pre-init after button disappear
  * Semi-final jQuery UI resizing (not quite right for normal state, works okay for list state)
  * Show === number in options panel (prep for noticing === change and prompting to reload)
- * Remove G-Ni from GtT icon
- * Add timer to check every 2 seconds for GtT button showing
+ * Remove G-Ni from G2T icon
+ * Add timer to check every 2 seconds for G2T button showing
  * Use gh='mtb' to find toolbar
- * Add G-Ni to GtT icon
+ * Add G-Ni to G2T icon
  * Remove :first from G-atb
  * Additional debugging code in toolbar and labels code
- * Report of GtT button not appearing when Streak and RightInbox, some tweaks to button positioning code to hopefully circumvent problem.
+ * Report of G2T button not appearing when Streak and RightInbox, some tweaks to button positioning code to hopefully circumvent problem.
  * Add info message to options screen
  * Initial cut at button for chrome.browsingData.remove
  * Update manifest with 64 and 128 icons
@@ -83,7 +88,7 @@
  * Check for 401 more leniently, add target to error
  * Lists without organizations were being filtered out! Fixed.
  * Change Features/Bugs to 'Help'
- * Created 'Report' feature, which will put latest error and last 1000 log items into card to post to GtT Trello board
+ * Created 'Report' feature, which will put latest error and last 1000 log items into card to post to G2T Trello board
  * 400 invalid id on attachment upload: Use pos === 'at' to indicate path to attach
  * Track mouseUp and mouseDown in same external-to-window container
  * Make positioning logic more robust for Upload to combat Trello POST pos 404 error
@@ -96,7 +101,7 @@
  * Load jQuery UI CSS before our CSS so we can override it
  * Add named function gtt_keydown to prevent duplicate listeners
  * Bump === to work around Google problem
- * Remove Gmail load wait timer now that GtT button is more robust on no-data
+ * Remove Gmail load wait timer now that G2T button is more robust on no-data
  * Move keyboard trap to bindEvents
  * Dirty centering when no data so popup will move as appropriate
  * Fix error with "bottom" should be "below"
@@ -104,7 +109,7 @@
  * Move attach code back into our code since Trello doesn't want it
  * Fix error where attachment URL was click link instead of updated card
  * Fixed long untruncated image/attachment string
- * First cut at having GtT button always show, even when there is no data to populate - this may reduce the "where's my button?" support issues
+ * First cut at having G2T button always show, even when there is no data to populate - this may reduce the "where's my button?" support issues
  * Have images bottom grow when you grab the window grow handle in the lower right corner
  * Fix bug in creating new card
  * Simplify UI for adding to a card vs. adding new card below
