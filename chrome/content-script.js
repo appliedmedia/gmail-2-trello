@@ -46,7 +46,7 @@ function gtt_log(data) {
             data = JSON.stringify(data);
         }
 
-        data = now_k + '.' + counter_k + ' GtT::' + data;
+        data = now_k + '.' + counter_k + ' G2T::' + data;
 
         l.memory[l.count] = data;
         if (++l.count >= l.max) {

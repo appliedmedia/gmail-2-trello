@@ -77,7 +77,7 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function() {
         if (this.html && this.html['add_to_trello'] && this.html['add_to_trello'].length > 0) {
            // gtt_log('PopupView:confirmPopup: add_to_trello_html already exists');
         } else {
-            var img = 'GtT';
+            var img = 'G2T';
 
             // Refresh icon present? If so, use graphics, if not, use text:
             if ($('div.asl.T-I-J3.J-J5-Ji,div.asf.T-I-J3.J-J5-Ji', this.$toolBar).length > 0) {
