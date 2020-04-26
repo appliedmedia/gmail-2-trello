@@ -3,9 +3,9 @@
  * @depend eventTarget.js
  */
 
-MenuControl = function(args) {
+MenuControl = function (args) {
     if (!args || !args.selectors) {
-        gtt_log('MenuControl missing required selectors');
+        g2t_log("MenuControl missing required selectors");
         return;
     }
 
@@ -19,18 +19,18 @@ MenuControl = function(args) {
 
     //bind event
     var self = this;
-    this.items.click(function() {
+    this.items.click(function () {
         var newIndex = this.menuIndex;
-        
+
         if (self.nonexclusive === true) {
-            $(this).toggleClass('active');
+            $(this).toggleClass("active");
         } else {
-            $(this).addClass('active').siblings().removeClass('active');
+            $(this).addClass("active").siblings().removeClass("active");
             /*
             var $current = self.items.parent().find('> .active:first');
             if ($current[0]) {
                 if ($current[0].menuIndex === newIndex) {
-                    //gtt_log('clicked on an active menu');
+                    //g2t_log('clicked on an active menu');
                     return;
                 }
                 $current[0].classList.remove('active');
@@ -38,7 +38,6 @@ MenuControl = function(args) {
             this.classList.add('active');
             */
         }
-        self.event.fire('onMenuClick', {target: this, index: newIndex});
+        self.event.fire("onMenuClick", { target: this, index: newIndex });
     });
 };
-

@@ -23,7 +23,7 @@ Gmail2Trello.PopupView.prototype.init = function () {
 
     var strAddCardButtonHtml =
         '\
-<div id="gttButton" class="T-I J-J5-Ji ar7 nf T-I-ax7 L3" data-tooltip="Add this card to Trello"> \
+<div id="g2tButton" class="T-I J-J5-Ji ar7 nf T-I-ax7 L3" data-tooltip="Add this card to Trello"> \
     <div aria-haspopup="true" role="button" class="J-J5-Ji W6eDmd L3 J-Zh-I J-J5-Ji Bq L3" tabindex="0"> \
         <img class="f tk3N6e-I-J3" src="' +
         self.options.urlprefix +
@@ -33,7 +33,7 @@ Gmail2Trello.PopupView.prototype.init = function () {
 </div>';
 
     /* Sample data:
-     <div id="gttButton" class="T-I J-J5-Ji ar7 nf T-I-ax7 L3" data-tooltip="Add this card to Trello">
+     <div id="g2tButton" class="T-I J-J5-Ji ar7 nf T-I-ax7 L3" data-tooltip="Add this card to Trello">
      <div aria-haspopup="true" role="button" class="J-J5-Ji W6eDmd L3 J-Zh-I J-J5-Ji Bq L3" tabindex="0">
      <img class="f tk3N6e-I-J3" src="chrome-extension://dmphibjhlehaljceeocbdeoaedkknipg/images/icon-13.jpg">
      <span class="button-text">Add card</span>
@@ -43,8 +43,8 @@ Gmail2Trello.PopupView.prototype.init = function () {
 
     var strPopupHtml =
         '\
-<div id="gttPopup" class="J-M jQjAxd open" style="display:none"> \
-    <div id="gttPopupSlider"></div> \
+<div id="g2tPopup" class="J-M jQjAxd open" style="display:none"> \
+    <div id="g2tPopupSlider"></div> \
     <div class="inner"> \
     <div class="hdr clearfix"> \
         <div class="userinfo"><span class="item">&nbsp;&nbsp;GMail to Trello</span> \
@@ -60,24 +60,24 @@ Gmail2Trello.PopupView.prototype.init = function () {
             <dl> \
                 <dt style="display:none">Orgs. filter:</dt> \
                 <dd style="display:none"> \
-                   <select id="gttOrg"> \
+                   <select id="g2tOrg"> \
                       <option value="all">All</option> \
                       <option value="-1">My Boards</option> \
                    </select> \
                 </dd> \
                 <dt>Board.:</dt> \
-                <dd><select id="gttBoard"><option value="">-</option></select></dd> \
+                <dd><select id="g2tBoard"><option value="">-</option></select></dd> \
                 <dt>List:</dt> \
                 <dd class="clearfix listrow">\
-                    <span id="gttListMsg">Pickup a board above</span>\
-                    <ul id="gttList"></ul>\
+                    <span id="g2tListMsg">Pickup a board above</span>\
+                    <ul id="g2tList"></ul>\
                 </dd> \
                 <dt>Due Date:</dt> \
-                <dd><input type="text" id="gttDue"></dd> \
+                <dd><input type="text" id="g2tDue"></dd> \
                 <dt>Title:</dt> \
-                <dd><input type="text" id="gttTitle" /></dd> \
+                <dd><input type="text" id="g2tTitle" /></dd> \
                 <dt>Description:</dt> \
-                <dd><textarea id="gttDesc" style="height:180px;width:300px"></textarea></dd> \
+                <dd><textarea id="g2tDesc" style="height:180px;width:300px"></textarea></dd> \
                 <dd>\
                     <input type="checkbox" checked="checked" id="chkBackLink"/>\
                     <label for="chkBackLink">Link back to GMail</label>\
@@ -91,8 +91,8 @@ Gmail2Trello.PopupView.prototype.init = function () {
 </div>';
 
     this.$toolBar.append(strAddCardButtonHtml + strPopupHtml);
-    this.$addCardButton = jQuery("#gttButton", this.$toolBar);
-    this.$popup = jQuery("#gttPopup", this.$toolBar);
+    this.$addCardButton = jQuery("#g2tButton", this.$toolBar);
+    this.$popup = jQuery("#g2tPopup", this.$toolBar);
 
     this.$popupMessage = jQuery(".popupMsg", this.$popup);
     this.$popupContent = jQuery(".content", this.$popup);
@@ -116,7 +116,7 @@ Gmail2Trello.PopupView.prototype.init = function () {
     //this.$popup.css('left', left + 'px');
 
     // Bind datepicker
-    this.$popupContent.find("#gttDue").datetimepicker();
+    this.$popupContent.find("#g2tDue").datetimepicker();
 
     this.onResize();
 
@@ -127,8 +127,8 @@ Gmail2Trello.PopupView.prototype.init = function () {
 
 Gmail2Trello.PopupView.prototype.detectPopup = function () {
     //detect duplicate toolBar
-    var $button = $("#gttButton");
-    var $popup = $("#gttPopup");
+    var $button = $("#g2tButton");
+    var $popup = $("#g2tPopup");
     if ($button && $button.length > 0) {
         log("G2T::Found Button at:");
         log($button);
@@ -168,7 +168,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     /** Popup's behavior **/
 
     //slider
-    var $slider = jQuery("#gttPopupSlider", this.$popup);
+    var $slider = jQuery("#g2tPopupSlider", this.$popup);
     var constraintRight = jQuery(window).width() - this.MIN_WIDTH;
 
     $slider.draggable({
@@ -199,12 +199,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         }
     });
 
-    jQuery("#gttOrg", this.$popup).change(function () {
+    jQuery("#g2tOrg", this.$popup).change(function () {
         //log(boardId);
         self.updateBoards();
     });
 
-    var $board = jQuery("#gttBoard", this.$popup);
+    var $board = jQuery("#g2tBoard", this.$popup);
     $board.change(function () {
         var boardId = $board.val();
 
@@ -212,8 +212,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             $board.val("");
         }
 
-        var $list = jQuery("#gttList", self.$popup);
-        var $listMsg = jQuery("#gttListMsg", self.$popup);
+        var $list = jQuery("#g2tList", self.$popup);
+        var $listMsg = jQuery("#g2tListMsg", self.$popup);
 
         $list.html("").hide();
         if (boardId === "_" || boardId === "") {
@@ -298,7 +298,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         strOptions +=
             '<option value="' + item.id + '">' + item.displayName + "</option>";
     }
-    var $org = jQuery("#gttOrg", this.$popup);
+    var $org = jQuery("#g2tOrg", this.$popup);
     $org.html(strOptions);
     $org.val("all");
 
@@ -321,10 +321,10 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
 Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
     //auto bind gmail data
-    jQuery("#gttTitle", this.$popup).val(data.subject);
+    jQuery("#g2tTitle", this.$popup).val(data.subject);
     //log(data.body);
-    jQuery("#gttDesc", this.$popup).val(data.body);
-    //jQuery('#gttDesc', this.$popup)[0].value = data.body;
+    jQuery("#g2tDesc", this.$popup).val(data.body);
+    //jQuery('#g2tDesc', this.$popup)[0].value = data.body;
 
     this.dataDirty = false;
 };
@@ -338,7 +338,7 @@ Gmail2Trello.PopupView.prototype.hideMessage = function (text) {
 };
 
 Gmail2Trello.PopupView.prototype.updateBoards = function () {
-    var $org = jQuery("#gttOrg", this.$popup);
+    var $org = jQuery("#g2tOrg", this.$popup);
     var orgId = $org.val();
 
     var orgs = this.data.trello.orgs;
@@ -372,7 +372,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function () {
             }
         }
     }
-    var $board = jQuery("#gttBoard", this.$popup);
+    var $board = jQuery("#g2tBoard", this.$popup);
     $board.html(strOptions);
 
     var settings = this.data.settings;
@@ -402,17 +402,17 @@ Gmail2Trello.PopupView.prototype.updateLists = function () {
         //                saveSettingFound = true;
     }
 
-    jQuery("#gttListMsg", this.$popup).hide();
-    jQuery("#gttList", this.$popup).html(strOptions).show();
+    jQuery("#g2tListMsg", this.$popup).hide();
+    jQuery("#g2tList", this.$popup).html(strOptions).show();
 
-    var listControl = new MenuControl("#gttList li");
+    var listControl = new MenuControl("#g2tList li");
     listControl.event.addListener("onMenuClick", function (e, params) {
         self.validateData();
     });
 
     var settings = this.data.settings;
-    var orgId = jQuery("#gttOrg", this.$popup).val();
-    var boardId = jQuery("#gttBoard", this.$popup).val();
+    var orgId = jQuery("#g2tOrg", this.$popup).val();
+    var boardId = jQuery("#g2tBoard", this.$popup).val();
     if (
         settings.orgId &&
         settings.orgId == orgId &&
@@ -424,13 +424,13 @@ Gmail2Trello.PopupView.prototype.updateLists = function () {
         for (var i = 0; i < lists.length; i++) {
             var item = lists[i];
             if (item.id == settingId) {
-                jQuery('#gttList li[value="' + item.id + '"]').click();
+                jQuery('#g2tList li[value="' + item.id + '"]').click();
                 break;
             }
         }
     }
     //select 1st list item
-    else jQuery("#gttList li:first").click();
+    else jQuery("#g2tList li:first").click();
 };
 
 Gmail2Trello.PopupView.prototype.stopWaitingHiddenThread = function () {
@@ -444,10 +444,10 @@ Gmail2Trello.PopupView.prototype.stopWaitingHiddenThread = function () {
 Gmail2Trello.PopupView.prototype.bindEventHiddenEmails = function () {
     var self = this;
     // update gmail thread on click
-    jQuery("#gttTitle", this.$popup).change(function () {
+    jQuery("#g2tTitle", this.$popup).change(function () {
         self.dataDirty = true;
     });
-    jQuery("#gttDesc", this.$popup).change(function () {
+    jQuery("#g2tDesc", this.$popup).change(function () {
         self.dataDirty = true;
     });
 
@@ -500,12 +500,12 @@ Gmail2Trello.PopupView.prototype.bindEventHiddenEmails = function () {
 
 Gmail2Trello.PopupView.prototype.validateData = function () {
     var newCard = {};
-    var orgId = jQuery("#gttOrg", this.$popup).val();
-    var boardId = jQuery("#gttBoard", this.$popup).val();
-    var listId = jQuery("#gttList li.active", this.$popup).attr("value");
-    var due = jQuery("#gttDue", this.$popup).val();
-    var title = jQuery("#gttTitle", this.$popup).val();
-    var description = jQuery("#gttDesc", this.$popup).val();
+    var orgId = jQuery("#g2tOrg", this.$popup).val();
+    var boardId = jQuery("#g2tBoard", this.$popup).val();
+    var listId = jQuery("#g2tList li.active", this.$popup).attr("value");
+    var due = jQuery("#g2tDue", this.$popup).val();
+    var title = jQuery("#g2tTitle", this.$popup).val();
+    var description = jQuery("#g2tDesc", this.$popup).val();
     var useBacklink = jQuery("#chkBackLink", this.$popup).is(":checked");
     var selfAssign = jQuery("#chkSelfAssign", this.$popup).is(":checked");
     var timeStamp = jQuery(".gH .gK .g3:first", this.$visibleMail).attr(

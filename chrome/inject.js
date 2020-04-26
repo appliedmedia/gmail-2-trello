@@ -12,7 +12,7 @@ setTimeout(function () {
 	) {
 		userEmail = window.opener.GLOBALS[10];
 	}
-	var G2T_event = new CustomEvent("gtt:connect_extension", {
+	var G2T_event = new CustomEvent("g2t:connect_extension", {
 		detail: { userEmail: userEmail },
 	});
 	document.dispatchEvent(G2T_event);

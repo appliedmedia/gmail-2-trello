@@ -1,26 +1,26 @@
-<div id="gttPopup" class="J-M jQjAxd open clearfix" style="display: none;">
+<div id="g2tPopup" class="J-M jQjAxd open clearfix" style="display: none;">
   <div class="header clearfix">
     <a
-      id="gttAvatarURL"
+      id="g2tAvatarURL"
       href="http://g2t.support"
       target="_blank"
       title="Open your Trello homepage"
       class="member-avatar"
-      ><span id="gttAvatarText" /><img
-        id="gttAvatarImg"
+      ><span id="g2tAvatarText" /><img
+        id="g2tAvatarImg"
         width="30"
         height="30"
         src=""
     /></a>
     <a
-      id="gttUsername"
+      id="g2tUsername"
       href="http://g2t.support"
       target="_blank"
       title="Open your Trello homepage"
       style="margin-left: 5px;"
       >Username</a
     >
-    | <a id="gttSignOutButton" title="Sign out">Sign out</a> |
+    | <a id="g2tSignOutButton" title="Sign out">Sign out</a> |
     <a
       href="http://g2t.support"
       target="_blank"
@@ -28,14 +28,14 @@
       >Help</a
     >
     | <a id="report" title="Create error report card">Report</a>
-    <!-- | <a id="gttSubscribe" title="Subscribe">Subscribe</a> -->
+    <!-- | <a id="g2tSubscribe" title="Subscribe">Subscribe</a> -->
     <a id="close-button" title="Close">&times;</a>
   </div>
   <div class="popupMsg">Loading...</div>
   <div class="content" style="display: none;">
-    <div class="gttTopRight">
+    <div class="g2tTopRight">
       <div style="float: left;" class="clearfix listrow">
-        <!-- <ul id="gttPosition" /> -->
+        <!-- <ul id="g2tPosition" /> -->
       </div>
       <div style="float: right;">
         <input
@@ -47,55 +47,55 @@
         />
       </div>
     </div>
-    <div class="gttMain">
-      <div class="gttFormGroup">
-        <label class="gttFormLabel">Where:</label>
-        <div class="gttFormControl">
-          <select id="gttBoard" class="gttWhere">
+    <div class="g2tMain">
+      <div class="g2tFormGroup">
+        <label class="g2tFormLabel">Where:</label>
+        <div class="g2tFormControl">
+          <select id="g2tBoard" class="g2tWhere">
             <option value="">Select a board...</option>
           </select>
-          <select id="gttList" class="gttWhere">
+          <select id="g2tList" class="g2tWhere">
             <option value="">...please pick a board...</option>
           </select>
-          <select id="gttPosition">
+          <select id="g2tPosition">
             <option value="below">below:</option>
             <option value="to">to:</option>
           </select>
-          <select id="gttCard" class="gttWhere">
+          <select id="g2tCard" class="g2tWhere">
             <option value="">...please pick a list...</option>
           </select>
         </div>
       </div>
-      <div class="gttFormGroup">
+      <div class="g2tFormGroup">
         <label
-          class="gttFormLabel"
-          id="gttLabelsHeader"
+          class="g2tFormLabel"
+          id="g2tLabelsHeader"
           title="Shift-click me to clear all labels"
           >Labels:</label
         >
-        <div class="clearfix gttFormControl">
-          <div id="gttLabelsMsg">...please pick a board...</div>
-          <ul id="gttLabels" />
+        <div class="clearfix g2tFormControl">
+          <div id="g2tLabelsMsg">...please pick a board...</div>
+          <ul id="g2tLabels" />
         </div>
       </div>
-      <div class="gttFormGroup gttAssignments">
+      <div class="g2tFormGroup g2tAssignments">
         <label
-          class="gttFormLabel"
-          id="gttMembersHeader"
+          class="g2tFormLabel"
+          id="g2tMembersHeader"
           title="Shift-click me to clear all assignments"
           >Assign:</label
         >
-        <div class="clearfix gttFormControl">
-          <div id="gttMembersMsg">...please pick a board...</div>
-          <ul id="gttMembers" />
+        <div class="clearfix g2tFormControl">
+          <div id="g2tMembersMsg">...please pick a board...</div>
+          <ul id="g2tMembers" />
         </div>
       </div>
-      <div class="gttFormGroup">
-        <label class="gttFormLabel">Due:</label>
-        <div class="clearfix gttFormControl">
-          <input type="date" id="gttDue_Date" />
-          <input type="time" id="gttDue_Time" />
-          <select id="gttDue_Shortcuts" style="width: 3em;">
+      <div class="g2tFormGroup">
+        <label class="g2tFormLabel">Due:</label>
+        <div class="clearfix g2tFormControl">
+          <input type="date" id="g2tDue_Date" />
+          <input type="time" id="g2tDue_Time" />
+          <select id="g2tDue_Shortcuts" style="width: 3em;">
             <option value="d=0 am=0">--</option>
           </select>
           <input
@@ -114,33 +114,33 @@
           <label for="chkBackLink">Add Gmail link</label>
         </div>
       </div>
-      <div class="gttFormGroup">
-        <label class="gttFormLabel">Title:</label>
-        <div class="gttFormControl"><input type="text" id="gttTitle" /></div>
+      <div class="g2tFormGroup">
+        <label class="g2tFormLabel">Title:</label>
+        <div class="g2tFormControl"><input type="text" id="g2tTitle" /></div>
       </div>
-      <div class="gttFormGroup">
-        <label class="gttFormLabel">Body:</label>
-        <div class="gttFormControl">
-          <textarea id="gttDesc" rows="4"></textarea>
+      <div class="g2tFormGroup">
+        <label class="g2tFormLabel">Body:</label>
+        <div class="g2tFormControl">
+          <textarea id="g2tDesc" rows="4"></textarea>
         </div>
       </div>
-      <div class="gttFormGroup" id="gttAttachmentsContainer">
+      <div class="g2tFormGroup" id="g2tAttachmentsContainer">
         <label
-          class="gttFormLabel"
-          id="gttAttachHeader"
+          class="g2tFormLabel"
+          id="g2tAttachHeader"
           title="Shift-click me to select/de-select all attachments"
           >Attach:</label
         >
-        <div class="gttFormControl" id="gttAttachments" />
+        <div class="g2tFormControl" id="g2tAttachments" />
       </div>
-      <div class="gttFormGroup" id="gttImagesContainer">
+      <div class="g2tFormGroup" id="g2tImagesContainer">
         <label
-          class="gttFormLabel"
-          id="gttImagesHeader"
+          class="g2tFormLabel"
+          id="g2tImagesHeader"
           title="Shift-click me to select/de-select all images"
           >Images:</label
         >
-        <div class="gttFormControl" id="gttImages" />
+        <div class="g2tFormControl" id="g2tImages" />
       </div>
     </div>
   </div>
