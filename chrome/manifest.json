@@ -1,7 +1,7 @@
 {
   "name": "Gmail-2-Trello",
   "short_name": "G2T",
-  "version": "2.8.0.007",
+  "version": "2.8.0.008",
   "manifest_version": 2,
   "description": "Gmail+Trello integration. Was \"Gmail-to-Trello\". Create new Trello cards from Google mail with backlinks and attachments.",
   "icons": {
@@ -23,33 +23,30 @@
       "description": "Show the Gmail-2-Trello popup"
     }
   },
-  "background": {"scripts": ["background.js"]},
+  "background": { "scripts": ["background.js"] },
   "content_scripts": [
     {
       "matches": ["https://mail.google.com/*"],
       "js": [
-          "lib/jquery-3.4.1.min.js",
-          "lib/jquery-ui-1.12.1.min.js",
-          "lib/trello.min.js",
-          "lib/date.js",
-          "lib/google-analytics-bundle.js",
-          "lib/google-chrome-buy.js",
-          "lib/eventTarget.js",
-          "lib/menuControl.js",
-          "lib/waitCounter.js",
-          "views/gmailView.js",
-          "views/popupView.js",
-          "model.js",
-          "app.js",
-          "content-script.js"
+        "lib/jquery-3.4.1.min.js",
+        "lib/jquery-ui-1.12.1.min.js",
+        "lib/trello.min.js",
+        "lib/date.js",
+        "lib/google-analytics-bundle.js",
+        "lib/google-chrome-buy.js",
+        "lib/eventTarget.js",
+        "lib/menuControl.js",
+        "lib/waitCounter.js",
+        "views/gmailView.js",
+        "views/popupView.js",
+        "model.js",
+        "app.js",
+        "content-script.js"
       ],
-      "css": [
-        "lib/jquery-ui-1.12.1.min.css",
-        "style.css"
-      ]
+      "css": ["lib/jquery-ui-1.12.1.min.css", "style.css"]
     }
   ],
-  "web_accessible_resources":[
+  "web_accessible_resources": [
     "images/icon-48.png",
     "images/icon-16.jpg",
     "images/new_icon.gif",
