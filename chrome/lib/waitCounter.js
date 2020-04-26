@@ -1,8 +1,8 @@
 var WaitCounter = {
-	items : {}
+	items: {},
 };
 
-WaitCounter.stop = function(name) {
+WaitCounter.stop = function (name) {
 	if (WaitCounter.items[name]) {
 		var item = WaitCounter.items[name];
 
@@ -11,23 +11,21 @@ WaitCounter.stop = function(name) {
 			item.busy = false;
 		}
 	}
-
 };
 
-WaitCounter.start = function(name, interval, maxSteps, callBack) {
+WaitCounter.start = function (name, interval, maxSteps, callBack) {
 	// TODO: replace current event to a new one
 	if (!WaitCounter.items[name]) {
 		WaitCounter.items[name] = {
-			name:name,
-			interval:interval,
-			maxSteps:maxSteps,
-			callBack:callBack,
-			handler:null,
-			busy:false,
-			count:0
+			name: name,
+			interval: interval,
+			maxSteps: maxSteps,
+			callBack: callBack,
+			handler: null,
+			busy: false,
+			count: 0,
 		};
-
-	} 
+	}
 
 	var current = WaitCounter.items[name];
 
@@ -35,22 +33,18 @@ WaitCounter.start = function(name, interval, maxSteps, callBack) {
 		current.counter = 0;
 		current.busy = true;
 
-		current.handler = setInterval(function() {
+		current.handler = setInterval(function () {
 			current.counter++;
-			gtt_log('WaitCounter['+current.name+']. Round #'+current.counter);
+			g2t_log(
+				"WaitCounter[" + current.name + "]. Round #" + current.counter
+			);
 
-			if (current.counter>=current.maxSteps) {
+			if (current.counter >= current.maxSteps) {
 				clearInterval(current.handler);
 				current.busy = false;
 			}
-			
+
 			callBack();
-
-
-
-		}, current.interval);	
+		}, current.interval);
 	}
-
-
-	
 };

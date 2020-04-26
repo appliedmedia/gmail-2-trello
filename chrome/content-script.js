@@ -20,33 +20,35 @@ var globalInit = false;
  * Global log. A wrapper for console.log, depend on logEnabled flag
  * @param  {any} data data to write log
  */
-function gtt_log(data) {
-    if (!window.hasOwnProperty('gtt_log_g')) {
-        window.gtt_log_g = {
+function g2t_log(data) {
+    if (!window.hasOwnProperty("g2t_log_g")) {
+        window.g2t_log_g = {
             memory: [],
             count: 0,
             max: 300,
-            debugMode: false
-        }
-        chrome.storage.sync.get('debugMode', function(response) {
-            if (response.hasOwnProperty('debugMode') && response['debugMode']) {
-                window.gtt_log_g.debugMode = true;
-            };
+            debugMode: false,
+        };
+        chrome.storage.sync.get("debugMode", function (response) {
+            if (response.hasOwnProperty("debugMode") && response["debugMode"]) {
+                window.g2t_log_g.debugMode = true;
+            }
         });
     }
 
-    var l = window.gtt_log_g;
+    var l = window.g2t_log_g;
 
     if (data) {
-        const count_size_k = (l.max).toString().length;
-        const counter_k = ('0'.repeat(count_size_k) + (l.count).toString()).slice(-count_size_k);
+        const count_size_k = l.max.toString().length;
+        const counter_k = ("0".repeat(count_size_k) + l.count.toString()).slice(
+            -count_size_k
+        );
         const now_k = new Date().toISOString();
 
-        if (typeof data !== 'string') {
+        if (typeof data !== "string") {
             data = JSON.stringify(data);
         }
 
-        data = now_k + '.' + counter_k + ' G2T::' + data;
+        data = now_k + "." + counter_k + " G2T::" + data;
 
         l.memory[l.count] = data;
         if (++l.count >= l.max) {
@@ -56,31 +58,38 @@ function gtt_log(data) {
             console.log(data);
         }
     } else {
-        return l.memory.slice(l.count).join('\n') + l.memory.slice(0,l.count).join('\n');
+        return (
+            l.memory.slice(l.count).join("\n") +
+            l.memory.slice(0, l.count).join("\n")
+        );
     }
 }
 
 /**
  * Handle request from background.js
  * @param  request      Request object, contain parameters
- * @param  sender       
+ * @param  sender
  * @param  sendResponse Callback function
  */
- function requestHandler(request, sender, sendResponse) {
-    if (request && request.hasOwnProperty('message') && request.message === 'gtt:initialize') {
-        // gtt_log('GlobalInit: '+globalInit.toString());
+function requestHandler(request, sender, sendResponse) {
+    if (
+        request &&
+        request.hasOwnProperty("message") &&
+        request.message === "g2t:initialize"
+    ) {
+        // g2t_log('GlobalInit: '+globalInit.toString());
         globalInit = true;
         // enough delay for gmail finishes rendering
-        // gtt_log('tabs.onUpdated - complete');
-        jQuery(document).ready(function() {                    
-            gtt_log('document.ready');
+        // g2t_log('tabs.onUpdated - complete');
+        jQuery(document).ready(function () {
+            g2t_log("document.ready");
             getGmailObject();
             app.initialize();
         });
         // Was:
         // setTimeout(function() {
-        //     jQuery(document).ready(function() {                    
-        //         gtt_log('document.ready');
+        //     jQuery(document).ready(function() {
+        //         g2t_log('document.ready');
         //         getGmailObject();
         //         app.initialize();
         //     });
@@ -102,17 +111,17 @@ var app = new Gmail2Trello.App();
  */
 
 function getGmailObject() {
-    document.addEventListener('gtt:connect_extension', function(e) {
+    document.addEventListener("g2t:connect_extension", function (e) {
         app.model.userEmail = e.detail.userEmail; // Was: e.detail[10];
     });
 
-    ['inject.js'].forEach (function (item, iter) {
-        var script = document.createElement('script');
+    ["inject.js"].forEach(function (item, iter) {
+        var script = document.createElement("script");
         script.src = chrome.extension.getURL(item);
         (document.head || document.documentElement).appendChild(script);
-        script.onload = function() {
+        script.onload = function () {
             script.parentNode.removeChild(script);
-        }
+        };
     });
 }
 

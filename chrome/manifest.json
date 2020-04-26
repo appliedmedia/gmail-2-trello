@@ -16,7 +16,7 @@
     "default_popup": "views/options.html"
   },
   "commands": {
-    "gtt_keyboard_shortcut": {
+    "g2t_keyboard_shortcut": {
       "suggested_key": {
         "default": "Alt+Shift+G"
       },

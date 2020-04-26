@@ -7,7 +7,7 @@
     clear: both;
 }
 
-#gttPopup {
+#g2tPopup {
     position: absolute;
     max-height: none;
     min-height: 460px;
@@ -25,13 +25,13 @@
     white-space: normal;
 }
 
-#gttTitle {
+#g2tTitle {
     min-height: 1em;
     max-height: 1em;
     width: 100%;
 }
 
-#gttDesc {
+#g2tDesc {
     min-height: 4em; /* was: 100px; style="height: 180px; width: 300px;" */
     width: 100%; /* was: 339px; */
     z-index: 2;
@@ -45,7 +45,7 @@
     resize: vertical;
 }
 
-#gttButton {
+#g2tButton {
     padding-left: 10px;
     padding-right: 10px;
     -webkit-user-select: none;
@@ -54,39 +54,39 @@
     outline: none;
 }
 
-#gttButton * {
+#g2tButton * {
     outline: none;
 }
-#gttButton img {
+#g2tButton img {
     vertical-align: middle;
     height: 20px;
     padding-right: 2px;
 }
 
-#gttPopup .content {
+#g2tPopup .content {
     position: relative;
     left: 0;
     padding: 5px;
 }
 
-#gttPopup .popupMsg {
+#g2tPopup .popupMsg {
     border: 1px solid #edc967;
     background: #f9edb8;
     padding: 5px 10px 15px;
     margin: 10px;
 }
-#gttPopup #resize-icon {
+#g2tPopup #resize-icon {
     position: relative;
     bottom: 24px;
     right: 24px;
 }
 
-#gttPopup .gttFormControl {
+#g2tPopup .g2tFormControl {
     min-height: 31px;
 }
 
-#gttLabelsMsg,
-#gttMembersMsg {
+#g2tLabelsMsg,
+#g2tMembersMsg {
     background: #f9edb8;
     height: 16px;
     width: 29%;
@@ -95,7 +95,7 @@
     margin-bottom: 50px;
 }
 
-#gttLabels {
+#g2tLabels {
     margin: 0;
     padding: 0;
     min-height: 40px;
@@ -104,7 +104,7 @@
     overflow: auto;
 }
 
-#gttMembers {
+#g2tMembers {
     margin: 0;
     padding: 0;
     min-height: 50px;
@@ -113,15 +113,15 @@
     overflow: auto;
 }
 
-ul#gttPosition {
+ul#g2tPosition {
     display: inline-block;
     float: left;
     padding: 0;
     margin: 0 0 2px 0;
 }
 
-#gttLabels li,
-#gttMembers li {
+#g2tLabels li,
+#g2tMembers li {
     float: left;
     margin: 0 2px 2px 0;
     padding: 6px 6px;
@@ -136,7 +136,7 @@ ul#gttPosition {
     color: #888;
 }
 
-#gttPosition li {
+#g2tPosition li {
     float: left;
     cursor: pointer;
     list-style: none;
@@ -151,15 +151,15 @@ ul#gttPosition {
     vertical-align: middle;
 }
 
-#gttLabels li:hover,
-#gttMembers li:hover,
-#gttLabels li.active:hover,
-#gttMembers li.active:hover {
+#g2tLabels li:hover,
+#g2tMembers li:hover,
+#g2tLabels li.active:hover,
+#g2tMembers li.active:hover {
     border-color: #52a8d9;
     color: #1789c0;
 }
-#gttLabels li.active,
-#gttMembers li.active {
+#g2tLabels li.active,
+#g2tMembers li.active {
     border-color: inherit;
     color: black;
     padding: 3px 3px;
@@ -167,44 +167,44 @@ ul#gttPosition {
     border-top-width: 7px;
     background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
 }
-#gttPosition li:hover,
-#gttPosition li.active:hover {
+#g2tPosition li:hover,
+#g2tPosition li.active:hover {
     color: black;
 }
-#gttPosition li.active {
+#g2tPosition li.active {
     color: darkgreen;
     background: #f2f2f2;
 }
 
-dl#gttPopup {
+dl#g2tPopup {
     vertical-align: baseline;
 }
-#gttPopup .gttFormLabel {
+#g2tPopup .g2tFormLabel {
     width: 70px;
     float: left;
     text-align: right;
     padding-right: 5px;
     vertical-align: baseline;
 }
-#gttPopup .gttFormControl {
+#g2tPopup .g2tFormControl {
     display: block;
     margin: 8px;
     margin-left: 75px;
 }
 
-#gttPopup input,
-#gttPopup select,
-#gttPopup option {
+#g2tPopup input,
+#g2tPopup select,
+#g2tPopup option {
     font-size: 12px;
 }
 
-#gttPopup .gttTopRight {
+#g2tPopup .g2tTopRight {
     float: right;
     vertical-align: top;
     margin: 0;
 }
 
-#gttPopup #addToTrello /* input[type=button] */ {
+#g2tPopup #addToTrello /* input[type=button] */ {
     font-size: 14px;
     padding: 5px 18px;
     color: white;
@@ -213,26 +213,26 @@ dl#gttPopup {
     border-radius: 3px;
     cursor: pointer;
 }
-#gttPopup #addToTrello:hover /* input[type=button]:hover */ {
+#g2tPopup #addToTrello:hover /* input[type=button]:hover */ {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
 }
-#gttPopup input[type="text"],
-#gttPopup textarea {
+#g2tPopup input[type="text"],
+#g2tPopup textarea {
     padding: 3px;
     border: 1px solid #a1a1a1;
     border-radius: 3px;
 }
 
-#gttPopup #addToTrello[disabled],
-#gttPopup #addToTrello[disabled]:hover,
-#gttPopup input[disabled],
-#gttPopup input[disabled]:hover {
+#g2tPopup #addToTrello[disabled],
+#g2tPopup #addToTrello[disabled]:hover,
+#g2tPopup input[disabled],
+#g2tPopup input[disabled]:hover {
     background: #ccc;
     color: #666;
     cursor: default;
 }
 
-#gttPopup .header {
+#g2tPopup .header {
     font-weight: bold;
     vertical-align: middle;
     line-height: 30px;
@@ -240,15 +240,15 @@ dl#gttPopup {
     background: #eceaed;
     border-bottom: 1px solid #ccc;
 }
-#gttPopup .header a {
+#g2tPopup .header a {
     text-decoration: none;
     color: #1789c0;
 }
-#gttPopup .header a:hover {
+#g2tPopup .header a:hover {
     text-decoration: underline;
 }
-/* #gttPopup .header .item {float: left; margin-right: 10px;} */
-#gttPopup .member-avatar {
+/* #g2tPopup .header .item {float: left; margin-right: 10px;} */
+#g2tPopup .member-avatar {
     float: left;
     width: 30px;
     height: 30px;
@@ -257,12 +257,12 @@ dl#gttPopup {
     color: black;
     text-align: center;
 }
-#gttPopup .member-avatar:hover {
+#g2tPopup .member-avatar:hover {
     color: lightblue;
     background: darkgray;
 }
-#gttPopup #close-button,
-#gttPopup .popupMsg .hideMsg {
+#g2tPopup #close-button,
+#g2tPopup .popupMsg .hideMsg {
     float: right;
     margin: 0;
     padding: 0 10px;
@@ -273,12 +273,12 @@ dl#gttPopup {
     font-size: 200%;
     text-decoration: none;
 }
-#gttPopup #close-button:hover,
-#gttPopup .popupMsg .hideMsg:hover {
+#g2tPopup #close-button:hover,
+#g2tPopup .popupMsg .hideMsg:hover {
     color: red;
     background: darkgray;
 }
-#gttPopup .popupMsg .hideMsg {
+#g2tPopup .popupMsg .hideMsg {
     background: #edc967;
     font-size: 150%;
     padding: 0 5px;
@@ -286,8 +286,8 @@ dl#gttPopup {
     margin-right: -10px;
 } /* hideMsg close box is smaller */
 
-#gttPopup #gttAttachments,
-#gttPopup #gttImages {
+#g2tPopup #g2tAttachments,
+#g2tPopup #g2tImages {
     min-height: 60px;
     max-height: 120px;
     width: 100%;
@@ -296,18 +296,18 @@ dl#gttPopup {
     padding: 0;
     margin: 0;
 }
-#gttPopup #gttAttachments input[type="checkbox"],
-#gttPopup #gttImages input[type="checkbox"] {
+#g2tPopup #g2tAttachments input[type="checkbox"],
+#g2tPopup #g2tImages input[type="checkbox"] {
     width: 15px;
 }
-#gttPopup #gttAttachments label,
-#gttPopup #gttImages label {
+#g2tPopup #g2tAttachments label,
+#g2tPopup #g2tImages label {
     display: inline-block;
     padding-left: 24px;
     text-indent: -18px;
 }
 
-#gttPopup #gttImages .img-container {
+#g2tPopup #g2tImages .img-container {
     width: 32px;
     height: 32px;
     display: inline-block;
@@ -315,7 +315,7 @@ dl#gttPopup {
     padding-right: 8px;
     margin: 5px 0;
 }
-#gttPopup #gttImages img {
+#g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
     margin: 1px;
@@ -337,10 +337,10 @@ dl#gttPopup {
     width: auto;
 }
 
-#gttPopup .popupMsg #error {
+#g2tPopup .popupMsg #error {
     font-weight: bold;
 }
-#gttPopup .popupMsg #error dt {
+#g2tPopup .popupMsg #error dt {
     float: left;
     clear: left;
     width: 110px;
@@ -348,18 +348,18 @@ dl#gttPopup {
     color: red;
 }
 
-#gttPopup .popupMsg dt {
+#g2tPopup .popupMsg dt {
     float: left;
     clear: left;
     width: 110px;
     text-align: right;
 }
 
-#gttPopup .gttWhere {
+#g2tPopup .g2tWhere {
     width: 180px;
 }
 
-#gttPopup .positionGroup .gtt-button {
+#g2tPopup .positionGroup .g2t-button {
     background-color: lightgray;
     border: 1px solid black;
     color: black;
@@ -373,15 +373,15 @@ dl#gttPopup {
     display: block;
 }
 
-#gttPopup .positionGroup .gtt-button:not(:last-child) {
+#g2tPopup .positionGroup .g2t-button:not(:last-child) {
     border-bottom: none; /* Prevent double borders */
 }
 
-#gttPopup .positionGroup .gtt-button:hover {
+#g2tPopup .positionGroup .g2t-button:hover {
     background-color: #3e8e41;
 }
 
-#gttPopup .positionGroup .gtt-button:active {
+#g2tPopup .positionGroup .g2t-button:active {
     background-color: darkgray;
 }
 
