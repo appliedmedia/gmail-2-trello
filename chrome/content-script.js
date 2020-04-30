@@ -26,7 +26,7 @@ function g2t_log(data) {
             memory: [],
             count: 0,
             max: 300,
-            debugMode: false,
+            debugMode: false
         };
         chrome.storage.sync.get("debugMode", function (response) {
             if (response.hasOwnProperty("debugMode") && response["debugMode"]) {
