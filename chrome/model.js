@@ -88,11 +88,24 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
     this.isInitialized = false;
 };
 
-Gmail2Trello.Model.prototype.makeAvatarUrl = function (avatarHash) {
+Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
     var retn = "";
-    if (avatarHash && avatarHash.length > 0) {
+    if (
+        args.hasOwnProperty("id") &&
+        args.id &&
+        args.id.length > 4 &&
+        args.hasOwnProperty("avatarHash") &&
+        args.avatarHash &&
+        args.avatarHash.length > 4
+    ) {
         retn =
-            "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";
+            "https://trello-members.s3.amazonaws.com/" +
+            args.id +
+            "/" +
+            args.avatarHash +
+            "/30.png"; // NOTE (Ace@2020-04-03): Doing string replacement old fashioned way for old browsers without ES6 `` support
+        // originally was but now 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";
+        // suggested but requires md5 hash of lowercase email address [see "https://www.gravatar.com/site/implement/images/"]: "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
     }
     return retn;
 };
@@ -237,7 +250,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
 
     Trello.get(
         "boards/" + boardId + "/members",
-        { fields: "fullName,username,initials,avatarHash" },
+        { fields: "id,fullName,username,initials,avatarHash" },
         function (data) {
             var me = self.trello.user;
             // Remove this user from the members list:
