@@ -3,6 +3,8 @@
  * Update text-only from "GtT" to "G2T"
  * Update these notes references from "GtT" to "G2T"
  * More trials for better resizing (failed)
+ * Replace 403'ing "https://trello-avatars.s3.amazonaws.com/{avatarHash}/30.png" with "https://trello-members.s3.amazonaws.com/{id}/{avatarHash}/30.png";
+
 
 === 2.8.0.007@2020-04-21 ===
 
