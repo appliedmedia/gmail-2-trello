@@ -1,3 +1,7 @@
+=== 2.8.0.010@2020-05-07 ===
+
+ * Use avatarUrl instead of id + '/' + avatarHash in case it moves in the future
+
 === 2.8.0.009@2020-05-03 ===
 
  * Update text-only from "GtT" to "G2T"
