@@ -766,10 +766,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     //bind trello data
     var me = data.trello.user; // First member is always this user
-    var avatarSrc = self.parent.model.makeAvatarUrl({
-        id: me.id,
-        avatarHash: me.avatarHash,
-    });
+    var avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl: me.avatarUrl || "" });
     var avatarText = "";
 
     if (!avatarSrc) {
@@ -1211,10 +1208,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
         var item = members[i];
         if (item && item.id) {
             var txt = item.initials || item.username || "?";
-            var avatar = self.parent.model.makeAvatarUrl({
-                id: item.id || "",
-                avatarHash: item.avatarHash || "",
-            });
+            var avatar = self.parent.model.makeAvatarUrl({ avatarUrl: item.avatarUrl || "" });
             const size_k = 20;
             $g2t.append(
                 $("<li>")
