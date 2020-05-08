@@ -786,15 +786,15 @@ Gmail2Trello.App.prototype.deep_link = function (obj, fields) {
 /**
  * Validate hash table entries are non-blank
  */
-Gmail2Trello.App.prototype.validHash = function (args) {
+Gmail2Trello.App.prototype.validHash = function (args, reqs = []) {
     if (!args) {
         g2t_log("validHash: Require args!");
         return false;
     }
 
-    var field1,
-        fields = Object.keys(args);
-    var valid = true;
+    var fields = reqs || Object.keys(args),
+        field1,
+        valid = true;
 
     while ((field1 = fields.shift()) && valid) {
         if (!args.hasOwnProperty(field1) || args[field1].length < 1) {

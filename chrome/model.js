@@ -91,23 +91,32 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
 Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
     var retn = "";
     if (
-        args.hasOwnProperty("id") &&
-        args.id &&
-        args.id.length > 4 &&
-        args.hasOwnProperty("avatarHash") &&
-        args.avatarHash &&
-        args.avatarHash.length > 4
+        /*
+        args.hasOwnProperty("id")
+        && args.id
+        && args.id.length > 4
+        && args.hasOwnProperty("avatarHash")
+        && args.avatarHash
+        && args.avatarHash.length > 4
+        */
+        args.hasOwnProperty("avatarUrl")
+        && args.avatarUrl
+        && args.avatarUrl > 4
     ) {
         retn =
-            "https://trello-members.s3.amazonaws.com/" +
-            args.id +
-            "/" +
-            args.avatarHash +
-            "/30.png"; // NOTE (Ace@2020-04-03): Doing string replacement old fashioned way for old browsers without ES6 `` support
-        // originally was but now 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";
+        /*
+        "https://trello-members.s3.amazonaws.com/" +
+        args.id +
+        "/" +
+        args.avatarHash +
+        */
+        args.avatarUrl
+        + "/30.png";
+        // NOTE (Ace@2020-04-03): Doing string replacement old fashioned way for old browsers without ES6
+        // originally was but now 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";avatarHash > 4
         // suggested but requires md5 hash of lowercase email address [see "https://www.gravatar.com/site/implement/images/"]: "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
     }
-    return retn;
+return retn;
 };
 
 Gmail2Trello.Model.prototype.loadTrelloData = function () {
@@ -250,7 +259,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
 
     Trello.get(
         "boards/" + boardId + "/members",
-        { fields: "id,fullName,username,initials,avatarHash" },
+        { fields: "id,fullName,username,initials,avatarUrl" },
         function (data) {
             var me = self.trello.user;
             // Remove this user from the members list:
@@ -262,7 +271,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
                 id: me.id,
                 username: me.username,
                 initials: me.initials,
-                avatarHash: me.avatarHash,
+                avatarUrl: me.avatarUrl, // avatarHash: me.avatarHash,
                 fullName: me.fullName,
             });
 

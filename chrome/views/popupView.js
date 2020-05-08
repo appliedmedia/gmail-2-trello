@@ -510,22 +510,22 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
     if (self.$g2tButton && self.$popup) {
         $(document)
             .on("keydown" + self.EVENT_LISTENER, function keyboardTrap(event) {
-                const periodASCII_k = 46,
+                const visible_k = self.popupVisible(),
+                    periodASCII_k = 46,
                     periodNumPad_k = 110,
                     periodKeyCode_k = 190,
-                    visible_k = self.popupVisible();
-                (isEscape_k = event.which === $.ui.keyCode.ESCAPE),
-                    (isEnter_k = event.which === $.ui.keyCode.ENTER),
-                    (isPeriodASCII_k = event.which === periodASCII_k),
-                    (isPeriodNumPad_k = event.which === periodNumPad_k),
-                    (isPeriodKeyCode_k = event.which === periodKeyCode_k),
-                    (isPeriod_k =
+                    isEscape_k = event.which === $.ui.keyCode.ESCAPE,
+                    isEnter_k = event.which === $.ui.keyCode.ENTER,
+                    isPeriodASCII_k = event.which === periodASCII_k,
+                    isPeriodNumPad_k = event.which === periodNumPad_k,
+                    isPeriodKeyCode_k = event.which === periodKeyCode_k,
+                    isPeriod_k =
                         isPeriodASCII_k ||
                         isPeriodNumPad_k ||
-                        isPeriodKeyCode_k),
-                    (isCtrlCmd_k = event.ctrlKey || event.metaKey),
-                    (isCtrlCmdPeriod_k = isCtrlCmd_k && isPeriod_k),
-                    (isCtrlCmdEnter_k = isCtrlCmd_k && isEnter_k);
+                        isPeriodKeyCode_k,
+                    isCtrlCmd_k = event.ctrlKey || event.metaKey,
+                    isCtrlCmdPeriod_k = isCtrlCmd_k && isPeriod_k,
+                    isCtrlCmdEnter_k = isCtrlCmd_k && isEnter_k;
 
                 if (visible_k) {
                     if (isEscape_k || isCtrlCmdPeriod_k) {
@@ -766,10 +766,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     //bind trello data
     var me = data.trello.user; // First member is always this user
-    var avatarSrc = self.parent.model.makeAvatarUrl({
-        id: me.id,
-        avatarHash: me.avatarHash,
-    });
+    var avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl: me.avatarUrl || "" });
     var avatarText = "";
 
     if (!avatarSrc) {
@@ -1211,10 +1208,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
         var item = members[i];
         if (item && item.id) {
             var txt = item.initials || item.username || "?";
-            var avatar = self.parent.model.makeAvatarUrl({
-                id: item.id || "",
-                avatarHash: item.avatarHash || "",
-            });
+            var avatar = self.parent.model.makeAvatarUrl({ avatarUrl: item.avatarUrl || "" });
             const size_k = 20;
             $g2t.append(
                 $("<li>")
@@ -1258,6 +1252,80 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
     }
 
     $g2t.show();
+};
+
+Gmail2Trello.PopupView.prototype.emailBoardListCardMap = class {
+    constructor() {
+        this.dict = {
+            prev: "",
+            next: "",
+        };
+    }
+
+    get() {
+        return this.dict;
+    }
+
+    set(dict_) {
+        this.dict = dict_;
+    }
+
+    oldest() {
+        let key1 = Object.keys(this.dict)[0] || "";
+        let keyN = "";
+        while ((keyN = key1.prev || "")) {
+            key1 = keyN;
+        }
+        return key1;
+    }
+
+    newest() {
+        let key1 = Object.keys(this.dict)[-1] || "";
+        let keyN = "";
+        while ((keyN = key1.next || "")) {
+            key1 = keyN;
+        }
+        return key1;
+    }
+
+    size() {
+        return Object.keys(this.dict).length;
+    }
+
+    max() {
+        return 3;
+    }
+
+    add(args) {
+        if (
+            this.parent.parent.validHash(args, [
+                "emailId",
+                "boardId",
+                "listId",
+                "cardId",
+            ])
+        ) {
+            if (!this.dict.hasOwnProperty(emailId)) {
+                if (this.size() < this.maxSize()) {
+                    let newest = this.newest();
+                    this.dict[emailId] = {
+                        prev: newest,
+                        next: "",
+                    };
+                    this[newest].next = emailId;
+                } else {
+                    const oldest_k = this.oldest();
+                    $.extend(this.dict[emailId], oldest_k);
+                    delete this.dict[oldest_k];
+                }
+            }
+            $.extend(this.dict[emailId], {
+                boardId: args.boardId,
+                listId: args.listId,
+                cardId: args.cardId,
+            });
+        }
+    }
 };
 
 Gmail2Trello.PopupView.prototype.validateData = function () {
@@ -1368,6 +1436,13 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         };
         self.data.newCard = newCard;
         $.extend(self.data.settings, newCard);
+        self.emailBoardListCardMap.add({
+            emailId: emailId,
+            boardId: boardId,
+            listId: listId,
+            cardId: cardId,
+        });
+        // Update email/board/list/card map to settings here
         self.parent.saveSettings();
     }
     $("#addToTrello", self.$popup).attr(
