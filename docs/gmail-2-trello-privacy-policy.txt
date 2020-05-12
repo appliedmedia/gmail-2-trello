@@ -1,6 +1,6 @@
 # Gmail-2-Trello Privacy Policy
 
-This policy describes our privacy practices for the information that is collected and used by the Gmail-2-Trello Extension. The latest version of this document can always be found here: https://trello.com/c/2e6evx8s/67-privacy-policy (shortened link: http://g2t.pub/legal).
+This policy describes our privacy practices for the information that is collected and used by the Gmail-2-Trello Extension. The latest version of this document can always be found here: https://trello.com/c/2e6evx8s/67-privacy-policy (shortened link: https://g2t.pub/legal).
 .
 
 ### We Are an Extension
@@ -12,7 +12,7 @@ The Chrome Web Store automatically generates anonymatized data regarding downloa
 .
 
 ### Bug Reports Can Be Submitted on Our Trello Board
-You have the option to submit bug reports to us when an error occurs. If you choose to submit reports via the [Gmail-2-Trello Support site](http://g2t.support), the content of those reports will be available to the project developers and other customers, which may include third parties. We may disclose the information in the report to people as necessary to improve the software.
+You have the option to submit bug reports to us when an error occurs. If you choose to submit reports via the [Gmail-2-Trello Support site](https://g2t.support), the content of those reports will be available to the project developers and other customers, which may include third parties. We may disclose the information in the report to people as necessary to improve the software.
 .
 
 ### Personally Identifiable Information (PII) in a Gmail Will Be Transferred to Trello
@@ -33,7 +33,7 @@ If we are required by law to disclose the information that you have submitted, a
 .
 
 ### Security is Not Implied and is Your Responsibility
-We do not store any information collected in any system besides the [Gmail-2-Trello Support site](http://g2t.support). Your Gmail and Trello accounts are owned by you and are your responsibility. We cannot guarantee their security.
+We do not store any information collected in any system besides the [Gmail-2-Trello Support site](https://g2t.support). Your Gmail and Trello accounts are owned by you and are your responsibility. We cannot guarantee their security.
 .
 
 Updated: 2020-04-21

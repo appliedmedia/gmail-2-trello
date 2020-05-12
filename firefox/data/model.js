@@ -77,7 +77,7 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
     Trello.get("members/me", {}, function (data) {
         data.avatarUrl =
             data.avatarSource === "upload"
-                ? retn = "http://www.gravatar.com/avatar/" + data.avatarHash + ".jpg?s=30";
+                ? retn = "https://www.gravatar.com/avatar/" + data.avatarHash + ".jpg?s=30";
                 /* Was: 
                 "https://trello-avatars.s3.amazonaws.com/" +
                   data.avatarHash +

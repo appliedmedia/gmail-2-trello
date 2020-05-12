@@ -651,8 +651,6 @@ Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
 
     $.get(chrome.extension.getURL("views/signOut.html"), function (data_in) {
         self.showMessage(self, data_in);
-        // chrome.identity.removeCacheAuthToken({'token': self.chrome_access_token});
-        // self.event.fire('onRequestDeauthorizeTrello');
     });
 };
 
@@ -680,11 +678,6 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
                     // onLicenseUpdateFail
                 },
             });
-            /*
-            chrome.identity.getAuthToken({'interactive': true}, function(token) {
-                self.chrome_access_token = token;
-            });
-            */
         });
     });
 
@@ -766,7 +759,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     //bind trello data
     var me = data.trello.user; // First member is always this user
-    var avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl: me.avatarUrl || "" });
+    var avatarSrc = self.parent.model.makeAvatarUrl({
+        avatarUrl: me.avatarUrl || "",
+    });
     var avatarText = "";
 
     if (!avatarSrc) {
@@ -1208,7 +1203,9 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
         var item = members[i];
         if (item && item.id) {
             var txt = item.initials || item.username || "?";
-            var avatar = self.parent.model.makeAvatarUrl({ avatarUrl: item.avatarUrl || "" });
+            var avatar = self.parent.model.makeAvatarUrl({
+                avatarUrl: item.avatarUrl || "",
+            });
             const size_k = 20;
             $g2t.append(
                 $("<li>")
@@ -1254,6 +1251,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
     $g2t.show();
 };
 
+/* In-progress work:
 Gmail2Trello.PopupView.prototype.emailBoardListCardMap = class {
     constructor() {
         this.dict = {
@@ -1327,6 +1325,7 @@ Gmail2Trello.PopupView.prototype.emailBoardListCardMap = class {
         }
     }
 };
+*/
 
 Gmail2Trello.PopupView.prototype.validateData = function () {
     var self = this;
@@ -1436,12 +1435,14 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         };
         self.data.newCard = newCard;
         $.extend(self.data.settings, newCard);
+        /* In-progress work:
         self.emailBoardListCardMap.add({
             emailId: emailId,
             boardId: boardId,
             listId: listId,
             cardId: cardId,
         });
+        */
         // Update email/board/list/card map to settings here
         self.parent.saveSettings();
     }
