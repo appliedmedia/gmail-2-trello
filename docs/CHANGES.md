@@ -1,6 +1,8 @@
-=== 2.8.0.010@2020-05-07 ===
+=== 2.8.0.011@2020-05-07 ===
 
  * Use avatarUrl instead of id + '/' + avatarHash in case it moves in the future
+ * Update http:// to https://
+ * Remove unused chrome.identity
 
 === 2.8.0.009@2020-05-03 ===
 

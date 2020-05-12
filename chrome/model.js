@@ -88,35 +88,20 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
     this.isInitialized = false;
 };
 
+// NOTE (Ace@2020-04-03): 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";
+// Gravatar requires md5 hash of lowercase email address [see "https://www.gravatar.com/site/implement/images/"]:
+// "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
+// avatarUrl return format is "https://trello-members.s3.amazonaws.com/{member-id}/{member-avatar-hash}/30.png"
 Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
     var retn = "";
     if (
-        /*
-        args.hasOwnProperty("id")
-        && args.id
-        && args.id.length > 4
-        && args.hasOwnProperty("avatarHash")
-        && args.avatarHash
-        && args.avatarHash.length > 4
-        */
-        args.hasOwnProperty("avatarUrl")
-        && args.avatarUrl
-        && args.avatarUrl > 4
+        args.hasOwnProperty("avatarUrl") &&
+        args.avatarUrl &&
+        args.avatarUrl.length > 8
     ) {
-        retn =
-        /*
-        "https://trello-members.s3.amazonaws.com/" +
-        args.id +
-        "/" +
-        args.avatarHash +
-        */
-        args.avatarUrl
-        + "/30.png";
-        // NOTE (Ace@2020-04-03): Doing string replacement old fashioned way for old browsers without ES6
-        // originally was but now 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";avatarHash > 4
-        // suggested but requires md5 hash of lowercase email address [see "https://www.gravatar.com/site/implement/images/"]: "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
+        retn = args.avatarUrl + "/30.png";
     }
-return retn;
+    return retn;
 };
 
 Gmail2Trello.Model.prototype.loadTrelloData = function () {
