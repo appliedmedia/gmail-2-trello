@@ -98,14 +98,14 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
             }
 
             this.html["add_to_trello"] =
-                '<div id="g2tButton" class="' +
-                'T-I J-J5-Ji ar7 nf T-I-ax7 L3" ' + // "lS T-I-ax7 ar7"
-                'data-tooltip="Add this Gmail to Trello">' +
-                '<div aria-haspopup="true" role="button" class="' +
-                classAdd +
-                'J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' + // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
-                img +
-                '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div>';
+                '<div id="g2tButton" class="'
+                + 'T-I J-J5-Ji ar7 nf T-I-ax7 L3" ' // "lS T-I-ax7 ar7"
+                + 'data-tooltip="Add this Gmail to Trello">'
+                + '<div aria-haspopup="true" role="button" class="'
+                + classAdd
+                + 'J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
+                + img
+                + '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div>';
         }
         // g2t_log('PopupView:confirmPopup: creating button');
         this.$toolBar.append(this.html["add_to_trello"]);
