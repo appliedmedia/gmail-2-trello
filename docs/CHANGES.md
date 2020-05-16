@@ -1,3 +1,6 @@
+=== 2.8.0.012@2020-05-15 ===
+ * Update icons for correct classes for Gmail with highlighting css
+
 === 2.8.0.011@2020-05-07 ===
 
  * Use avatarUrl instead of id + '/' + avatarHash in case it moves in the future
