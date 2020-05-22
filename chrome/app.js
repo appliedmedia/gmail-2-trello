@@ -792,7 +792,7 @@ Gmail2Trello.App.prototype.validHash = function (args, reqs = []) {
         return false;
     }
 
-    var fields = reqs || Object.keys(args),
+    var fields = reqs && reqs.length ? reqs : Object.keys(args),
         field1,
         valid = true;
 
