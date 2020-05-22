@@ -1,3 +1,6 @@
+=== 2.8.0.013@2020-05-22 ===
+ * Fix validHash to work correctly - was always taking the req = [] path. This was causing empty data to be sent to Trello, causing a 400 error
+
 === 2.8.0.012@2020-05-15 ===
  * Update icons for correct classes for Gmail with highlighting css
 
