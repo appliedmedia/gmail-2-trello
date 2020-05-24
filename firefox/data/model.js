@@ -24,7 +24,7 @@ Gmail2Trello.Model.prototype.retrieveSettings = function () {
 };
 
 Gmail2Trello.Model.prototype.initTrello = function () {
-    log("G2T::initTrelloData()");
+    log("initTrelloData()");
 
     var self = this;
 
@@ -75,15 +75,6 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
     // get user's info
     log("Getting user info");
     Trello.get("members/me", {}, function (data) {
-        data.avatarUrl =
-            data.avatarSource === "upload"
-                ? retn = "https://www.gravatar.com/avatar/" + data.avatarHash + ".jpg?s=30";
-                /* Was: 
-                "https://trello-avatars.s3.amazonaws.com/" +
-                  data.avatarHash +
-                  "/30.png" */
-                : null;
-        //log(data);
         self.trello.user = data;
 
         if (!data || !data.hasOwnProperty("id")) return false;

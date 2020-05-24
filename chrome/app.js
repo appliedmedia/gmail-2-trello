@@ -4,18 +4,20 @@
 var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
 
 Gmail2Trello.App = function () {
+    this.CHROME_SETTINGS_ID = "g2t_user_settings";
+    this.UNIQUE_URI_VAR = "g2t_filename";
+
     this.popupView = new Gmail2Trello.PopupView(this);
     this.gmailView = new Gmail2Trello.GmailView(this);
     this.model = new Gmail2Trello.Model(this);
 
     this.bindEvents();
-
-    this.CHROME_SETTINGS_ID = "g2t_user_settings";
-    this.UNIQUE_URI_VAR = "g2t_filename";
 };
 
 Gmail2Trello.App.prototype.bindEvents = function () {
     var self = this;
+
+    const dl_k = self.deep_link;
 
     /*** Data's events binding ***/
     this.model.event.addListener("onBeforeAuthorize", function () {
@@ -75,19 +77,35 @@ Gmail2Trello.App.prototype.bindEvents = function () {
     ) {
         self.popupView.displaySubmitCompleteForm();
         // If card lists or labels have been updated, reload:
-        const data_k = self.deep_link(params, ["data"]);
-        const listId_k = self.deep_link(data_k, ["data", "list", "id"]);
-        const boardId_k = self.deep_link(data_k, ["data", "board", "id"]);
-        const idList_k = self.deep_link(data_k, ["idList"]);
-        const idBoard_k = self.deep_link(data_k, ["idBoard"]);
-        const board_k = boardId_k || idBoard_k || 0;
-        const list_k = listId_k || idList_k || 0;
-        if (board_k) {
-            self.model.loadTrelloLabels(board_k);
-            self.model.loadTrelloMembers(board_k);
+        const data_k = dl_k(params, ["data"]);
+        const emailId = dl_k(data_k, ["emailId"]);
+        const boardId_k = dl_k(data_k, ["data", "board", "id"]);
+        const listId_k = dl_k(data_k, ["data", "list", "id"]);
+        const cardId_k = dl_k(data_k, ["data", "card", "id"]);
+        const idBoard_k = dl_k(data_k, ["idBoard"]);
+        const idList_k = dl_k(data_k, ["idList"]);
+        const idCard_k = dl_k(data_k, ["idCard"]);
+        const boardId = boardId_k || idBoard_k || 0;
+        const listId = listId_k || idList_k || 0;
+        const cardId = cardId_k || idCard_k || 0;
+        // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
+        // we'll remember that new card ID and then keep defaulting to it for
+        // subsequent updates to that email. That means we'll have to get the return
+        // value/url from Trello and dissect that, potentially doing this update
+        // in that routine:
+        self.model.emailBoardListCardMapUpdate({
+            emailId,
+            boardId,
+            listId,
+            cardId,
+        });
+
+        if (boardId) {
+            self.model.loadTrelloLabels(boardId);
+            self.model.loadTrelloMembers(boardId);
         }
-        if (list_k) {
-            self.model.loadTrelloCards(list_k);
+        if (listId) {
+            self.model.loadTrelloCards(listId);
         }
     });
 
@@ -182,7 +200,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         if (
             request &&
             request.hasOwnProperty("message") &&
-            request.message === "g2t:keyboard_shortcut"
+            request.message === "g2t_keyboard_shortcut"
         ) {
             self.popupView.showPopup();
         }
@@ -338,7 +356,7 @@ Gmail2Trello.App.prototype.markdownify = function (
         begin: "(^|\\s+|<|\\[|\\(|\\b|(?=\\W+))",
         end: "($|\\s+|>|\\]|\\)|\\b|(?=\\W+))",
     };
-    const unique_placeholder_k = "g2t:placeholder:"; // Unique placeholder tag
+    const unique_placeholder_k = "g2t_placeholder:"; // Unique placeholder tag
 
     var count = 0;
     var replacer_dict = {};
@@ -656,11 +674,21 @@ Gmail2Trello.App.prototype.midTruncate = function (text, max, add) {
  * Load settings
  */
 Gmail2Trello.App.prototype.loadSettings = function (popup) {
-    var self = this;
+    let self = this;
     const setID = this.CHROME_SETTINGS_ID;
     chrome.storage.sync.get(setID, function (response) {
         if (response && response.hasOwnProperty(setID)) {
-            self.popupView.data.settings = JSON.parse(response[setID]); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
+            // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
+            let settings_parsed = {};
+            try {
+                settings_parsed = JSON.parse(response[setID]);
+            } catch (err) {
+                g2t_log(
+                    "loadSettings: JSON parse failed! Error: " +
+                        JSON.stringify(err)
+                );
+            }
+            self.popupView.data.settings = settings_parsed;
         }
         if (popup) {
             popup.init_popup();
@@ -673,6 +701,7 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
  * Save settings
  */
 Gmail2Trello.App.prototype.saveSettings = function () {
+    let self = this;
     const setID = this.CHROME_SETTINGS_ID;
     let settings = $.extend({}, this.popupView.data.settings);
 
@@ -681,15 +710,19 @@ Gmail2Trello.App.prototype.saveSettings = function () {
     settings.title = "";
     settings.attachments = [];
     settings.images = [];
+    delete settings.description;
+    delete settings.title;
+    delete settings.attachments;
+    delete settings.images;
 
     const settings_string_k = JSON.stringify(settings);
 
-    let hash = {};
+    hash = {};
     hash[setID] = settings_string_k;
 
-    if (!this.lastSettingsSave || this.lastSettingsSave !== settings_string_k) {
+    if (!self.lastSettingsSave || self.lastSettingsSave !== settings_string_k) {
         chrome.storage.sync.set(hash); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
-        this.lastSettingsSave = settings_string_k;
+        self.lastSettingsSave = settings_string_k;
     }
 };
 

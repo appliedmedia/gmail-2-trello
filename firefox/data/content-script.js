@@ -54,13 +54,13 @@ function getGmailObject() {
     script.parentNode.removeChild(script);
 }
 
-log("G2T::GlobalInit: " + globalInit.toString());
+log("GlobalInit: " + globalInit.toString());
 globalInit = true;
 // enough delay for gmail finishes rendering
-log("G2T::tabs.onUpdated - complete");
+log("tabs.onUpdated - complete");
 setTimeout(function () {
     jQuery(document).ready(function () {
-        log("G2T::document.ready");
+        log("document.ready");
         getGmailObject();
         app.initialize();
     });
