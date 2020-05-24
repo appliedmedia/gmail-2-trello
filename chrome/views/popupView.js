@@ -37,9 +37,9 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.intervalId = 0;
 
-    this.EVENT_LISTENER = ".g2t_event_listener";
+    this.EVENT_LISTENER = ".g2t_event_listener"; // NOTE (acoven@2020-05-23): beginning with dot intentional and required
 
-    this.CLEAR_EXT_BROWSING_DATA = "g2t:clear_extension_browsing_data";
+    this.CLEAR_EXT_BROWSING_DATA = "g2t_clear_extension_browsing_data";
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -98,14 +98,14 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
             }
 
             this.html["add_to_trello"] =
-                '<div id="g2tButton" class="'
-                + 'T-I J-J5-Ji ar7 nf T-I-ax7 L3" ' // "lS T-I-ax7 ar7"
-                + 'data-tooltip="Add this Gmail to Trello">'
-                + '<div aria-haspopup="true" role="button" class="'
-                + classAdd
-                + 'J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
-                + img
-                + '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div>';
+                '<div id="g2tButton" class="' +
+                'T-I J-J5-Ji ar7 nf T-I-ax7 L3" ' + // "lS T-I-ax7 ar7"
+                'data-tooltip="Add this Gmail to Trello">' +
+                '<div aria-haspopup="true" role="button" class="' +
+                classAdd +
+                'J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' + // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
+                img +
+                '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div>';
         }
         // g2t_log('PopupView:confirmPopup: creating button');
         this.$toolBar.append(this.html["add_to_trello"]);
@@ -622,10 +622,10 @@ Gmail2Trello.PopupView.prototype.periodicChecks = function () {
     const manifest_version_k = self.getManifestVersion();
 
     if (manifest_version_k > "0") {
-        chrome.storage.sync.get("g2t:version", function (response) {
+        chrome.storage.sync.get("g2t_version", function (response) {
             const prev_version_k =
-                response && response.hasOwnProperty("g2t:version")
-                    ? response["g2t:version"]
+                response && response.hasOwnProperty("g2t_version")
+                    ? response["g2t_version"]
                     : "0";
             if (prev_version_k > "0" && prev_version_k !== manifest_version_k) {
                 $.get(
@@ -647,7 +647,7 @@ Gmail2Trello.PopupView.prototype.periodicChecks = function () {
 Gmail2Trello.PopupView.prototype.forceSetVersion = function () {
     var self = this;
     chrome.storage.sync.set({
-        "g2t:version": self.getManifestVersion() || "unknown",
+        g2t_version: self.getManifestVersion() || "unknown",
     });
 };
 
@@ -1256,82 +1256,6 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
     $g2t.show();
 };
 
-/* In-progress work:
-Gmail2Trello.PopupView.prototype.emailBoardListCardMap = class {
-    constructor() {
-        this.dict = {
-            prev: "",
-            next: "",
-        };
-    }
-
-    get() {
-        return this.dict;
-    }
-
-    set(dict_) {
-        this.dict = dict_;
-    }
-
-    oldest() {
-        let key1 = Object.keys(this.dict)[0] || "";
-        let keyN = "";
-        while ((keyN = key1.prev || "")) {
-            key1 = keyN;
-        }
-        return key1;
-    }
-
-    newest() {
-        let key1 = Object.keys(this.dict)[-1] || "";
-        let keyN = "";
-        while ((keyN = key1.next || "")) {
-            key1 = keyN;
-        }
-        return key1;
-    }
-
-    size() {
-        return Object.keys(this.dict).length;
-    }
-
-    max() {
-        return 3;
-    }
-
-    add(args) {
-        if (
-            this.parent.parent.validHash(args, [
-                "emailId",
-                "boardId",
-                "listId",
-                "cardId",
-            ])
-        ) {
-            if (!this.dict.hasOwnProperty(emailId)) {
-                if (this.size() < this.maxSize()) {
-                    let newest = this.newest();
-                    this.dict[emailId] = {
-                        prev: newest,
-                        next: "",
-                    };
-                    this[newest].next = emailId;
-                } else {
-                    const oldest_k = this.oldest();
-                    $.extend(this.dict[emailId], oldest_k);
-                    delete this.dict[oldest_k];
-                }
-            }
-            $.extend(this.dict[emailId], {
-                boardId: args.boardId,
-                listId: args.listId,
-                cardId: args.cardId,
-            });
-        }
-    }
-};
-*/
-
 Gmail2Trello.PopupView.prototype.validateData = function () {
     var self = this;
     var newCard = {};
@@ -1440,15 +1364,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         };
         self.data.newCard = newCard;
         $.extend(self.data.settings, newCard);
-        /* In-progress work:
-        self.emailBoardListCardMap.add({
-            emailId: emailId,
-            boardId: boardId,
-            listId: listId,
-            cardId: cardId,
-        });
-        */
-        // Update email/board/list/card map to settings here
+
         self.parent.saveSettings();
     }
     $("#addToTrello", self.$popup).attr(

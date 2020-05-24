@@ -26,7 +26,7 @@ function g2t_log(data) {
             memory: [],
             count: 0,
             max: 300,
-            debugMode: false
+            debugMode: false,
         };
         chrome.storage.sync.get("debugMode", function (response) {
             if (response.hasOwnProperty("debugMode") && response["debugMode"]) {
@@ -48,7 +48,7 @@ function g2t_log(data) {
             data = JSON.stringify(data);
         }
 
-        data = now_k + "." + counter_k + " G2T::" + data;
+        data = now_k + "." + counter_k + " G2T→" + data;
 
         l.memory[l.count] = data;
         if (++l.count >= l.max) {
@@ -75,7 +75,7 @@ function requestHandler(request, sender, sendResponse) {
     if (
         request &&
         request.hasOwnProperty("message") &&
-        request.message === "g2t:initialize"
+        request.message === "g2t_initialize"
     ) {
         // g2t_log('GlobalInit: '+globalInit.toString());
         globalInit = true;
@@ -111,7 +111,7 @@ var app = new Gmail2Trello.App();
  */
 
 function getGmailObject() {
-    document.addEventListener("g2t:connect_extension", function (e) {
+    document.addEventListener("g2t_connect_extension", function (e) {
         app.model.userEmail = e.detail.userEmail; // Was: e.detail[10];
     });
 

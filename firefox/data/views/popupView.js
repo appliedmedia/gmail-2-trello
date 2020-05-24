@@ -14,7 +14,7 @@ Gmail2Trello.PopupView = function () {
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
-    log("G2T::view::initializing...");
+    log("view::initializing...");
 
     //check if already init
     if (this.detectPopup()) return true;
@@ -130,10 +130,10 @@ Gmail2Trello.PopupView.prototype.detectPopup = function () {
     var $button = $("#g2tButton");
     var $popup = $("#g2tPopup");
     if ($button && $button.length > 0) {
-        log("G2T::Found Button at:");
+        log("Found Button at:");
         log($button);
         if ($button[0].clientWidth <= 0) {
-            log("G2T::Button is in an inactive region. Moving...");
+            log("Button is in an inactive region. Moving...");
             //relocate
             $button.appendTo(this.$toolBar);
             $popup.appendTo(this.$toolBar);

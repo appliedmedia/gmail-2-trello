@@ -1,7 +1,7 @@
-var CLEAR_EXT_BROWSING_DATA = "g2t:clear_extension_browsing_data";
-var UPLOAD_ATTACH = "g2t:upload_attach";
-var UPLOAD_ATTACH_STORE = "g2t:upload_attach_store";
-var UPLOAD_ATTACH_RESULTS = "g2t:upload_attach_results";
+var CLEAR_EXT_BROWSING_DATA = "g2t_clear_extension_browsing_data";
+var UPLOAD_ATTACH = "g2t_upload_attach";
+var UPLOAD_ATTACH_STORE = "g2t_upload_attach_store";
+var UPLOAD_ATTACH_RESULTS = "g2t_upload_attach_results";
 var debugMode_g;
 
 /**
@@ -17,7 +17,7 @@ function logbs(data) {
     }
 
     if (debugMode_g) {
-        console.log(data);
+        console.log("g2t→" + data);
     }
 }
 
@@ -38,20 +38,20 @@ chrome.commands.onCommand.addListener(function (command) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         chrome.tabs.sendMessage(
             tabs[0].id,
-            { message: "g2t:keyboard_shortcut" },
+            { message: "g2t_keyboard_shortcut" },
             function (response) {}
         );
     });
 });
 
 function g2t_clearExtensionBrowsingData(callback) {
-    logbs("g2t_clearExtensionBrowsingData");
+    logbs("clearExtensionBrowsingData");
     const opts_k = {
         since: 0,
         originTypes: { extension: true },
     };
     if (chrome && chrome.browsingData && chrome.browsingData.remove) {
-        logbs("g2t_clearExtensionBrowsingData: browsingData exists!");
+        logbs("clearExtensionBrowsingData: browsingData exists!");
         chrome.browsingData.remove(
             opts_k,
             {
@@ -72,7 +72,7 @@ function g2t_clearExtensionBrowsingData(callback) {
             callback
         );
     } else {
-        logbs("g2t_clearExtensionBrowsingData: browsingData invalid!");
+        logbs("clearExtensionBrowsingData: browsingData invalid!");
     }
 }
 
@@ -92,7 +92,7 @@ function g2t_checkForValidUrl(tab) {
             //Selected tab id
             tab.id,
             //Params inside a object data
-            { message: "g2t:initialize" }
+            { message: "g2t_initialize" }
         );
     }
 }

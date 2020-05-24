@@ -14,7 +14,11 @@ Gmail2Trello.Model = function (parent) {
 };
 
 Gmail2Trello.Model.prototype.init = function () {
-    var self = this;
+    const eblcMapID = Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
+
+    this[eblcMapID] = new this.EmailBoardListCardMap({
+        parent: this,
+    });
 
     this.isInitialized = true;
 
@@ -275,11 +279,9 @@ Gmail2Trello.Model.prototype.Uploader = function (args) {
         return;
     }
 
-    this.parent = args.parent;
+    $.extend(this, args);
 
     this.data = [];
-
-    this.cardId = args.cardId || "";
 
     this.pos = this.translatePosition({
         position: args.position || "",
@@ -388,8 +390,8 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
         )
             return;
 
-        const UPLOAD_ATTACH = "g2t:upload_attach";
-        const UPLOAD_ATTACH_RESULTS = "g2t:upload_attach_results";
+        const UPLOAD_ATTACH = "g2t_upload_attach";
+        const UPLOAD_ATTACH_RESULTS = "g2t_upload_attach_results";
         const trello_url_k = "https://api.trello.com/1/";
         const param_k = upload1.value;
 
@@ -432,9 +434,12 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
     },
 
     upload: function () {
-        let upload1 = this.data.shift();
+        let self = this;
+        let upload1 = self.data.shift();
         if (!upload1) {
-            this.event.fire("onCardSubmitComplete");
+            self.parent.event.fire("onCardSubmitComplete", {
+                data: { emailId: self.emailId },
+            });
         } else {
             let generateKeysAndValues = function (object) {
                 let keysAndValues = [];
@@ -461,11 +466,10 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
             delete upload1.method;
             delete upload1.property;
 
-            const fn_k = property.endsWith(this.attachments)
-                ? this.attach
+            const fn_k = property.endsWith(self.attachments)
+                ? self.attach
                 : Trello.rest;
 
-            let self = this;
             fn_k(
                 method,
                 property,
@@ -474,6 +478,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
                     $.extend(data, {
                         method: method + " " + property,
                         keys: generateKeysAndValues(upload1),
+                        emailId: self.emailId,
                     });
                     self.process_response(data);
                     if (self.data && self.data.length > 0) {
@@ -488,6 +493,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
                     $.extend(data, {
                         method: method + " " + property,
                         keys: generateKeysAndValues(upload1),
+                        emailId: self.emailId,
                     });
                     self.parent.event.fire("onAPIFailure", { data: data });
                 }
@@ -553,6 +559,7 @@ Gmail2Trello.Model.prototype.submit = function () {
         cardId: data.cardId,
         position: data.position,
         cardPos: data.cardPos,
+        emailId: data.emailId,
     });
 
     const pos_k = uploader.pos;
@@ -599,5 +606,148 @@ Gmail2Trello.Model.prototype.submit = function () {
 
     uploader.upload();
 };
+
+Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (args) {
+    const eblcMapID = Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
+    this[eblcMapID].add(args);
+};
+Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
+    constructor(args) {
+        this.list_m = [];
+        this.parent = this;
+        if (args && args.hasOwnProperty("parent")) {
+            this.parent = args.parent;
+        }
+    }
+
+    static get id() {
+        return "g2t_emailBoardListCardMap";
+    }
+
+    get list() {
+        return this.list_m || [];
+    }
+
+    set list(list_ = []) {
+        this.list_m = list_ || [];
+    }
+
+    add(args = {}) {
+        if (
+            this.parent.parent.validHash(args, [
+                "emailId",
+                "boardId",
+                "listId",
+                "cardId",
+            ])
+        ) {
+            args.timestamp = Date.now();
+            const emailId = args.emailId;
+            const index_k = this.find({ emailId });
+            this.makeRoom(index_k);
+            this.push(args);
+            this.chrome_save();
+        }
+        return this;
+    }
+
+    chrome_restore() {
+        chrome.storage.sync.get(this.id, function (response) {
+            if (response && response.hasOwnProperty(this.id)) {
+                let response_parsed = {};
+                try {
+                    response_parsed = JSON.parse(response[id]);
+                } catch (err) {
+                    g2t_log(
+                        "chrome_restore: JSON parse failed! Error: " +
+                            JSON.stringify(err)
+                    );
+                }
+
+                this.list = response_parsed;
+            }
+        });
+        return this;
+    }
+
+    chrome_save() {
+        chrome.storage.sync.set({ [this.id]: JSON.stringify(this.list) });
+        return this;
+    }
+
+    /**
+     * find
+     * input: {key: value} pair to search for in list
+     * output: index of item found, -1 if not found
+     * acoven@2020-05-23
+     */
+    find(key_value = {}) {
+        const key_k = Object.keys(key_value)[0] || "";
+        const value_k = (key_k ? key_value[key_k] : "") || "";
+        // NOTE (acoven@2020-05-23): FindIndex returns -1 if not found, and
+        // 0 is a valid index, so don't || these results:
+        const index_k = this.list.findIndex((item) => item[key_k] == value_k);
+        return index_k;
+    }
+
+    makeRoom(index = -1) {
+        if (!Number.isInteger(index)) {
+            return this;
+        } else if (index !== -1) {
+            // Already know the item we want to remove:
+            this.remove(index);
+        } else if (this.maxxed()) {
+            // We're maxxed, remove oldest:
+            this.remove(this.oldest());
+        } // Otherwise, do nothing, we've got room
+        return this;
+    }
+
+    max() {
+        return 3;
+    }
+
+    maxxed() {
+        const len_k = this.list.length;
+        const max_k = this.max();
+        return len_k >= max_k;
+    }
+
+    oldest() {
+        let lowest_timestamp = Math.POSITIVE_INFINITY,
+            index = -1;
+
+        const list_k = this.list || [];
+
+        // NOTE (acoven@2020-05-23): There are other more clever iterators,
+        // but a simple for loop through all items is the fastest way to find
+        // the smallest value:
+        for (const iter = list_k.length - 1; iter >= 0; iter--) {
+            const timestamp = list_k[iter].timestamp;
+            if (timestamp < lowest_timestamp) {
+                lowest_timestamp = timestamp;
+                index = iter;
+            }
+        }
+        return index;
+    }
+
+    push(entry = {}) {
+        if (Object.keys(entry).length) {
+            // Directly manipulating list to save memcopies:
+            this.list_m.push(entry);
+        }
+        return this;
+    }
+
+    remove(index = -1) {
+        if (Number.isInteger(index) && index !== -1) {
+            // Found it, remove it
+            // Directly manipulating list to save memcopies:
+            this.list_m.splice(index, 1);
+        }
+        return this;
+    }
+}; // End, class EmailBoardListCardMap
 
 // End, model.js
