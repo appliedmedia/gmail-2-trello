@@ -7,9 +7,9 @@ Gmail2Trello.App = function () {
     this.CHROME_SETTINGS_ID = "g2t_user_settings";
     this.UNIQUE_URI_VAR = "g2t_filename";
 
-    this.popupView = new Gmail2Trello.PopupView(this);
-    this.gmailView = new Gmail2Trello.GmailView(this);
     this.model = new Gmail2Trello.Model(this);
+    this.gmailView = new Gmail2Trello.GmailView(this);
+    this.popupView = new Gmail2Trello.PopupView(this);
 
     this.bindEvents();
 };
@@ -679,16 +679,14 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
     chrome.storage.sync.get(setID, function (response) {
         if (response && response.hasOwnProperty(setID)) {
             // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
-            let settings_parsed = {};
             try {
-                settings_parsed = JSON.parse(response[setID]);
+                self.popupView.data.settings = JSON.parse(response[setID]);
             } catch (err) {
                 g2t_log(
                     "loadSettings: JSON parse failed! Error: " +
                         JSON.stringify(err)
                 );
             }
-            self.popupView.data.settings = settings_parsed;
         }
         if (popup) {
             popup.init_popup();

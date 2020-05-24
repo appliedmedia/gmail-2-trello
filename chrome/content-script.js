@@ -25,7 +25,7 @@ function g2t_log(data) {
         window.g2t_log_g = {
             memory: [],
             count: 0,
-            max: 300,
+            max: 100,
             debugMode: false,
         };
         chrome.storage.sync.get("debugMode", function (response) {
