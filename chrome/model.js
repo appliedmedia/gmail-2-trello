@@ -613,23 +613,19 @@ Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (args) {
 };
 Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     constructor(args) {
-        this.list_m = [];
+        this.list = [];
         this.parent = this;
         if (args && args.hasOwnProperty("parent")) {
             this.parent = args.parent;
         }
+        this.chrome_restore();
     }
 
     static get id() {
         return "g2t_emailBoardListCardMap";
     }
-
-    get list() {
-        return this.list_m || [];
-    }
-
-    set list(list_ = []) {
-        this.list_m = list_ || [];
+    get id() {
+        return Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
     }
 
     add(args = {}) {
@@ -641,7 +637,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
                 "cardId",
             ])
         ) {
-            args.timestamp = Date.now();
+            // args.timestamp = Date.now(); // NOTE (acoven@2020-05-23): Turn on for circular file
             const emailId = args.emailId;
             const index_k = this.find({ emailId });
             this.makeRoom(index_k);
@@ -652,11 +648,12 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     chrome_restore() {
-        chrome.storage.sync.get(this.id, function (response) {
-            if (response && response.hasOwnProperty(this.id)) {
+        const id_k = this.id;
+        chrome.storage.sync.get(id_k, function (response) {
+            if (response && response.hasOwnProperty(id_k)) {
                 let response_parsed = {};
                 try {
-                    response_parsed = JSON.parse(response[id]);
+                    response_parsed = JSON.parse(response[id_k]);
                 } catch (err) {
                     g2t_log(
                         "chrome_restore: JSON parse failed! Error: " +
@@ -671,7 +668,8 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     chrome_save() {
-        chrome.storage.sync.set({ [this.id]: JSON.stringify(this.list) });
+        const id_k = this.id;
+        chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
         return this;
     }
 
@@ -698,13 +696,14 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
             this.remove(index);
         } else if (this.maxxed()) {
             // We're maxxed, remove oldest:
-            this.remove(this.oldest());
+            const oldest_k = this.oldest();
+            this.remove(oldest_k);
         } // Otherwise, do nothing, we've got room
         return this;
     }
 
     max() {
-        return 3;
+        return 100;
     }
 
     maxxed() {
@@ -714,28 +713,31 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     oldest() {
-        let lowest_timestamp = Math.POSITIVE_INFINITY,
+        /* // NOTE (acoven@2020-05-23): Turn on for circular file
+        let lowest_timestamp = -1, // starting value
             index = -1;
 
-        const list_k = this.list || [];
-
+        const eol_k = this.list.length - 1;
         // NOTE (acoven@2020-05-23): There are other more clever iterators,
         // but a simple for loop through all items is the fastest way to find
         // the smallest value:
-        for (const iter = list_k.length - 1; iter >= 0; iter--) {
-            const timestamp = list_k[iter].timestamp;
-            if (timestamp < lowest_timestamp) {
-                lowest_timestamp = timestamp;
+        for (let iter = eol_k; iter >= 0; iter--) {
+            const timestamp_k = this.list[iter].timestamp;
+            if (lowest_timestamp === -1 || timestamp_k < lowest_timestamp) {
+                lowest_timestamp = timestamp_k;
                 index = iter;
             }
         }
+
         return index;
+        */
+        return 0; // As long as we delete duplicates and grow from bottom, we can just discard top
     }
 
     push(entry = {}) {
         if (Object.keys(entry).length) {
             // Directly manipulating list to save memcopies:
-            this.list_m.push(entry);
+            this.list.push(entry);
         }
         return this;
     }
@@ -744,7 +746,11 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
         if (Number.isInteger(index) && index !== -1) {
             // Found it, remove it
             // Directly manipulating list to save memcopies:
-            this.list_m.splice(index, 1);
+            if (index === 0) {
+                this.list.shift();
+            } else {
+                this.list.splice(index, 1);
+            }
         }
         return this;
     }
