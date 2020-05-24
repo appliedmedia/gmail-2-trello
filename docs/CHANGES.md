@@ -1,6 +1,8 @@
 === 2.8.1.001@2020-05-22 ===
  * First cut at remembering what message was stored with what card
  * Move to safer "g2t_" instead of "g2t:" for variable names stored in hashes
+ * Reduce log lines circular queue to 100 lines
+ * Set "remembered" to 100 emails
 
 === 2.8.0.013@2020-05-22 ===
  * Fix validHash to work correctly - was always taking the req = [] path. This was causing empty data to be sent to Trello, causing a 400 error

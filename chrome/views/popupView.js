@@ -40,6 +40,8 @@ Gmail2Trello.PopupView = function (parent) {
     this.EVENT_LISTENER = ".g2t_event_listener"; // NOTE (acoven@2020-05-23): beginning with dot intentional and required
 
     this.CLEAR_EXT_BROWSING_DATA = "g2t_clear_extension_browsing_data";
+
+    this.updatesPending = [];
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -325,10 +327,10 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         self.validateData();
     });
 
-    var $list = $("#g2tList", this.$popup);
+    let $list = $("#g2tList", this.$popup);
     $list.change(function () {
-        var listId = $list.val();
-        self.event.fire("onListChanged", { listId: listId });
+        const listId = $list.val();
+        self.event.fire("onListChanged", { listId });
         self.validateData();
     });
 
@@ -849,7 +851,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 };
 
 Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
-    var self = this;
+    let self = this;
 
     if (!data) {
         return;
@@ -945,6 +947,26 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
     mime_html("attachments");
     mime_html("images", true /* isImage */);
 
+    const emailId = data.emailId || 0;
+    const mapAvailable_k = self.parent.model.emailBoardListCardMapLookup({
+        emailId,
+    });
+
+    if (
+        self.parent.validHash(mapAvailable_k, ["boardId", "listId", "cardId"])
+    ) {
+        // If we're restoring we must be adding to an existing card:
+        $("#g2tPosition", self.$popup).val("to");
+
+        self.updateBoards(mapAvailable_k.boardId); // Causes a cascade of updates if it's changed
+
+        // We have a small pending queue for updates to grab these changes and show them, if possible:
+        const listId = mapAvailable_k.listId;
+        const cardId = mapAvailable_k.cardId;
+        self.updatesPending.push({ listId }); // instead of: self.updateLists(listId);
+        self.updatesPending.push({ cardId }); // instead of: self.updateCards(cardId);
+    }
+
     this.dataDirty = false;
     self.validateData();
 };
@@ -1014,113 +1036,152 @@ Gmail2Trello.PopupView.prototype.clearBoard = function () {
     $g2t.change();
 };
 
-Gmail2Trello.PopupView.prototype.updateBoards = function (tempBoardId) {
+Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
     var self = this;
 
-    var boards = this.data.trello.boards;
-    var newBoards = {};
+    const array_k = self.parent.deep_link(self, ["data", "trello", "boards"]);
 
-    $.each(boards, function (iter, item) {
+    if (!array_k) {
+        return;
+    }
+
+    const restoreId_k =
+        tempId ||
+        self.parent.deep_link(self, ["data", "settings", "boardId"]) ||
+        0;
+
+    let newArray = {};
+
+    $.each(array_k, function (iter, item) {
         const org_k =
             item.hasOwnProperty("organization") &&
             item.organization.hasOwnProperty("displayName")
                 ? item.organization.displayName + " &raquo; "
                 : "~ ";
         const display_k = org_k + item.name;
-        newBoards[display_k.toLowerCase()] = {
+        newArray[display_k.toLowerCase()] = {
             id: item.id,
             display: display_k,
         };
     });
-
-    var settings = this.data.settings;
-    var settingId = 0;
-    if (settings.boardId) {
-        settingId = settings.boardId;
-    }
-
-    if (tempBoardId) {
-        settingId = tempBoardId;
-    }
 
     var $g2t = $("#g2tBoard", this.$popup);
     $g2t.html(""); // Clear it.
 
     $g2t.append($('<option value="">Select a board....</option>'));
 
-    $.each(Object.keys(newBoards).sort(), function (iter, item) {
-        var id = newBoards[item].id;
-        var display = newBoards[item].display;
-        var selected = id == settingId;
+    $.each(Object.keys(newArray).sort(), function (iter, item) {
+        const id_k = newArray[item].id;
+        const display_k = newArray[item].display;
+        const selected_k = id_k == restoreId_k;
         $g2t.append(
             $("<option>")
-                .attr("value", id)
-                .prop("selected", selected)
-                .append(display)
+                .attr("value", id_k)
+                .prop("selected", selected_k)
+                .append(display_k)
         );
     });
 
     $g2t.change();
 };
 
-Gmail2Trello.PopupView.prototype.updateLists = function () {
+Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
     var self = this;
-    var lists = this.data.trello.lists;
+    const array_k = self.parent.deep_link(self, ["data", "trello", "lists"]);
 
-    var settings = this.data.settings;
-    var boardId = $("#g2tBoard", this.$popup).val();
-    var settingId = lists[0] ? lists[0].id : "0"; // Default to first item
-    if (settings.boardId && settings.boardId == boardId && settings.listId) {
-        settingId = settings.listId;
+    if (!array_k) {
+        return;
     }
+
+    const settings_k = self.parent.deep_link(self, ["data", "settings"]);
+
+    const boardId_k = $("#g2tBoard", this.$popup).val();
+
+    const prev_item_k =
+        settings_k.hasOwnProperty("boardId") &&
+        settings_k.boardId == boardId_k &&
+        settings_k.hasOwnProperty("listId")
+            ? settings_k.listId
+            : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k =
+        self.updatesPending.length &&
+        self.updatesPending[0].hasOwnProperty("listId")
+            ? self.updatesPending.shift().listId
+            : 0;
+
+    const restoreId_k =
+        updatePending_k || tempId || prev_item_k || first_item_k || 0;
 
     var $g2t = $("#g2tList", this.$popup);
     $g2t.html("");
 
-    $.each(lists, function (iter, item) {
-        var id = item.id;
-        var display = item.name;
-        var selected = id == settingId;
+    $.each(array_k, function (iter, item) {
+        const id_k = item.id;
+        const display_k = item.name;
+        const selected_k = id_k == restoreId_k;
         $g2t.append(
             $("<option>")
-                .attr("value", id)
-                .prop("selected", selected)
-                .append(display)
+                .attr("value", id_k)
+                .prop("selected", selected_k)
+                .append(display_k)
         );
     });
 
     $g2t.change();
 };
 
-Gmail2Trello.PopupView.prototype.updateCards = function () {
+Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
     var self = this;
 
-    const newcard_k = '<option value="-1">(new card at top)</option>';
+    const new_k = '<option value="-1">(new card at top)</option>';
 
-    var cards = this.data.trello.cards;
+    const array_k = self.parent.deep_link(self, ["data", "trello", "cards"]);
+    // var cards = this.data.trello.cards;
 
-    var settings = this.data.settings;
-    var listId = $("#g2tList", this.$popup).val();
-    var settingId = 0; // (cards[0] ? cards[0].id : '0'); // Default to first item
-    if (settings.listId && settings.listId == listId && settings.cardId) {
-        settingId = settings.cardId;
+    if (!array_k) {
+        return;
     }
 
-    var $g2t = $("#g2tCard", this.$popup);
-    $g2t.html(newcard_k);
+    const settings_k = self.parent.deep_link(self, ["data", "settings"]);
 
-    $.each(cards, function (iter, item) {
-        var id = item.id;
-        var display = self.parent.truncate(item.name, 80, "...");
-        var selected = id == settingId;
+    const listId_k = $("#g2tList", this.$popup).val();
+
+    const prev_item_k =
+        settings_k.hasOwnProperty("listId") &&
+        settings_k.listId == listId_k &&
+        settings_k.hasOwnProperty("cardId")
+            ? settings_k.cardId
+            : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k =
+        self.updatesPending.length &&
+        self.updatesPending[0].hasOwnProperty("cardId")
+            ? self.updatesPending.shift().cardId
+            : 0;
+
+    const restoreId_k =
+        updatePending_k || tempId || prev_item_k || first_item_k || 0;
+
+    var $g2t = $("#g2tCard", this.$popup);
+    $g2t.html(new_k);
+
+    $.each(array_k, function (iter, item) {
+        const id_k = item.id;
+        const display_k = self.parent.truncate(item.name, 80, "...");
+        const selected_k = id_k == restoreId_k;
         $g2t.append(
             $("<option>")
-                .attr("value", id)
+                .attr("value", id_k)
                 .prop("pos", item.pos)
                 .prop("members", item.idMembers)
                 .prop("labels", item.idLabels)
-                .prop("selected", selected)
-                .append(display)
+                .prop("selected", selected_k)
+                .append(display_k)
         );
     });
 
@@ -1341,26 +1402,26 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
 
     if (validateStatus) {
         newCard = {
-            emailId: emailId,
-            boardId: boardId,
-            listId: listId,
-            cardId: cardId,
-            cardPos: cardPos,
-            cardMembers: cardMembers,
-            cardLabels: cardLabels,
-            labelsId: labelsId,
-            membersId: membersId,
-            due_Date: due_Date,
-            due_Time: due_Time,
-            title: title,
-            description: description,
-            attachments: attachments,
-            images: images,
-            useBackLink: useBackLink,
-            markdown: markdown,
-            popupWidth: popupWidth,
-            position: position,
-            timeStamp: timeStamp,
+            emailId,
+            boardId,
+            listId,
+            cardId,
+            cardPos,
+            cardMembers,
+            cardLabels,
+            labelsId,
+            membersId,
+            due_Date,
+            due_Time,
+            title,
+            description,
+            attachments,
+            images,
+            useBackLink,
+            markdown,
+            popupWidth,
+            position,
+            timeStamp,
         };
         self.data.newCard = newCard;
         $.extend(self.data.settings, newCard);

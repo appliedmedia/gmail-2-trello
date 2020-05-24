@@ -607,6 +607,19 @@ Gmail2Trello.Model.prototype.submit = function () {
     uploader.upload();
 };
 
+Gmail2Trello.Model.prototype.emailBoardListCardMapLookup = function (
+    key_value = {}
+) {
+    if (key_value) {
+        const keys_k = Object.keys(key_value);
+        if (keys_k.length && key_value[keys_k[0]]) {
+            const eblcMapID =
+                Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
+            return this[eblcMapID].lookup(key_value);
+        }
+    }
+    return {};
+};
 Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (args) {
     const eblcMapID = Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
     this[eblcMapID].add(args);
@@ -648,28 +661,34 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     chrome_restore() {
+        let self = this;
         const id_k = this.id;
-        chrome.storage.sync.get(id_k, function (response) {
-            if (response && response.hasOwnProperty(id_k)) {
-                let response_parsed = {};
-                try {
-                    response_parsed = JSON.parse(response[id_k]);
-                } catch (err) {
-                    g2t_log(
-                        "chrome_restore: JSON parse failed! Error: " +
-                            JSON.stringify(err)
-                    );
+        try {
+            chrome.storage.sync.get(id_k, function (response) {
+                if (response && response.hasOwnProperty(id_k)) {
+                    try {
+                        self.list = JSON.parse(response[id_k]);
+                    } catch (err) {
+                        g2t_log(
+                            "chrome_restore: JSON parse failed! Error: " +
+                                JSON.stringify(err)
+                        );
+                    }
                 }
-
-                this.list = response_parsed;
-            }
-        });
+            });
+        } catch (err) {
+            g2t_log("chrome_restore: failed! Error: " + JSON.stringify(err));
+        }
         return this;
     }
 
     chrome_save() {
         const id_k = this.id;
-        chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
+        try {
+            chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
+        } catch (err) {
+            g2t_log("chrome_save: failed! Error: " + JSON.stringify(err));
+        }
         return this;
     }
 
@@ -686,6 +705,14 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
         // 0 is a valid index, so don't || these results:
         const index_k = this.list.findIndex((item) => item[key_k] == value_k);
         return index_k;
+    }
+
+    lookup(key_value = {}) {
+        const index_k = this.find(key_value);
+        if (Number.isInteger(index_k) && index_k !== -1) {
+            return this.list[index_k];
+        }
+        return {};
     }
 
     makeRoom(index = -1) {
