@@ -1,3 +1,6 @@
+=== 2.8.5.002@2020-05-25 ===
+ * Initial drag updates from @KS-CleverCopter
+
 === 2.8.5.001@2020-05-24 ===
  * First cut at remembering what message was stored with what card
  * Move to safer "g2t_" instead of "g2t:" for variable names stored in hashes
