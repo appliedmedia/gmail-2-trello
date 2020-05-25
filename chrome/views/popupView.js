@@ -751,21 +751,41 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         return;
     }
 
+    const settings_existing_k = self.parent.deep_link(self, [
+        "data",
+        "settings",
+    ]);
+    const settings_existing_boardId_valid_k = self.parent.validHash(
+        settings_existing_k,
+        ["boardId"]
+    );
     // Need to keep this from getting blown over if it exists:
-    const settings =
-        self.data && self.data.settings && self.data.settings.boardId
-            ? self.data.settings
-            : "";
+    // const settings =
+    //     self.data && self.data.settings && self.data.settings.boardId
+    //         ? self.data.settings
+    //         : "";
+    const settings_incoming_k = self.parent.deep_link(data, ["settings"]);
+    const settings_incoming_boardId_valid_k = self.parent.validHash(
+        settings_incoming_k,
+        ["boardId"]
+    );
+
     self.data = data;
 
-    if (data && data.settings && data.settings.boardId) {
+    // if (data && data.settings && data.settings.boardId) {
+    //     // leave settings that came in, they look valid
+    // } else if (settings) {
+    //     self.data.settings = settings; // NOTE (acoven@2020-05-25): I think this is setting it to itself
+    // }
+
+    if (settings_incoming_k && settings_incoming_boardId_valid_k) {
         // leave settings that came in, they look valid
-    } else if (settings) {
-        self.data.settings = settings;
+    } else if (settings_existing_k && settings_existing_boardId_valid_k) {
+        data.settings = settings_existing_k; // NOTE (acoven@2020-05-25): I think we mean for this to be data.settings = settings;, not self.data.settings = settings (which was self.data.settings)
     }
 
     // bind trello data
-    const me = data.trello.user; // First member is always this user
+    const me = self.parent.deep_link(data, ["trello", "user"]); // First member is always this user
     const avatarUrl = me.avatarUrl || "";
     const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });
     let avatarText = "";
@@ -787,7 +807,11 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         $("#g2tAvatarImgOrText", this.$popup).text(avatarText);
     } else {
         $("#g2tAvatarImgOrText", this.$popup).html(
-            '<img width="30" height="30" src="' + avatarSrc + '"/>'
+            '<img width="30" height="30" alt="' +
+                me.username +
+                '" src="' +
+                avatarSrc +
+                '">'
         );
     }
 
