@@ -4,6 +4,7 @@
  * Reduce log lines circular queue to 100 lines
  * Set "remembered" to 100 emails
  * First version of restoring settings based on email, had to add ability to cache list updates til list refreshed
+ * This history available at: https://g2t.pub/changes
 
 === 2.8.0.013@2020-05-22 ===
  * Fix validHash to work correctly - was always taking the req = [] path. This was causing empty data to be sent to Trello, causing a 400 error
@@ -275,3 +276,5 @@
  * Fix bug: missing icon in "Add to Trello" button
  * Keep line-breaks in email's content
  * Auto remove email's signature
+
+This history available at: https://g2t.pub/changes
