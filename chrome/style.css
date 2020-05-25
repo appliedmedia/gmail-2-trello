@@ -11,13 +11,14 @@
     position: absolute;
     max-height: none;
     min-height: 460px;
-    min-width: 620px;
+    min-width: 680px;
     max-width: 1400px;
     -webkit-user-select: none;
     border-top: 2px solid #ccc; /*#0088C3; */
     border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
+    font-size:14px;
     margin-top: 24px;
     opacity: 0.97;
     z-index: 9999;
@@ -102,10 +103,11 @@
 
 .placeholder-label {
     background: #f9edb8;
-    padding: 4px;
+    padding: 4px 8px;
     width: 25%;
     min-width: 25%;
     margin: 0 4px;
+    border-radius: 5px;
     /* padding-left: 1%; */
     /* margin-right: 70%; */
     /* margin-bottom: 50px; */
@@ -157,7 +159,7 @@ ul#g2tPosition {
     border-top-width: 4px;
     cursor: pointer;
     background: #f2f2f2;
-    font-size: 11px;
+    
     font-weight: bold;
     color: #888;
 }
@@ -208,16 +210,17 @@ dl#g2tPopup {
 /* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
 .g2tFormGroup {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
     margin: 8px 0px;
-    font-size: 12px;
+    
     flex-grow: 2;
 }
 .g2tFormGroup .g2tFormLabel {
     font-weight: bold;
     margin-right: 8px;
     min-width: 50px;
+    margin-top: 4px;
 }
 .g2tFormGroup .g2tFormControl {
     width: 90%;
@@ -232,7 +235,7 @@ dl#g2tPopup {
 .g2tFormControl input[type="date"],
 .g2tFormControl input[type="time"],
 .g2tFormControl textarea {
-    padding: 4px;
+    padding: 4px 8px;
     line-height: 20px;
     border: 1px solid #dfdfdf;
     border-radius: 5px;
@@ -258,7 +261,7 @@ dl#g2tPopup {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 0px;
-    padding: 4px;
+    padding: 4px 8px;
     -webkit-appearance: none;
     border-radius: 5px;
     line-height: 20px;
@@ -285,7 +288,8 @@ dl#g2tPopup {
 .g2tFormControl .img-container {
     margin: 0 4px;
 }
-#g2tImages, #g2tAttachments {
+#g2tImages,
+#g2tAttachments {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
@@ -309,7 +313,7 @@ dl#g2tPopup {
 #g2tPopup input,
 #g2tPopup select,
 #g2tPopup option {
-    font-size: 12px;
+    
 }
 
 #g2tPopup .g2tTopRight {
