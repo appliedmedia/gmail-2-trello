@@ -1,11 +1,29 @@
 <div id="g2tPopup" class="J-M jQjAxd open clearfix" style="display: none;">
   <div class="header clearfix">
-    <a id="g2tAvatarURL" href="https://g2t.support" target="_blank" title="Open your Trello homepage"
-      class="member-avatar"><span id="g2tAvatarText" /><img id="g2tAvatarImg" width="30" height="30" src="" /></a>
-    <a id="g2tUsername" href="https://g2t.support" target="_blank" title="Open your Trello homepage"
-      style="margin-left: 5px;">Username</a>
+    <a
+      id="g2tAvatarURL"
+      href="https://g2t.support"
+      target="_blank"
+      title="Open your Trello homepage"
+      class="member-avatar"
+      ><div id="g2tAvatarImgOrText" width="30" height="30" />
+      /></a
+    >
+    <a
+      id="g2tUsername"
+      href="https://g2t.support"
+      target="_blank"
+      title="Open your Trello homepage"
+      style="margin-left: 5px;"
+      >Username</a
+    >
     | <a id="g2tSignOutButton" title="Sign out">Sign out</a> |
-    <a href="https://g2t.support" target="_blank" title="Open Gmail-2-Trello board in a new window">Help</a>
+    <a
+      href="https://g2t.support"
+      target="_blank"
+      title="Open Gmail-2-Trello board in a new window"
+      >Help</a
+    >
     | <a id="report" title="Create error report card">Report</a>
     <!-- | <a id="g2tSubscribe" title="Subscribe">Subscribe</a> -->
     <a id="close-button" title="Close">&times;</a>
@@ -14,7 +32,13 @@
   <div class="content" style="display: none;">
     <div class="g2tTopRight">
       <div style="float: right;">
-        <input type="button" disabled="true" id="addToTrello" title="Add this Gmail data to Trello" value="+Trello!" />
+        <input
+          type="button"
+          disabled="true"
+          id="addToTrello"
+          title="Add this Gmail data to Trello"
+          value="+Trello!"
+        />
       </div>
     </div>
     <div class="g2tMain">
@@ -38,17 +62,30 @@
           </div>
         </div>
         <div class="g2tFormGroup">
-          <label class="g2tFormLabel" id="g2tLabelsHeader" title="Shift-click me to clear all labels">Labels:</label>
+          <label
+            class="g2tFormLabel"
+            id="g2tLabelsHeader"
+            title="Shift-click me to clear all labels"
+            >Labels:</label
+          >
           <div class="clearfix g2tFormControl">
-            <div id="g2tLabelsMsg" class="placeholder-label">...please pick a board...</div>
+            <div id="g2tLabelsMsg" class="placeholder-label">
+              ...please pick a board...
+            </div>
             <ul id="g2tLabels" />
           </div>
         </div>
         <div class="g2tFormGroup g2tAssignments">
-          <label class="g2tFormLabel" id="g2tMembersHeader"
-            title="Shift-click me to clear all assignments">Assign:</label>
+          <label
+            class="g2tFormLabel"
+            id="g2tMembersHeader"
+            title="Shift-click me to clear all assignments"
+            >Assign:</label
+          >
           <div class="clearfix g2tFormControl">
-            <div id="g2tMembersMsg" class="placeholder-label">...please pick a board...</div>
+            <div id="g2tMembersMsg" class="placeholder-label">
+              ...please pick a board...
+            </div>
             <ul id="g2tMembers" />
           </div>
         </div>
@@ -60,9 +97,19 @@
             <select id="g2tDue_Shortcuts" style="width: 3em;">
               <option value="d=0 am=0">--</option>
             </select>
-            <input type="checkbox" checked="checked" id="chkMarkdown" style="margin-left: 10px;" />
+            <input
+              type="checkbox"
+              checked="checked"
+              id="chkMarkdown"
+              style="margin-left: 10px;"
+            />
             <label for="chkMarkdown">Markdown</label>
-            <input type="checkbox" checked="checked" id="chkBackLink" style="margin-left: 10px;" />
+            <input
+              type="checkbox"
+              checked="checked"
+              id="chkBackLink"
+              style="margin-left: 10px;"
+            />
             <label for="chkBackLink">Add Gmail link</label>
           </div>
         </div>
@@ -70,8 +117,6 @@
           <label class="g2tFormLabel">Title:</label>
           <div class="g2tFormControl"><input type="text" id="g2tTitle" /></div>
         </div>
-
-
       </div>
       <div class="lower-half">
         <div class="g2tFormGroup">
@@ -82,14 +127,22 @@
         </div>
         <div id="g2tAttachmentsContainer">
           <div class="g2tFormGroup">
-            <label class="g2tFormLabel" id="g2tAttachHeader"
-              title="Shift-click me to select/de-select all attachments">Attach:</label>
+            <label
+              class="g2tFormLabel"
+              id="g2tAttachHeader"
+              title="Shift-click me to select/de-select all attachments"
+              >Attach:</label
+            >
             <div class="g2tFormControl" id="g2tAttachments" />
           </div>
         </div>
         <div class="g2tFormGroup" id="g2tImagesContainer">
-          <label class="g2tFormLabel" id="g2tImagesHeader"
-            title="Shift-click me to select/de-select all images">Images:</label>
+          <label
+            class="g2tFormLabel"
+            id="g2tImagesHeader"
+            title="Shift-click me to select/de-select all images"
+            >Images:</label
+          >
           <div class="g2tFormControl" id="g2tImages" />
         </div>
       </div>
