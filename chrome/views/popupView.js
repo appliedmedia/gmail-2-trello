@@ -386,8 +386,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due date shortcut: "' +
-                due_date +
-                '"'
+                    due_date +
+                    '"'
             );
         }
 
@@ -416,8 +416,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due time shortcut: "' +
-                due_time +
-                '"'
+                    due_time +
+                    '"'
             );
         }
 
@@ -751,25 +751,44 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         return;
     }
 
+    const settings_existing_k = self.parent.deep_link(self, [
+        "data",
+        "settings",
+    ]);
+    const settings_existing_boardId_valid_k = self.parent.validHash(
+        settings_existing_k,
+        ["boardId"]
+    );
     // Need to keep this from getting blown over if it exists:
-    var settings =
-        self.data && self.data.settings && self.data.settings.boardId
-            ? self.data.settings
-            : "";
+    // const settings =
+    //     self.data && self.data.settings && self.data.settings.boardId
+    //         ? self.data.settings
+    //         : "";
+    const settings_incoming_k = self.parent.deep_link(data, ["settings"]);
+    const settings_incoming_boardId_valid_k = self.parent.validHash(
+        settings_incoming_k,
+        ["boardId"]
+    );
+
     self.data = data;
 
-    if (data && data.settings && data.settings.boardId) {
+    // if (data && data.settings && data.settings.boardId) {
+    //     // leave settings that came in, they look valid
+    // } else if (settings) {
+    //     self.data.settings = settings; // NOTE (acoven@2020-05-25): I think this is setting it to itself
+    // }
+
+    if (settings_incoming_k && settings_incoming_boardId_valid_k) {
         // leave settings that came in, they look valid
-    } else if (settings) {
-        self.data.settings = settings;
+    } else if (settings_existing_k && settings_existing_boardId_valid_k) {
+        data.settings = settings_existing_k; // NOTE (acoven@2020-05-25): I think we mean for this to be data.settings = settings;, not self.data.settings = settings (which was self.data.settings)
     }
 
-    //bind trello data
-    var me = data.trello.user; // First member is always this user
-    var avatarSrc = self.parent.model.makeAvatarUrl({
-        avatarUrl: me.avatarUrl || "",
-    });
-    var avatarText = "";
+    // bind trello data
+    const me = self.parent.deep_link(data, ["trello", "user"]); // First member is always this user
+    const avatarUrl = me.avatarUrl || "";
+    const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });
+    let avatarText = "";
 
     if (!avatarSrc) {
         var initials = "?";
@@ -785,12 +804,18 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         }
 
         avatarText = initials.toUpperCase();
+        $("#g2tAvatarImgOrText", this.$popup).text(avatarText);
+    } else {
+        $("#g2tAvatarImgOrText", this.$popup).html(
+            '<img width="30" height="30" alt="' +
+                me.username +
+                '" src="' +
+                avatarSrc +
+                '">'
+        );
     }
 
-    // NOTE (Ace, 6-Feb-2017): Assigning .userInfo to a variable and then updating it doesn't work right, so refer explicitly to item:
     $("#g2tAvatarURL", this.$popup).attr("href", me.url);
-    $("#g2tAvatarText", this.$popup).text(avatarText);
-    $("#g2tAvatarImg", this.$popup).attr("src", avatarSrc);
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
         .text(me.username || "?");
@@ -837,9 +862,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
         $("#g2tTitle", self.$popup).val(
             "Error report card: " +
-            [fullname_k, username_k].join(" @") +
-            " " +
-            date_k
+                [fullname_k, username_k].join(" @") +
+                " " +
+                date_k
         );
         self.validateData();
     });
@@ -1055,7 +1080,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
     $.each(array_k, function (iter, item) {
         const org_k =
             item.hasOwnProperty("organization") &&
-                item.organization.hasOwnProperty("displayName")
+            item.organization.hasOwnProperty("displayName")
                 ? item.organization.displayName + " &raquo; "
                 : "~ ";
         const display_k = org_k + item.name;
@@ -1099,8 +1124,8 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("boardId") &&
-            settings_k.boardId == boardId_k &&
-            settings_k.hasOwnProperty("listId")
+        settings_k.boardId == boardId_k &&
+        settings_k.hasOwnProperty("listId")
             ? settings_k.listId
             : 0;
 
@@ -1108,7 +1133,7 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-            self.updatesPending[0].hasOwnProperty("listId")
+        self.updatesPending[0].hasOwnProperty("listId")
             ? self.updatesPending.shift().listId
             : 0;
 
@@ -1151,8 +1176,8 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("listId") &&
-            settings_k.listId == listId_k &&
-            settings_k.hasOwnProperty("cardId")
+        settings_k.listId == listId_k &&
+        settings_k.hasOwnProperty("cardId")
             ? settings_k.cardId
             : 0;
 
@@ -1160,7 +1185,7 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-            self.updatesPending[0].hasOwnProperty("cardId")
+        self.updatesPending[0].hasOwnProperty("cardId")
             ? self.updatesPending.shift().cardId
             : 0;
 
@@ -1457,12 +1482,12 @@ Gmail2Trello.PopupView.prototype.displaySubmitCompleteForm = function () {
     this.showMessage(
         self,
         '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
-        jQueryToRawHtml(
-            $("<a>")
-                .attr("href", data.url)
-                .attr("target", "_blank")
-                .append(data.title)
-        )
+            jQueryToRawHtml(
+                $("<a>")
+                    .attr("href", data.url)
+                    .attr("target", "_blank")
+                    .append(data.title)
+            )
     );
     this.$popupContent.hide();
 };
