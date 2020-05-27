@@ -9,7 +9,7 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.size_k = {
         width: {
-            min: 300,
+            min: 700,
             max: 1400,
         },
         height: {
@@ -202,6 +202,7 @@ Gmail2Trello.PopupView.prototype.centerPopup = function (useWidth) {
     }
 
     this.$popup.css("width", newPopupWidth + "px");
+    this.$popup.css("height", $('.upper-half').height() + "px");
 
     this.$popup.css("left", newPopupLeft + "px");
 
@@ -386,8 +387,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due date shortcut: "' +
-                    due_date +
-                    '"'
+                due_date +
+                '"'
             );
         }
 
@@ -416,8 +417,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due time shortcut: "' +
-                    due_time +
-                    '"'
+                due_time +
+                '"'
             );
         }
 
@@ -808,10 +809,10 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     } else {
         $("#g2tAvatarImgOrText", this.$popup).html(
             '<img width="30" height="30" alt="' +
-                me.username +
-                '" src="' +
-                avatarSrc +
-                '">'
+            me.username +
+            '" src="' +
+            avatarSrc +
+            '">'
         );
     }
 
@@ -862,9 +863,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
         $("#g2tTitle", self.$popup).val(
             "Error report card: " +
-                [fullname_k, username_k].join(" @") +
-                " " +
-                date_k
+            [fullname_k, username_k].join(" @") +
+            " " +
+            date_k
         );
         self.validateData();
     });
@@ -1080,7 +1081,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
     $.each(array_k, function (iter, item) {
         const org_k =
             item.hasOwnProperty("organization") &&
-            item.organization.hasOwnProperty("displayName")
+                item.organization.hasOwnProperty("displayName")
                 ? item.organization.displayName + " &raquo; "
                 : "~ ";
         const display_k = org_k + item.name;
@@ -1124,8 +1125,8 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("boardId") &&
-        settings_k.boardId == boardId_k &&
-        settings_k.hasOwnProperty("listId")
+            settings_k.boardId == boardId_k &&
+            settings_k.hasOwnProperty("listId")
             ? settings_k.listId
             : 0;
 
@@ -1133,7 +1134,7 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-        self.updatesPending[0].hasOwnProperty("listId")
+            self.updatesPending[0].hasOwnProperty("listId")
             ? self.updatesPending.shift().listId
             : 0;
 
@@ -1176,8 +1177,8 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("listId") &&
-        settings_k.listId == listId_k &&
-        settings_k.hasOwnProperty("cardId")
+            settings_k.listId == listId_k &&
+            settings_k.hasOwnProperty("cardId")
             ? settings_k.cardId
             : 0;
 
@@ -1185,7 +1186,7 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-        self.updatesPending[0].hasOwnProperty("cardId")
+            self.updatesPending[0].hasOwnProperty("cardId")
             ? self.updatesPending.shift().cardId
             : 0;
 
@@ -1299,7 +1300,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
             });
             const size_k = 20;
             $g2t.append(
-                $("<li>")
+                $("<div>")
                     .attr("trelloId-member", item.id)
                     .attr("title", item.fullName + " @" + item.username || "?")
                     .append(
@@ -1316,7 +1317,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
     $("#g2tMembersMsg", this.$popup).hide();
 
     var control = new MenuControl({
-        selectors: "#g2tMembers li",
+        selectors: "#g2tMembers div",
         nonexclusive: true,
     });
     control.event.addListener("onMenuClick", function (e, params) {
@@ -1381,14 +1382,14 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         labelsId = self.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
     }
 
-    var membersId = $("#g2tMembers li.active", self.$popup)
+    var membersId = $("#g2tMembers div.active", self.$popup)
         .map(function (iter, item) {
             var val = $(item).attr("trelloId-member");
             return val;
         })
         .get()
         .join();
-    var membersCount = $("#g2tMembers li", self.$popup).length;
+    var membersCount = $("#g2tMembers div", self.$popup).length;
 
     if (
         !membersCount &&
@@ -1482,12 +1483,12 @@ Gmail2Trello.PopupView.prototype.displaySubmitCompleteForm = function () {
     this.showMessage(
         self,
         '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
-            jQueryToRawHtml(
-                $("<a>")
-                    .attr("href", data.url)
-                    .attr("target", "_blank")
-                    .append(data.title)
-            )
+        jQueryToRawHtml(
+            $("<a>")
+                .attr("href", data.url)
+                .attr("target", "_blank")
+                .append(data.title)
+        )
     );
     this.$popupContent.hide();
 };
