@@ -9,7 +9,7 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.size_k = {
         width: {
-            min: 680,
+            min: 700,
             max: 1400,
         },
         height: {
@@ -202,6 +202,7 @@ Gmail2Trello.PopupView.prototype.centerPopup = function (useWidth) {
     }
 
     this.$popup.css("width", newPopupWidth + "px");
+    this.$popup.css("height", $('.upper-half').height() + "px");
 
     this.$popup.css("left", newPopupLeft + "px");
 

@@ -8,24 +8,23 @@
 } */
 
 #g2tPopup {
-    /* position: absolute;
-    min-height: 460px;
-    min-width: 680px;
+    position: absolute;
+    min-height: 480px;
+    min-width: 720px;
     max-width: 1400px;
-    max-height: 70vh;
+    max-height: none;
     -webkit-user-select: none;
-    border-top: 2px solid #ccc;  */
+    border-top: 2px solid #ccc;
     /*#0088C3; */
-    /* border-bottom: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
     font-size: 14px;
-    margin-top: 24px; */
-    /* min-height: 70vh;
+    margin-top: 24px;
     opacity: 0.97;
     z-index: 9999;
-    overflow: hidden; */
-    /* white-space: normal; */
+    overflow: hidden;
+    white-space: normal;
 }
 
 /* #g2tTitle {
@@ -268,14 +267,14 @@ dl#g2tPopup {
     border-radius: 3px;
 } */
 
-/* #g2tPopup #addToTrello[disabled],
+#g2tPopup #addToTrello[disabled],
 #g2tPopup #addToTrello[disabled]:hover,
 #g2tPopup input[disabled],
 #g2tPopup input[disabled]:hover {
     background: #ccc;
     color: #666;
     cursor: default;
-} */
+}
 
 #g2tPopup .header {
     /* font-weight: bold;
@@ -359,7 +358,7 @@ dl#g2tPopup {
     text-indent: 0;
     padding-right: 8px;
     margin: 5px 0;
-}
+} */
 #g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
@@ -368,7 +367,7 @@ dl#g2tPopup {
     max-width: 100%;
     max-height: 100%;
     display: inline-block;
-} */
+}
 .ui-tooltip {
     /* max-height: 500px;
     max-width: 500px;
@@ -438,18 +437,6 @@ dl#g2tPopup {
 .g2tMain {
     padding: 16px;
 }
-#g2tPopup {
-    margin: 0px;
-    padding: 0px;
-    border-top: 2px solid #cacaca;
-    border-bottom: 2px solid #cacaca;
-    min-width: 680px;
-    min-height: 700px;
-    max-width: 1400px;
-    opacity: 0.97;
-    z-index: 9999;
-    overflow: hidden;
-}
 
 /* Common presets */
 #g2tPopup label,
@@ -500,6 +487,7 @@ div[trelloid-member] {
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
     border: 0;
     cursor: pointer;
+    margin-top: 3px;
 }
 #g2tPopup #addToTrello:hover {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
@@ -552,7 +540,7 @@ div[trelloid-member] {
 }
 .g2tFormGroup {
     align-items: flex-start;
-    margin: 8px 0px;
+    margin: 0 0px 16px;
     flex-grow: 2;
 }
 .g2tFormGroup .g2tFormLabel {
@@ -637,6 +625,9 @@ div[trelloid-member] img {
 }
 .align-top {
     align-items: flex-start;
+}
+.lower-half {
+    padding-bottom: 16px;
 }
 /* .g2tFormControl label img {
     height: 32px;
