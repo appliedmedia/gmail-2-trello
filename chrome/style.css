@@ -614,9 +614,7 @@ div[trelloid-member] img {
 }
 #g2tDue_Shortcuts {
     /* width: 62px; */
-    width: 3em;
-    /* This prevents the field from showing. */
-    color: #fff;
+    width: 1em;
 }
 .align-top {
     align-items: flex-start;
