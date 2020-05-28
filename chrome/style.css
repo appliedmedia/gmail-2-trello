@@ -601,11 +601,9 @@ div[trelloid-member] img {
     height: 95%;
 }
 
-.g2tFormControl input[type="time"] {
-    width: 100px;
-}
+.g2tFormControl input[type="time"],
 .g2tFormControl input[type="date"] {
-    width: 150px;
+    width: fit-content;
 }
 .g2tFormControl select {
     padding: 2px 6px;
