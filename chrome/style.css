@@ -73,12 +73,12 @@
     padding: 0;
     overflow-y: auto;
 }
-.content .lower-half {
+/* .content .lower-half {
     display: flex;
     flex-direction: column;
     flex-grow: 2;
     max-height: 500px;
-}
+} */
 /* #g2tButton * {
     outline: none;
 }
@@ -130,7 +130,7 @@
 
 #g2tLabels {
     margin: 0;
-    padding: 0 0 0 2px;
+    padding: 0;
     min-height: 40px;
     max-height: 96px;
     width: 100%;
@@ -224,7 +224,7 @@ dl#g2tPopup {
     align-items: flex-start;
 }
 #g2tImages label {
-    margin: 4px 0;
+    margin: 2px 0;
 }
 /* #g2tPopup .g2tFormLabel {
     width: 70px;
@@ -371,16 +371,16 @@ dl#g2tPopup {
     display: inline-block;
 }
 .ui-tooltip {
-    /* max-height: 500px;
+    max-height: 500px;
     max-width: 500px;
     width: 500px;
-    overflow: auto; */
+    overflow: auto;
 }
 .ui-tooltip-content img {
-    /* border: 1px solid lightgray;
+    border: 1px solid lightgray;
     max-width: 100%;
     height: auto;
-    width: auto; */
+    width: auto;
 }
 
 #g2tPopup .popupMsg #error {
@@ -512,19 +512,15 @@ dl#g2tPopup {
     align-items: flex-start;
     justify-content: space-between;
 }
-.first-row .g2tFormGroup {
-    /* padding-top: 4px; */
-}
 
 .first-row #addToTrello {
     margin-top: 12px;
     margin-right: 8px;
 }
 .g2tFormGroup {
-    align-items: flex-start;
     margin: 0 0px 6px 4px;
-    flex-grow: 2;
 }
+
 .g2tFormGroup.g2tFormGroup-tall-row label {
     padding: 9px 0;
 }
@@ -554,6 +550,7 @@ dl#g2tPopup {
 }
 #g2tImages label:first-child {
     padding-top: 5px;
+    margin-top: 0px;
 }
 /* trelloid-member */
 div[trelloid-member] {
@@ -601,14 +598,12 @@ div[trelloid-member] img {
     width: calc(100% - 10px);
 }
 .g2tFormControl textarea {
-    height: calc(100% - 32px);
+    height: 95%;
 }
 
-.g2tFormControl input[type="time"] {
-    width: 100px;
-}
+.g2tFormControl input[type="time"],
 .g2tFormControl input[type="date"] {
-    width: 150px;
+    width: fit-content;
 }
 .g2tFormControl select {
     padding: 2px 6px;
@@ -618,16 +613,24 @@ div[trelloid-member] img {
     background-size: 11px;
 }
 #g2tDue_Shortcuts {
-    width: 62px;
+    /* width: 62px; */
+    width: 1em;
 }
 .align-top {
     align-items: flex-start;
 }
 .lower-half {
     padding-bottom: 16px;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
 }
 .no-margin {
     margin: 0px;
+}
+.body-row {
+    flex-grow: 2;
 }
 /* Common utility classes. Placed at the bottom to increase specificity. */
 .make-flex,

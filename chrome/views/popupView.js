@@ -7,6 +7,7 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.data = { settings: {} };
 
+
     this.size_k = {
         width: {
             min: 700,
@@ -238,6 +239,9 @@ Gmail2Trello.PopupView.prototype.onResize = function () {
 };
 
 Gmail2Trello.PopupView.prototype.resetDragResize = function () {
+    var $g2tDesc = $("#g2tDesc", self.$popup);
+    var $popupBB = $('#g2tPopup', self.$popup);
+    var padding = 95;
     this.$popup.draggable({ disabled: false }).resizable({
         disabled: false,
         minHeight: this.size_k.height.min,
@@ -246,8 +250,26 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
         maxWidth: this.size_k.width.max,
         // alsoResize: "#g2tImages,#g2tMembers",
         handles: "w,sw,s,se,e",
-        resize: () => {
-            console.log($g2tDesc[0].getBoundingClientRect(), $g2tDesc.getBoundingClientRect());
+        resize: (event, ui) => {
+            // Drag.
+            /**
+             * Check if textbox is hidden. If so, reduce the height of the text box such that a row from the
+             * imaage component is visible. When the drag box reaches the minimum, reset the height of the textarea
+             * to its minimum height. 
+             */
+
+            const textAreaBB = $g2tDesc[0].getBoundingClientRect();
+            const popupBB = $popupBB[0].getBoundingClientRect();
+            const textareaBottom = textAreaBB.height + textAreaBB.y + (padding / 2);
+            const popupBottom = popupBB.y + popupBB.height;
+            var newTextAreaHeight = (ui.size.height - $('.upper-half').height()) - padding;
+            // Apply login only during shrink, since expand will be handled by CSS flex box.
+            if (ui.size.height == this.size_k.height.min) {
+                $g2tDesc.css('height', '97%');
+            } else if (textareaBottom > popupBottom) {
+                console.log("ui.size.height", newTextAreaHeight);
+                $g2tDesc.css('height', newTextAreaHeight + 'px');
+            }
         }
     });
 };
