@@ -18,15 +18,15 @@
   </div>
   <div class="popupMsg make-flex">Loading...</div>
   <div class="content" style="display: none;">
-    <div class="g2tTopRight">
+    <div class="g2tTopRight make-flex flex-end">
       <div style="float: right;">
 
       </div>
     </div>
     <div class="g2tMain">
       <div class="upper-half">
-        <div class="make-flex align-top first-row">
-          <div class="g2tFormGroup">
+        <div class="make-flex first-row align-top">
+          <div class="g2tFormGroup align-top">
             <label class="g2tFormLabel">Where:</label>
             <div class="g2tFormControl">
               <select id="g2tBoard" class="g2tWhere">
@@ -48,16 +48,16 @@
             value="+Trello!" />
         </div>
 
-        <div class="g2tFormGroup">
+        <div class="g2tFormGroup g2tFormGroup-tall-row align-top">
           <label class="g2tFormLabel" id="g2tLabelsHeader" title="Shift-click me to clear all labels">Labels:</label>
           <div class="clearfix g2tFormControl">
             <div id="g2tLabelsMsg" class="placeholder-label">
               ...please pick a board...
             </div>
-            <ul id="g2tLabels"></ul>
+            <div id="g2tLabels" class="make-flex flex-start flex-wrap"></div>
           </div>
         </div>
-        <div class="g2tFormGroup g2tAssignments">
+        <div class="g2tFormGroup g2tFormGroup-tall-row g2tAssignments align-top">
           <label class="g2tFormLabel" id="g2tMembersHeader"
             title="Shift-click me to clear all assignments">Assign:</label>
           <div class="clearfix g2tFormControl">
@@ -67,12 +67,12 @@
             <div id="g2tMembers" class="make-flex"></div>
           </div>
         </div>
-        <div class="g2tFormGroup">
+        <div class="g2tFormGroup align-center">
           <label class="g2tFormLabel">Due:</label>
           <div class="clearfix g2tFormControl">
             <input type="date" id="g2tDue_Date" />
             <input type="time" id="g2tDue_Time" />
-            <select id="g2tDue_Shortcuts" style="width: 3em;">
+            <select id="g2tDue_Shortcuts">
               <option value="d=0 am=0">--</option>
             </select>
             <input type="checkbox" checked="checked" id="chkMarkdown" style="margin-left: 10px;" />
@@ -81,14 +81,14 @@
             <label for="chkBackLink">Add Gmail link</label>
           </div>
         </div>
-        <div class="g2tFormGroup">
+        <div class="g2tFormGroup align-center">
           <label class="g2tFormLabel">Title:</label>
           <div class="g2tFormControl"><input type="text" id="g2tTitle" /></div>
         </div>
       </div>
       <div class="lower-half">
-        <div class="g2tFormGroup align-top">
-          <label class="g2tFormLabel">Body:</label>
+        <div class="g2tFormGroup align-top body-row">
+          <label class="g2tFormLabel no-margin">Body:</label>
           <div class="g2tFormControl">
             <textarea id="g2tDesc" rows="4"></textarea>
           </div>
@@ -97,13 +97,15 @@
           <div class="g2tFormGroup">
             <label class="g2tFormLabel" id="g2tAttachHeader"
               title="Shift-click me to select/de-select all attachments">Attach:</label>
-            <div class="g2tFormControl" id="g2tAttachments" />
+            <div class="g2tFormControl" id="g2tAttachments" ></div>
           </div>
         </div>
-        <div class="g2tFormGroup" id="g2tImagesContainer">
-          <label class="g2tFormLabel" id="g2tImagesHeader"
-            title="Shift-click me to select/de-select all images">Images:</label>
-          <div class="g2tFormControl" id="g2tImages" />
+        <div id="g2tImagesContainer">
+          <div class="g2tFormGroup align-top">
+            <label class="g2tFormLabel no-margin" id="g2tImagesHeader"
+              title="Shift-click me to select/de-select all images">Images:</label>
+            <div class="g2tFormControl" id="g2tImages"></div>
+          </div>
         </div>
       </div>
     </div>

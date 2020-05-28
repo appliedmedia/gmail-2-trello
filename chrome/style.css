@@ -9,7 +9,7 @@
 
 #g2tPopup {
     position: absolute;
-    min-height: 480px;
+    min-height: 450px;
     min-width: 720px;
     max-width: 1400px;
     max-height: none;
@@ -65,12 +65,19 @@
     overflow: auto;
 }
 .g2tMain {
-    /* Where 90px is the height of the trello button. */
-    /* height: calc(100% - 90px);
+    /* Where 16px is the height of the padding combined. */
+    height: calc(100% - 16px);
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow-y: auto; */
+    padding: 0;
+    overflow-y: auto;
+}
+.content .lower-half {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 2;
+    max-height: 500px;
 }
 /* #g2tButton * {
     outline: none;
@@ -81,12 +88,7 @@
     padding-right: 2px;
 }
 
-.content .lower-half {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 2;
-    max-height: 500px;
-}
+
 
 #g2tPopup .popupMsg {
     border: 1px solid #edc967;
@@ -116,7 +118,7 @@
     /* margin-bottom: 50px; */
 }
 
-/* #g2tLabelsMsg,
+#g2tLabelsMsg,
 #g2tMembersMsg {
     background: #f9edb8;
     height: 16px;
@@ -124,15 +126,15 @@
     padding-left: 1%;
     margin-right: 70%;
     margin-bottom: 50px;
-} */
+}
 
 #g2tLabels {
-    /* margin: 0;
-    padding: 0;
+    margin: 0;
+    padding: 0 0 0 2px;
     min-height: 40px;
     max-height: 96px;
     width: 100%;
-    overflow: auto; */
+    overflow: auto;
 }
 
 /* #g2tMembers {
@@ -150,9 +152,9 @@ ul#g2tPosition {
     padding: 0;
     margin: 0 0 2px 0;
 }
-
-#g2tLabels li,
-#g2tMembers li {
+*/
+#g2tLabels div,
+#g2tMembers div {
     float: left;
     margin: 0 2px 2px 0;
     padding: 6px 6px;
@@ -165,14 +167,14 @@ ul#g2tPosition {
 
     font-weight: bold;
     color: #888;
-} */
+}
 
-/* #g2tPosition li {
+#g2tPosition li {
     float: left;
     cursor: pointer;
-    list-style: none; */
-/* background: #F2F2F2; */
-/* font-size: 20px;
+    list-style: none;
+    background: #f2f2f2;
+    font-size: 20px;
     font-weight: bold;
     color: #ccc;
     height: 26px;
@@ -180,32 +182,32 @@ ul#g2tPosition {
     line-height: 26px;
     text-align: center;
     vertical-align: middle;
-} */
+}
 
-/* #g2tLabels li:hover,
-#g2tMembers li:hover,
-#g2tLabels li.active:hover,
-#g2tMembers li.active:hover {
+#g2tLabels div:hover,
+#g2tMembers div:hover,
+#g2tLabels div.active:hover,
+#g2tMembers div.active:hover {
     border-color: #52a8d9;
     color: #1789c0;
 }
-#g2tLabels li.active,
-#g2tMembers li.active {
+#g2tLabels div.active,
+#g2tMembers div.active {
     border-color: inherit;
     color: black;
     padding: 3px 3px;
     border: 4px solid;
     border-top-width: 7px;
     background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
-} */
-/* #g2tPosition li:hover,
+}
+#g2tPosition li:hover,
 #g2tPosition li.active:hover {
     color: black;
 }
 #g2tPosition li.active {
     color: darkgreen;
     background: #f2f2f2;
-} */
+}
 
 dl#g2tPopup {
     /* vertical-align: baseline; */
@@ -215,7 +217,7 @@ dl#g2tPopup {
 .g2tFormControl .img-container {
     margin: 0 4px;
 } */
-/* #g2tImages,
+#g2tImages,
 #g2tAttachments {
     flex-direction: column;
     justify-content: flex-start;
@@ -223,7 +225,7 @@ dl#g2tPopup {
 }
 #g2tImages label {
     margin: 4px 0;
-} */
+}
 /* #g2tPopup .g2tFormLabel {
     width: 70px;
     float: left;
@@ -399,9 +401,9 @@ dl#g2tPopup {
     text-align: right; */
 }
 
-/* #g2tPopup .g2tWhere {
+#g2tPopup .g2tWhere {
     width: 180px;
-} */
+}
 
 #g2tPopup .positionGroup .g2t-button {
     /* background-color: lightgray;
@@ -434,23 +436,20 @@ dl#g2tPopup {
 
 /* Updated Styles. KS */
 /* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
-.g2tMain {
-    padding: 16px;
-}
 
 /* Common presets */
-#g2tPopup label,
 #g2tPopup a,
 .popupMsg {
     font-weight: bold;
 }
 
 #g2tPopup input[type="button"] {
-    padding: 7px 16px;
+    padding: 5px 16px;
     border-radius: 3px;
 }
 #g2tPopup input[type="checkbox"] + label {
     margin-left: 4px;
+    text-align: right;
 }
 
 .member-avatar {
@@ -459,35 +458,13 @@ dl#g2tPopup {
 }
 /* End of common presets */
 
-/* Common utility classes */
-.make-flex,
-.g2tFormGroup,
-.g2tFormControl,
-.g2tFormControl label,
-.g2tFormControl .img-container,
-div[trelloid-member] {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.flex-apart {
-    justify-content: space-between;
-}
-.flex-start {
-    justify-content: flex-start;
-}
-.flex-end {
-    justify-content: flex-start;
-}
-/* End of common utility classes */
-
 #g2tPopup #addToTrello /* input[type=button] */ {
     padding: 6px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
     border: 0;
     cursor: pointer;
-    margin-top: 3px;
+    margin: 0px;
 }
 #g2tPopup #addToTrello:hover {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
@@ -510,13 +487,14 @@ div[trelloid-member] {
     font-weight: bold;
 }
 .header #close-button {
-    padding: 7px;
-    width: 20px;
     font-size: 24px;
     margin: 0px;
     color: #080808;
     background-color: #d5d5d5;
     border-radius: 3px;
+    box-sizing: border-box;
+    height: 30px;
+    width: 30px;
 }
 .header #close-button:hover {
     color: #d43030;
@@ -525,13 +503,17 @@ div[trelloid-member] {
 #g2tPopup .placeholder-label,
 #g2tPopup .popupMsg {
     background: #f9edb8;
-    padding: 4px 16px;
+    padding: 3px 8px;
     border-radius: 3px;
+    margin-bottom: 2px;
 }
 
 .first-row {
     align-items: flex-start;
     justify-content: space-between;
+}
+.first-row .g2tFormGroup {
+    /* padding-top: 4px; */
 }
 
 .first-row #addToTrello {
@@ -540,12 +522,18 @@ div[trelloid-member] {
 }
 .g2tFormGroup {
     align-items: flex-start;
-    margin: 0 0px 16px;
+    margin: 0 0px 6px 4px;
     flex-grow: 2;
 }
+.g2tFormGroup.g2tFormGroup-tall-row label {
+    padding: 9px 0;
+}
 .g2tFormGroup .g2tFormLabel {
-    min-width: 50px;
-    margin: 4px 0 8px 0;
+    min-width: 60px;
+    /* margin: 4px 4px 8px 0; */
+    padding: 5px 0;
+    margin-right: 4px;
+    text-align: right;
 }
 .g2tFormGroup .g2tFormControl {
     width: 90%;
@@ -562,12 +550,15 @@ div[trelloid-member] {
 #g2tImages label {
     width: 100%;
     justify-content: flex-start;
-    padding: 8px 0;
+    padding: 6px 0;
+}
+#g2tImages label:first-child {
+    padding-top: 5px;
 }
 /* trelloid-member */
 div[trelloid-member] {
     padding: 4px;
-    margin: 0 4px;
+    margin: 0;
     background-color: #ddd;
     border: 2px solid #ddd;
     border-top: 4px solid #ddd;
@@ -583,14 +574,24 @@ div[trelloid-member] img {
 }
 
 /* Adjusting the text's width inside the form control. */
+
+.g2tFormControl select,
 .g2tFormControl input[type="text"],
 .g2tFormControl input[type="date"],
 .g2tFormControl input[type="time"],
 .g2tFormControl textarea {
-    padding: 4px 8px;
+    padding: 2px 6px;
     line-height: 20px;
-    border: 1px solid #dfdfdf;
     border-radius: 5px;
+    margin: 2px 4px 2px 0;
+    background-color: #fff;
+    border: 1px solid #dfdfdf;
+    color: #2c2c2c;
+}
+.g2tFormControl input[type="text"],
+.g2tFormControl input[type="date"],
+.g2tFormControl input[type="time"],
+.g2tFormControl textarea {
     min-height: 21px;
     margin-right: 8px;
     /* Padding and width gets added to the textbox's width.
@@ -600,7 +601,7 @@ div[trelloid-member] img {
     width: calc(100% - 10px);
 }
 .g2tFormControl textarea {
-    height: 100%;
+    height: calc(100% - 32px);
 }
 
 .g2tFormControl input[type="time"] {
@@ -610,18 +611,14 @@ div[trelloid-member] img {
     width: 150px;
 }
 .g2tFormControl select {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 0px;
-    padding: 4px 8px;
+    padding: 2px 6px;
     -webkit-appearance: none;
-    border-radius: 5px;
-    line-height: 20px;
-    margin: 4px;
-    color: #2c2c2c;
-    padding-right: 10%;
-    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 93% 50%;
+    padding-right: 20px;
+    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat calc(100% - 5px) 50%;
     background-size: 11px;
+}
+#g2tDue_Shortcuts {
+    width: 62px;
 }
 .align-top {
     align-items: flex-start;
@@ -629,10 +626,38 @@ div[trelloid-member] img {
 .lower-half {
     padding-bottom: 16px;
 }
-/* .g2tFormControl label img {
-    height: 32px;
-} */
-.g2tFormControl .img-container {
-    /* Aligns the image to the center of the .img-container  */
+.no-margin {
+    margin: 0px;
 }
+/* Common utility classes. Placed at the bottom to increase specificity. */
+.make-flex,
+.g2tFormGroup,
+.g2tFormControl,
+.g2tFormControl label,
+.g2tFormControl .img-container,
+div[trelloid-member] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.flex-apart {
+    justify-content: space-between;
+}
+.flex-start {
+    justify-content: flex-start;
+}
+.flex-end {
+    justify-content: flex-start;
+}
+.align-center {
+    align-items: center !important;
+}
+.align-top {
+    align-items: flex-start !important;
+}
+.flex-wrap {
+    flex-wrap: wrap;
+}
+/* End of common utility classes */
+
 /* End of Updatd styles . KS */
