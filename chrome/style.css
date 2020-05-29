@@ -672,7 +672,7 @@ div[trelloid-member] img {
 .g2tFormControl input[type="date"],
 .g2tFormControl input[type="time"],
 .g2tFormControl textarea {
-    padding: 2px 6px;
+    padding: 0px 6px;
     line-height: 20px;
     border-radius: 5px;
     margin: 2px 4px 2px 0;
