@@ -944,7 +944,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
 
             if (tag == "attachments") {
                 html += self.parent.replacer(
-                    '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" name="%name%" url="%url%" /><label class="textOnlyPopup" for="%id%" title="%name%">%name%</label></div>',
+                    '<div class="imgOrAttach textOnlyPopup" title="%name%" ><input type="checkbox" id="%id%" mimeType="%mimeType%" name="%name%" url="%url%" /><label for="%id%">%name%</label></div>',
                     dict
                 );
             } else if (tag == "images") {
@@ -982,7 +982,9 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                     },
                 });
             });
-            $('.textOnlyPopup').tooltip();
+            $('.textOnlyPopup').tooltip({
+                track: true,
+            });
         }
     };
 
