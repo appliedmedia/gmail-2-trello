@@ -448,8 +448,10 @@ dl#g2tPopup {
     border-radius: 3px;
 }
 #g2tPopup input[type="checkbox"] + label {
-    margin-left: 4px;
     text-align: right;
+}
+#g2tPopup input[type="checkbox"] {
+    margin-right: 4px;
 }
 
 .member-avatar {
@@ -519,6 +521,7 @@ dl#g2tPopup {
 }
 .g2tFormGroup {
     margin: 0 0px 6px 4px;
+    width: 100%;
 }
 
 .g2tFormGroup.g2tFormGroup-tall-row label {
@@ -538,19 +541,25 @@ dl#g2tPopup {
     justify-content: flex-start;
 }
 .img-container {
-    margin: 0 4px;
+    margin: 0 2px;
 }
 .img-container img {
-    height: 16px;
+    height: 36px;
+    width: auto;
 }
 #g2tImages label {
     width: 100%;
     justify-content: flex-start;
-    padding: 6px 0;
+    padding: 0;
 }
 #g2tImages label:first-child {
     padding-top: 5px;
     margin-top: 0px;
+}
+#g2tImagesHeader{
+    height: 50px;
+    padding: 0;
+    justify-content: flex-end;
 }
 /* trelloid-member */
 div[trelloid-member] {
@@ -599,6 +608,9 @@ div[trelloid-member] img {
 }
 .g2tFormControl textarea {
     height: 95%;
+}
+#g2tAttachHeader {
+    padding: 0;
 }
 
 .g2tFormControl input[type="time"],
