@@ -249,28 +249,7 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
         maxHeight: this.size_k.height.max,
         maxWidth: this.size_k.width.max,
         // alsoResize: "#g2tImages,#g2tMembers",
-        handles: "w,sw,s,se,e",
-        resize: (event, ui) => {
-            // Drag.
-            /**
-             * Check if textbox is hidden. If so, reduce the height of the text box such that a row from the
-             * imaage component is visible. When the drag box reaches the minimum, reset the height of the textarea
-             * to its minimum height. 
-             */
-
-            const textAreaBB = $g2tDesc[0].getBoundingClientRect();
-            const popupBB = $popupBB[0].getBoundingClientRect();
-            const textareaBottom = textAreaBB.height + textAreaBB.y + (padding / 2);
-            const popupBottom = popupBB.y + popupBB.height;
-            var newTextAreaHeight = (ui.size.height - $('.upper-half').height()) - padding;
-            // Apply login only during shrink, since expand will be handled by CSS flex box.
-            if (ui.size.height == this.size_k.height.min) {
-                $g2tDesc.css('height', '97%');
-            } else if (textareaBottom > popupBottom) {
-                console.log("ui.size.height", newTextAreaHeight);
-                $g2tDesc.css('height', newTextAreaHeight + 'px');
-            }
-        }
+        handles: "w,sw,s,se,e"
     });
 };
 
@@ -952,18 +931,29 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
         }
 
         // console.log('g2t', tag, data[tag].length)
+        var x = 0;
         $.each(data[tag], function (iter, item) {
             var dict = {
                 url: item.url,
                 name: item.name,
                 mimeType: item.mimeType,
                 img: img,
+                id: item.name + ':' + x
             };
+            console.log("TAGG", tag);
 
-            html += self.parent.replacer(
-                '<label title="%name%"><input type="checkbox" mimeType="%mimeType%" name="%name%" url="%url%" /> %img%%name%</label>\n',
-                dict
-            );
+            if (tag == "attachments") {
+                html += self.parent.replacer(
+                    '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" name="%name%" url="%url%" /><label class="textOnlyPopup" for="%id%" title="%name%">%name%</label></div>',
+                    dict
+                );
+            } else if (tag == "images") {
+                html += self.parent.replacer(
+                    '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+                    dict
+                );
+            }
+            x++;
         });
 
         $domTag.html(html);
@@ -992,6 +982,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                     },
                 });
             });
+            $('.textOnlyPopup').tooltip();
         }
     };
 

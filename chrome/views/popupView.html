@@ -48,8 +48,9 @@
             value="+Trello!" />
         </div>
 
-        <div class="g2tFormGroup g2tFormGroup-tall-row align-top">
-          <label class="g2tFormLabel" id="g2tLabelsHeader" title="Shift-click me to clear all labels">Labels:</label>
+        <div class="g2tFormGroup align-top">
+          <label class="g2tFormLabel memberLabel" id="g2tLabelsHeader"
+            title="Shift-click me to clear all labels">Labels:</label>
           <div class="clearfix g2tFormControl">
             <div id="g2tLabelsMsg" class="placeholder-label">
               ...please pick a board...
@@ -57,8 +58,8 @@
             <div id="g2tLabels" class="make-flex flex-start flex-wrap"></div>
           </div>
         </div>
-        <div class="g2tFormGroup g2tFormGroup-tall-row g2tAssignments align-top">
-          <label class="g2tFormLabel" id="g2tMembersHeader"
+        <div class="g2tFormGroup g2tAssignments align-top">
+          <label class="g2tFormLabel memberLabel" id="g2tMembersHeader"
             title="Shift-click me to clear all assignments">Assign:</label>
           <div class="clearfix g2tFormControl">
             <div id="g2tMembersMsg" class="placeholder-label">
@@ -87,13 +88,21 @@
         </div>
       </div>
       <div class="lower-half">
+        <div class="g2tFormGroup g2tAssignments align-top">
+          <label class="g2tFormLabel memberLabel" id="g2timgOrattach"
+            title="Shift-click me to clear all assignments">Img/Attach:</label>
+          <div class="clearfix g2tFormControl">
+            <div class="make-flex flex-wrap flex-start" id="g2tAttachments"></div>
+            <div class="make-flex flex-wrap flex-start" id="g2tImages"></div>
+          </div>
+        </div>
         <div class="g2tFormGroup align-top body-row">
           <label class="g2tFormLabel no-margin">Body:</label>
           <div class="g2tFormControl align-top">
             <textarea id="g2tDesc" rows="4"></textarea>
           </div>
         </div>
-        <div id="g2tAttachmentsContainer">
+        <!-- <div id="g2tAttachmentsContainer">
           <div class="g2tFormGroup align-top">
             <label class="g2tFormLabel" id="g2tAttachHeader"
               title="Shift-click me to select/de-select all attachments">Attach:</label>
@@ -106,7 +115,7 @@
               title="Shift-click me to select/de-select all images">Images:</label>
             <div class="g2tFormControl" id="g2tImages"></div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
