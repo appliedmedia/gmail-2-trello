@@ -333,7 +333,7 @@ ul#g2tPosition {
 .ui-tooltip {
     max-height: 500px;
     max-width: 500px;
-    width: 500px;
+    width: auto;
     overflow: auto;
 }
 .ui-tooltip-content img {
@@ -642,11 +642,11 @@ div[trelloid-member] img {
 }
 
 .imgOrAttach .img-container {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
 }
 .imgOrAttach .img-container img {
-    width: 28px;
+    width: 100%;
 }
 #g2tAttachments .imgOrAttach label {
     overflow: hidden;
@@ -696,9 +696,9 @@ div[trelloid-member] img {
     height: calc(100% - 4px);
     resize: none;
 }
-#g2tAttachHeader {
+/* #g2tAttachHeader {
     padding: 0;
-}
+} */
 
 .g2tFormControl input[type="time"],
 .g2tFormControl input[type="date"] {
