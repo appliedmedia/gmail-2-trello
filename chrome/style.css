@@ -19,7 +19,7 @@
     border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 24px;
     opacity: 0.97;
     z-index: 9999;
@@ -66,7 +66,7 @@
 }
 .g2tMain {
     /* Where 16px is the height of the padding combined. */
-    height: calc(100% - 16px);
+    height: calc(100%);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -413,7 +413,7 @@ ul#g2tPosition {
 div[trelloid-member] {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
 .flex-apart {
     justify-content: space-between;
@@ -501,6 +501,7 @@ div[trelloid-member] img {
 }
 
 #g2tPopup #addToTrello /* input[type=button] */ {
+    font-size:14px;
     padding: 6px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
@@ -700,9 +701,11 @@ div[trelloid-member] img {
     padding: 0;
 } */
 
-.g2tFormControl input[type="time"],
-.g2tFormControl input[type="date"] {
+.g2tFormControl input[type="time"] {
     width: fit-content;
+}
+.g2tFormControl input[type="date"] {
+    width: 11em;
 }
 .g2tFormControl select {
     padding: 2px 6px;
