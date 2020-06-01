@@ -482,7 +482,7 @@ div[trelloid-member] img {
 .imgOrAttach label {
     float: left;
     margin: 0 2px 2px 0;
-    padding: 6px 6px;
+    padding: 6px;
     list-style: none;
     border-radius: 3px;
     border: 1px solid #ccc;
@@ -497,7 +497,6 @@ div[trelloid-member] img {
     box-sizing: border-box;
     float: none;
     width: 40px;
-    padding:4px;
 }
 
 #g2tPopup #addToTrello /* input[type=button] */ {
