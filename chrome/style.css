@@ -500,7 +500,7 @@ div[trelloid-member] img {
 }
 
 #g2tPopup #addToTrello /* input[type=button] */ {
-    font-size:14px;
+    font-size: 14px;
     padding: 6px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
@@ -561,7 +561,7 @@ div[trelloid-member] img {
 }
 .g2tFormGroup {
     margin: 0 0px 6px 4px;
-    width: 100%;
+    width: calc(100% - 4px);
 }
 
 /* .g2tFormGroup.g2tFormGroup-tall-row label {
@@ -574,7 +574,7 @@ div[trelloid-member] img {
     margin-right: 4px;
     text-align: right;
 }
-.g2tFormLabel{
+.g2tFormLabel {
     font-size: 0.875rem;
 }
 .g2tFormGroup .g2tFormControl {
@@ -636,18 +636,19 @@ div[trelloid-member] img {
 .imgOrAttach input {
     display: none;
 }
-
 .imgOrAttach input:active + label {
     background-color: #000;
 }
 
 .imgOrAttach .img-container {
-    width: 30px;
     height: 30px;
 }
+.imgOrAttach .img-container,
 .imgOrAttach .img-container img {
-    width: 100%;
+    width: 30px;
+    max-width: -webkit-fill-available;
 }
+
 #g2tAttachments .imgOrAttach label {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -675,7 +676,7 @@ div[trelloid-member] img {
     padding: 0px 6px;
     line-height: 20px;
     border-radius: 5px;
-    margin: 2px 4px 2px 0;
+    margin: 2px 0px 2px 0;
     background-color: #fff;
     border: 1px solid #dfdfdf;
     color: #2c2c2c;
@@ -685,20 +686,22 @@ div[trelloid-member] img {
 .g2tFormControl input[type="time"],
 .g2tFormControl textarea {
     min-height: 21px;
-    margin-right: 8px;
-    /* Padding and width gets added to the textbox's width.
-    Therefore subscracting the left-right padding and border 
-    from the overall width of the text-box; padding-left:4px; padding-right:4px; border-left:1px; border-right:1px; Total = 4+4+1+1 = 10
-     */
-    width: calc(100% - 10px);
+    width: 100%;
+}
+.g2tFormControl input[type="date"],
+.g2tFormControl input[type="time"] {
+    margin: 2px 4px 2px 0;
 }
 .g2tFormControl textarea {
-    height: calc(100% - 4px);
+    padding-top: 2px;
+    height: calc(100% - 6px);
     resize: none;
 }
-/* #g2tAttachHeader {
-    padding: 0;
-} */
+
+.g2tFormControl input[type="text"],
+.g2tFormControl textarea {
+    width: calc(100% - 4px);
+}
 
 .g2tFormControl input[type="time"] {
     width: fit-content;
@@ -731,6 +734,7 @@ div[trelloid-member] img {
 }
 .body-row {
     flex-grow: 2;
+    margin-bottom: 0px;
 }
 
 /* End of Updatd styles . KS */
