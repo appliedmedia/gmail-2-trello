@@ -13,10 +13,10 @@
       <!-- | <a id="g2tSubscribe" title="Subscribe">Subscribe</a> -->
     </div>
     <div class="make-flex">
-      <a id="close-button" class="make-flex" title="Close">&times;</a>
+      <a id="close-button" class="make-center" title="Close">&times;</a>
     </div>
   </div>
-  <div class="popupMsg make-flex">Loading...</div>
+  <div class="popupMsg">Loading...</div>
   <div class="content" style="display: none;">
     <div class="g2tTopRight make-flex flex-end">
       <div style="float: right;">
@@ -68,6 +68,20 @@
             <div id="g2tMembers" class="make-flex flex-wrap flex-start"></div>
           </div>
         </div>
+        <div class="g2tFormGroup g2tAssignments align-top">
+          <label class="g2tFormLabel memberLabel" id="g2tAttachHeader"
+            title="Shift-click me to clear all assignments">Attach:</label>
+          <div class="clearfix g2tFormControl">
+            <div class="make-flex flex-wrap flex-start" id="g2tAttachments"></div>
+          </div>
+        </div>
+        <div class="g2tFormGroup g2tAssignments align-top">
+          <label class="g2tFormLabel memberLabel" id="g2tImagesHeader"
+            title="Shift-click me to clear all assignments">Images:</label>
+          <div class="clearfix g2tFormControl">
+            <div class="make-flex flex-wrap flex-start" id="g2tImages"></div>
+          </div>
+        </div>
         <div class="g2tFormGroup align-center">
           <label class="g2tFormLabel">Due:</label>
           <div class="clearfix g2tFormControl">
@@ -88,21 +102,6 @@
         </div>
       </div>
       <div class="lower-half">
-        <div class="g2tFormGroup g2tAssignments align-top">
-          <label class="g2tFormLabel memberLabel" id="g2tAttachHeader"
-            title="Shift-click me to clear all assignments">Attach:</label>
-          <div class="clearfix g2tFormControl">
-            <div class="make-flex flex-wrap flex-start" id="g2tAttachments"></div>
-          </div>
-        </div>
-        <div class="g2tFormGroup g2tAssignments align-top">
-          <label class="g2tFormLabel memberLabel" id="g2tImagesHeader"
-            title="Shift-click me to clear all assignments">Images:</label>
-          <div class="clearfix g2tFormControl">
-            <div class="make-flex flex-wrap flex-start" id="g2tImages"></div>
-          </div>
-        </div>
-
         <div class="g2tFormGroup align-top body-row">
           <label class="g2tFormLabel no-margin">Body:</label>
           <div class="g2tFormControl align-top">
