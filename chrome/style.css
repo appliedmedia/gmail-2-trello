@@ -136,7 +136,9 @@
     width: 100%;
     overflow: auto;
 }
-#g2tMembers, #g2tAttachments, #g2tImages {
+#g2tMembers,
+#g2tAttachments,
+#g2tImages {
     max-height: 96px;
     overflow: auto;
 }
@@ -744,8 +746,9 @@ div[trelloid-member] img {
     background-size: 11px;
 }
 #g2tDue_Shortcuts {
-    /* width: 62px; */
-    width: 1em;
+    padding: 2px 11px;
+    -webkit-appearance: none;
+    width:1em;
 }
 .align-top {
     align-items: flex-start;
