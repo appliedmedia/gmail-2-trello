@@ -632,12 +632,13 @@ div[trelloid-member] img {
 
 #g2tLabels div:hover,
 #g2tMembers div:hover,
-#g2tLabels div.active:hover,
-#g2tMembers div.active:hover,
+#g2tLabels div.active:not(div.active-mouseDown):hover,
+#g2tMembers div.active:not(div.active-mouseDown):hover,
 .imgOrAttach label:hover {
     border-color: #52a8d9 !important;
     color: #1789c0;
 }
+
 #g2tLabels div.active,
 #g2tMembers div.active,
 .imgOrAttach input:checked + label {
@@ -661,7 +662,7 @@ div[trelloid-member] img {
     display: none;
 }
 .imgOrAttach input:active + label {
-    background-color: #000;
+    border-color: #000 !important;
 }
 
 .imgOrAttach .img-container {
@@ -746,9 +747,9 @@ div[trelloid-member] img {
     background-size: 11px;
 }
 #g2tDue_Shortcuts {
-    padding: 2px 11px;
+    padding: 2px 10px 2px 11px;
     -webkit-appearance: none;
-    width:1em;
+    width: 1em;
 }
 .align-top {
     align-items: flex-start;
@@ -768,6 +769,9 @@ div[trelloid-member] img {
 }
 .body-row label {
     padding-top: 4px;
+}
+.g2tFormControl div.active-mouseDown {
+    border-color: #000 !important;
 }
 
 /* End of Updatd styles . KS */

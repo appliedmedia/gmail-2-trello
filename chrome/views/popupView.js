@@ -559,6 +559,17 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                     self.mouseDownTracker[event.target] = 0;
                     self.hidePopup();
                 }
+                var activeDiv = $(event.target)
+                var activeDivAttr = $(activeDiv).attr('trelloid-member');
+                
+                if (!activeDivAttr || activeDivAttr.length == 0) {
+                    activeDiv = $(event.target).closest('trelloid-member');
+                }
+                if (!$(activeDiv).hasClass('active-mouseDown')) {
+                    $(activeDiv).addClass('active-mouseDown');
+                } else {
+                    $(activeDiv).removeClass('active-mouseDown');
+                }
             })
             .on("mousedown" + self.EVENT_LISTENER, function click(event) {
                 // Click isn't always propagated on Mailbox bar, so using mouseup instead
@@ -568,6 +579,18 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                 ) {
                     self.mouseDownTracker[event.target] = 1;
                 }
+                var activeDiv = $(event.target)
+                var activeDivAttr = $(activeDiv).attr('trelloid-member');
+                
+                if (!activeDivAttr || activeDivAttr.length == 0) {
+                    activeDiv = $(event.target).closest('trelloid-member');
+                }
+                if (!$(activeDiv).hasClass('active-mouseDown')) {
+                    $(activeDiv).addClass('active-mouseDown');
+                } else {
+                    $(activeDiv).removeClass('active-mouseDown');
+                }
+
             })
             .on("focusin" + self.EVENT_LISTENER, function focus(event) {
                 if (
@@ -1389,6 +1412,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         .get()
         .join();
     var labelsCount = $("#g2tLabels div", self.$popup).length;
+
 
     if (
         !labelsCount &&
