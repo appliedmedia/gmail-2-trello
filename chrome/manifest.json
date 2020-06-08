@@ -31,6 +31,7 @@
         "lib/jquery-3.4.1.min.js",
         "lib/jquery-ui-1.12.1.min.js",
         "lib/trello.min.js",
+        "lib/combo.js",
         "lib/date.js",
         "lib/google-analytics-bundle.js",
         "lib/google-chrome-buy.js",
