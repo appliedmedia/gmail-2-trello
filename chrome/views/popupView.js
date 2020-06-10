@@ -43,6 +43,7 @@ Gmail2Trello.PopupView = function (parent) {
     this.CLEAR_EXT_BROWSING_DATA = "g2t_clear_extension_browsing_data";
 
     this.updatesPending = [];
+    this.comboInitialized = false;
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -56,6 +57,7 @@ Gmail2Trello.PopupView.prototype.init = function () {
     // inject a button & a popup
     this.confirmPopup();
 
+
     if (self.intervalId) {
         clearInterval(self.intervalId);
     }
@@ -64,6 +66,27 @@ Gmail2Trello.PopupView.prototype.init = function () {
         self.event.fire("detectButton");
     }, 2000);
 };
+Gmail2Trello.PopupView.prototype.comboBox = function (update) {
+    if (!update) {
+        setTimeout(() => {
+            this.comboInitialized = true;
+            $("#g2tBoard").combobox();
+            $("#g2tList").combobox();
+            $("#g2tPosition").combobox();
+            $("#g2tCard").combobox();
+        }, 1000);
+    } else {
+        // Updating type-in list's value when a value is changed. 
+        if (this.comboInitialized) {
+            $("#g2tBoard").combobox('setInputValue', $("#g2tBoard").children("option:selected").text());
+            $("#g2tList").combobox('setInputValue', $("#g2tList").children("option:selected").text());
+            $("#g2tPosition").combobox('setInputValue', $("#g2tPosition").children("option:selected").text());
+            $("#g2tCard").combobox('setInputValue', $("#g2tCard").children("option:selected").text());
+        }
+
+    }
+
+}
 
 Gmail2Trello.PopupView.prototype.confirmPopup = function () {
     if (!this.$toolBar) {
@@ -329,6 +352,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
         self.event.fire("onBoardChanged", { boardId: boardId });
 
+        if (self.comboBox)
+            self.comboBox("updateValue");
         self.validateData();
     });
 
@@ -336,10 +361,14 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     $list.change(function () {
         const listId = $list.val();
         self.event.fire("onListChanged", { listId });
+        if (self.comboBox)
+            self.comboBox("updateValue");
         self.validateData();
     });
 
     $("#g2tCard", this.$popup).change(function () {
+        if (self.comboBox)
+            self.comboBox("updateValue");
         self.validateData();
     });
 
@@ -428,7 +457,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
         $("#g2tDue_Date", this.$popup).val(new_date || "");
         $("#g2tDue_Time", this.$popup).val(new_time || "");
-
+        if (self.comboBox)
+            self.comboBox("updateValue");
         self.validateData();
     });
 
@@ -549,15 +579,29 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                 }
             })
             .on("mouseup" + self.EVENT_LISTENER, function click(event) {
-                // Click isn't always propagated on Mailbox bar, so using mouseup instead
+                // Click isn't always propagated on Mailbox bar, so using mouseup instead.
+                /* Added additional check for .ui-autocomplete to prevent the popup from  closing
+                when clicked on a type-in select. KS*/
                 if (
                     $(event.target).closest("#g2tButton").length == 0 &&
                     $(event.target).closest("#g2tPopup").length == 0 &&
                     self.mouseDownTracker.hasOwnProperty(event.target) &&
-                    self.mouseDownTracker[event.target] === 1
+                    self.mouseDownTracker[event.target] === 1 &&
+                    $(event.target).closest(".ui-autocomplete").length == 0
                 ) {
                     self.mouseDownTracker[event.target] = 0;
                     self.hidePopup();
+                }
+                var activeDiv = $(event.target)
+                var activeDivAttr = $(activeDiv).attr('trelloid-member');
+
+                if (!activeDivAttr || activeDivAttr.length == 0) {
+                    activeDiv = $(event.target).closest('trelloid-member');
+                }
+                if (!$(activeDiv).hasClass('active-mouseDown')) {
+                    $(activeDiv).addClass('active-mouseDown');
+                } else {
+                    $(activeDiv).removeClass('active-mouseDown');
                 }
             })
             .on("mousedown" + self.EVENT_LISTENER, function click(event) {
@@ -568,6 +612,18 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                 ) {
                     self.mouseDownTracker[event.target] = 1;
                 }
+                var activeDiv = $(event.target)
+                var activeDivAttr = $(activeDiv).attr('trelloid-member');
+
+                if (!activeDivAttr || activeDivAttr.length == 0) {
+                    activeDiv = $(event.target).closest('trelloid-member');
+                }
+                if (!$(activeDiv).hasClass('active-mouseDown')) {
+                    $(activeDiv).addClass('active-mouseDown');
+                } else {
+                    $(activeDiv).removeClass('active-mouseDown');
+                }
+
             })
             .on("focusin" + self.EVENT_LISTENER, function focus(event) {
                 if (
@@ -878,6 +934,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     self.$popupContent.show();
 
     self.updateBoards();
+
+    // Setting up comboboxes after loading data.
+    self.comboBox();
 };
 
 Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
@@ -1125,7 +1184,6 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
                 .append(display_k)
         );
     });
-
     $g2t.change();
 };
 
@@ -1175,6 +1233,8 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
     });
 
     $g2t.change();
+
+
 };
 
 Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
@@ -1389,6 +1449,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         .get()
         .join();
     var labelsCount = $("#g2tLabels div", self.$popup).length;
+
 
     if (
         !labelsCount &&

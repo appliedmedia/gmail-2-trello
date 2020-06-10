@@ -19,12 +19,15 @@
     border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
-    font-size: 14px;
     margin-top: 24px;
     opacity: 0.97;
     z-index: 9999;
     overflow: hidden;
     white-space: normal;
+}
+.ui-widget,
+#g2tPopup {
+    font-size: 14px;
 }
 
 /* #g2tTitle {
@@ -136,7 +139,9 @@
     width: 100%;
     overflow: auto;
 }
-#g2tMembers, #g2tAttachments, #g2tImages {
+#g2tMembers,
+#g2tAttachments,
+#g2tImages {
     max-height: 96px;
     overflow: auto;
 }
@@ -572,15 +577,6 @@ div[trelloid-member] img {
     margin-bottom: 2px;
 }
 
-.first-row {
-    align-items: flex-start;
-    justify-content: space-between;
-}
-
-.first-row #addToTrello {
-    margin-top: 12px;
-    margin-right: 8px;
-}
 .g2tFormGroup {
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
@@ -605,6 +601,21 @@ div[trelloid-member] img {
     flex-wrap: wrap;
     justify-content: flex-start;
 }
+.first-row {
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.first-row #addToTrello {
+    margin-top: 12px;
+    margin-right: 8px;
+}
+.first-row .g2tFormGroup {
+    margin-bottom: 4px;
+}
+.first-row .g2tFormLabel {
+    padding-top: 0px;
+}
 /* .img-container {
     margin: 0 2px;
 
@@ -627,15 +638,17 @@ div[trelloid-member] img {
     margin: 0 4px 0 0 !important;
     justify-content: flex-end;
 }
+/* 
+/* #g2tLabels div.active:not(div.active-mouseDown):hover,
+  */
 
 #g2tLabels div:hover,
 #g2tMembers div:hover,
-#g2tLabels div.active:hover,
-#g2tMembers div.active:hover,
 .imgOrAttach label:hover {
-    border-color: #52a8d9 !important;
+    border-color: #52a8d9 ;
     color: #1789c0;
 }
+
 #g2tLabels div.active,
 #g2tMembers div.active,
 .imgOrAttach input:checked + label {
@@ -659,7 +672,7 @@ div[trelloid-member] img {
     display: none;
 }
 .imgOrAttach input:active + label {
-    background-color: #000;
+    border-color: #000 !important;
 }
 
 .imgOrAttach .img-container {
@@ -744,7 +757,8 @@ div[trelloid-member] img {
     background-size: 11px;
 }
 #g2tDue_Shortcuts {
-    /* width: 62px; */
+    padding: 0 10px 2px 11px;
+    -webkit-appearance: none;
     width: 1em;
 }
 .align-top {
@@ -765,6 +779,59 @@ div[trelloid-member] img {
 }
 .body-row label {
     padding-top: 4px;
+}
+#g2tLabels .active-mouseDown,
+#g2tMembers .active-mouseDown {
+    border-color: #000 !important;
+}
+
+/* Type Select */
+.custom-combobox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+.custom-combobox-toggle {
+    /* position: absolute; */
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+}
+.custom-combobox-input {
+    margin: 0;
+    padding: 3px;
+    border-right: 0px !important;
+    background-color: #fff;
+    border-radius: 5px 0 0 5px;
+}
+.custom-combobox a span {
+    display: none;
+}
+.custom-combobox-input,
+.custom-combobox a {
+    border-color: rgb(233, 233, 233) !important;
+}
+.custom-combobox a {
+    height: 24px;
+    width: 20px;
+    display: block;
+    margin: 0 4px 0 0 !important;
+    border-left: 0px !important;
+    background: #fff url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 50% 50% !important;
+    background-size: 10px !important;
+    border-radius: 0 5px 5px 0;
+}
+/* Adjusting type-in widths  */
+#g2tPosition + .custom-combobox input {
+    width: 40px;
+}
+#g2tBoard + .custom-combobox input {
+    width: 100px;
+}
+#g2tCard + .custom-combobox input {
+    width: 130px;
 }
 
 /* End of Updatd styles . KS */
