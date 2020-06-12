@@ -612,9 +612,15 @@ div[trelloid-member] img {
 }
 .first-row .g2tFormGroup {
     margin-bottom: 4px;
+    margin-top: 4px;
 }
 .first-row .g2tFormLabel {
     padding-top: 0px;
+}
+.first-row select {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    padding: 1px 20px 1px 6px !important;
 }
 /* .img-container {
     margin: 0 2px;
@@ -645,8 +651,8 @@ div[trelloid-member] img {
 #g2tLabels div:hover,
 #g2tMembers div:hover,
 .imgOrAttach label:hover {
-    border-color: #52a8d9 ;
-    color: #1789c0;
+    border-color: #52a8d9 !important;
+    color: #1789c0 !important;
 }
 
 #g2tLabels div.active,
@@ -658,6 +664,13 @@ div[trelloid-member] img {
     border: 4px solid;
     border-top-width: 7px;
     background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
+}
+.imgOrAttach input:checked + label:hover {
+    border-color: #52a8d9 !important;
+    color: #1789c0 !important;
+}
+.imgOrAttach input:checked + label:active {
+    border-color: #000 !important;
 }
 #g2tPosition li:hover,
 #g2tPosition li.active:hover {
@@ -780,10 +793,7 @@ div[trelloid-member] img {
 .body-row label {
     padding-top: 4px;
 }
-#g2tLabels .active-mouseDown,
-#g2tMembers .active-mouseDown {
-    border-color: #000 !important;
-}
+
 
 /* Type Select */
 .custom-combobox {
@@ -824,14 +834,32 @@ div[trelloid-member] img {
     border-radius: 0 5px 5px 0;
 }
 /* Adjusting type-in widths  */
-#g2tPosition + .custom-combobox input {
-    width: 40px;
+#g2tPosition {
+    flex-grow: 1;
+    max-width: 150px;
 }
-#g2tBoard + .custom-combobox input {
-    width: 100px;
+.custom-combobox input {
+    width: 100% !important;
 }
-#g2tCard + .custom-combobox input {
-    width: 130px;
+[for-select="g2tBoard"],
+[for-select="g2tList"] {
+    max-width: 200px;
+    min-width: 150px;
+    flex-basis: 150px;
+    flex-grow: 1.5;
 }
-
+[for-select="g2tPosition"] {
+    flex-basis: 60px;
+    /* min-width: 50px; */
+}
+[for-select="g2tCard"] {
+    flex-grow: 1.5;
+    max-width: 270px;
+    min-width: 180px;
+    flex-basis: 180px;
+}
+#g2tLabels div.active-mouseDown #g2tMembers .active-mouseDown,
+#g2tMembers div.active-mouseDown, #g2tMembers .active-mouseDown {
+    border-color: #000 !important;
+}
 /* End of Updatd styles . KS */

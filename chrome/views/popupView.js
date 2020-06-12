@@ -72,7 +72,6 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
             this.comboInitialized = true;
             $("#g2tBoard").combobox();
             $("#g2tList").combobox();
-            $("#g2tPosition").combobox();
             $("#g2tCard").combobox();
         }, 1000);
     } else {
@@ -80,7 +79,6 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
         if (this.comboInitialized) {
             $("#g2tBoard").combobox('setInputValue', $("#g2tBoard").children("option:selected").text());
             $("#g2tList").combobox('setInputValue', $("#g2tList").children("option:selected").text());
-            $("#g2tPosition").combobox('setInputValue', $("#g2tPosition").children("option:selected").text());
             $("#g2tCard").combobox('setInputValue', $("#g2tCard").children("option:selected").text());
         }
 
