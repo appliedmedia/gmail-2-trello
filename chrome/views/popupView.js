@@ -72,7 +72,6 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
             this.comboInitialized = true;
             $("#g2tBoard").combobox();
             $("#g2tList").combobox();
-            $("#g2tPosition").combobox();
             $("#g2tCard").combobox();
         }, 1000);
     } else {
@@ -80,7 +79,6 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
         if (this.comboInitialized) {
             $("#g2tBoard").combobox('setInputValue', $("#g2tBoard").children("option:selected").text());
             $("#g2tList").combobox('setInputValue', $("#g2tList").children("option:selected").text());
-            $("#g2tPosition").combobox('setInputValue', $("#g2tPosition").children("option:selected").text());
             $("#g2tCard").combobox('setInputValue', $("#g2tCard").children("option:selected").text());
         }
 
@@ -592,17 +590,6 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                     self.mouseDownTracker[event.target] = 0;
                     self.hidePopup();
                 }
-                var activeDiv = $(event.target)
-                var activeDivAttr = $(activeDiv).attr('trelloid-member');
-
-                if (!activeDivAttr || activeDivAttr.length == 0) {
-                    activeDiv = $(event.target).closest('trelloid-member');
-                }
-                if (!$(activeDiv).hasClass('active-mouseDown')) {
-                    $(activeDiv).addClass('active-mouseDown');
-                } else {
-                    $(activeDiv).removeClass('active-mouseDown');
-                }
             })
             .on("mousedown" + self.EVENT_LISTENER, function click(event) {
                 // Click isn't always propagated on Mailbox bar, so using mouseup instead
@@ -611,17 +598,6 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
                     $(event.target).closest("#g2tPopup").length == 0
                 ) {
                     self.mouseDownTracker[event.target] = 1;
-                }
-                var activeDiv = $(event.target)
-                var activeDivAttr = $(activeDiv).attr('trelloid-member');
-
-                if (!activeDivAttr || activeDivAttr.length == 0) {
-                    activeDiv = $(event.target).closest('trelloid-member');
-                }
-                if (!$(activeDiv).hasClass('active-mouseDown')) {
-                    $(activeDiv).addClass('active-mouseDown');
-                } else {
-                    $(activeDiv).removeClass('active-mouseDown');
                 }
 
             })
@@ -646,7 +622,15 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
         self.event.fire("onPopupVisible");
     }
 };
+Gmail2Trello.PopupView.prototype.toggleActiveMouseDown = function (elm) {
+    var activeDiv = elm;
+    if (!$(activeDiv).hasClass('active-mouseDown')) {
 
+        $(activeDiv).addClass('active-mouseDown');
+    } else {
+        $(activeDiv).removeClass('active-mouseDown');
+    }
+}
 Gmail2Trello.PopupView.prototype.hidePopup = function () {
     var self = this;
 
@@ -1323,6 +1307,15 @@ Gmail2Trello.PopupView.prototype.updateLabels = function () {
                     .css("border-color", item.color)
                     .css("background-color", bkColor)
                     .append(item.name)
+                    .on('mousedown', (evt) => {
+                        var elm = $(evt.currentTarget);
+
+                        self.toggleActiveMouseDown(elm);
+                    })
+                    .on('mouseup', (evt) => {
+                        var elm = $(evt.currentTarget);
+                        self.toggleActiveMouseDown(elm);
+                    })
             );
         }
     }
@@ -1388,6 +1381,15 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
                             .attr("height", size_k)
                     )
                     .append(" " + txt)
+                    .on('mousedown', (evt) => {
+                        var elm = $(evt.currentTarget);
+
+                        self.toggleActiveMouseDown(elm);
+                    })
+                    .on('mouseup', (evt) => {
+                        var elm = $(evt.currentTarget);
+                        self.toggleActiveMouseDown(elm);
+                    })
             );
         }
     }
