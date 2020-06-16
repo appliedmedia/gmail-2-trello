@@ -1145,7 +1145,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
         const org_k =
             item.hasOwnProperty("organization") &&
             item.organization.hasOwnProperty("displayName")
-                ? "_" + item.organization.displayName + ": "
+                ? "!" + item.organization.displayName + ": "
                 : "~";
         const display_k = org_k + item.name; // Ignore first char, it's used just for sorting
         newArray[display_k.toLowerCase()] = {
