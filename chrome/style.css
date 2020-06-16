@@ -497,7 +497,7 @@ div[trelloid-member],
 }
 div[trelloid-member].active,
 .imgOrAttach input:checked + label {
-    border-color: #000;
+    border-color: rgba(120, 217, 255, 0.8);
 }
 div[trelloid-member] img {
     margin-right: 6px;
@@ -671,7 +671,7 @@ div[trelloid-member] img {
     color: #1789c0 !important;
 }
 .imgOrAttach input:checked + label:active {
-    border-color: #000 !important;
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 #g2tPosition li:hover,
 #g2tPosition li.active:hover {
@@ -686,7 +686,7 @@ div[trelloid-member] img {
     display: none;
 }
 .imgOrAttach input:active + label {
-    border-color: #000 !important;
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 
 .imgOrAttach .img-container {
@@ -856,6 +856,6 @@ div[trelloid-member] img {
 #g2tLabels .active-mouseDown,
 #g2tMembers div.active-mouseDown,
 #g2tMembers .active-mouseDown {
-    border-color: #000 !important;
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 /* End of Updatd styles . KS */
