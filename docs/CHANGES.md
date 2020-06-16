@@ -1,5 +1,6 @@
 === 2.8.5.002@2020-05-25 ===
- * Initial drag updates from @KS-CleverCopter
+ * Ton of UI work from @KS-CleverCopter
+ * Change board alphabetization formatting
 
 === 2.8.5.001@2020-05-24 ===
  * First cut at remembering what message was stored with what card

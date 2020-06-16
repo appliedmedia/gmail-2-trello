@@ -9,12 +9,13 @@
 
 #g2tPopup {
     position: absolute;
-    max-height: none;
-    min-height: 460px;
-    min-width: 620px;
+    min-height: 450px;
+    min-width: 720px;
     max-width: 1400px;
+    max-height: none;
     -webkit-user-select: none;
-    border-top: 2px solid #ccc; /*#0088C3; */
+    border-top: 2px solid #ccc;
+    /*#0088C3; */
     border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
@@ -23,6 +24,10 @@
     z-index: 9999;
     overflow: hidden;
     white-space: normal;
+}
+.ui-widget,
+#g2tPopup {
+    font-size: 14px;
 }
 
 /* #g2tTitle {
@@ -47,23 +52,37 @@
     resize: vertical; */
 }
 
-#g2tButton {
+/* #g2tButton {
     padding-left: 10px;
     padding-right: 10px;
     -webkit-user-select: none;
     margin-bottom: 0px;
     margin-top: -2px;
     outline: none;
+} */
+#g2tPopup .content {
+    position: relative;
+    left: 0;
+    padding: 5px;
+    /* height: 100%; */
+    overflow: auto;
 }
 .g2tMain {
-    /* Where 90px is the height of the trello button. */
-    height: calc(100% - 90px);
+    /* Where 16px is the height of the padding combined. */
+    height: calc(100%);
     display: flex;
     flex-direction: column;
     width: 100%;
+    padding: 0;
     overflow-y: auto;
 }
-#g2tButton * {
+/* .content .lower-half {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 2;
+    max-height: 500px;
+} */
+/* #g2tButton * {
     outline: none;
 }
 #g2tButton img {
@@ -71,18 +90,8 @@
     height: 20px;
     padding-right: 2px;
 }
-#g2tPopup .content {
-    position: relative;
-    left: 0;
-    padding: 5px;
-    height: 100%;
-}
-.content .lower-half {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 2;
-    max-height: 500px;
-}
+
+
 
 #g2tPopup .popupMsg {
     border: 1px solid #edc967;
@@ -94,24 +103,25 @@
     position: relative;
     bottom: 24px;
     right: 24px;
-}
+} */
 /* 
 #g2tPopup .g2tFormControl {
     min-height: 31px;
 } */
 
 .placeholder-label {
-    background: #f9edb8;
-    padding: 4px;
+    /* background: #f9edb8;
+    padding: 4px 8px;
     width: 25%;
     min-width: 25%;
     margin: 0 4px;
+    border-radius: 5px; */
     /* padding-left: 1%; */
     /* margin-right: 70%; */
     /* margin-bottom: 50px; */
 }
 
-/* #g2tLabelsMsg,
+#g2tLabelsMsg,
 #g2tMembersMsg {
     background: #f9edb8;
     height: 16px;
@@ -119,7 +129,7 @@
     padding-left: 1%;
     margin-right: 70%;
     margin-bottom: 50px;
-} */
+}
 
 #g2tLabels {
     margin: 0;
@@ -129,8 +139,13 @@
     width: 100%;
     overflow: auto;
 }
-
-#g2tMembers {
+#g2tMembers,
+#g2tAttachments,
+#g2tImages {
+    max-height: 96px;
+    overflow: auto;
+}
+/* #g2tMembers {
     margin: 0;
     padding: 0;
     min-height: 50px;
@@ -145,28 +160,13 @@ ul#g2tPosition {
     padding: 0;
     margin: 0 0 2px 0;
 }
-
-#g2tLabels li,
-#g2tMembers li {
-    float: left;
-    margin: 0 2px 2px 0;
-    padding: 6px 6px;
-    list-style: none;
-    border-radius: 3px;
-    border: 1px solid #ccc;
-    border-top-width: 4px;
-    cursor: pointer;
-    background: #f2f2f2;
-    font-size: 11px;
-    font-weight: bold;
-    color: #888;
-}
+*/
 
 #g2tPosition li {
     float: left;
     cursor: pointer;
     list-style: none;
-    /* background: #F2F2F2; */
+    background: #f2f2f2;
     font-size: 20px;
     font-weight: bold;
     color: #ccc;
@@ -177,122 +177,23 @@ ul#g2tPosition {
     vertical-align: middle;
 }
 
-#g2tLabels li:hover,
-#g2tMembers li:hover,
-#g2tLabels li.active:hover,
-#g2tMembers li.active:hover {
-    border-color: #52a8d9;
-    color: #1789c0;
-}
-#g2tLabels li.active,
-#g2tMembers li.active {
-    border-color: inherit;
-    color: black;
-    padding: 3px 3px;
-    border: 4px solid;
-    border-top-width: 7px;
-    background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
-}
-#g2tPosition li:hover,
-#g2tPosition li.active:hover {
-    color: black;
-}
-#g2tPosition li.active {
-    color: darkgreen;
-    background: #f2f2f2;
-}
+/* #g2tAttachments, #g2tImages {
+    width: 100%;
+} */
 
-dl#g2tPopup {
-    vertical-align: baseline;
-}
-/* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
-.g2tFormGroup {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin: 8px 0px;
-    font-size: 12px;
-    flex-grow: 2;
-}
-.g2tFormGroup .g2tFormLabel {
-    font-weight: bold;
-    margin-right: 8px;
-    min-width: 50px;
-}
-.g2tFormGroup .g2tFormControl {
-    width: 90%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-/* Adjusting the text's width inside the form control. */
-.g2tFormControl input[type="text"],
-.g2tFormControl input[type="date"],
-.g2tFormControl input[type="time"],
-.g2tFormControl textarea {
-    padding: 4px;
-    line-height: 20px;
-    border: 1px solid #dfdfdf;
-    border-radius: 5px;
-    min-height: 21px;
-    margin-right: 8px;
-    /* Padding and width gets added to the textbox's width.
-    Therefore subscracting the left-right padding and border 
-    from the overall width of the text-box; padding-left:4px; padding-right:4px; border-left:1px; border-right:1px; Total = 4+4+1+1 = 10
-     */
-    width: calc(100% - 10px);
-}
-.g2tFormControl textarea {
-    height: 100%;
-}
-
-.g2tFormControl input[type="time"] {
-    width: 100px;
-}
-.g2tFormControl input[type="date"] {
-    width: 150px;
-}
-.g2tFormControl select {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 0px;
-    padding: 4px;
-    -webkit-appearance: none;
-    border-radius: 5px;
-    line-height: 20px;
-    margin: 4px;
-    color: #2c2c2c;
-    padding-right: 10%;
-    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 93% 50%;
-    background-size: 11px;
-}
-.g2tFormControl label {
-    display: flex;
-    align-items: center;
-}
-.g2tFormControl label img {
-    height: 32px;
-}
-.g2tFormControl .img-container {
-    /* Aligns the image to the center of the .img-container  */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.g2tFormControl input,
+/* .g2tFormControl input,
 .g2tFormControl .img-container {
     margin: 0 4px;
-}
-#g2tImages, #g2tAttachments {
+} */
+/* #g2tImages,
+#g2tAttachments {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
-}
-#g2tImages label {
-    margin: 4px 0;
-}
+} */
+/* #g2tImages label {
+    margin: 2px 0;
+} */
 /* #g2tPopup .g2tFormLabel {
     width: 70px;
     float: left;
@@ -309,26 +210,25 @@ dl#g2tPopup {
 #g2tPopup input,
 #g2tPopup select,
 #g2tPopup option {
-    font-size: 12px;
 }
 
 #g2tPopup .g2tTopRight {
-    float: right;
+    /* float: right;
     vertical-align: top;
-    margin: 0;
+    margin: 0; */
 }
 
 #g2tPopup #addToTrello /* input[type=button] */ {
-    font-size: 14px;
+    /* font-size: 14px;
     padding: 5px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
     border: 0;
     border-radius: 3px;
-    cursor: pointer;
+    cursor: pointer; */
 }
 #g2tPopup #addToTrello:hover /* input[type=button]:hover */ {
-    background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
+    /* background: linear-gradient(to bottom, #1f9323 0, #166919 100%); */
 }
 /* #g2tPopup input[type="text"],
 #g2tPopup textarea {
@@ -347,37 +247,37 @@ dl#g2tPopup {
 }
 
 #g2tPopup .header {
-    font-weight: bold;
+    /* font-weight: bold;
     vertical-align: middle;
     line-height: 30px;
     height: 30px;
     background: #eceaed;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #ccc; */
 }
 #g2tPopup .header a {
-    text-decoration: none;
-    color: #1789c0;
+    /* text-decoration: none;
+    color: #1789c0; */
 }
 #g2tPopup .header a:hover {
-    text-decoration: underline;
+    /* text-decoration: underline; */
 }
 /* #g2tPopup .header .item {float: left; margin-right: 10px;} */
 #g2tPopup .member-avatar {
-    float: left;
+    /* float: left;
     width: 30px;
     height: 30px;
     border-radius: 3px;
     background: lightgray;
     color: black;
-    text-align: center;
+    text-align: center; */
 }
 #g2tPopup .member-avatar:hover {
-    color: lightblue;
-    background: darkgray;
+    /* color: lightblue;
+    background: darkgray; */
 }
 #g2tPopup #close-button,
 #g2tPopup .popupMsg .hideMsg {
-    float: right;
+    /* float: right;
     margin: 0;
     padding: 0 10px;
     border-radius: 3px;
@@ -385,19 +285,32 @@ dl#g2tPopup {
     background: lightgray;
     font-weight: bold;
     font-size: 200%;
-    text-decoration: none;
+    text-decoration: none; */
 }
-#g2tPopup #close-button:hover,
+/* #g2tPopup #close-button:hover,
 #g2tPopup .popupMsg .hideMsg:hover {
     color: red;
     background: darkgray;
+} */
+#g2tPopup .popupMsg {
+    position: relative;
+    border: 1px solid #edc967;
+    font-weight: normal;
+}
+#g2tPopup .popupMsg .hideMsg + a {
+    color: blue;
 }
 #g2tPopup .popupMsg .hideMsg {
     background: #edc967;
     font-size: 150%;
     padding: 0 5px;
-    margin-top: -5px;
-    margin-right: -10px;
+    position: absolute;
+    right: 0;
+    border-radius: 3px;
+    color: #080808;
+    font-weight: bold;
+    /* margin-top: -5px;
+    margin-right: -10px; */
 } /* hideMsg close box is smaller */
 
 /* #g2tPopup #g2tAttachments,
@@ -428,7 +341,7 @@ dl#g2tPopup {
     text-indent: 0;
     padding-right: 8px;
     margin: 5px 0;
-}
+} */
 #g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
@@ -437,11 +350,11 @@ dl#g2tPopup {
     max-width: 100%;
     max-height: 100%;
     display: inline-block;
-} */
+}
 .ui-tooltip {
     max-height: 500px;
     max-width: 500px;
-    width: 500px;
+    width: auto;
     overflow: auto;
 }
 .ui-tooltip-content img {
@@ -469,12 +382,12 @@ dl#g2tPopup {
     text-align: right;
 }
 
-/* #g2tPopup .g2tWhere {
+#g2tPopup .g2tWhere {
     width: 180px;
-} */
+}
 
 #g2tPopup .positionGroup .g2t-button {
-    background-color: lightgray;
+    /* background-color: lightgray;
     border: 1px solid black;
     color: black;
     padding: 2px 2px;
@@ -484,19 +397,465 @@ dl#g2tPopup {
     font-size: 24px;
     cursor: pointer;
     width: 30px;
-    display: block;
+    display: block; */
 }
 
 #g2tPopup .positionGroup .g2t-button:not(:last-child) {
-    border-bottom: none; /* Prevent double borders */
+    /* border-bottom: none;  */
+    /* Prevent double borders */
 }
 
 #g2tPopup .positionGroup .g2t-button:hover {
-    background-color: #3e8e41;
+    /* background-color: #3e8e41; */
 }
 
 #g2tPopup .positionGroup .g2t-button:active {
-    background-color: darkgray;
+    /* background-color: darkgray; */
 }
 
 /* End, style.css */
+
+/* Updated Styles. KS */
+
+.content {
+    /* where 40px is the combination of header's height(30px) and the .content's padding (10px) */
+    height: calc(100% - 40px);
+}
+
+/* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
+/* Common utility classes. */
+.make-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.make-flex,
+.g2tFormGroup,
+.g2tFormControl,
+.g2tFormControl label,
+.g2tFormControl .img-container,
+#g2timgOrattach,
+.memberLabel,
+div[trelloid-member] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+.flex-apart {
+    justify-content: space-between;
+}
+.flex-start {
+    justify-content: flex-start;
+}
+.flex-end {
+    justify-content: flex-start;
+}
+.align-center {
+    align-items: center !important;
+}
+.align-top {
+    align-items: flex-start !important;
+}
+.flex-wrap {
+    flex-wrap: wrap;
+}
+/* End of common utility classes */
+
+/* Common presets */
+#g2tPopup a:not(.hideMsg + a) {
+    font-weight: bold;
+}
+
+#g2tPopup input[type="button"] {
+    padding: 5px 16px;
+    border-radius: 3px;
+}
+#g2tPopup input[type="checkbox"] + label {
+    text-align: right;
+}
+#g2tPopup input[type="checkbox"] {
+    margin-right: 4px;
+}
+
+.member-avatar {
+    margin: 0px !important;
+    line-height: 10px;
+}
+/* End of common presets */
+/* trelloid-member */
+div[trelloid-member],
+.imgOrAttach label {
+    padding: 4px;
+    margin: 0;
+    background-color: #ddd;
+    border: 2px solid #ddd;
+    border-top: 4px solid #ddd;
+    border-radius: 2px;
+    min-width: 45px;
+    background-image: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
+}
+div[trelloid-member].active,
+.imgOrAttach input:checked + label {
+    border-color: rgba(120, 217, 255, 0.8);
+}
+div[trelloid-member] img {
+    margin-right: 6px;
+}
+
+#g2tLabels div,
+#g2tMembers div,
+.imgOrAttach label {
+    float: left;
+    margin: 0 2px 2px 0;
+    padding: 6px;
+    list-style: none;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    border-top-width: 4px;
+    cursor: pointer;
+    background: #f2f2f2;
+
+    font-weight: bold;
+    color: #888;
+}
+.imgOrAttach label {
+    box-sizing: border-box;
+    float: none;
+    width: 40px;
+}
+
+#g2tPopup #addToTrello /* input[type=button] */ {
+    font-size: 14px;
+    padding: 6px 18px;
+    color: white;
+    background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
+    border: 0;
+    cursor: pointer;
+    margin: 0px;
+}
+#g2tPopup #addToTrello:hover {
+    background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
+}
+/* Global elements */
+#g2tPopup a {
+    margin: 0 4px;
+    text-decoration: none;
+    color: #458cbd;
+    transition: 350ms;
+}
+#g2tPopup a:hover {
+    color: #1e5175;
+}
+/* End of global elements */
+
+.header {
+    background-color: #edebee;
+    color: #27282b;
+    font-weight: bold;
+}
+.header #close-button {
+    font-size: 24px;
+    margin: 0px;
+    color: #080808;
+    background-color: #d5d5d5;
+    border-radius: 3px;
+    box-sizing: border-box;
+    height: 30px;
+    width: 30px;
+}
+.header #close-button:hover,
+.hideMsg:hover {
+    color: #d43030 !important;
+    background: #afafaf !important;
+}
+#g2tPopup .placeholder-label,
+#g2tPopup .popupMsg {
+    background: #f9edb8;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+}
+
+.g2tFormGroup {
+    margin: 0 0px 6px 4px;
+    width: calc(100% - 4px);
+}
+
+/* .g2tFormGroup.g2tFormGroup-tall-row label {
+    padding: 9px 0;
+} */
+.g2tFormGroup .g2tFormLabel {
+    min-width: 75px;
+    /* margin: 4px 4px 8px 0; */
+    padding: 5px 0;
+    margin-right: 4px;
+    text-align: right;
+}
+.g2tFormLabel {
+    font-size: 0.875rem;
+}
+.g2tFormGroup .g2tFormControl {
+    width: 100%;
+    height: 100%;
+    /* flex-wrap: wrap; */
+    justify-content: flex-start;
+}
+.first-row {
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.first-row #addToTrello {
+    margin-top: 12px;
+    margin-right: 8px;
+}
+.first-row .g2tFormGroup {
+    margin-bottom: 0;
+    margin-top: 4px;
+}
+.first-row .g2tFormLabel {
+    padding-top: 2px;
+}
+.first-row select {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 1px 20px 1px 6px !important;
+}
+/* .img-container {
+    margin: 0 2px;
+
+}
+.img-container img {
+
+} */
+/* #g2tImages label { */
+/* width: 100%; */
+/* justify-content: flex-start;
+    padding: 0;
+}
+#g2tImages label:first-child {
+    padding-top: 5px;
+    margin-top: 0px;
+} */
+.memberLabel {
+    height: 39px;
+    padding: 0 !important;
+    margin: 0 4px 0 0 !important;
+    justify-content: flex-end;
+}
+/* 
+/* #g2tLabels div.active:not(div.active-mouseDown):hover,
+  */
+
+#g2tLabels div:hover,
+#g2tMembers div:hover,
+.imgOrAttach label:hover {
+    border-color: #52a8d9 !important;
+    color: #1789c0 !important;
+}
+
+#g2tLabels div.active,
+#g2tMembers div.active,
+.imgOrAttach input:checked + label {
+    border-color: inherit;
+    color: black;
+    padding: 3px 3px;
+    border: 4px solid;
+    border-top-width: 7px;
+    background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
+}
+.imgOrAttach input:checked + label:hover {
+    border-color: #52a8d9 !important;
+    color: #1789c0 !important;
+}
+.imgOrAttach input:checked + label:active {
+    border-color: rgba(120, 217, 255, 0.8) !important;
+}
+#g2tPosition li:hover,
+#g2tPosition li.active:hover {
+    color: black;
+}
+#g2tPosition li.active {
+    color: darkgreen;
+    background: #f2f2f2;
+}
+
+.imgOrAttach input {
+    display: none;
+}
+.imgOrAttach input:active + label {
+    border-color: rgba(120, 217, 255, 0.8) !important;
+}
+
+.imgOrAttach .img-container {
+    height: 30px;
+}
+.imgOrAttach .img-container,
+.imgOrAttach .img-container img {
+    width: 30px;
+    max-width: -webkit-fill-available !important;
+}
+.imgOrAttach .img-container img {
+    margin: 0px;
+}
+
+#g2tAttachments .imgOrAttach label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* shows atleast 10 chars. */
+    width: 10ch;
+
+    white-space: nowrap;
+    display: block;
+}
+#g2tAttachments .img-container {
+    width: 100%;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+}
+
+/* Adjusting the text's width inside the form control. */
+
+.g2tFormControl select,
+.g2tFormControl input[type="text"],
+.g2tFormControl input[type="date"],
+.g2tFormControl input[type="time"],
+.g2tFormControl textarea {
+    padding: 0px 6px;
+    line-height: 20px;
+    border-radius: 5px;
+    margin: 2px 0px 2px 0;
+    background-color: #fff;
+    border: 1px solid #dfdfdf;
+    color: #2c2c2c;
+}
+.g2tFormControl input[type="text"],
+.g2tFormControl input[type="date"],
+.g2tFormControl input[type="time"],
+.g2tFormControl textarea {
+    min-height: 21px;
+    width: 100%;
+}
+.g2tFormControl input[type="date"],
+.g2tFormControl input[type="time"],
+.g2tFormControl select {
+    margin: 2px 4px 2px 0;
+}
+.g2tFormControl textarea {
+    padding-top: 4px;
+    margin: 0px;
+    height: calc(100% - 11px);
+    resize: none;
+}
+
+.g2tFormControl input[type="text"],
+.g2tFormControl textarea {
+    width: calc(100% - 4px);
+}
+
+.g2tFormControl input[type="time"] {
+    width: fit-content;
+}
+.g2tFormControl input[type="date"] {
+    width: 11em;
+}
+.g2tFormControl select {
+    padding: 2px 6px;
+    -webkit-appearance: none;
+    padding-right: 20px;
+    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat calc(100% - 5px) 50%;
+    background-size: 11px;
+}
+#g2tDue_Shortcuts {
+    padding: 0 10px 2px 11px;
+    -webkit-appearance: none;
+    width: 1em;
+}
+.align-top {
+    align-items: flex-start;
+}
+.lower-half {
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+}
+.no-margin {
+    margin: 0px;
+}
+.body-row {
+    flex-grow: 2;
+    margin-bottom: 0px;
+}
+.body-row label {
+    padding-top: 4px;
+}
+
+/* Type Select */
+.custom-combobox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.custom-combobox-toggle {
+    /* position: absolute; */
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+}
+.custom-combobox-input {
+    margin: 0;
+    padding: 3px;
+    border-right: 0px !important;
+    background-color: #fff;
+    border-radius: 5px 0 0 5px;
+}
+.custom-combobox a span {
+    display: none;
+}
+.custom-combobox-input,
+.custom-combobox a {
+    border-color: rgb(233, 233, 233) !important;
+}
+.custom-combobox a {
+    height: 24px;
+    width: 20px;
+    display: block;
+    margin: 0 4px 0 0 !important;
+    border-left: 0px !important;
+    background: #fff url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 50% 50% !important;
+    background-size: 10px !important;
+    border-radius: 0 5px 5px 0;
+}
+/* Adjusting type-in widths  */
+#g2tPosition {
+    width: 70px;
+}
+.custom-combobox input {
+    width: 100% !important;
+}
+[for-select="g2tBoard"],
+[for-select="g2tList"] {
+    max-width: 200px;
+    min-width: 150px;
+    flex-grow: 1.5;
+    flex-basis: 150px;
+}
+[for-select="g2tCard"] {
+    /* max-width: 270px; */
+    flex-grow: 1.5;
+    min-width: 150px;
+    flex-basis: 150px;
+}
+#g2tLabels div.active-mouseDown,
+#g2tLabels .active-mouseDown,
+#g2tMembers div.active-mouseDown,
+#g2tMembers .active-mouseDown {
+    border-color: rgba(120, 217, 255, 0.8) !important;
+}
+/* End of Updatd styles . KS */
