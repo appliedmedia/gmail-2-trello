@@ -497,7 +497,7 @@ div[trelloid-member],
 }
 div[trelloid-member].active,
 .imgOrAttach input:checked + label {
-    border-color: #000;
+    border-color: rgba(120, 217, 255, 0.8);
 }
 div[trelloid-member] img {
     margin-right: 6px;
@@ -598,12 +598,13 @@ div[trelloid-member] img {
 .g2tFormGroup .g2tFormControl {
     width: 100%;
     height: 100%;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
     justify-content: flex-start;
 }
 .first-row {
     align-items: flex-start;
     justify-content: space-between;
+    margin-bottom: 4px;
 }
 
 .first-row #addToTrello {
@@ -611,15 +612,15 @@ div[trelloid-member] img {
     margin-right: 8px;
 }
 .first-row .g2tFormGroup {
-    margin-bottom: 4px;
+    margin-bottom: 0;
     margin-top: 4px;
 }
 .first-row .g2tFormLabel {
-    padding-top: 0px;
+    padding-top: 2px;
 }
 .first-row select {
     margin-top: 0 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
 }
 /* .img-container {
@@ -670,7 +671,7 @@ div[trelloid-member] img {
     color: #1789c0 !important;
 }
 .imgOrAttach input:checked + label:active {
-    border-color: #000 !important;
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 #g2tPosition li:hover,
 #g2tPosition li.active:hover {
@@ -685,7 +686,7 @@ div[trelloid-member] img {
     display: none;
 }
 .imgOrAttach input:active + label {
-    border-color: #000 !important;
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 
 .imgOrAttach .img-container {
@@ -794,13 +795,11 @@ div[trelloid-member] img {
     padding-top: 4px;
 }
 
-
 /* Type Select */
 .custom-combobox {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 4px;
 }
 .custom-combobox-toggle {
     /* position: absolute; */
@@ -835,8 +834,7 @@ div[trelloid-member] img {
 }
 /* Adjusting type-in widths  */
 #g2tPosition {
-    flex-grow: 1;
-    max-width: 150px;
+    width: 70px;
 }
 .custom-combobox input {
     width: 100% !important;
@@ -845,21 +843,19 @@ div[trelloid-member] img {
 [for-select="g2tList"] {
     max-width: 200px;
     min-width: 150px;
-    flex-basis: 150px;
     flex-grow: 1.5;
-}
-[for-select="g2tPosition"] {
-    flex-basis: 60px;
-    /* min-width: 50px; */
+    flex-basis: 150px;
 }
 [for-select="g2tCard"] {
+    /* max-width: 270px; */
     flex-grow: 1.5;
-    max-width: 270px;
-    min-width: 180px;
-    flex-basis: 180px;
+    min-width: 150px;
+    flex-basis: 150px;
 }
-#g2tLabels div.active-mouseDown #g2tMembers .active-mouseDown,
-#g2tMembers div.active-mouseDown, #g2tMembers .active-mouseDown {
-    border-color: #000 !important;
+#g2tLabels div.active-mouseDown,
+#g2tLabels .active-mouseDown,
+#g2tMembers div.active-mouseDown,
+#g2tMembers .active-mouseDown {
+    border-color: rgba(120, 217, 255, 0.8) !important;
 }
 /* End of Updatd styles . KS */
