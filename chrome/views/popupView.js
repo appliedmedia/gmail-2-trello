@@ -11,7 +11,7 @@ Gmail2Trello.PopupView = function (parent) {
     this.size_k = {
         width: {
             min: 700,
-            max: 1400,
+            max: (window.innerWidth - 16), // Max width is 100% of the window - 1em. KS
         },
         height: {
             min: 450,
@@ -363,6 +363,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             self.comboBox("updateValue");
         self.validateData();
     });
+
+    $('#g2tPosition').change(function (event) {
+        // Focusing the next element in select.
+        $("#combo_g2tCard").contents(".custom-combobox-input").focus();
+        console.log("event", event.keyCode, event.which);
+    })
 
     $("#g2tCard", this.$popup).change(function () {
         if (self.comboBox)
@@ -1305,7 +1311,7 @@ Gmail2Trello.PopupView.prototype.updateLabels = function () {
                 $("<div>")
                     .attr("trelloId-label", item.id)
                     .css("border-color", item.color)
-                    .css("background-color", bkColor)
+                    // .css("background-color", bkColor)
                     .append(item.name)
                     .on('mousedown', (evt) => {
                         var elm = $(evt.currentTarget);

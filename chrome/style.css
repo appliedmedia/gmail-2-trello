@@ -1,21 +1,13 @@
 /* NOTE (Ace, 15-Jan-2017): Latest Clearfix update as per http://cssmojo.com/the-very-latest-clearfix-reloaded/ */
 
-/* .clearfix:after {
-    content: ""; */
-/* Seems to do better than "block": */
-/* display: table;
-    clear: both;
-} */
-
 #g2tPopup {
     position: absolute;
     min-height: 450px;
     min-width: 720px;
-    max-width: 1400px;
+    max-width: 100%;
     max-height: none;
     -webkit-user-select: none;
     border-top: 2px solid #ccc;
-    /*#0088C3; */
     border-bottom: 2px solid #ccc;
     background: #fefefe;
     padding: 0;
@@ -30,68 +22,22 @@
     font-size: 14px;
 }
 
-/* #g2tTitle {
-    min-height: 1em;
-    max-height: 1em;
-    width: 100%;
-} */
-
-#g2tDesc {
-    /* was: 100px; style="height: 180px; width: 300px;" */
-    /* min-height: 4em; */
-    /* was: 339px; */
-    /* width: 100%;  */
-    /* z-index: 2;
-    position: relative;
-    line-height: normal;
-    font-size: 13px;
-    -webkit-transition: none;
-    transition: none;
-    overflow: auto;
-    background: transparent;
-    resize: vertical; */
-}
-
-/* #g2tButton {
-    padding-left: 10px;
-    padding-right: 10px;
-    -webkit-user-select: none;
-    margin-bottom: 0px;
-    margin-top: -2px;
-    outline: none;
-} */
 #g2tPopup .content {
     position: relative;
     left: 0;
-    padding: 5px;
-    /* height: 100%; */
+    padding: 3px 5px 3px 5px;
     overflow: auto;
 }
 .g2tMain {
-    /* Where 16px is the height of the padding combined. */
-    height: calc(100%);
+    /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
+    second row to expand vertically to take up the remaining height without using JS to adjust the height. KS */
+    height: 100%;
     display: flex;
     flex-direction: column;
     width: 100%;
     padding: 0;
     overflow-y: auto;
 }
-/* .content .lower-half {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 2;
-    max-height: 500px;
-} */
-/* #g2tButton * {
-    outline: none;
-}
-#g2tButton img {
-    vertical-align: middle;
-    height: 20px;
-    padding-right: 2px;
-}
-
-
 
 #g2tPopup .popupMsg {
     border: 1px solid #edc967;
@@ -103,22 +49,6 @@
     position: relative;
     bottom: 24px;
     right: 24px;
-} */
-/* 
-#g2tPopup .g2tFormControl {
-    min-height: 31px;
-} */
-
-.placeholder-label {
-    /* background: #f9edb8;
-    padding: 4px 8px;
-    width: 25%;
-    min-width: 25%;
-    margin: 0 4px;
-    border-radius: 5px; */
-    /* padding-left: 1%; */
-    /* margin-right: 70%; */
-    /* margin-bottom: 50px; */
 }
 
 #g2tLabelsMsg,
@@ -145,22 +75,6 @@
     max-height: 96px;
     overflow: auto;
 }
-/* #g2tMembers {
-    margin: 0;
-    padding: 0;
-    min-height: 50px;
-    max-height: 124px;
-    width: 100%;
-    overflow: auto;
-}
-
-ul#g2tPosition {
-    display: inline-block;
-    float: left;
-    padding: 0;
-    margin: 0 0 2px 0;
-}
-*/
 
 #g2tPosition li {
     float: left;
@@ -177,66 +91,6 @@ ul#g2tPosition {
     vertical-align: middle;
 }
 
-/* #g2tAttachments, #g2tImages {
-    width: 100%;
-} */
-
-/* .g2tFormControl input,
-.g2tFormControl .img-container {
-    margin: 0 4px;
-} */
-/* #g2tImages,
-#g2tAttachments {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-} */
-/* #g2tImages label {
-    margin: 2px 0;
-} */
-/* #g2tPopup .g2tFormLabel {
-    width: 70px;
-    float: left;
-    text-align: right;
-    padding-right: 5px;
-    vertical-align: baseline;
-} */
-/* #g2tPopup .g2tFormControl {
-    display: block;
-    margin: 8px;
-    margin-left: 75px;
-} */
-
-#g2tPopup input,
-#g2tPopup select,
-#g2tPopup option {
-}
-
-#g2tPopup .g2tTopRight {
-    /* float: right;
-    vertical-align: top;
-    margin: 0; */
-}
-
-#g2tPopup #addToTrello /* input[type=button] */ {
-    /* font-size: 14px;
-    padding: 5px 18px;
-    color: white;
-    background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
-    border: 0;
-    border-radius: 3px;
-    cursor: pointer; */
-}
-#g2tPopup #addToTrello:hover /* input[type=button]:hover */ {
-    /* background: linear-gradient(to bottom, #1f9323 0, #166919 100%); */
-}
-/* #g2tPopup input[type="text"],
-#g2tPopup textarea {
-    padding: 3px;
-    border: 1px solid #a1a1a1;
-    border-radius: 3px;
-} */
-
 #g2tPopup #addToTrello[disabled],
 #g2tPopup #addToTrello[disabled]:hover,
 #g2tPopup input[disabled],
@@ -246,52 +100,6 @@ ul#g2tPosition {
     cursor: default;
 }
 
-#g2tPopup .header {
-    /* font-weight: bold;
-    vertical-align: middle;
-    line-height: 30px;
-    height: 30px;
-    background: #eceaed;
-    border-bottom: 1px solid #ccc; */
-}
-#g2tPopup .header a {
-    /* text-decoration: none;
-    color: #1789c0; */
-}
-#g2tPopup .header a:hover {
-    /* text-decoration: underline; */
-}
-/* #g2tPopup .header .item {float: left; margin-right: 10px;} */
-#g2tPopup .member-avatar {
-    /* float: left;
-    width: 30px;
-    height: 30px;
-    border-radius: 3px;
-    background: lightgray;
-    color: black;
-    text-align: center; */
-}
-#g2tPopup .member-avatar:hover {
-    /* color: lightblue;
-    background: darkgray; */
-}
-#g2tPopup #close-button,
-#g2tPopup .popupMsg .hideMsg {
-    /* float: right;
-    margin: 0;
-    padding: 0 10px;
-    border-radius: 3px;
-    color: black;
-    background: lightgray;
-    font-weight: bold;
-    font-size: 200%;
-    text-decoration: none; */
-}
-/* #g2tPopup #close-button:hover,
-#g2tPopup .popupMsg .hideMsg:hover {
-    color: red;
-    background: darkgray;
-} */
 #g2tPopup .popupMsg {
     position: relative;
     border: 1px solid #edc967;
@@ -309,39 +117,8 @@ ul#g2tPosition {
     border-radius: 3px;
     color: #080808;
     font-weight: bold;
-    /* margin-top: -5px;
-    margin-right: -10px; */
-} /* hideMsg close box is smaller */
+}
 
-/* #g2tPopup #g2tAttachments,
-#g2tPopup #g2tImages {
-    min-height: 60px;
-    max-height: 120px;
-    width: 100%;
-    display: inline-block;
-    overflow: auto;
-    padding: 0;
-    margin: 0;
-} */
-/* #g2tPopup #g2tAttachments input[type="checkbox"],
-#g2tPopup #g2tImages input[type="checkbox"] {
-    width: 15px;
-} */
-/* #g2tPopup #g2tAttachments label,
-#g2tPopup #g2tImages label {
-    display: inline-block;
-    padding-left: 24px;
-    text-indent: -18px;
-} */
-
-/* #g2tPopup #g2tImages .img-container {
-    width: 32px;
-    height: 32px;
-    display: inline-block;
-    text-indent: 0;
-    padding-right: 8px;
-    margin: 5px 0;
-} */
 #g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
@@ -386,40 +163,12 @@ ul#g2tPosition {
     width: 180px;
 }
 
-#g2tPopup .positionGroup .g2t-button {
-    /* background-color: lightgray;
-    border: 1px solid black;
-    color: black;
-    padding: 2px 2px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 24px;
-    cursor: pointer;
-    width: 30px;
-    display: block; */
-}
-
-#g2tPopup .positionGroup .g2t-button:not(:last-child) {
-    /* border-bottom: none;  */
-    /* Prevent double borders */
-}
-
-#g2tPopup .positionGroup .g2t-button:hover {
-    /* background-color: #3e8e41; */
-}
-
-#g2tPopup .positionGroup .g2t-button:active {
-    /* background-color: darkgray; */
-}
-
 /* End, style.css */
 
 /* Updated Styles. KS */
-
 .content {
-    /* where 40px is the combination of header's height(30px) and the .content's padding (10px) */
-    height: calc(100% - 40px);
+    /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
+    height: calc(100% - 33px);
 }
 
 /* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
@@ -483,6 +232,7 @@ div[trelloid-member] {
     line-height: 10px;
 }
 /* End of common presets */
+
 /* trelloid-member */
 div[trelloid-member],
 .imgOrAttach label {
@@ -525,7 +275,7 @@ div[trelloid-member] img {
     width: 40px;
 }
 
-#g2tPopup #addToTrello /* input[type=button] */ {
+#g2tPopup #addToTrello {
     font-size: 14px;
     padding: 6px 18px;
     color: white;
@@ -537,6 +287,7 @@ div[trelloid-member] img {
 #g2tPopup #addToTrello:hover {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
 }
+
 /* Global elements */
 #g2tPopup a {
     margin: 0 4px;
@@ -582,12 +333,8 @@ div[trelloid-member] img {
     width: calc(100% - 4px);
 }
 
-/* .g2tFormGroup.g2tFormGroup-tall-row label {
-    padding: 9px 0;
-} */
 .g2tFormGroup .g2tFormLabel {
     min-width: 75px;
-    /* margin: 4px 4px 8px 0; */
     padding: 5px 0;
     margin-right: 4px;
     text-align: right;
@@ -598,7 +345,6 @@ div[trelloid-member] img {
 .g2tFormGroup .g2tFormControl {
     width: 100%;
     height: 100%;
-    /* flex-wrap: wrap; */
     justify-content: flex-start;
 }
 .first-row {
@@ -613,7 +359,7 @@ div[trelloid-member] img {
 }
 .first-row .g2tFormGroup {
     margin-bottom: 0;
-    margin-top: 4px;
+    margin-top: 2px;
 }
 .first-row .g2tFormLabel {
     padding-top: 2px;
@@ -623,31 +369,12 @@ div[trelloid-member] img {
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
 }
-/* .img-container {
-    margin: 0 2px;
-
-}
-.img-container img {
-
-} */
-/* #g2tImages label { */
-/* width: 100%; */
-/* justify-content: flex-start;
-    padding: 0;
-}
-#g2tImages label:first-child {
-    padding-top: 5px;
-    margin-top: 0px;
-} */
 .memberLabel {
     height: 39px;
     padding: 0 !important;
     margin: 0 4px 0 0 !important;
     justify-content: flex-end;
 }
-/* 
-/* #g2tLabels div.active:not(div.active-mouseDown):hover,
-  */
 
 #g2tLabels div:hover,
 #g2tMembers div:hover,
@@ -802,7 +529,6 @@ div[trelloid-member] img {
     justify-content: center;
 }
 .custom-combobox-toggle {
-    /* position: absolute; */
     top: 0;
     bottom: 0;
     margin-left: -1px;
@@ -832,6 +558,7 @@ div[trelloid-member] img {
     background-size: 10px !important;
     border-radius: 0 5px 5px 0;
 }
+
 /* Adjusting type-in widths  */
 #g2tPosition {
     width: 70px;
@@ -847,7 +574,6 @@ div[trelloid-member] img {
     flex-basis: 150px;
 }
 [for-select="g2tCard"] {
-    /* max-width: 270px; */
     flex-grow: 1.5;
     min-width: 150px;
     flex-basis: 150px;
