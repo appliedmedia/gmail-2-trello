@@ -6,6 +6,7 @@ $(function () {
       this.wrapper = $("<div>")
         .addClass("custom-combobox")
         .attr("for-select", this.element.attr('id'))
+        .attr("id", "combo_" + this.element.attr('id'))
         .insertAfter(this.element);
 
       this.element.hide();
@@ -28,7 +29,7 @@ $(function () {
         .autocomplete({
           delay: 0,
           minLength: 0,
-          autoFocus:true,
+          autoFocus: true,
           source: $.proxy(this, "_source")
         })
         .tooltip({
@@ -43,8 +44,14 @@ $(function () {
           this._trigger("select", event, {
             item: ui.item.option
           });
-          console.log(this.input.parent().attr('for-select'), $('#' + this.input.parent().attr('for-select')));
-          $('#' + this.input.parent().attr('for-select')).trigger('change')
+
+          var forAttr = this.input.parent().attr('for-select');
+          if (forAttr == "g2tBoard") {
+            $("#combo_g2tList").contents('.custom-combobox-input').focus();
+          } else if (forAttr == "g2tList") {
+            $("#g2tPosition").focus()
+          }
+          $('#' + forAttr).trigger('change')
         },
 
         autocompletechange: "_removeIfInvalid"
@@ -97,13 +104,6 @@ $(function () {
     },
 
     _removeIfInvalid: function (event, ui) {
-
-      // Selected an item, nothing to do
-      if (ui.item) {
-        // debugger;
-        //   return;
-      }
-
       // Search for a match (case-insensitive)
       var value = this.input.val(),
         valueLowerCase = value.toLowerCase(),
@@ -112,7 +112,6 @@ $(function () {
       this.element.children("option").each(function () {
         if ($(this).text().toLowerCase() === valueLowerCase) {
           this.selected = valid = true;
-          // return false;
         }
       });
 
@@ -120,16 +119,6 @@ $(function () {
       if (valid) {
         //   return;
       }
-
-      // Remove invalid value
-      // this.input
-      //   .val( "" )
-      //   .attr( "title", value + " didn't match any item" )
-      //   .tooltip( "open" );
-      // this.element.val( "" );
-      // this._delay(function() {
-      //   this.input.tooltip( "close" ).attr( "title", "" );
-      // }, 2500 );
       this.input.autocomplete("instance").term = "";
     },
 
