@@ -21,6 +21,16 @@ Gmail2Trello.PopupView = function (parent) {
             min: 111,
         },
     };
+    this.draggable = {
+        height: {
+            min: 450,
+            max: (window.innerHeight - 100) // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
+        },
+        width: {
+            min: 700,
+            max: (window.innerWidth - 100)
+        }
+    }
 
     // html pieces
     this.html = {};
@@ -263,12 +273,19 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
     var $g2tDesc = $("#g2tDesc", self.$popup);
     var $popupBB = $('#g2tPopup', self.$popup);
     var padding = 95;
-    this.$popup.draggable({ disabled: false }).resizable({
+    this.$popup.draggable({
         disabled: false,
-        minHeight: this.size_k.height.min,
-        minWidth: this.size_k.width.min,
-        maxHeight: this.size_k.height.max,
-        maxWidth: this.size_k.width.max,
+        containment: 'window'
+    })
+    this.$popup.resizable({
+        disabled: false,
+        // containment:"document",
+        // containment: 'window',
+
+        minHeight: this.draggable.height.min,
+        minWidth: this.draggable.width.min,
+        maxHeight: this.draggable.height.max,
+        maxWidth: this.draggable.width.max,
         // alsoResize: "#g2tImages,#g2tMembers",
         handles: "w,sw,s,se,e"
     });
@@ -343,6 +360,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             self.data.settings.listId = "";
             self.data.settings.cardId = "";
             // self.data.settings.membersId = ''; // NOTE (Ace, 28-Mar-2017): Do NOT clear membersId, as we can persist selections across boards
+            $
         } else {
             $labelsMsg.text("Loading...").show();
             $membersMsg.text("Loading...").show();
@@ -366,8 +384,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
     $('#g2tPosition').change(function (event) {
         // Focusing the next element in select.
-        $("#combo_g2tCard").contents(".custom-combobox-input").focus();
-        console.log("event", event.keyCode, event.which);
+        $("#" + $(this).attr("next-select")).find("input").focus();
+    }).on('keyup', (event) => {
+        // Focusing the next element on enter key up.
+        if (event.which == 13) {
+            $("#" + $(event.target).attr("next-select")).find("input").focus();
+        }
     })
 
     $("#g2tCard", this.$popup).change(function () {
@@ -375,6 +397,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             self.comboBox("updateValue");
         self.validateData();
     });
+
+
 
     $("#g2tDue_Shortcuts", this.$popup).change(function () {
         const dayOfWeek_k = {
@@ -472,6 +496,10 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     $("#g2tDesc", this.$popup).change(function () {
         self.validateData();
     });
+
+    $(".g2tWhere").select(function (event) {
+        console.log(event.which, $(this).attr("next-select"));
+    })
 
     var update_body = function () {
         const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");

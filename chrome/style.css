@@ -585,3 +585,8 @@ div[trelloid-member] img {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
 /* End of Updatd styles . KS */
+
+/* Potential fix for the bug that hides the autoselect behind the pop-up */
+.ui-autocomplete.ui-front {    
+    z-index: 9999;
+}

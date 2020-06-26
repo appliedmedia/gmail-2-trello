@@ -36,6 +36,21 @@ $(function () {
           classes: {
             "ui-tooltip": "ui-state-highlight"
           }
+        }).keyup((event) => {
+
+          if (event.which == 13) {
+            var forAttr = $(event.target).parent().attr("for-select");
+            if (forAttr) {
+              var nextSelAttr = $("#" + forAttr).attr("next-select");
+              var nextSel = $("#" + nextSelAttr);
+              if ($(nextSel).hasClass("custom-combobox")) {
+                $(nextSel).find("input").focus();
+              } else {
+                $(nextSel).focus();
+              }
+            }
+          }
+
         });
 
       this._on(this.input, {
