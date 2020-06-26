@@ -4,7 +4,7 @@ $(function () {
 
 
       this.wrapper = $("<div>")
-        .addClass("custom-combobox")
+        .addClass("g2t-custom-combobox")
         .attr("for-select", this.element.attr('id'))
         .attr("id", "combo_" + this.element.attr('id'))
         .insertAfter(this.element);
@@ -25,7 +25,7 @@ $(function () {
         .appendTo(this.wrapper)
         .val(value)
         .attr("title", "")
-        .addClass("custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left")
+        .addClass("g2t-custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left")
         .autocomplete({
           delay: 0,
           minLength: 0,
@@ -36,6 +36,21 @@ $(function () {
           classes: {
             "ui-tooltip": "ui-state-highlight"
           }
+        }).keyup((event) => {
+
+          if (event.which == 13) {
+            var forAttr = $(event.target).parent().attr("for-select");
+            if (forAttr) {
+              var nextSelAttr = $("#" + forAttr).attr("next-select");
+              var nextSel = $("#" + nextSelAttr);
+              if ($(nextSel).hasClass("g2t-custom-combobox")) {
+                $(nextSel).find("input").focus();
+              } else {
+                $(nextSel).focus();
+              }
+            }
+          }
+
         });
 
       this._on(this.input, {
@@ -46,11 +61,11 @@ $(function () {
           });
 
           var forAttr = this.input.parent().attr('for-select');
-          if (forAttr == "g2tBoard") {
-            $("#combo_g2tList").contents('.custom-combobox-input').focus();
-          } else if (forAttr == "g2tList") {
-            $("#g2tPosition").focus()
-          }
+          // if (forAttr == "g2tBoard") {
+          //   $("#combo_g2tList").contents('.g2t-custom-combobox-input').focus();
+          // } else if (forAttr == "g2tList") {
+          //   $("#g2tPosition").focus()
+          // }
           $('#' + forAttr).trigger('change')
         },
 
@@ -73,7 +88,7 @@ $(function () {
           text: false
         })
         .removeClass("ui-corner-all")
-        .addClass("custom-combobox-toggle ui-corner-right")
+        .addClass("g2t-custom-combobox-toggle ui-corner-right")
         .on("mousedown", function () {
           wasOpen = input.autocomplete("widget").is(":visible");
         })

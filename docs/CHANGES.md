@@ -1,3 +1,6 @@
+=== 2.8.5.003@2020-06-18 ===
+ * More UI cleanup from @KS-CleverCopter
+
 === 2.8.5.002@2020-05-25 ===
  * Ton of UI work from @KS-CleverCopter
  * Change board alphabetization formatting

@@ -26,21 +26,21 @@
     </div>
     <div class="g2tMain">
       <div class="upper-half">
-        <div class="make-flex first-row align-top flex-start">
-          <div class="g2tFormGroup align-top">
+        <div class="make-flex first-row">
+          <div class="g2tFormGroup">
             <label class="g2tFormLabel">Where:</label>
             <div class="g2tFormControl">
-              <select id="g2tBoard" class="g2tWhere">
+              <select id="g2tBoard" class="g2tWhere" next-select="combo_g2tList">
                 <option value="">Select a board...</option>
               </select>
-              <select id="g2tList" class="g2tWhere">
+              <select id="g2tList" class="g2tWhere" next-select="g2tPosition">
                 <option value="">...please pick a board...</option>
               </select>
-              <select id="g2tPosition">
+              <select id="g2tPosition" next-select="combo_g2tCard">
                 <option value="below">below:</option>
                 <option value="to">to:</option>
               </select>
-              <select id="g2tCard" class="g2tWhere">
+              <select id="g2tCard" class="g2tWhere" next-select="addToTrello">
                 <option value="">...please pick a list...</option>
               </select>
             </div>
@@ -103,8 +103,8 @@
         </div>
       </div>
       <div class="lower-half">
-        <div class="g2tFormGroup align-top body-row">
-          <label class="g2tFormLabel no-margin">Body:</label>
+        <div class="g2tFormGroup align-top g2t-body-row">
+          <label class="g2tFormLabel g2t-no-margin">Body:</label>
           <div class="g2tFormControl align-top">
             <textarea id="g2tDesc" rows="4"></textarea>
           </div>
@@ -118,7 +118,7 @@
         </div>
         <div id="g2tImagesContainer">
           <div class="g2tFormGroup align-top">
-            <label class="g2tFormLabel no-margin make-flex" id="g2tImagesHeader"
+            <label class="g2tFormLabel g2t-no-margin make-flex" id="g2tImagesHeader"
               title="Shift-click me to select/de-select all images">Images:</label>
             <div class="g2tFormControl" id="g2tImages"></div>
           </div>

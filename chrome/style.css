@@ -28,7 +28,7 @@
     padding: 3px 5px 3px 5px;
     overflow: auto;
 }
-.g2tMain {
+#g2tPopup .g2tMain {
     /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
     second row to expand vertically to take up the remaining height without using JS to adjust the height. KS */
     height: 100%;
@@ -51,8 +51,8 @@
     right: 24px;
 }
 
-#g2tLabelsMsg,
-#g2tMembersMsg {
+#g2tPopup #g2tLabelsMsg,
+#g2tPopup #g2tMembersMsg {
     background: #f9edb8;
     height: 16px;
     width: 29%;
@@ -61,7 +61,7 @@
     margin-bottom: 50px;
 }
 
-#g2tLabels {
+#g2tPopup #g2tLabels {
     margin: 0;
     padding: 0;
     min-height: 40px;
@@ -69,14 +69,14 @@
     width: 100%;
     overflow: auto;
 }
-#g2tMembers,
-#g2tAttachments,
-#g2tImages {
+#g2tPopup #g2tMembers,
+#g2tPopup #g2tAttachments,
+#g2tPopup #g2tImages {
     max-height: 96px;
     overflow: auto;
 }
 
-#g2tPosition li {
+#g2tPopup #g2tPosition li {
     float: left;
     cursor: pointer;
     list-style: none;
@@ -128,17 +128,21 @@
     max-height: 100%;
     display: inline-block;
 }
+
+/* This is part of the root element, therefore no namespace. KS */
 .ui-tooltip {
     max-height: 500px;
     max-width: 500px;
     width: auto;
     overflow: auto;
 }
+/* This is part of the root element, therefore no namespace. KS */
 .ui-tooltip-content img {
     border: 1px solid lightgray;
     max-width: 100%;
     height: auto;
     width: auto;
+    display: block;
 }
 
 #g2tPopup .popupMsg #error {
@@ -166,47 +170,47 @@
 /* End, style.css */
 
 /* Updated Styles. KS */
-.content {
+#g2tPopup .content {
     /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
     height: calc(100% - 33px);
 }
 
 /* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
 /* Common utility classes. */
-.make-center {
+#g2tPopup .make-center {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.make-flex,
-.g2tFormGroup,
-.g2tFormControl,
-.g2tFormControl label,
-.g2tFormControl .img-container,
-#g2timgOrattach,
-.memberLabel,
-div[trelloid-member] {
+#g2tPopup .make-flex,
+#g2tPopup .g2tFormGroup,
+#g2tPopup .g2tFormControl,
+#g2tPopup .g2tFormControl label,
+#g2tPopup .g2tFormControl .img-container,
+#g2tPopup #g2timgOrattach,
+#g2tPopup .memberLabel,
+#g2tPopup div[trelloid-member] {
     display: flex;
     align-items: center;
     justify-content: flex-start;
 }
-.flex-apart {
+#g2tPopup .flex-apart {
     justify-content: space-between;
 }
-.flex-start {
+#g2tPopup .flex-start {
     justify-content: flex-start;
 }
-.flex-end {
+#g2tPopup .flex-end {
     justify-content: flex-start;
 }
-.align-center {
+#g2tPopup .align-center {
     align-items: center !important;
 }
-.align-top {
+#g2tPopup .align-top {
     align-items: flex-start !important;
 }
-.flex-wrap {
+#g2tPopup .flex-wrap {
     flex-wrap: wrap;
 }
 /* End of common utility classes */
@@ -227,15 +231,15 @@ div[trelloid-member] {
     margin-right: 4px;
 }
 
-.member-avatar {
+#g2tPopup .member-avatar {
     margin: 0px !important;
     line-height: 10px;
 }
 /* End of common presets */
 
 /* trelloid-member */
-div[trelloid-member],
-.imgOrAttach label {
+#g2tPopup div[trelloid-member],
+#g2tPopup .imgOrAttach label {
     padding: 4px;
     margin: 0;
     background-color: #ddd;
@@ -245,17 +249,17 @@ div[trelloid-member],
     min-width: 45px;
     background-image: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
 }
-div[trelloid-member].active,
-.imgOrAttach input:checked + label {
+#g2tPopup div[trelloid-member].active,
+#g2tPopup .imgOrAttach input:checked + label {
     border-color: rgba(120, 217, 255, 0.8);
 }
-div[trelloid-member] img {
+#g2tPopup div[trelloid-member] img {
     margin-right: 6px;
 }
 
-#g2tLabels div,
-#g2tMembers div,
-.imgOrAttach label {
+#g2tPopup #g2tLabels div,
+#g2tPopup #g2tMembers div,
+#g2tPopup .imgOrAttach label {
     float: left;
     margin: 0 2px 2px 0;
     padding: 6px;
@@ -269,7 +273,7 @@ div[trelloid-member] img {
     font-weight: bold;
     color: #888;
 }
-.imgOrAttach label {
+#g2tPopup .imgOrAttach label {
     box-sizing: border-box;
     float: none;
     width: 40px;
@@ -300,12 +304,12 @@ div[trelloid-member] img {
 }
 /* End of global elements */
 
-.header {
+#g2tPopup .header {
     background-color: #edebee;
     color: #27282b;
     font-weight: bold;
 }
-.header #close-button {
+#g2tPopup .header #close-button {
     font-size: 24px;
     margin: 0px;
     color: #080808;
@@ -315,8 +319,8 @@ div[trelloid-member] img {
     height: 30px;
     width: 30px;
 }
-.header #close-button:hover,
-.hideMsg:hover {
+#g2tPopup .header #close-button:hover,
+#g2tPopup .hideMsg:hover {
     color: #d43030 !important;
     background: #afafaf !important;
 }
@@ -328,64 +332,64 @@ div[trelloid-member] img {
     margin-bottom: 2px;
 }
 
-.g2tFormGroup {
+#g2tPopup .g2tFormGroup {
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
 }
 
-.g2tFormGroup .g2tFormLabel {
+#g2tPopup .g2tFormGroup .g2tFormLabel {
     min-width: 75px;
     padding: 5px 0;
     margin-right: 4px;
     text-align: right;
 }
-.g2tFormLabel {
+#g2tPopup .g2tFormLabel {
     font-size: 0.875rem;
 }
-.g2tFormGroup .g2tFormControl {
+#g2tPopup .g2tFormGroup .g2tFormControl {
     width: 100%;
     height: 100%;
     justify-content: flex-start;
 }
-.first-row {
+#g2tPopup .first-row {
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 4px;
 }
 
-.first-row #addToTrello {
-    margin-top: 12px;
-    margin-right: 8px;
+#g2tPopup .first-row #addToTrello {
+    /* margin-top: 12px; */
+    /* margin-right: 8px; */
 }
-.first-row .g2tFormGroup {
+#g2tPopup .first-row .g2tFormGroup {
     margin-bottom: 0;
-    margin-top: 2px;
+    margin-top: 0;
 }
-.first-row .g2tFormLabel {
+#g2tPopup .first-row .g2tFormLabel {
     padding-top: 2px;
 }
-.first-row select {
+#g2tPopup .first-row select {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
 }
-.memberLabel {
+#g2tPopup .memberLabel {
     height: 39px;
     padding: 0 !important;
     margin: 0 4px 0 0 !important;
     justify-content: flex-end;
 }
 
-#g2tLabels div:hover,
-#g2tMembers div:hover,
-.imgOrAttach label:hover {
+#g2tPopup #g2tLabels div:hover,
+#g2tPopup #g2tMembers div:hover,
+#g2tPopup .imgOrAttach label:hover {
     border-color: #52a8d9 !important;
     color: #1789c0 !important;
 }
 
-#g2tLabels div.active,
-#g2tMembers div.active,
-.imgOrAttach input:checked + label {
+#g2tPopup #g2tLabels div.active,
+#g2tPopup #g2tMembers div.active,
+#g2tPopup .imgOrAttach input:checked + label {
     border-color: inherit;
     color: black;
     padding: 3px 3px;
@@ -393,42 +397,42 @@ div[trelloid-member] img {
     border-top-width: 7px;
     background: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
 }
-.imgOrAttach input:checked + label:hover {
+#g2tPopup .imgOrAttach input:checked + label:hover {
     border-color: #52a8d9 !important;
     color: #1789c0 !important;
 }
-.imgOrAttach input:checked + label:active {
+#g2tPopup .imgOrAttach input:checked + label:active {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
-#g2tPosition li:hover,
-#g2tPosition li.active:hover {
+#g2tPopup #g2tPosition li:hover,
+#g2tPopup #g2tPosition li.active:hover {
     color: black;
 }
-#g2tPosition li.active {
+#g2tPopup #g2tPosition li.active {
     color: darkgreen;
     background: #f2f2f2;
 }
 
-.imgOrAttach input {
+#g2tPopup .imgOrAttach input {
     display: none;
 }
-.imgOrAttach input:active + label {
+#g2tPopup .imgOrAttach input:active + label {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
 
-.imgOrAttach .img-container {
+#g2tPopup .imgOrAttach .img-container {
     height: 30px;
 }
-.imgOrAttach .img-container,
-.imgOrAttach .img-container img {
+#g2tPopup .imgOrAttach .img-container,
+#g2tPopup .imgOrAttach .img-container img {
     width: 30px;
     max-width: -webkit-fill-available !important;
 }
-.imgOrAttach .img-container img {
+#g2tPopup .imgOrAttach .img-container img {
     margin: 0px;
 }
 
-#g2tAttachments .imgOrAttach label {
+#g2tPopup #g2tAttachments .imgOrAttach label {
     overflow: hidden;
     text-overflow: ellipsis;
     /* shows atleast 10 chars. */
@@ -437,7 +441,7 @@ div[trelloid-member] img {
     white-space: nowrap;
     display: block;
 }
-#g2tAttachments .img-container {
+#g2tPopup #g2tAttachments .img-container {
     width: 100%;
     text-align: left;
     overflow: hidden;
@@ -447,11 +451,11 @@ div[trelloid-member] img {
 
 /* Adjusting the text's width inside the form control. */
 
-.g2tFormControl select,
-.g2tFormControl input[type="text"],
-.g2tFormControl input[type="date"],
-.g2tFormControl input[type="time"],
-.g2tFormControl textarea {
+#g2tPopup .g2tFormControl select,
+#g2tPopup .g2tFormControl input[type="text"],
+#g2tPopup .g2tFormControl input[type="date"],
+#g2tPopup .g2tFormControl input[type="time"],
+#g2tPopup .g2tFormControl textarea {
     padding: 0px 6px;
     line-height: 20px;
     border-radius: 5px;
@@ -460,95 +464,95 @@ div[trelloid-member] img {
     border: 1px solid #dfdfdf;
     color: #2c2c2c;
 }
-.g2tFormControl input[type="text"],
-.g2tFormControl input[type="date"],
-.g2tFormControl input[type="time"],
-.g2tFormControl textarea {
+#g2tPopup .g2tFormControl input[type="text"],
+#g2tPopup .g2tFormControl input[type="date"],
+#g2tPopup .g2tFormControl input[type="time"],
+#g2tPopup .g2tFormControl textarea {
     min-height: 21px;
     width: 100%;
 }
-.g2tFormControl input[type="date"],
-.g2tFormControl input[type="time"],
-.g2tFormControl select {
+#g2tPopup.g2tFormControl input[type="date"],
+#g2tPopup .g2tFormControl input[type="time"],
+#g2tPopup .g2tFormControl select {
     margin: 2px 4px 2px 0;
 }
-.g2tFormControl textarea {
+#g2tPopup .g2tFormControl textarea {
     padding-top: 4px;
     margin: 0px;
     height: calc(100% - 11px);
     resize: none;
 }
 
-.g2tFormControl input[type="text"],
-.g2tFormControl textarea {
+#g2tPopup .g2tFormControl input[type="text"],
+#g2tPopup .g2tFormControl textarea {
     width: calc(100% - 4px);
 }
 
-.g2tFormControl input[type="time"] {
+#g2tPopup .g2tFormControl input[type="time"] {
     width: fit-content;
 }
-.g2tFormControl input[type="date"] {
+#g2tPopup .g2tFormControl input[type="date"] {
     width: 11em;
 }
-.g2tFormControl select {
+#g2tPopup .g2tFormControl select {
     padding: 2px 6px;
     -webkit-appearance: none;
     padding-right: 20px;
     background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat calc(100% - 5px) 50%;
     background-size: 11px;
 }
-#g2tDue_Shortcuts {
+#g2tPopup #g2tDue_Shortcuts {
     padding: 0 10px 2px 11px;
     -webkit-appearance: none;
     width: 1em;
 }
-.align-top {
+#g2tPopup .align-top {
     align-items: flex-start;
 }
-.lower-half {
+#g2tPopup .lower-half {
     height: 100%;
     display: flex;
     flex-flow: column;
     align-items: stretch;
 }
-.no-margin {
+#g2tPopup .g2t-no-margin {
     margin: 0px;
 }
-.body-row {
+#g2tPopup .g2t-body-row {
     flex-grow: 2;
     margin-bottom: 0px;
 }
-.body-row label {
+#g2tPopup .g2t-body-row label {
     padding-top: 4px;
 }
 
 /* Type Select */
-.custom-combobox {
+#g2tPopup .g2t-custom-combobox {
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.custom-combobox-toggle {
+#g2tPopup .g2t-custom-combobox-toggle {
     top: 0;
     bottom: 0;
     margin-left: -1px;
     padding: 0;
 }
-.custom-combobox-input {
+#g2tPopup .g2t-custom-combobox-input {
     margin: 0;
     padding: 3px;
     border-right: 0px !important;
     background-color: #fff;
     border-radius: 5px 0 0 5px;
 }
-.custom-combobox a span {
+#g2tPopup .g2t-custom-combobox a span {
     display: none;
 }
-.custom-combobox-input,
-.custom-combobox a {
+#g2tPopup .g2t-custom-combobox-input,
+#g2tPopup .g2t-custom-combobox a {
     border-color: rgb(233, 233, 233) !important;
 }
-.custom-combobox a {
+#g2tPopup .g2t-custom-combobox a {
     height: 24px;
     width: 20px;
     display: block;
@@ -560,10 +564,10 @@ div[trelloid-member] img {
 }
 
 /* Adjusting type-in widths  */
-#g2tPosition {
+#g2tPopup #g2tPosition {
     width: 70px;
 }
-.custom-combobox input {
+#g2tPopup .g2t-custom-combobox input {
     width: 100% !important;
 }
 [for-select="g2tBoard"],
@@ -578,10 +582,15 @@ div[trelloid-member] img {
     min-width: 150px;
     flex-basis: 150px;
 }
-#g2tLabels div.active-mouseDown,
-#g2tLabels .active-mouseDown,
-#g2tMembers div.active-mouseDown,
-#g2tMembers .active-mouseDown {
+#g2tPopup #g2tLabels div.active-mouseDown,
+#g2tPopup #g2tLabels .active-mouseDown,
+#g2tPopup #g2tMembers div.active-mouseDown,
+#g2tPopup #g2tMembers .active-mouseDown {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
 /* End of Updatd styles . KS */
+
+/* Potential fix for the bug that hides the autoselect behind the pop-up */
+.ui-autocomplete.ui-front {
+    z-index: 9999 !important;
+}
