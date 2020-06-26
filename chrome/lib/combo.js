@@ -61,11 +61,11 @@ $(function () {
           });
 
           var forAttr = this.input.parent().attr('for-select');
-          if (forAttr == "g2tBoard") {
-            $("#combo_g2tList").contents('.custom-combobox-input').focus();
-          } else if (forAttr == "g2tList") {
-            $("#g2tPosition").focus()
-          }
+          // if (forAttr == "g2tBoard") {
+          //   $("#combo_g2tList").contents('.custom-combobox-input').focus();
+          // } else if (forAttr == "g2tList") {
+          //   $("#g2tPosition").focus()
+          // }
           $('#' + forAttr).trigger('change')
         },
 
