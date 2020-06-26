@@ -588,5 +588,5 @@ div[trelloid-member] img {
 
 /* Potential fix for the bug that hides the autoselect behind the pop-up */
 .ui-autocomplete.ui-front {    
-    z-index: 9999;
+    z-index: 9999 !important;
 }
