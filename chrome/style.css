@@ -515,44 +515,44 @@
     flex-flow: column;
     align-items: stretch;
 }
-#g2tPopup .no-margin {
+#g2tPopup .g2t-no-margin {
     margin: 0px;
 }
-#g2tPopup .body-row {
+#g2tPopup .g2t-body-row {
     flex-grow: 2;
     margin-bottom: 0px;
 }
-#g2tPopup .body-row label {
+#g2tPopup .g2t-body-row label {
     padding-top: 4px;
 }
 
 /* Type Select */
-#g2tPopup .custom-combobox {
+#g2tPopup .g2t-custom-combobox {
     display: flex;
     align-items: center;
     justify-content: center;
 }
-#g2tPopup .custom-combobox-toggle {
+#g2tPopup .g2t-custom-combobox-toggle {
     top: 0;
     bottom: 0;
     margin-left: -1px;
     padding: 0;
 }
-#g2tPopup .custom-combobox-input {
+#g2tPopup .g2t-custom-combobox-input {
     margin: 0;
     padding: 3px;
     border-right: 0px !important;
     background-color: #fff;
     border-radius: 5px 0 0 5px;
 }
-#g2tPopup .custom-combobox a span {
+#g2tPopup .g2t-custom-combobox a span {
     display: none;
 }
-#g2tPopup .custom-combobox-input,
-#g2tPopup .custom-combobox a {
+#g2tPopup .g2t-custom-combobox-input,
+#g2tPopup .g2t-custom-combobox a {
     border-color: rgb(233, 233, 233) !important;
 }
-#g2tPopup .custom-combobox a {
+#g2tPopup .g2t-custom-combobox a {
     height: 24px;
     width: 20px;
     display: block;
@@ -567,7 +567,7 @@
 #g2tPopup #g2tPosition {
     width: 70px;
 }
-#g2tPopup .custom-combobox input {
+#g2tPopup .g2t-custom-combobox input {
     width: 100% !important;
 }
 [for-select="g2tBoard"],
@@ -591,6 +591,6 @@
 /* End of Updatd styles . KS */
 
 /* Potential fix for the bug that hides the autoselect behind the pop-up */
-#g2tPopup .ui-autocomplete.ui-front {
+.ui-autocomplete.ui-front {
     z-index: 9999 !important;
 }
