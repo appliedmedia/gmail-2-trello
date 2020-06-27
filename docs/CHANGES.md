@@ -1,6 +1,6 @@
 === 2.8.5.005@2020-06-27 ===
  * Update description
- 
+ * Call ForceSetVersion if periodicChecks proves different versions or unset 
 
 === 2.8.5.004@2020-06-27 ===
  * Accessibility improvements: tabbing and enter key from @KS-CleverCopter
