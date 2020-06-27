@@ -1,7 +1,7 @@
 ChromeWebStoreDeveloperDashboard.txt
-Summary: Gmail+Trello integration. Was "Gmail-to-Trello". Create new Trello cards from Google mail with backlinks and attachments.
+"description": "Gmail+Trello integration. Add Google mail to Trello cards with text, backlinks, and attachments."
 
-A free tool that provides an extra button on the Gmail UI to add the current Google mail you're reading to a Trello card with text, backlinks and attachments.
+A free tool that provides an extra button on the Gmail UI to add the current Google mail you're reading to a Trello card with text, backlinks, and attachments.
 
 Was previously published as "Gmail-to-Trello" in the Chrome Web Store.
 Was rated 4.8+ stars out of 5!
