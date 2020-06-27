@@ -745,7 +745,6 @@ Gmail2Trello.PopupView.prototype.forceSetVersion = function () {
     const dict_k = {
         [version_storage_k]: version_new,
     };
-    // const g2t_version = self.getManifestVersion() || "0"; // Variable name must match self.VERSION_STORAGE
     chrome.storage.sync.set(dict_k);
 };
 
