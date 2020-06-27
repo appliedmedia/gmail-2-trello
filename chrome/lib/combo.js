@@ -20,12 +20,11 @@ $(function () {
     _createAutocomplete: function () {
       var selected = this.element.children(":selected"),
         value = selected.val() ? selected.text() : "";
-
       this.input = $("<input>")
         .appendTo(this.wrapper)
         .val(value)
         .attr("title", "")
-        .addClass("g2t-custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left")
+        .addClass("g2t-custom-combobox-input ui-widget  ui-state-default")
         .autocomplete({
           delay: 0,
           minLength: 0,

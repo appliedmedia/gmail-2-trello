@@ -190,7 +190,7 @@
 #g2tPopup .g2tFormControl .img-container,
 #g2tPopup #g2timgOrattach,
 #g2tPopup .memberLabel,
-#g2tPopup div[trelloid-member] {
+#g2tPopup button[trelloid-member] {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -238,7 +238,7 @@
 /* End of common presets */
 
 /* trelloid-member */
-#g2tPopup div[trelloid-member],
+#g2tPopup button[trelloid-member],
 #g2tPopup .imgOrAttach label {
     padding: 4px;
     margin: 0;
@@ -249,16 +249,16 @@
     min-width: 45px;
     background-image: linear-gradient(to bottom, #eeeeee 0, #999999 100%);
 }
-#g2tPopup div[trelloid-member].active,
+#g2tPopup button[trelloid-member].active,
 #g2tPopup .imgOrAttach input:checked + label {
     border-color: rgba(120, 217, 255, 0.8);
 }
-#g2tPopup div[trelloid-member] img {
+#g2tPopup button[trelloid-member] img {
     margin-right: 6px;
 }
 
-#g2tPopup #g2tLabels div,
-#g2tPopup #g2tMembers div,
+#g2tPopup #g2tLabels button,
+#g2tPopup #g2tMembers button,
 #g2tPopup .imgOrAttach label {
     float: left;
     margin: 0 2px 2px 0;
@@ -277,6 +277,10 @@
     box-sizing: border-box;
     float: none;
     width: 40px;
+
+    /* hiding the checkbox behind the label */
+    position: relative;
+    z-index: 1;
 }
 
 #g2tPopup #addToTrello {
@@ -336,6 +340,9 @@
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
 }
+#g2tPopup .g2tFormGroup .g2tFormControl .g2t-holder-button {
+    position: static;
+}
 
 #g2tPopup .g2tFormGroup .g2tFormLabel {
     min-width: 75px;
@@ -380,15 +387,15 @@
     justify-content: flex-end;
 }
 
-#g2tPopup #g2tLabels div:hover,
-#g2tPopup #g2tMembers div:hover,
+#g2tPopup #g2tLabel button:hover,
+#g2tPopup #g2tMembers button:hover,
 #g2tPopup .imgOrAttach label:hover {
     border-color: #52a8d9 !important;
     color: #1789c0 !important;
 }
 
-#g2tPopup #g2tLabels div.active,
-#g2tPopup #g2tMembers div.active,
+#g2tPopup #g2tLabels button.active,
+#g2tPopup #g2tMembers button.active,
 #g2tPopup .imgOrAttach input:checked + label {
     border-color: inherit;
     color: black;
@@ -414,10 +421,19 @@
 }
 
 #g2tPopup .imgOrAttach input {
-    display: none;
+    /* The checkbox needs to be rendered in the view, for the tab to work. 
+    Therefore hiding it behind the label instead of display none.  */
+    position: absolute;
+    z-index: 0;
+    top: 50%;
+    left: 50%;
+    opacity: 0;
 }
 #g2tPopup .imgOrAttach input:active + label {
     border-color: rgba(120, 217, 255, 0.8) !important;
+}
+#g2tPopup .imgOrAttach input:focus + label {
+    outline: 5px auto -webkit-focus-ring-color !important;
 }
 
 #g2tPopup .imgOrAttach .img-container {
@@ -582,9 +598,9 @@
     min-width: 150px;
     flex-basis: 150px;
 }
-#g2tPopup #g2tLabels div.active-mouseDown,
+#g2tPopup #g2tLabels button.active-mouseDown,
 #g2tPopup #g2tLabels .active-mouseDown,
-#g2tPopup #g2tMembers div.active-mouseDown,
+#g2tPopup #g2tMembers button.active-mouseDown,
 #g2tPopup #g2tMembers .active-mouseDown {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
