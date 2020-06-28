@@ -1,4 +1,5 @@
-$(function () {
+
+(() => {
   $.widget("custom.combobox", {
     _create: function () {
 
@@ -24,7 +25,7 @@ $(function () {
         .appendTo(this.wrapper)
         .val(value)
         .attr("title", "")
-        .addClass("g2t-custom-combobox-input ui-widget  ui-state-default")
+        .addClass("g2t-custom-combobox-input ui-widget ui-state-default")
         .autocomplete({
           delay: 0,
           minLength: 0,
