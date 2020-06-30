@@ -1,3 +1,10 @@
+=== 2.8.5.005@2020-06-27 ===
+ * Update description
+ * Call ForceSetVersion if periodicChecks proves different versions or unset 
+
+=== 2.8.5.004@2020-06-27 ===
+ * Accessibility improvements: tabbing and enter key from @KS-CleverCopter
+
 === 2.8.5.003@2020-06-18 ===
  * More UI cleanup from @KS-CleverCopter
  * Fix for bug where on Windows 10, Boards popup appears behind
