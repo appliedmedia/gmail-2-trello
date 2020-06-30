@@ -499,6 +499,11 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     });
     $("#g2tDesc", this.$popup).change(function () {
         self.validateData();
+    }).on('blur', (evt) => {
+
+
+        $("#g2tAvatarURL").focus();
+
     });
 
     $(".g2tWhere").select(function (event) {
@@ -904,7 +909,11 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
     }
 
-    $("#g2tAvatarURL", this.$popup).attr("href", me.url);
+    $("#g2tAvatarURL", this.$popup).attr("href", me.url).on("keyup", (evt) => {
+        if (evt.shiftKey && evt.keyCode == 9) {
+            $("#g2tDesc").focus();
+        }
+    });
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
         .text(me.username || "?");
