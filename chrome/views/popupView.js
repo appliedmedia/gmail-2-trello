@@ -506,11 +506,6 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     $("#g2tDesc", this.$popup).change(function () {
         self.validateData();
     })
-    
-
-    // $(".g2tWhere").select(function (event) {
-    //     console.log(event.which, $(this).attr("next-select"));
-    // })
 
     var update_body = function () {
         const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
@@ -919,7 +914,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     }
 
     $("#g2tAvatarURL", this.$popup).attr("href", me.url);
-    
+
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
         .text(me.username || "?");
