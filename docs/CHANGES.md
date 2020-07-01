@@ -1,3 +1,7 @@
+=== 2.8.5.006@2020-06-30 ===
+ * Add icon files
+ * Bump version and notes
+
 === 2.8.5.005@2020-06-27 ===
  * Update description
  * Call ForceSetVersion if periodicChecks proves different versions or unset 
