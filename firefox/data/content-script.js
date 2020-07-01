@@ -25,7 +25,7 @@ var globalInit = true;
  * Global log. A wrapper for console.log, depend on logEnabled flag
  * @param  {any} data data to write log
  */
-function log(data) {
+function g2t_log(data) {
     if (logEnabled) console.log(data);
 }
 
@@ -36,9 +36,7 @@ function getGmailObject() {
     // Inject code: for accessing Gmail's GLOBALS object
     // reference: http://stackoverflow.com/questions/9602022/chrome-extension-retrieving-gmails-original-message
     document.addEventListener("G2T_connectExtension", function (e) {
-        //console.log(e.detail);
         app.data.userEmail = e.detail[10];
-        //    console.log(app.data);
     });
 
     var actualCode = [
