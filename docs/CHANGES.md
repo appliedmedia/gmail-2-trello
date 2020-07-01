@@ -1,5 +1,7 @@
 === 2.8.5.006@2020-06-30 ===
  * Add icon files
+ * Remove unused files from main bundle
+ * Remove dependency on old datejs.com code
  * Bump version and notes
 
 === 2.8.5.005@2020-06-27 ===

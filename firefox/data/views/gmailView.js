@@ -190,8 +190,6 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     //    log(timeValue);
     if (timeValue !== "") {
         timeValue = Date.parse(timeValue);
-        //        log(timeValue);
-        if (timeValue) timeValue = timeValue.toString("MMM d, yyyy");
     }
 
     data.time = timeValue;
