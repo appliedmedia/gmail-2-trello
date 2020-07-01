@@ -10,7 +10,7 @@ Gmail2Trello.PopupView = function (parent) {
     this.size_k = {
         width: {
             min: 700,
-            max: (window.innerWidth - 16), // Max width is 100% of the window - 1em. KS
+            max: window.innerWidth - 16, // Max width is 100% of the window - 1em. KS
         },
         height: {
             min: 450,
@@ -23,13 +23,13 @@ Gmail2Trello.PopupView = function (parent) {
     this.draggable = {
         height: {
             min: 450,
-            max: (window.innerHeight - 100) // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
+            max: window.innerHeight - 100, // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
         },
         width: {
             min: 700,
-            max: (window.innerWidth - 100)
-        }
-    }
+            max: window.innerWidth - 100,
+        },
+    };
 
     // html pieces
     this.html = {};
@@ -50,6 +50,8 @@ Gmail2Trello.PopupView = function (parent) {
     this.EVENT_LISTENER = ".g2t_event_listener"; // NOTE (acoven@2020-05-23): beginning with dot intentional and required
 
     this.CLEAR_EXT_BROWSING_DATA = "g2t_clear_extension_browsing_data";
+
+    this.VERSION_STORAGE = "g2t_version";
 
     this.updatesPending = [];
     this.comboInitialized = false;
@@ -283,8 +285,8 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
     var padding = 95;
     this.$popup.draggable({
         disabled: false,
-        containment: 'window'
-    })
+        containment: "window",
+    });
     this.$popup.resizable({
         disabled: false,
         // containment:"document",
@@ -368,7 +370,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             self.data.settings.listId = "";
             self.data.settings.cardId = "";
             // self.data.settings.membersId = ''; // NOTE (Ace, 28-Mar-2017): Do NOT clear membersId, as we can persist selections across boards
-            $
+            $;
         } else {
             $labelsMsg.text("Loading...").show();
             $membersMsg.text("Loading...").show();
@@ -388,22 +390,26 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         self.validateData();
     });
 
-    $('#g2tPosition').change(function (event) {
-        // Focusing the next element in select.
-        $("#" + $(this).attr("next-select")).find("input").focus();
-    }).on('keyup', (event) => {
-        // Focusing the next element on enter key up.
-        if (event.which == 13) {
-            $("#" + $(event.target).attr("next-select")).find("input").focus();
-        }
-    })
+    $("#g2tPosition")
+        .change(function (event) {
+            // Focusing the next element in select.
+            $("#" + $(this).attr("next-select"))
+                .find("input")
+                .focus();
+        })
+        .on("keyup", (event) => {
+            // Focusing the next element on enter key up.
+            if (event.which == 13) {
+                $("#" + $(event.target).attr("next-select"))
+                    .find("input")
+                    .focus();
+            }
+        });
 
     $("#g2tCard", this.$popup).change(function () {
         if (self.comboBox) self.comboBox("updateValue");
         self.validateData();
     });
-
-
 
     $("#g2tDue_Shortcuts", this.$popup).change(function () {
         const dayOfWeek_k = {
@@ -702,37 +708,45 @@ Gmail2Trello.PopupView.prototype.getManifestVersion = function () {
 };
 
 Gmail2Trello.PopupView.prototype.periodicChecks = function () {
-    var self = this;
-    const manifest_version_k = self.getManifestVersion();
+    let self = this;
+    const version_storage_k = self.VERSION_STORAGE;
+    const version_new = self.getManifestVersion();
 
-    if (manifest_version_k > "0") {
-        chrome.storage.sync.get("g2t_version", function (response) {
-            const prev_version_k =
-                response && response.hasOwnProperty("g2t_version")
-                    ? response["g2t_version"]
+    if (version_new > "0") {
+        chrome.storage.sync.get(version_storage_k, function (response) {
+            const version_old =
+                response && response.hasOwnProperty(version_storage_k)
+                    ? response[version_storage_k]
                     : "0";
-            if (prev_version_k > "0" && prev_version_k !== manifest_version_k) {
-                $.get(
-                    chrome.extension.getURL("views/versionUpdate.html"),
-                    function (data) {
-                        var dict = {
-                            version_old: prev_version_k,
-                            version_new: manifest_version_k,
-                        };
-                        data = self.parent.replacer(data, dict);
-                        self.showMessage(self, data);
-                    }
-                );
+            if (version_old > "0") {
+                if (version_old !== version_new) {
+                    $.get(
+                        chrome.extension.getURL("views/versionUpdate.html"),
+                        function (data) {
+                            var dict = {
+                                version_old,
+                                version_new,
+                            };
+                            data = self.parent.replacer(data, dict);
+                            self.showMessage(self, data);
+                        }
+                    );
+                }
+            } else {
+                self.forceSetVersion();
             }
         });
     }
 };
 
 Gmail2Trello.PopupView.prototype.forceSetVersion = function () {
-    var self = this;
-    chrome.storage.sync.set({
-        g2t_version: self.getManifestVersion() || "unknown",
-    });
+    let self = this;
+    const version_storage_k = self.VERSION_STORAGE;
+    const version_new = self.getManifestVersion();
+    const dict_k = {
+        [version_storage_k]: version_new,
+    };
+    chrome.storage.sync.set(dict_k);
 };
 
 Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
@@ -1054,7 +1068,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
 
         $domTag.html(html);
 
-
         if (isImage && isImage === true) {
             $("img", $domTag).each(function () {
                 var $img = $(this);
@@ -1087,7 +1100,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
 
     mime_html("attachments");
     mime_html("images", true /* isImage */);
-
 
     const emailId = data.emailId || 0;
     const mapAvailable_k = self.parent.model.emailBoardListCardMapLookup({
@@ -1424,11 +1436,10 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
             });
             const size_k = 20;
             $g2t.append(
-
                 $("<button>")
                     .attr("trelloId-member", item.id)
                     .attr("title", item.fullName + " @" + item.username || "?")
-                    .attr("class", 'g2t-holder-button')
+                    .attr("class", "g2t-holder-button")
                     .append(
                         $("<img>")
                             .attr("src", avatar)
@@ -1440,24 +1451,25 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
                         var elm = $(evt.currentTarget);
                         self.toggleActiveMouseDown(elm);
                     })
-                    .on('mouseup', (evt) => {
-                        if (evt.which == 13) {
-                            var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm);
-                        }
-                    }).on('keydown', (evt) => {
-                        if (evt.which == 13) {
-                            var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm);
-                        }
-                    }).on('keyup', (evt) => {
+                    .on("mouseup", (evt) => {
                         if (evt.which == 13) {
                             var elm = $(evt.currentTarget);
                             self.toggleActiveMouseDown(elm);
                         }
                     })
-            )
-
+                    .on("keydown", (evt) => {
+                        if (evt.which == 13) {
+                            var elm = $(evt.currentTarget);
+                            self.toggleActiveMouseDown(elm);
+                        }
+                    })
+                    .on("keyup", (evt) => {
+                        if (evt.which == 13) {
+                            var elm = $(evt.currentTarget);
+                            self.toggleActiveMouseDown(elm);
+                        }
+                    })
+            );
         }
     }
 
