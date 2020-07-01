@@ -123,7 +123,6 @@
       var value = this.input.val(),
         valueLowerCase = value.toLowerCase(),
         valid = false;
-      console.log(value);
       this.element.children("option").each(function () {
         if ($(this).text().toLowerCase() === valueLowerCase) {
           this.selected = valid = true;

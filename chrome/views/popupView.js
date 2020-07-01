@@ -514,17 +514,10 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     $("#g2tTitle", this.$popup).change(function () {
         self.validateData();
     });
-    $("#g2tDesc", this.$popup)
-        .change(function () {
-            self.validateData();
-        })
-        .on("blur", (evt) => {
-            $("#g2tAvatarURL").focus();
-        });
-
-    $(".g2tWhere").select(function (event) {
-        console.log(event.which, $(this).attr("next-select"));
-    });
+  
+    $("#g2tDesc", this.$popup).change(function () {
+        self.validateData();
+    })
 
     var update_body = function () {
         const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
@@ -775,7 +768,6 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     var self = this;
     $(".header a").each(() => {
         $(document).on("keyup", $(this), (evt) => {
-            console.log("triggered", evt.which);
             if (evt.which == 13 || evt.which == 32) {
                 $(evt.target).trigger("click");
             }
@@ -932,13 +924,8 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
     }
 
-    $("#g2tAvatarURL", this.$popup)
-        .attr("href", me.url)
-        .on("keyup", (evt) => {
-            if (evt.shiftKey && evt.keyCode == 9) {
-                $("#g2tDesc").focus();
-            }
-        });
+    $("#g2tAvatarURL", this.$popup).attr("href", me.url);
+
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
         .text(me.username || "?");
@@ -1062,7 +1049,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                 '<div class="img-container"><img src="%url%" alt="%name%" /></div> '; // See style.css for #g2tImage img style REMOVED: height="32" width="32"
         }
 
-        // console.log('g2t', tag, data[tag].length)
         var x = 0;
         $.each(data[tag], function (iter, item) {
             var dict = {
@@ -1072,7 +1058,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                 img: img,
                 id: item.name + ":" + x,
             };
-            console.log("TAGG", tag);
 
             if (tag == "attachments") {
                 html += self.parent.replacer(
