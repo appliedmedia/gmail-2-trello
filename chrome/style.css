@@ -17,6 +17,41 @@
     overflow: hidden;
     white-space: normal;
 }
+
+/* Global elements */
+#g2tPopup a {
+    margin: 0 4px;
+    text-decoration: none;
+    color: #458cbd;
+    transition: 350ms;
+}
+#g2tPopup a:hover {
+    color: #1e5175;
+}
+/* End of global elements */
+
+/* Common presets */
+#g2tPopup a:not(.hideMsg + a) {
+    font-weight: bold;
+}
+
+#g2tPopup input[type="button"] {
+    padding: 5px 16px;
+    border-radius: 3px;
+}
+#g2tPopup input[type="checkbox"] + label {
+    text-align: right;
+}
+#g2tPopup input[type="checkbox"] {
+    margin-right: 4px;
+}
+
+#g2tPopup .member-avatar {
+    margin: 0px !important;
+    line-height: 10px;
+}
+/* End of common presets */
+
 .ui-widget,
 #g2tPopup {
     font-size: 14px;
@@ -129,14 +164,15 @@
     display: inline-block;
 }
 
-/* This is part of the root element, therefore no namespace. KS */
+/* This is part of the root element, therefore no namespace. Adding a namespace will break the functionality. KS */
 .ui-tooltip {
     max-height: 500px;
     max-width: 500px;
     width: auto;
     overflow: auto;
 }
-/* This is part of the root element, therefore no namespace. KS */
+
+/* This is part of the root element, therefore no namespace. Adding a namespace will break the functionality. KS */
 .ui-tooltip-content img {
     border: 1px solid lightgray;
     max-width: 100%;
@@ -145,9 +181,11 @@
     display: block;
 }
 
+/* Error styles */
 #g2tPopup .popupMsg #error {
     font-weight: bold;
 }
+
 #g2tPopup .popupMsg #error dt {
     float: left;
     clear: left;
@@ -155,6 +193,7 @@
     text-align: right;
     color: red;
 }
+/* End of Error styles */
 
 #g2tPopup .popupMsg dt {
     float: left;
@@ -166,8 +205,6 @@
 #g2tPopup .g2tWhere {
     width: 180px;
 }
-
-/* End, style.css */
 
 /* Updated Styles. KS */
 #g2tPopup .content {
@@ -214,28 +251,6 @@
     flex-wrap: wrap;
 }
 /* End of common utility classes */
-
-/* Common presets */
-#g2tPopup a:not(.hideMsg + a) {
-    font-weight: bold;
-}
-
-#g2tPopup input[type="button"] {
-    padding: 5px 16px;
-    border-radius: 3px;
-}
-#g2tPopup input[type="checkbox"] + label {
-    text-align: right;
-}
-#g2tPopup input[type="checkbox"] {
-    margin-right: 4px;
-}
-
-#g2tPopup .member-avatar {
-    margin: 0px !important;
-    line-height: 10px;
-}
-/* End of common presets */
 
 /* trelloid-member */
 #g2tPopup button[trelloid-member],
@@ -296,23 +311,12 @@
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
 }
 
-/* Global elements */
-#g2tPopup a {
-    margin: 0 4px;
-    text-decoration: none;
-    color: #458cbd;
-    transition: 350ms;
-}
-#g2tPopup a:hover {
-    color: #1e5175;
-}
-/* End of global elements */
-
 #g2tPopup .header {
     background-color: #edebee;
     color: #27282b;
     font-weight: bold;
 }
+
 #g2tPopup .header #close-button {
     font-size: 24px;
     margin: 0px;
@@ -323,11 +327,13 @@
     height: 30px;
     width: 30px;
 }
+
 #g2tPopup .header #close-button:hover,
 #g2tPopup .hideMsg:hover {
     color: #d43030 !important;
     background: #afafaf !important;
 }
+
 #g2tPopup .placeholder-label,
 #g2tPopup .popupMsg {
     background: #f9edb8;
@@ -350,6 +356,7 @@
     margin-right: 4px;
     text-align: right;
 }
+
 #g2tPopup .g2tFormLabel {
     font-size: 0.875rem;
 }
@@ -364,10 +371,6 @@
     margin-bottom: 4px;
 }
 
-#g2tPopup .first-row #addToTrello {
-    /* margin-top: 12px; */
-    /* margin-right: 8px; */
-}
 #g2tPopup .first-row .g2tFormGroup {
     margin-bottom: 0;
     margin-top: 0;
@@ -466,7 +469,7 @@
 }
 
 /* Adjusting the text's width inside the form control. */
-
+/* styles for form control */
 #g2tPopup .g2tFormControl select,
 #g2tPopup .g2tFormControl input[type="text"],
 #g2tPopup .g2tFormControl input[type="date"],
@@ -542,7 +545,7 @@
     padding-top: 4px;
 }
 
-/* Type Select */
+/* Type-in Select's CSS */
 #g2tPopup .g2t-custom-combobox {
     display: flex;
     align-items: center;
@@ -578,6 +581,7 @@
     background-size: 10px !important;
     border-radius: 0 5px 5px 0;
 }
+/* End of Type-in Select's CSS */
 
 /* Adjusting type-in widths  */
 #g2tPopup #g2tPosition {
@@ -604,7 +608,6 @@
 #g2tPopup #g2tMembers .active-mouseDown {
     border-color: rgba(120, 217, 255, 0.8) !important;
 }
-/* End of Updatd styles . KS */
 
 /* Potential fix for the bug that hides the autoselect behind the pop-up */
 .ui-autocomplete.ui-front {

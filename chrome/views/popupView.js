@@ -428,8 +428,19 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             sat: 6,
             saturday: 6,
         };
-        const dom_date_format_k = "yyyy-MM-dd";
-        const dom_time_format_k = "HH:mm";
+        let pad0 = function (str = "", n = 2) {
+            return ("0".repeat(n) + str).slice(-n);
+        };
+        let dom_date_format = function (d = new Date()) {
+            // yyyy-MM-dd
+            return `${d.getFullYear()}-${pad0(d.getMonth() + 1)}-${pad0(
+                d.getDate()
+            )}`;
+        };
+        let dom_time_format = function (d = new Date()) {
+            // HH:mm
+            return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
+        };
 
         var due = $(this).val().split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
 
@@ -443,7 +454,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
         if (due_date.substr(1, 1) === "+") {
             d.setDate(d.getDate() + parseInt(due_date.substr(2)), 10);
-            new_date = d.toString(dom_date_format_k);
+            new_date = dom_date_format(d); // d.toString(dom_date_format_k);
         } else if (due_date.substr(1, 1) === "=") {
             d.setDate(d.getDate() + 1); // advance to tomorrow, don't return today for "next x"
             const weekday_k = due_date.substr(2).toLowerCase();
@@ -454,7 +465,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
                 while (d.getDay() !== weekday_num_k) {
                     d.setDate(d.getDate() + 1);
                 }
-                new_date = d.toString(dom_date_format_k);
+                new_date = dom_date_format(d); // d.toString(dom_date_format_k);
             }
         } else {
             g2t_log(
@@ -466,7 +477,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
         if (due_time.substr(2, 1) === "+") {
             d.setTime(d.getTime() + parseInt(due_time.substr(3)), 10);
-            new_time = d.toString(dom_time_format_k);
+            new_time = dom_time_format(d); // d.toString(dom_time_format_k);
         } else if (due_time.substr(2, 1) === "=") {
             if (due_time.substr(3) === "0") {
                 new_time = "";
@@ -503,13 +514,10 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     $("#g2tTitle", this.$popup).change(function () {
         self.validateData();
     });
+  
     $("#g2tDesc", this.$popup).change(function () {
         self.validateData();
-    });
-
-    $(".g2tWhere").select(function (event) {
-        console.log(event.which, $(this).attr("next-select"));
-    });
+    })
 
     var update_body = function () {
         const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
@@ -758,7 +766,13 @@ Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
 
 Gmail2Trello.PopupView.prototype.bindData = function (data) {
     var self = this;
-
+    $(".header a").each(() => {
+        $(document).on("keyup", $(this), (evt) => {
+            if (evt.which == 13 || evt.which == 32) {
+                $(evt.target).trigger("click");
+            }
+        });
+    });
     $("#g2tSignOutButton", self.$popup).click(function () {
         self.showSignOutOptions();
     });
@@ -911,6 +925,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     }
 
     $("#g2tAvatarURL", this.$popup).attr("href", me.url);
+
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
         .text(me.username || "?");
@@ -923,12 +938,12 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     }
 
     $(document).on("keyup", ".g2t-checkbox", (evt) => {
-        if (evt.which == 13) {
+        if (evt.which == 13 || evt.which == 32) {
             $(evt.target).trigger("click");
         }
     });
     $(document).on("keydown", ".g2t-checkbox", (evt) => {
-        if (evt.which == 13) {
+        if (evt.which == 13 || evt.which == 32) {
             $(evt.target).trigger("mousedown");
         }
     });
@@ -956,7 +971,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         const data_k = dl_k(self, ["data"]);
         const newCard_k = dl_k(data_k, ["newCard"]);
         let newCard = $.extend({}, newCard_k);
-        // delete newCard.title;
+        //// delete newCard.title;
         delete newCard.description;
         const user_k = dl_k(data_k, ["trello", "user"]);
         const username_k = dl_k(user_k, ["username"]);
@@ -1034,7 +1049,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                 '<div class="img-container"><img src="%url%" alt="%name%" /></div> '; // See style.css for #g2tImage img style REMOVED: height="32" width="32"
         }
 
-        // console.log('g2t', tag, data[tag].length)
         var x = 0;
         $.each(data[tag], function (iter, item) {
             var dict = {
@@ -1044,7 +1058,6 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data) {
                 img: img,
                 id: item.name + ":" + x,
             };
-            console.log("TAGG", tag);
 
             if (tag == "attachments") {
                 html += self.parent.replacer(

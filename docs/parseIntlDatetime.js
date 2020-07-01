@@ -153,7 +153,7 @@ Gmail2Trello.App.prototype.parseInternationalDateTime = function (dateTime_in) {
 
     if (!found_datetime.geo) {
         g2t_log(
-            "GtT::parseInternationalDatetime: Error! No Geo for lang_k:" +
+            "G2T::parseInternationalDatetime: Error! No Geo for lang_k:" +
                 lang_k
         );
         return "";
@@ -191,7 +191,7 @@ Gmail2Trello.App.prototype.parseInternationalDateTime = function (dateTime_in) {
         year:
             found_datetime.year.toString().length === 4
                 ? found_datetime.year
-                : 2000 + parseInt(found_dattime.year, 10),
+                : 2000 + parseInt(found_datetime.year, 10),
         month: forceTwoDigits(found_datetime.month),
         day: forceTwoDigits(found_datetime.day),
         hour: forceTwoDigits(found_datetime.hour),

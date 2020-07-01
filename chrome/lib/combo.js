@@ -1,4 +1,5 @@
-$(function () {
+
+(() => {
   $.widget("custom.combobox", {
     _create: function () {
 
@@ -24,7 +25,7 @@ $(function () {
         .appendTo(this.wrapper)
         .val(value)
         .attr("title", "")
-        .addClass("g2t-custom-combobox-input ui-widget  ui-state-default")
+        .addClass("g2t-custom-combobox-input ui-widget ui-state-default")
         .autocomplete({
           delay: 0,
           minLength: 0,
@@ -122,7 +123,6 @@ $(function () {
       var value = this.input.val(),
         valueLowerCase = value.toLowerCase(),
         valid = false;
-      console.log(value);
       this.element.children("option").each(function () {
         if ($(this).text().toLowerCase() === valueLowerCase) {
           this.selected = valid = true;
