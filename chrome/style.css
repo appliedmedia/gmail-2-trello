@@ -157,7 +157,7 @@
 #g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
-    margin: 1px;
+    margin: 1px auto;
     padding: 1px;
     max-width: 100%;
     max-height: 100%;
@@ -171,13 +171,17 @@
     width: auto;
     overflow: auto;
 }
+.ui-tooltip-content {
+    height: 100%;
+}
 
 /* This is part of the root element, therefore no namespace. Adding a namespace will break the functionality. KS */
 .ui-tooltip-content img {
     border: 1px solid lightgray;
+    max-height: 50%;
     max-width: 100%;
-    height: auto;
-    width: auto;
+    max-height: 480px;
+    /* width: auto; */
     display: block;
 }
 
@@ -277,7 +281,7 @@
 #g2tPopup .imgOrAttach label {
     float: left;
     margin: 0 2px 2px 0;
-    padding: 6px;
+    padding: 4px;
     list-style: none;
     border-radius: 3px;
     border: 1px solid #ccc;
@@ -441,14 +445,15 @@
 
 #g2tPopup .imgOrAttach .img-container {
     height: 30px;
+    width: 100%;
 }
 #g2tPopup .imgOrAttach .img-container,
 #g2tPopup .imgOrAttach .img-container img {
-    width: 30px;
     max-width: -webkit-fill-available !important;
 }
 #g2tPopup .imgOrAttach .img-container img {
-    margin: 0px;
+    margin: 0 auto;
+    width: 30px;
 }
 
 #g2tPopup #g2tAttachments .imgOrAttach label {
