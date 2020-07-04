@@ -380,13 +380,18 @@
     margin-top: 0;
 }
 #g2tPopup .first-row .g2tFormLabel {
-    padding-top: 2px;
+    padding-top: 3px;
+    padding-bottom: 0;
 }
 #g2tPopup .first-row select {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
 }
+#g2tPopup .g2tFormControl {
+    margin-top: 3px;
+}
+
 #g2tPopup .memberLabel {
     height: 39px;
     padding: 0 !important;
