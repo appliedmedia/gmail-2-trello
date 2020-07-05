@@ -346,6 +346,10 @@
     margin-bottom: 2px;
 }
 
+#g2tPopup .placeholder-label{
+    position: absolute;
+    left:0;
+}
 #g2tPopup .g2tFormGroup {
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
@@ -368,6 +372,7 @@
     width: 100%;
     height: 100%;
     justify-content: flex-start;
+    position: relative;
 }
 #g2tPopup .first-row {
     align-items: flex-start;
