@@ -244,6 +244,10 @@
     align-items: center;
     justify-content: flex-start;
 }
+#g2tPopup .g2tWhereGroup{
+    /* where 83px is the size of the trello button & 16px is the margin on either side. Total 99px */
+    max-width: calc(100% - 99px);
+}
 #g2tPopup .flex-apart {
     justify-content: space-between;
 }
@@ -397,19 +401,21 @@
     margin-bottom: 0;
     margin-top: 0;
 }
+
 #g2tPopup .first-row .g2tFormLabel {
     padding-top: 1px;
     padding-bottom: 0;
 }
 #g2tPopup .first-row .g2tFormControl {
     min-height: 29px;
+    max-width: 90%;
 }
 
 #g2tPopup .first-row select {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
-    display: none;
+    /* display: none; */
 }
 #g2tPopup .g2tFormControl {
     margin-top: 0;
@@ -633,6 +639,7 @@
 /* Adjusting type-in widths  */
 #g2tPopup #g2tPosition {
     width: 70px;
+    max-width: 70px;
 }
 #g2tPopup .g2t-custom-combobox input {
     width: 100% !important;
