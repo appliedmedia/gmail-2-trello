@@ -17,7 +17,7 @@
       <a id="close-button" class="make-center" title="Close">&times;</a>
     </div>
   </div>
-  <div class="popupMsg">Loading...</div>
+  <div class="popupMsg" id="initialLoadingMsg">Loading...</div>
   <div class="content" style="display: none;">
     <div class="g2tTopRight make-flex flex-end">
       <div style="float: right;">
@@ -49,7 +49,7 @@
             value="+Trello!" />
         </div>
 
-        <div class="g2tFormGroup align-top">
+        <div class="g2tFormGroup align-top labels-row">
           <label class="g2tFormLabel memberLabel" id="g2tLabelsHeader"
             title="Shift-click me to clear all labels">Labels:</label>
           <div class="clearfix g2tFormControl">
