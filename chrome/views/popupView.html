@@ -33,7 +33,7 @@
       <a id="close-button" class="make-center" title="Close">&times;</a>
     </div>
   </div>
-  <div class="popupMsg">Loading...</div>
+  <div class="popupMsg" id="initialLoadingMsg">Loading...</div>
   <div class="content" style="display: none;">
     <div class="g2tTopRight make-flex flex-end">
       <div style="float: right;"></div>
@@ -41,7 +41,7 @@
     <div class="g2tMain">
       <div class="upper-half">
         <div class="make-flex first-row">
-          <div class="g2tFormGroup">
+          <div class="g2tFormGroup g2tWhereGroup">
             <label class="g2tFormLabel">Where:</label>
             <div class="g2tFormControl">
               <select
@@ -71,8 +71,7 @@
             value="&#10140; Trello"
           /><!-- "-> Trello" button -->
         </div>
-
-        <div class="g2tFormGroup align-top">
+        <div class="g2tFormGroup align-top labels-row">
           <label
             class="g2tFormLabel memberLabel"
             id="g2tLabelsHeader"

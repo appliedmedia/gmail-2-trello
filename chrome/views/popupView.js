@@ -356,8 +356,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             boardId === "" ||
             boardId !== self.data.settings.boardId
         ) {
-            $membersMsg.text("...please pick a board...").show();
-            $labelsMsg.text("...please pick a board...").show();
+            // $membersMsg.text("...please pick a board...").show();
+            // $labelsMsg.text("...please pick a board...").show();
             $members.html("").hide(); // clear it out
             $labels.html("").hide(); // clear it out
             $list
@@ -372,8 +372,10 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             // self.data.settings.membersId = ''; // NOTE (Ace, 28-Mar-2017): Do NOT clear membersId, as we can persist selections across boards
             $;
         } else {
-            $labelsMsg.text("Loading...").show();
-            $membersMsg.text("Loading...").show();
+            $members.hide(); // clear it out
+            $labels.hide(); // hiding when loading is being showed.
+            // $labelsMsg.text("Loading...").show();
+            // $membersMsg.text("Loading...").show();
         }
 
         self.event.fire("onBoardChanged", { boardId: boardId });
