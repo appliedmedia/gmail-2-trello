@@ -79,7 +79,7 @@
     border: 1px solid #edc967;
     background: #f9edb8;
     padding: 5px 10px 15px;
-    margin: 10px;
+    margin: 4px;
 }
 #g2tPopup #resize-icon {
     position: relative;
@@ -194,8 +194,10 @@
 }
 #g2tPopup #initialLoadingMsg {
     position: absolute;
-    width: 100%;
-    z-index: 1;
+    /* Fix for preventing the msg box from extending beyond the popup.
+    Compensating for Padding 10px, margin 9px & border 1px = Total 19px on one side & 38px for both sides. KS */
+    width: calc(100% - 26px);
+    z-index: 2;
 }
 
 #g2tPopup .popupMsg #error dt {
@@ -215,7 +217,9 @@
 }
 
 #g2tPopup .g2tWhere {
-    width: 180px;
+    /* max-width: 162px !important; */
+    min-width: calc(100% - 20px) !;
+    transition: 100ms;
 }
 
 /* Updated Styles. KS */
@@ -244,9 +248,10 @@
     align-items: center;
     justify-content: flex-start;
 }
-#g2tPopup .g2tWhereGroup{
-    /* where 83px is the size of the trello button & 16px is the margin on either side. Total 99px */
-    max-width: calc(100% - 99px);
+#g2tPopup .g2tWhereGroup {
+    width: 100%;
+    margin-right: 4px;
+    max-width: 100%;
 }
 #g2tPopup .flex-apart {
     justify-content: space-between;
@@ -353,7 +358,7 @@
 #g2tPopup .placeholder-label,
 #g2tPopup .popupMsg {
     background: #f9edb8;
-    padding: 3px 8px;
+    padding: 5px 8px;
     border-radius: 3px;
     margin-bottom: 2px;
 }
@@ -369,6 +374,10 @@
 #g2tPopup .g2tFormGroup {
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
+}
+#g2tPopup .first-row,
+.g2tFormGroup {
+    width: auto;
 }
 #g2tPopup .g2tFormGroup .g2tFormControl .g2t-holder-button {
     position: static;
@@ -394,7 +403,11 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 4px;
-    max-width: 100%;
+    /* max-width: 100%; */
+}
+#g2tPopup .first-row .g2tFormControl {
+    display: flex;
+    /* width: auto; */
 }
 
 #g2tPopup .first-row .g2tFormGroup {
@@ -408,13 +421,14 @@
 }
 #g2tPopup .first-row .g2tFormControl {
     min-height: 29px;
-    max-width: 90%;
 }
 
 #g2tPopup .first-row select {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
+    width: calc(100% - 20px);
+    /* width: auto; */
     /* display: none; */
 }
 #g2tPopup .g2tFormControl {
@@ -543,10 +557,10 @@
     min-height: 21px;
     width: 100%;
 }
-#g2tPopup.g2tFormControl input[type="date"],
+#g2tPopup .g2tFormControl input[type="date"],
 #g2tPopup .g2tFormControl input[type="time"],
 #g2tPopup .g2tFormControl select {
-    margin: 2px 4px 2px 0;
+    margin: 2px 2px 2px 0;
 }
 #g2tPopup .g2tFormControl textarea {
     padding-top: 4px;
@@ -628,7 +642,7 @@
     height: 24px;
     width: 20px;
     display: block;
-    margin: 0 4px 0 0 !important;
+    margin: 0 2px 0 0 !important;
     border-left: 0px !important;
     background: #fff url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 50% 50% !important;
     background-size: 10px !important;
@@ -646,13 +660,14 @@
 }
 [for-select="g2tBoard"],
 [for-select="g2tList"] {
-    max-width: 200px;
+    /* max-width: 200px; */
     min-width: 150px;
-    flex-grow: 1.5;
+    flex-grow: 2;
     flex-basis: 150px;
+    transition: 300ms;
 }
 [for-select="g2tCard"] {
-    flex-grow: 1.5;
+    flex-grow: 2;
     min-width: 150px;
     flex-basis: 150px;
 }
