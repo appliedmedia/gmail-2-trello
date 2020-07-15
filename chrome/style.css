@@ -62,6 +62,7 @@
     left: 0;
     padding: 3px 5px 3px 5px;
     overflow: auto;
+    margin-top: 3px;
 }
 #g2tPopup .g2tMain {
     /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
@@ -78,7 +79,7 @@
     border: 1px solid #edc967;
     background: #f9edb8;
     padding: 5px 10px 15px;
-    margin: 10px;
+    margin: 4px;
 }
 #g2tPopup #resize-icon {
     position: relative;
@@ -103,6 +104,8 @@
     max-height: 96px;
     width: 100%;
     overflow: auto;
+    padding-top: 2px;
+    align-items: flex-start;
 }
 #g2tPopup #g2tMembers,
 #g2tPopup #g2tAttachments,
@@ -157,7 +160,7 @@
 #g2tPopup #g2tImages img {
     vertical-align: middle;
     border: 1px solid lightgray;
-    margin: 1px;
+    margin: 1px auto;
     padding: 1px;
     max-width: 100%;
     max-height: 100%;
@@ -171,19 +174,30 @@
     width: auto;
     overflow: auto;
 }
+.ui-tooltip-content {
+    height: 100%;
+}
 
 /* This is part of the root element, therefore no namespace. Adding a namespace will break the functionality. KS */
 .ui-tooltip-content img {
     border: 1px solid lightgray;
+    max-height: 50%;
     max-width: 100%;
-    height: auto;
-    width: auto;
+    max-height: 480px;
+    /* width: auto; */
     display: block;
 }
 
 /* Error styles */
 #g2tPopup .popupMsg #error {
     font-weight: bold;
+}
+#g2tPopup #initialLoadingMsg {
+    position: absolute;
+    /* Fix for preventing the msg box from extending beyond the popup.
+    Compensating for Padding 10px, margin 9px & border 1px = Total 19px on one side & 38px for both sides. KS */
+    width: calc(100% - 26px);
+    z-index: 2;
 }
 
 #g2tPopup .popupMsg #error dt {
@@ -203,7 +217,9 @@
 }
 
 #g2tPopup .g2tWhere {
-    width: 180px;
+    /* max-width: 162px !important; */
+    min-width: calc(100% - 20px) !;
+    transition: 100ms;
 }
 
 /* Updated Styles. KS */
@@ -231,6 +247,11 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
+}
+#g2tPopup .g2tWhereGroup {
+    width: 100%;
+    margin-right: 4px;
+    max-width: 100%;
 }
 #g2tPopup .flex-apart {
     justify-content: space-between;
@@ -277,7 +298,7 @@
 #g2tPopup .imgOrAttach label {
     float: left;
     margin: 0 2px 2px 0;
-    padding: 6px;
+    padding: 4px;
     list-style: none;
     border-radius: 3px;
     border: 1px solid #ccc;
@@ -300,12 +321,15 @@
 
 #g2tPopup #addToTrello {
     font-size: 14px;
-    padding: 6px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
     border: 0;
     cursor: pointer;
     margin: 0px;
+    padding: 4px 18px;
+    justify-content: normal;
+    position: relative;
+    top: 3px;
 }
 #g2tPopup #addToTrello:hover {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
@@ -337,14 +361,26 @@
 #g2tPopup .placeholder-label,
 #g2tPopup .popupMsg {
     background: #f9edb8;
-    padding: 3px 8px;
+    padding: 5px 8px;
     border-radius: 3px;
     margin-bottom: 2px;
 }
 
+#g2tPopup .placeholder-label {
+    margin: 6px 0 !important;
+    position: static;
+    display: flex;
+    align-items: center;
+    min-width: 29%;
+    display: none;
+}
 #g2tPopup .g2tFormGroup {
     margin: 0 0px 6px 4px;
     width: calc(100% - 4px);
+}
+#g2tPopup .first-row,
+.g2tFormGroup {
+    width: auto;
 }
 #g2tPopup .g2tFormGroup .g2tFormControl .g2t-holder-button {
     position: static;
@@ -364,30 +400,60 @@
     width: 100%;
     height: 100%;
     justify-content: flex-start;
+    position: relative;
 }
 #g2tPopup .first-row {
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 4px;
+    /* max-width: 100%; */
+}
+#g2tPopup .first-row .g2tFormControl {
+    display: flex;
+    /* width: auto; */
 }
 
 #g2tPopup .first-row .g2tFormGroup {
     margin-bottom: 0;
     margin-top: 0;
 }
+
 #g2tPopup .first-row .g2tFormLabel {
-    padding-top: 2px;
+    padding-top: 1px;
+    padding-bottom: 0;
 }
+#g2tPopup .first-row .g2tFormControl {
+    min-height: 29px;
+}
+
 #g2tPopup .first-row select {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     padding: 1px 20px 1px 6px !important;
+    width: calc(100% - 20px);
+    /* width: auto; */
+    /* display: none; */
 }
+#g2tPopup .g2tFormControl {
+    margin-top: 0;
+}
+#g2tPopup .labels-row {
+    margin-bottom: 2px;
+}
+
 #g2tPopup .memberLabel {
     height: 39px;
     padding: 0 !important;
     margin: 0 4px 0 0 !important;
     justify-content: flex-end;
+}
+#g2tPopup .memberLabel + .g2tFormControl #g2tLabels {
+    min-height: 35px;
+    padding-top: 5px;
+}
+#g2tPopup .memberLabel + .g2tFormControl #g2tMembers {
+    min-height: 37px;
+    padding-top: 1px;
 }
 
 #g2tPopup #g2tLabel button:hover,
@@ -441,14 +507,15 @@
 
 #g2tPopup .imgOrAttach .img-container {
     height: 30px;
+    width: 100%;
 }
 #g2tPopup .imgOrAttach .img-container,
 #g2tPopup .imgOrAttach .img-container img {
-    width: 30px;
     max-width: -webkit-fill-available !important;
 }
 #g2tPopup .imgOrAttach .img-container img {
-    margin: 0px;
+    margin: 0 auto;
+    width: 30px;
 }
 
 #g2tPopup #g2tAttachments .imgOrAttach label {
@@ -466,6 +533,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 12px;
+}
+#g2tPopup #g2tAttachments {
+    margin-top: 2px;
 }
 
 /* Adjusting the text's width inside the form control. */
@@ -490,10 +560,10 @@
     min-height: 21px;
     width: 100%;
 }
-#g2tPopup.g2tFormControl input[type="date"],
+#g2tPopup .g2tFormControl input[type="date"],
 #g2tPopup .g2tFormControl input[type="time"],
 #g2tPopup .g2tFormControl select {
-    margin: 2px 4px 2px 0;
+    margin: 2px 2px 2px 0;
 }
 #g2tPopup .g2tFormControl textarea {
     padding-top: 4px;
@@ -575,7 +645,7 @@
     height: 24px;
     width: 20px;
     display: block;
-    margin: 0 4px 0 0 !important;
+    margin: 0 2px 0 0 !important;
     border-left: 0px !important;
     background: #fff url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 50% 50% !important;
     background-size: 10px !important;
@@ -586,19 +656,21 @@
 /* Adjusting type-in widths  */
 #g2tPopup #g2tPosition {
     width: 70px;
+    max-width: 70px;
 }
 #g2tPopup .g2t-custom-combobox input {
     width: 100% !important;
 }
 [for-select="g2tBoard"],
 [for-select="g2tList"] {
-    max-width: 200px;
+    /* max-width: 200px; */
     min-width: 150px;
-    flex-grow: 1.5;
+    flex-grow: 2;
     flex-basis: 150px;
+    transition: 300ms;
 }
 [for-select="g2tCard"] {
-    flex-grow: 1.5;
+    flex-grow: 2;
     min-width: 150px;
     flex-basis: 150px;
 }
