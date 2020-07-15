@@ -321,12 +321,15 @@
 
 #g2tPopup #addToTrello {
     font-size: 14px;
-    padding: 6px 18px;
     color: white;
     background: linear-gradient(to top, #24a828 0, #1b7e1e 100%);
     border: 0;
     cursor: pointer;
     margin: 0px;
+    padding: 4px 18px;
+    justify-content: normal;
+    position: relative;
+    top: 3px;
 }
 #g2tPopup #addToTrello:hover {
     background: linear-gradient(to bottom, #1f9323 0, #166919 100%);
