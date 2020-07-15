@@ -1,4 +1,4 @@
-=== 2.8.5.007@2020-07-03 ===
+=== 2.8.5.007@2020-07-15 ===
  * @KS-CleverCopter fix for images hover clipping, Where: a few pixels misaligned
  * Change "+Trello!" to "-> Trello"
  * Notice that Labels and Assign draw off to the right and then snap to the left
