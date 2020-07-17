@@ -1,15 +1,30 @@
-<!-- <script src="chrome-extension://__MSG_@@extension_id__/lib/jquery-ui-1.12.1.min.js" type="text/javascript"></script> -->
 <div id="g2tPopup" class="J-M jQjAxd open clearfix" style="display: none;">
   <div class="header make-flex flex-apart">
     <div class="make-flex">
-      <a id="g2tAvatarURL" href="https://g2t.support" target="_blank" title="Open your Trello homepage"
-        class="member-avatar">
+      <a
+        id="g2tAvatarURL"
+        href="https://g2t.support"
+        target="_blank"
+        title="Open your Trello homepage"
+        class="member-avatar"
+      >
         <div id="g2tAvatarImgOrText"></div>
       </a>
-      <a id="g2tUsername" href="https://g2t.support" target="_blank" title="Open your Trello homepage"
-        style="margin-left: 5px;">Username</a>
+      <a
+        id="g2tUsername"
+        href="https://g2t.support"
+        target="_blank"
+        title="Open your Trello homepage"
+        style="margin-left: 5px;"
+        >Username</a
+      >
       | <a id="g2tSignOutButton" title="Sign out" href="#">Sign out</a> |
-      <a href="https://g2t.support" target="_blank" title="Open Gmail-2-Trello board in a new window">Help</a>
+      <a
+        href="https://g2t.support"
+        target="_blank"
+        title="Open Gmail-2-Trello board in a new window"
+        >Help</a
+      >
       | <a id="report" href="#" title="Create error report card">Report</a>
       <!-- | <a id="g2tSubscribe" title="Subscribe">Subscribe</a> -->
     </div>
@@ -28,7 +43,11 @@
           <div class="g2tFormGroup g2tWhereGroup">
             <label class="g2tFormLabel">Where:</label>
             <div class="g2tFormControl">
-              <select id="g2tBoard" class="g2tWhere" next-select="combo_g2tList">
+              <select
+                id="g2tBoard"
+                class="g2tWhere"
+                next-select="combo_g2tList"
+              >
                 <option value="">Select a board...</option>
               </select>
               <select id="g2tList" class="g2tWhere" next-select="g2tPosition">
@@ -43,12 +62,21 @@
               </select>
             </div>
           </div>
-          <input type="button" disabled="true" id="addToTrello" title="Add this Gmail data to Trello"
-            value="&#10140; Trello" /><!-- "-> Trello" button -->
+          <input
+            type="button"
+            disabled="true"
+            id="addToTrello"
+            title="Add this Gmail data to Trello"
+            value="&#10140; Trello"
+          /><!-- "-> Trello" button -->
         </div>
         <div class="g2tFormGroup align-top labels-row">
-          <label class="g2tFormLabel memberLabel" id="g2tLabelsHeader"
-            title="Shift-click me to clear all labels">Labels:</label>
+          <label
+            class="g2tFormLabel memberLabel"
+            id="g2tLabelsHeader"
+            title="Shift-click me to clear all labels"
+            >Labels:</label
+          >
           <div class="clearfix g2tFormControl">
             <div id="g2tLabelsMsg" class="placeholder-label">
               ...please pick a board...
@@ -57,8 +85,12 @@
           </div>
         </div>
         <div class="g2tFormGroup g2tAssignments align-top">
-          <label class="g2tFormLabel memberLabel" id="g2tMembersHeader"
-            title="Shift-click me to clear all assignments">Assign:</label>
+          <label
+            class="g2tFormLabel memberLabel"
+            id="g2tMembersHeader"
+            title="Shift-click me to clear all assignments"
+            >Assign:</label
+          >
           <div class="clearfix g2tFormControl">
             <div id="g2tMembersMsg" class="placeholder-label">
               ...please pick a board...
@@ -67,15 +99,26 @@
           </div>
         </div>
         <div class="g2tFormGroup g2tAssignments align-top">
-          <label class="g2tFormLabel memberLabel" id="g2tAttachHeader"
-            title="Shift-click me to clear all assignments">Attach:</label>
+          <label
+            class="g2tFormLabel memberLabel"
+            id="g2tAttachHeader"
+            title="Shift-click me to clear all assignments"
+            >Attach:</label
+          >
           <div class="clearfix g2tFormControl">
-            <div class="make-flex flex-wrap flex-start" id="g2tAttachments"></div>
+            <div
+              class="make-flex flex-wrap flex-start"
+              id="g2tAttachments"
+            ></div>
           </div>
         </div>
         <div class="g2tFormGroup g2tAssignments align-top">
-          <label class="g2tFormLabel memberLabel" id="g2tImagesHeader"
-            title="Shift-click me to clear all assignments">Images:</label>
+          <label
+            class="g2tFormLabel memberLabel"
+            id="g2tImagesHeader"
+            title="Shift-click me to clear all assignments"
+            >Images:</label
+          >
           <div class="clearfix g2tFormControl">
             <div class="make-flex flex-wrap flex-start" id="g2tImages"></div>
           </div>
@@ -86,11 +129,21 @@
             <input type="date" id="g2tDue_Date" />
             <input type="time" id="g2tDue_Time" />
             <select id="g2tDue_Shortcuts">
-              <option value="d=0 am=0">--</option>
+              <option value="none" selected disabled hidden>-</option>
             </select>
-            <input type="checkbox" checked="checked" id="chkMarkdown" style="margin-left: 10px;" />
+            <input
+              type="checkbox"
+              checked="checked"
+              id="chkMarkdown"
+              style="margin-left: 10px;"
+            />
             <label for="chkMarkdown">Markdown</label>
-            <input type="checkbox" checked="checked" id="chkBackLink" style="margin-left: 10px;" />
+            <input
+              type="checkbox"
+              checked="checked"
+              id="chkBackLink"
+              style="margin-left: 10px;"
+            />
             <label for="chkBackLink">Add Gmail link</label>
           </div>
         </div>
@@ -109,5 +162,4 @@
       </div>
     </div>
   </div>
-</div>
 </div>
