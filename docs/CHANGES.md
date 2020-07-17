@@ -1,3 +1,6 @@
+=== 2.8.5.008@2020-07-16 ===
+ * Make due shortcuts reset when picking "--" even when it's selected
+
 === 2.8.5.007@2020-07-15 ===
  * @KS-CleverCopter fix for images hover clipping, Where: a few pixels misaligned
  * Change "+Trello!" to "-> Trello"

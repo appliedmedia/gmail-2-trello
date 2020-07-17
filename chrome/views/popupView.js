@@ -509,17 +509,25 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
         $("#g2tDue_Date", this.$popup).val(new_date || "");
         $("#g2tDue_Time", this.$popup).val(new_time || "");
-        if (self.comboBox) self.comboBox("updateValue");
+
+        if (self.comboBox) {
+            self.comboBox("updateValue");
+        }
+
+        if (due_date === "d=0") {
+            // Reset to hidden item if we're first "--" item (allows us to select "--" to clear any time):
+            $(this).val("none");
+        }
         self.validateData();
     });
 
     $("#g2tTitle", this.$popup).change(function () {
         self.validateData();
     });
-  
+
     $("#g2tDesc", this.$popup).change(function () {
         self.validateData();
-    })
+    });
 
     var update_body = function () {
         const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
@@ -837,7 +845,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         var $g2t = $("#g2tDue_Shortcuts", self.$popup);
         $g2t.html(""); // Clear it.
 
-        var opt = '<option value="d=0 am=0">--</option>';
+        var opt =
+            '<option value="none" selected disabled hidden>-</option>' +
+            '<option value="d=0 am=0">--</option>';
 
         $.each(due, function (key, value) {
             if (typeof value === "object") {
