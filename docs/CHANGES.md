@@ -1,7 +1,7 @@
 === 2.8.5.008@2020-07-18 ===
  * Make due shortcuts reset when picking "--" even when it's selected
- * Change manifest to *.trello.com to support api.trello.com, api-gateway.trello.com
- * Add *.gstatic.com to manifest for googleusercontent
+ * Change manifest to '*.trello.com' to support api.trello.com, api-gateway.trello.com
+ * Add '*.gstatic.com' to manifest for googleusercontent
 
 === 2.8.5.007@2020-07-15 ===
  * @KS-CleverCopter fix for images hover clipping, Where: a few pixels misaligned
