@@ -69,12 +69,12 @@
     "browsingData",
     "tabs",
     "storage",
-    "https://api.trello.com/",
-    "https://trello.com/",
+    "https://*.trello.com/",
     "https://mail.google.com/",
-    "https://www.googleapis.com/",
-    "https://www.google-analytics.com/",
-    "https://*.googleusercontent.com/"
+    "https://*.googleapis.com/",
+    "https://*.google-analytics.com/",
+    "https://*.googleusercontent.com/",
+    "https://*.gstatic.com/"
   ],
   "options_page": "views/options.html",
   "oauth2": {
