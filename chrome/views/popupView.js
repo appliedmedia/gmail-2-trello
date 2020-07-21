@@ -270,12 +270,14 @@ Gmail2Trello.PopupView.prototype.init_popup = function () {
 
 // NOTE (Ace, 15-Jan-2017): This resizes all the text areas to match the width of the popup:
 Gmail2Trello.PopupView.prototype.onResize = function () {
+    /*
     var origWidth = this.$popup.width();
     var textWidth = origWidth - this.size_k.text.min;
     // $(
     //     "#g2tAttachments,#g2tImages,#g2tDesc,#g2tTitle,#g2tMembers,#g2tLabels",
     //     this.$popup
     // ).css("width", textWidth + "px");
+    */
     this.validateData(); // Assures size is saved
 };
 
@@ -787,7 +789,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         self.showSignOutOptions();
     });
 
-    // GET https://www.googleapis.com/chromewebstore/v1.1/items/oceoildfbiaeclndnjknjpfaoofeekgl/skus/gmail_to_trello_yearly_subscription_29_99
+    /*
     $("#g2tSubscribe", self.$popup).click(function () {
         $.get(chrome.extension.getURL("views/subscribe.html"), function (
             data_in
@@ -806,6 +808,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
             });
         });
     });
+*/
 
     chrome.storage.sync.get("dueShortcuts", function (response) {
         // Borrowed from options file until this gets persisted everywhere:
@@ -880,11 +883,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         settings_existing_k,
         ["boardId"]
     );
-    // Need to keep this from getting blown over if it exists:
-    // const settings =
-    //     self.data && self.data.settings && self.data.settings.boardId
-    //         ? self.data.settings
-    //         : "";
+
     const settings_incoming_k = self.parent.deep_link(data, ["settings"]);
     const settings_incoming_boardId_valid_k = self.parent.validHash(
         settings_incoming_k,
@@ -893,16 +892,10 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     self.data = data;
 
-    // if (data && data.settings && data.settings.boardId) {
-    //     // leave settings that came in, they look valid
-    // } else if (settings) {
-    //     self.data.settings = settings; // NOTE (acoven@2020-05-25): I think this is setting it to itself
-    // }
-
     if (settings_incoming_k && settings_incoming_boardId_valid_k) {
         // leave settings that came in, they look valid
     } else if (settings_existing_k && settings_existing_boardId_valid_k) {
-        data.settings = settings_existing_k; // NOTE (acoven@2020-05-25): I think we mean for this to be data.settings = settings;, not self.data.settings = settings (which was self.data.settings)
+        data.settings = settings_existing_k;
     }
 
     // bind trello data
@@ -936,7 +929,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
     }
 
-    $("#g2tAvatarURL", this.$popup).attr("href", me.url);
+    $("#g2tAvatarUrl", this.$popup).attr("href", me.url);
 
     $("#g2tUsername", this.$popup)
         .attr("href", me.url)
@@ -1450,9 +1443,13 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
         var item = members[i];
         if (item && item.id) {
             var txt = item.initials || item.username || "?";
-            var avatar = self.parent.model.makeAvatarUrl({
-                avatarUrl: item.avatarUrl || "",
-            });
+            var avatar =
+                self.parent.model.makeAvatarUrl({
+                    avatarUrl: item.avatarUrl || "",
+                }) ||
+                chrome.extension.getURL(
+                    "images/avatar_generic_profile_gry_30x30.png"
+                ); // Default generic profile
             const size_k = 20;
             $g2t.append(
                 $("<button>")
