@@ -2,7 +2,7 @@
 
 #g2tPopup {
     position: absolute;
-    min-height: 450px;
+    min-height: 464px;
     min-width: 720px;
     max-width: 100%;
     max-height: none;
@@ -16,6 +16,7 @@
     z-index: 9999;
     overflow: hidden;
     white-space: normal;
+    height: 100%;
 }
 
 /* Global elements */
@@ -60,14 +61,14 @@
 #g2tPopup .content {
     position: relative;
     left: 0;
-    padding: 3px 5px 3px 5px;
+    /* padding: 3px 5px 3px 5px; */
     overflow: auto;
-    margin-top: 3px;
+    /* margin-top: 3px; */
 }
 #g2tPopup .g2tMain {
     /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
     second row to expand vertically to take up the remaining height without using JS to adjust the height. KS */
-    height: 100%;
+    height: calc(100% - 30px);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -225,7 +226,10 @@
 /* Updated Styles. KS */
 #g2tPopup .content {
     /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
-    height: calc(100% - 33px);
+    /* height: calc(100% - 33px); */
+    height: 100%;
+    padding: 0px;
+    margin: 0px;
 }
 
 /* Create a flex-box based common alignment. So that floats and its pitfalls can be avoided. */
@@ -376,7 +380,7 @@
 }
 #g2tPopup .g2tFormGroup {
     margin: 0 0px 6px 4px;
-    width: calc(100% - 4px);
+    width: calc(100% - 8px);
 }
 #g2tPopup .first-row,
 .g2tFormGroup {
@@ -406,6 +410,8 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 4px;
+    margin-top: 4px;
+    margin-right: 4px;
     /* max-width: 100%; */
 }
 #g2tPopup .first-row .g2tFormControl {
@@ -557,7 +563,7 @@
 #g2tPopup .g2tFormControl input[type="date"],
 #g2tPopup .g2tFormControl input[type="time"],
 #g2tPopup .g2tFormControl textarea {
-    min-height: 21px;
+    min-height: 20px;
     width: 100%;
 }
 #g2tPopup .g2tFormControl input[type="date"],
@@ -568,7 +574,8 @@
 #g2tPopup .g2tFormControl textarea {
     padding-top: 4px;
     margin: 0px;
-    height: calc(100% - 11px);
+    /* Where body is 4px and border is 2px. Therefore total 6px; */
+    height: calc(100% - 8px);
     resize: none;
 }
 
