@@ -575,7 +575,7 @@
     padding-top: 4px;
     margin: 0px;
     /* Where body is 4px and border is 2px. Therefore total 6px; */
-    height: calc(100% - 8px);
+    height: calc(100% - 10px);
     resize: none;
 }
 
@@ -617,6 +617,7 @@
 #g2tPopup .g2t-body-row {
     flex-grow: 2;
     margin-bottom: 0px;
+    height:100%;
 }
 #g2tPopup .g2t-body-row label {
     padding-top: 4px;
