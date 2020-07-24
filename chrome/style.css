@@ -2,7 +2,7 @@
 
 #g2tPopup {
     position: absolute;
-    min-height: 464px;
+    min-height: 564px;
     min-width: 720px;
     max-width: 100%;
     max-height: none;
@@ -68,7 +68,7 @@
 #g2tPopup .g2tMain {
     /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
     second row to expand vertically to take up the remaining height without using JS to adjust the height. KS */
-    height: calc(100% - 30px);
+    height: calc(100% - 7px);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -102,17 +102,27 @@
     margin: 0;
     padding: 0;
     min-height: 40px;
-    max-height: 96px;
+    max-height: 75px;
     width: 100%;
     overflow: auto;
     padding-top: 2px;
     align-items: flex-start;
 }
+
+#g2tPopup #g2tImages,
 #g2tPopup #g2tMembers,
-#g2tPopup #g2tAttachments,
-#g2tPopup #g2tImages {
-    max-height: 96px;
+#g2tPopup #g2tAttachments{
     overflow: auto;
+}
+
+#g2tPopup #g2tImages {
+    max-height: 110px;
+}
+#g2tPopup #g2tMembers{
+    max-height: 85px;
+}
+#g2tPopup #g2tAttachments{
+    max-height: 85px;
 }
 
 #g2tPopup #g2tPosition li {
@@ -227,7 +237,7 @@
 #g2tPopup .content {
     /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
     /* height: calc(100% - 33px); */
-    height: 100%;
+    height: calc(100% - 28px);
     padding: 0px;
     margin: 0px;
 }
@@ -458,7 +468,7 @@
     padding-top: 5px;
 }
 #g2tPopup .memberLabel + .g2tFormControl #g2tMembers {
-    min-height: 37px;
+    min-height: 27px;
     padding-top: 1px;
 }
 
@@ -574,13 +584,13 @@
 #g2tPopup .g2tFormControl textarea {
     padding-top: 4px;
     margin: 0px;
-    /* Where body is 4px and border is 2px. Therefore total 6px; */
-    height: calc(100% - 8px);
+    height: 100%;
+    box-sizing: border-box;
+    width: 100%;
     resize: none;
 }
 
-#g2tPopup .g2tFormControl input[type="text"],
-#g2tPopup .g2tFormControl textarea {
+#g2tPopup .g2tFormControl input[type="text"] {
     width: calc(100% - 4px);
 }
 
@@ -610,6 +620,7 @@
     display: flex;
     flex-flow: column;
     align-items: stretch;
+    min-height: 27px;
 }
 #g2tPopup .g2t-no-margin {
     margin: 0px;
@@ -617,6 +628,7 @@
 #g2tPopup .g2t-body-row {
     flex-grow: 2;
     margin-bottom: 0px;
+    height: 100%;
 }
 #g2tPopup .g2t-body-row label {
     padding-top: 4px;

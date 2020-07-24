@@ -13,7 +13,7 @@ Gmail2Trello.PopupView = function (parent) {
             max: window.innerWidth - 16, // Max width is 100% of the window - 1em. KS
         },
         height: {
-            min: 464,
+            min: 564,
             max: 1400,
         },
         text: {
@@ -22,7 +22,7 @@ Gmail2Trello.PopupView = function (parent) {
     };
     this.draggable = {
         height: {
-            min: 464,
+            min: 564,
             max: (window.innerHeight - 100), // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
         },
         width: {
@@ -289,6 +289,7 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
         disabled: false,
         containment: "window",
     });
+    
     this.$popup.resizable({
         disabled: false,
         // containment:"document",
