@@ -2,21 +2,23 @@
 
 #g2tPopup {
     position: absolute;
-    min-height: 564px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin-top: 24px;
+    min-height: 464px;
+    max-height: 564px;
+    max-height: 564px;
     min-width: 720px;
     max-width: 100%;
-    max-height: none;
     -webkit-user-select: none;
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
     background: #fefefe;
-    padding: 0;
-    margin-top: 24px;
     opacity: 0.97;
     z-index: 9999;
     overflow: hidden;
     white-space: normal;
-    height: 100%;
 }
 
 /* Global elements */
@@ -60,17 +62,22 @@
 
 #g2tPopup .content {
     position: relative;
+    display: flex;
+    flex-direction: column;
     left: 0;
-    /* padding: 3px 5px 3px 5px; */
     overflow: auto;
-    /* margin-top: 3px; */
+    flex-grow: 2;
+    /* background-color: #bfdca430; */
 }
 #g2tPopup .g2tMain {
     /* Using flex layout to split the main content in to two rows. The Flex layout also allows the 
     second row to expand vertically to take up the remaining height without using JS to adjust the height. KS */
-    height: calc(100% - 7px);
+    height: inherit;
+    margin-bottom: 5px;
     display: flex;
     flex-direction: column;
+    flex-grow: 2;
+    /* background-color: #71f4a735; */
     width: 100%;
     padding: 0;
     overflow-y: auto;
@@ -111,17 +118,17 @@
 
 #g2tPopup #g2tImages,
 #g2tPopup #g2tMembers,
-#g2tPopup #g2tAttachments{
+#g2tPopup #g2tAttachments {
     overflow: auto;
 }
 
 #g2tPopup #g2tImages {
     max-height: 110px;
 }
-#g2tPopup #g2tMembers{
+#g2tPopup #g2tMembers {
     max-height: 85px;
 }
-#g2tPopup #g2tAttachments{
+#g2tPopup #g2tAttachments {
     max-height: 85px;
 }
 
@@ -539,7 +546,7 @@
     text-overflow: ellipsis;
     /* shows atleast 10 chars. */
     width: 10ch;
-
+    margin-bottom: 4px;
     white-space: nowrap;
     display: block;
 }
@@ -552,6 +559,10 @@
 }
 #g2tPopup #g2tAttachments {
     margin-top: 2px;
+}
+
+#g2tPopup .g2tAssignments .g2tFormControl {
+    min-height: 39px;
 }
 
 /* Adjusting the text's width inside the form control. */
@@ -588,6 +599,8 @@
     box-sizing: border-box;
     width: 100%;
     resize: none;
+    min-height: 20px;
+    /* background-color: #edc96780; */
 }
 
 #g2tPopup .g2tFormControl input[type="text"] {
@@ -618,9 +631,10 @@
 #g2tPopup .lower-half {
     height: 100%;
     display: flex;
-    flex-flow: column;
-    align-items: stretch;
+    flex-direction: column;
+    flex-grow: 2;
     min-height: 27px;
+    /* background-color: #a4d8dc70; */
 }
 #g2tPopup .g2t-no-margin {
     margin: 0px;
@@ -632,6 +646,11 @@
 }
 #g2tPopup .g2t-body-row label {
     padding-top: 4px;
+}
+
+#g2tPopup .g2t-body-row .g2tFormControl {
+    /* background-color: #62ded780; */
+    height: -webkit-fill-available;
 }
 
 /* Type-in Select's CSS */
