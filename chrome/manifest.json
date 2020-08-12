@@ -1,7 +1,7 @@
 {
   "name": "Gmail-2-Trello",
   "short_name": "G2T",
-  "version": "2.8.5.007",
+  "version": "2.8.5.009",
   "manifest_version": 2,
   "description": "Gmail+Trello integration. Add Google mail to Trello cards with text, backlinks, and attachments.",
   "icons": {
@@ -46,22 +46,23 @@
     }
   ],
   "web_accessible_resources": [
-    "images/icon-48.png",
+    "images/avatar_generic_profile_gry_30x30.png",
+    "images/chevron-down.png",
+    "images/doc-question-mark-512.png",
     "images/icon-16.jpg",
+    "images/icon-48.png",
     "images/new_icon.gif",
     "images/ui-icons_444444_256x240.png",
-    "images/ui-icons_777777_256x240.png",
     "images/ui-icons_555555_256x240.png",
+    "images/ui-icons_777777_256x240.png",
     "images/ui-icons_ffffff_256x240.png",
-    "images/doc-question-mark-512.png",
-    "images/chevron-down.png",
+    "inject.js",
+    "lib/jquery-3.4.1.min.map",
+    "views/error.html",
     "views/popupView.html",
     "views/signOut.html",
-    "views/error.html",
     "views/subscribe.html",
-    "views/versionUpdate.html",
-    "lib/jquery-3.4.1.min.map",
-    "inject.js"
+    "views/versionUpdate.html"
   ],
   "homepage_url": "https://trello.com/b/CGU9BYgd/gmail-2-trello-chrome-extension",
   "offline_enabled": false,
@@ -69,12 +70,17 @@
     "browsingData",
     "tabs",
     "storage",
-    "https://api.trello.com/",
     "https://trello.com/",
+    "https://*.trello.com/",
     "https://mail.google.com/",
-    "https://www.googleapis.com/",
-    "https://www.google-analytics.com/",
-    "https://*.googleusercontent.com/"
+    "https://googleapis.com/",
+    "https://*.googleapis.com/",
+    "https://google-analytics.com/",
+    "https://*.google-analytics.com/",
+    "https://googleusercontent.com/",
+    "https://*.googleusercontent.com/",
+    "https://gstatic.com/",
+    "https://*.gstatic.com/"
   ],
   "options_page": "views/options.html",
   "oauth2": {

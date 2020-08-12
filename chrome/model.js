@@ -608,21 +608,25 @@ Gmail2Trello.Model.prototype.submit = function () {
 };
 
 Gmail2Trello.Model.prototype.emailBoardListCardMapLookup = function (
-    key_value = {}
+    hash = {}
 ) {
-    if (key_value) {
-        const keys_k = Object.keys(key_value);
-        if (keys_k.length && key_value[keys_k[0]]) {
-            const eblcMapID =
-                Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
-            return this[eblcMapID].lookup(key_value);
-        }
-    }
-    return {};
+    const obj = this;
+    const fn = 'lookup';
+    const retn_k = Gmail2Trello.Model.prototype.EmailBoardListCardMap.call_in({
+        obj,
+        fn,
+        hash
+    });
+    return retn_k;
 };
-Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (args) {
-    const eblcMapID = Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
-    this[eblcMapID].add(args);
+Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (hash = {}) {
+    const obj = this;
+    const fn = "add";
+    const retn_k = Gmail2Trello.Model.prototype.EmailBoardListCardMap.call_in({
+        obj,
+        fn,
+        hash
+    });
 };
 Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     constructor(args) {
@@ -639,6 +643,37 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
     get id() {
         return Gmail2Trello.Model.prototype.EmailBoardListCardMap.id;
+    }
+
+    static call_in(args) {
+        const vh_k = Gmail2Trello.App.prototype.validHash;
+
+        if (!vh_k(args, [
+            "obj",
+            "fn",
+            "hash"
+        ])) {
+            return {};
+        }
+
+        if (!vh_k(args.hash)) {
+            return {};
+        }
+
+        const eblcMapID = this.id;
+        if (!(typeof(args.obj) === "object" && args.obj.hasOwnProperty(eblcMapID))) {
+            g2t_log(`valid: no object with ${eblcMapID}!`);
+            return {};
+        }
+
+        const instance_k = args.obj[eblcMapID];
+        if (!args.fn in instance_k) {
+            g2t_log(`valid: ${args.fn} missing!`);
+            return {};
+        }
+
+        const retn_k = instance_k[args.fn](args.hash);
+        return retn_k;
     }
 
     add(args = {}) {
