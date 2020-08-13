@@ -1,3 +1,8 @@
+=== 2.8.5.009@2020-08-12 ===
+ * Add base64 default image if avatarUrl is missing
+ * Add avatar_generic_30x30.png if avatarUrl is missing
+ * Updates to minimizing and resizing from @KS-CleverCopter
+
 === 2.8.5.008@2020-07-18 ===
  * Make due shortcuts reset when picking "--" even when it's selected
  * Change manifest to '*.trello.com' to support api.trello.com, api-gateway.trello.com
