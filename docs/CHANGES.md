@@ -1,3 +1,7 @@
+=== 2.8.5.019@2020-09-03 ===
+ * Fix for buttons highlighting outward instead of inward from @KS-CleverCopter
+
+
 === 2.8.5.009@2020-08-12 ===
  * Add base64 default image if avatarUrl is missing
  * Add avatar_generic_30x30.png if avatarUrl is missing
