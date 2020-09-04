@@ -1,6 +1,8 @@
 Gmail-2-Trello
 =========================
 
+Black lives matter. Support the Equal Justice Initiative. ✊🏽✊🏾✊🏿
+
 Gmail+Trello integration. Extension for Chrome browser and other developments.
 
 Published on Chrome Web Store: https://g2t.pub/chrome
