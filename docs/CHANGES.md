@@ -1,6 +1,8 @@
+=== 2.8.5.011@2020-09-04 ===
+ * Add 33px margin to the popupMsg so it will not appear over the popup titlebar.
+
 === 2.8.5.010@2020-09-03 ===
  * Fix for buttons highlighting outward instead of inward from @KS-CleverCopter
-
 
 === 2.8.5.009@2020-08-12 ===
  * Add base64 default image if avatarUrl is missing
