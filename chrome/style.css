@@ -87,8 +87,10 @@
     border: 1px solid #edc967;
     background: #f9edb8;
     padding: 5px 10px 15px;
-    margin: 4px;
+    margin: 33px 4px 4px 4px; /* was: 4px for all */
+    /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
 }
+
 #g2tPopup #resize-icon {
     position: relative;
     bottom: 24px;
@@ -617,7 +619,8 @@
     padding: 2px 6px;
     -webkit-appearance: none;
     padding-right: 20px;
-    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat calc(100% - 5px) 50%;
+    background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png")
+        no-repeat calc(100% - 5px) 50%;
     background-size: 11px;
 }
 #g2tPopup #g2tDue_Shortcuts {
@@ -685,7 +688,9 @@
     display: block;
     margin: 0 2px 0 0 !important;
     border-left: 0px !important;
-    background: #fff url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png") no-repeat 50% 50% !important;
+    background: #fff
+        url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png")
+        no-repeat 50% 50% !important;
     background-size: 10px !important;
     border-radius: 0 5px 5px 0;
 }
