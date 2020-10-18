@@ -1,5 +1,8 @@
+=== 2.8.5.012@2020-10-18 ===
+ * Gmail changed class for mail body from '.a3s.aXjCH' to '.a3s.aiL'
+
 === 2.8.5.011@2020-09-04 ===
- * Add 33px margin to the popupMsg so it will not appear over the popup titlebar.
+ * Add 33px top margin to the popupMsg so it will not appear over the popup titlebar.
 
 === 2.8.5.010@2020-09-03 ===
  * Fix for buttons highlighting outward instead of inward from @KS-CleverCopter

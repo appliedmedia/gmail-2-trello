@@ -24,7 +24,7 @@ Gmail2Trello.GmailView = function (parent) {
         emailName: ".gD",
         emailAddress: ".gD", // Was: '.go', now using same name property
         emailSubject: ".hP",
-        emailBody: ".adn.ads .gs:first .a3s.aXjCH", // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
+        emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
         emailAttachments: ".aZo", // Was: '.aQy',
         emailThreadID: ".a3s.aXjCH",
         emailIDs: [
@@ -112,7 +112,8 @@ Gmail2Trello.GmailView.prototype.detectToolbar = function () {
 
 Gmail2Trello.GmailView.prototype.detectEmailOpeningMode = function () {
     var self = this;
-    this.$expandedEmails = this.$root.find(this.selectors.expandedEmails);
+    const sel_k = this.selectors.expandedEmails;
+    this.$expandedEmails = this.$root.find(sel_k);
 
     var result =
         this.$toolBar &&
@@ -174,7 +175,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         $viewport = $(this.selectors.viewportSplit, this.$root);
     } else {
 */
-    $viewport = $(this.selectors.viewport, this.$root).first();
+    let selector = this.selectors.viewport;
+    $viewport = $(selector, this.$root).first();
     //  }
     // g2t_log('GmailView:parseData::viewport: ' + JSON.stringify($viewport));
     if ($viewport.length == 0) {
@@ -185,7 +187,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     //g2t_log(y0);
     let $visibleMail = null;
     // parse expanded emails again
-    $(this.selectors.expandedEmails, this.$root).each(function () {
+    selector = this.selectors.expandedEmails;
+    $(selector, this.$root).each(function () {
         let $this = $(this);
         if ($visibleMail === null && $this.offset().top >= y0)
             $visibleMail = $this;
@@ -196,7 +199,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     }
 
     // Check for email body first. If we don't have this, then bail.
-    let $emailBody = $(this.selectors.emailBody, $visibleMail);
+    selector = this.selectors.emailBody;
+    let $emailBody = $(selector, $visibleMail);
     let $emailBody1 = $emailBody[0];
     if (!$emailBody1) {
         g2t_log(
@@ -209,41 +213,38 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     // var startTime = new Date().getTime();
 
     // host name
-    let $host = $(this.selectors.host, $visibleMail).first();
+    selector = this.selectors.host;
+    let $host = $(selector, $visibleMail).first();
     let hostName = ($host.attr("name") || "").trim();
     let hostEmail = ($host.attr("email") || "").trim();
 
     // email name
-    let emailName = (
-        $(this.selectors.emailName, $visibleMail).attr("name") || ""
-    ).trim();
-    let emailAddress = (
-        $(this.selectors.emailAddress, $visibleMail).attr("email") || ""
-    ).trim();
-    let emailAttachments = $(this.selectors.emailAttachments, $visibleMail).map(
-        function () {
-            let item = $(this).attr("download_url");
-            if (item && item.length > 0) {
-                var attachment = item.match(
-                    /^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/
-                );
-                if (attachment && attachment.length > 3) {
-                    const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
-                    const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');
-                    return {
-                        mimeType: attachment[1],
-                        name: name_k,
-                        // NOTE (Ace@2017-04-20): Adding this explicitly at the end of the URL so it'll pick up the "filename":
-                        url: url_with_filename(url_k, name_k),
-                        checked: "false",
-                    }; // [0] is the whole string
-                }
+    selector = this.selectors.emailName;
+    let emailName = ($(selector, $visibleMail).attr("name") || "").trim();
+    selector = this.selectors.emailAddress;
+    let emailAddress = ($(selector, $visibleMail).attr("email") || "").trim();
+    selector = this.selectors.emailAttachments;
+    let emailAttachments = $(selector, $visibleMail).map(function () {
+        let item = $(this).attr("download_url");
+        if (item && item.length > 0) {
+            var attachment = item.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
+            if (attachment && attachment.length > 3) {
+                const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
+                const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');
+                return {
+                    mimeType: attachment[1],
+                    name: name_k,
+                    // NOTE (Ace@2017-04-20): Adding this explicitly at the end of the URL so it'll pick up the "filename":
+                    url: url_with_filename(url_k, name_k),
+                    checked: "false",
+                }; // [0] is the whole string
             }
         }
-    );
+    });
 
     // timestamp
-    const $time_k = $(this.selectors.timestamp, $visibleMail).first();
+    selector = this.selectors.timestamp;
+    const $time_k = $(selector, $visibleMail).first();
     const timeAttr_k = ($time_k.length > 0
         ? $time_k.attr("title") || $time_k.text() || $time_k.attr("alt")
         : ""
@@ -278,19 +279,19 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let from_md = "[" + emailName + "](" + emailAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
 
     // subject
-    let $subject = $(this.selectors.emailSubject, this.$root);
+    selector = this.selectors.emailSubject;
+    let $subject = $(selector, this.$root);
     data.subject = ($subject.text() || "").trim();
 
     // Find emailId via legacy
     // <span data-thread-id="#thread-f:1602441164947422913" data-legacy-thread-id="163d03bfda277ec1" data-legacy-last-message-id="163d03bfda277ec1">Tips for using your new inbox</span>
-    const ids_len_k = this.selectors.emailIDs.length;
+    selector = this.selectors.emailIDs;
+    const ids_len_k = selector.length;
     let iter = 0;
 
     data.emailId = 0;
     do {
-        data.emailId = (
-            $subject.attr(this.selectors.emailIDs[iter]) || ""
-        ).trim(); // Try new Gmail format
+        data.emailId = ($subject.attr(selector[iter]) || "").trim(); // Try new Gmail format
     } while (!data.emailId && ++iter < ids_len_k);
 
     if (!data.emailId) {
@@ -403,9 +404,12 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         const href_k = ($(this).prop("src") || "").trim(); // Was attr
         const alt_k = $(this).prop("alt") || "";
         // <div id=":cb" class="T-I J-J5-Ji aQv T-I-ax7 L3 a5q" role="button" tabindex="0" aria-label="Download attachment Screen Shot 2020-02-05 at 6.04.37 PM.png" data-tooltip-class="a1V" data-tooltip="Download"><div class="aSK J-J5-Ji aYr"></div></div>}
-        const $divs_k = $(this).nextAll(self.selectors.emailEmbedded);
-        const $div1_k = $divs_k.find(self.selectors.emailEmbeddedTitle).first();
-        const aria_k = $div1_k.attr(self.selectors.emailEmbeddedNameAttr) || "";
+        selector = self.selectors.emailEmbedded;
+        const $divs_k = $(this).nextAll(selector);
+        selector = self.selectors.emailEmbeddedTitle;
+        const $div1_k = $divs_k.find(selector).first();
+        selector = self.selectors.emailEmbeddedNameAttr;
+        const aria_k = $div1_k.attr(selector) || "";
         const aria_split_k = aria_k.split("Download attachment ");
         const aria_name_k = aria_split_k[aria_split_k.length - 1] || "";
         const name_k =
