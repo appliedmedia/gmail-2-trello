@@ -705,17 +705,13 @@
     width: 100% !important;
 }
 [for-select="g2tBoard"],
-[for-select="g2tList"] {
+[for-select="g2tList"],
+[for-select="g2Card"] {
     /* max-width: 200px; */
     min-width: 150px;
     flex-grow: 2;
     flex-basis: 150px;
     transition: 300ms;
-}
-[for-select="g2tCard"] {
-    flex-grow: 2;
-    min-width: 150px;
-    flex-basis: 150px;
 }
 #g2tPopup #g2tLabels button.active-mouseDown,
 #g2tPopup #g2tLabels .active-mouseDown,
@@ -727,4 +723,7 @@
 /* Potential fix for the bug that hides the autoselect behind the pop-up */
 .ui-autocomplete.ui-front {
     z-index: 9999 !important;
+    max-height: 60%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
