@@ -116,8 +116,10 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
         // Updating type-in list's value when a value is changed.
         setJQueryVals();
         $.each($j, function (key, $value) {
-            $value.combobox();
-            "setInputValue", $value.children("option:selected").text();
+            $value.combobox(
+                "setInputValue",
+                $value.children("option:selected").text()
+            );
         });
         /*
         $("#g2tBoard", self.$popup).combobox(
