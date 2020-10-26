@@ -23,11 +23,11 @@ Gmail2Trello.PopupView = function (parent) {
     this.draggable = {
         height: {
             min: 464,
-            max: (window.innerHeight - 100), // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
+            max: window.innerHeight - 100, // 100 - a safety buffer to prevent the dragable controls from being hidden by gmail's menu buttons.
         },
         width: {
             min: 700,
-            max: (window.innerWidth - 100),
+            max: window.innerWidth - 100,
         },
     };
 
@@ -77,29 +77,65 @@ Gmail2Trello.PopupView.prototype.init = function () {
     }, 2000);
 };
 Gmail2Trello.PopupView.prototype.comboBox = function (update) {
+    let self = this;
+    let $jVals = { Board: "", Card: "", List: "" };
+    let setJQueryVals = function () {
+        $.each($jVals, function (key) {
+            $jVals[key] = $("#g2t" + key, self.$popup);
+        });
+    };
+    let set_max_autocomplete_size = function () {
+        const max_k = window.innerHeight; // Was: self.draggable.height.max;
+        const $b_k = $j.Board;
+        const popup_offset_k = self.$popup.offset();
+        const popup_top_k = popup_offset_k.top;
+        const board_height_k = $b_k.outerHeight();
+        const calc_k =
+            max_k -
+            popup_top_k -
+            board_height_k -
+            90; /* titlebar of popup with some room*/
+        const val_k = calc_k > self.size_k.text.min ? calc_k : "60%";
+        $(".ui-autocomplete").css("max-height", val_k);
+    };
     if (!update) {
         setTimeout(() => {
-            this.comboInitialized = true;
-            $("#g2tBoard").combobox();
-            $("#g2tList").combobox();
-            $("#g2tCard").combobox();
+            self.comboInitialized = true;
+            setJQueryVals();
+            $.each($jVals, function (key, $value) {
+                $value.combobox();
+            });
+            /*
+            $("#g2tBoard", self.$popup).combobox();
+            $("#g2tCard", self.$popup).combobox();
+            $("#g2tList", self.$popup).combobox();
+            */
+            set_max_autocomplete_size();
         }, 1000);
-    } else {
+    } else if (self.comboInitialized) {
         // Updating type-in list's value when a value is changed.
-        if (this.comboInitialized) {
-            $("#g2tBoard").combobox(
+        setJQueryVals();
+        $.each($jVals, function (key, $value) {
+            $value.combobox(
                 "setInputValue",
-                $("#g2tBoard").children("option:selected").text()
+                $value.children("option:selected").text()
             );
-            $("#g2tList").combobox(
-                "setInputValue",
-                $("#g2tList").children("option:selected").text()
-            );
-            $("#g2tCard").combobox(
-                "setInputValue",
-                $("#g2tCard").children("option:selected").text()
-            );
-        }
+        });
+        /*
+        $("#g2tBoard", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tBoard", self.$popup).children("option:selected").text()
+        );
+        $("#g2tList", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tList", self.$popup).children("option:selected").text()
+        );
+        $("#g2tCard", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tCard", self.$popup).children("option:selected").text()
+        );
+        */
+        set_max_autocomplete_size();
     }
 };
 
@@ -283,8 +319,8 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
         maxWidth: this.draggable.width.max,
         resize: () => {
             // This will remove the max-height restriction set in CSS, thereby allwing the user to resize freely.
-            if ($("#g2tPopup").css('max-height') != 'inherit') {
-                $("#g2tPopup").css('max-height', 'inherit');
+            if ($("#g2tPopup").css("max-height") != "inherit") {
+                $("#g2tPopup").css("max-height", "inherit");
             }
         },
         handles: "w,sw,s,se,e",
@@ -462,8 +498,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due date shortcut: "' +
-                due_date +
-                '"'
+                    due_date +
+                    '"'
             );
         }
 
@@ -492,8 +528,8 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
             g2t_log(
                 'due_Shortcuts:change: Unknown due time shortcut: "' +
-                due_time +
-                '"'
+                    due_time +
+                    '"'
             );
         }
 
@@ -665,7 +701,7 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
             self.centerPopup();
         }
         // resetting the max height on load.
-        $("#g2tPopup").css('max-height', '564px');
+        $("#g2tPopup").css("max-height", "564px");
         self.mouseDownTracker = {};
 
         self.$popup.show();
@@ -911,10 +947,10 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     } else {
         $("#g2tAvatarImgOrText", this.$popup).html(
             '<img width="30" height="30" alt="' +
-            me.username +
-            '" src="' +
-            avatarSrc +
-            '">'
+                me.username +
+                '" src="' +
+                avatarSrc +
+                '">'
         );
     }
 
@@ -977,9 +1013,9 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
         );
         $("#g2tTitle", self.$popup).val(
             "Error report card: " +
-            [fullname_k, username_k].join(" @") +
-            " " +
-            date_k
+                [fullname_k, username_k].join(" @") +
+                " " +
+                date_k
         );
         self.validateData();
     });
@@ -1210,7 +1246,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
     $.each(array_k, function (iter, item) {
         const org_k =
             item.hasOwnProperty("organization") &&
-                item.organization.hasOwnProperty("displayName")
+            item.organization.hasOwnProperty("displayName")
                 ? "!" + item.organization.displayName + ": "
                 : "~";
         const display_k = org_k + item.name; // Ignore first char, it's used just for sorting
@@ -1253,8 +1289,8 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("boardId") &&
-            settings_k.boardId == boardId_k &&
-            settings_k.hasOwnProperty("listId")
+        settings_k.boardId == boardId_k &&
+        settings_k.hasOwnProperty("listId")
             ? settings_k.listId
             : 0;
 
@@ -1262,7 +1298,7 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-            self.updatesPending[0].hasOwnProperty("listId")
+        self.updatesPending[0].hasOwnProperty("listId")
             ? self.updatesPending.shift().listId
             : 0;
 
@@ -1305,8 +1341,8 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const prev_item_k =
         settings_k.hasOwnProperty("listId") &&
-            settings_k.listId == listId_k &&
-            settings_k.hasOwnProperty("cardId")
+        settings_k.listId == listId_k &&
+        settings_k.hasOwnProperty("cardId")
             ? settings_k.cardId
             : 0;
 
@@ -1314,7 +1350,7 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
     const updatePending_k =
         self.updatesPending.length &&
-            self.updatesPending[0].hasOwnProperty("cardId")
+        self.updatesPending[0].hasOwnProperty("cardId")
             ? self.updatesPending.shift().cardId
             : 0;
 
@@ -1647,12 +1683,12 @@ Gmail2Trello.PopupView.prototype.displaySubmitCompleteForm = function () {
     this.showMessage(
         self,
         '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
-        jQueryToRawHtml(
-            $("<a>")
-                .attr("href", data.url)
-                .attr("target", "_blank")
-                .append(data.title)
-        )
+            jQueryToRawHtml(
+                $("<a>")
+                    .attr("href", data.url)
+                    .attr("target", "_blank")
+                    .append(data.title)
+            )
     );
     this.$popupContent.hide();
 };

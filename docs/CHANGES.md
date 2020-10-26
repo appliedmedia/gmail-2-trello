@@ -1,5 +1,14 @@
+=== 2.8.5.014@2020-10-25 ===
+ * Use more calculated .ui-autocomplete calculated value
+
+=== 2.8.5.013@2020-10-25 ===
+ * Where/List/Card overflow: auto to show scrollbar when long list set .ui-autocomplete max-height to 60% screen
+
+=== 2.8.5.012@2020-10-18 ===
+ * Gmail changed class for mail body from '.a3s.aXjCH' to '.a3s.aiL'
+
 === 2.8.5.011@2020-09-04 ===
- * Add 33px margin to the popupMsg so it will not appear over the popup titlebar.
+ * Add 33px top margin to the popupMsg so it will not appear over the popup titlebar.
 
 === 2.8.5.010@2020-09-03 ===
  * Fix for buttons highlighting outward instead of inward from @KS-CleverCopter
