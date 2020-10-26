@@ -1,3 +1,6 @@
+=== 2.8.5.014@2020-10-25 ===
+ * Use more calculated .ui-autocomplete calculated value
+
 === 2.8.5.013@2020-10-25 ===
  * Where/List/Card overflow: auto to show scrollbar when long list set .ui-autocomplete max-height to 60% screen
 

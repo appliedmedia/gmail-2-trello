@@ -723,7 +723,7 @@
 /* Potential fix for the bug that hides the autoselect behind the pop-up */
 .ui-autocomplete.ui-front {
     z-index: 9999 !important;
-    max-height: 60%;
+    /* max-height: 60% */
     overflow-y: auto;
     overflow-x: hidden;
 }

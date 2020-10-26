@@ -77,29 +77,63 @@ Gmail2Trello.PopupView.prototype.init = function () {
     }, 2000);
 };
 Gmail2Trello.PopupView.prototype.comboBox = function (update) {
+    let self = this;
+    let $j = { Board: "", Card: "", List: "" };
+    let setJQueryVals = function () {
+        $.each($j, function (key) {
+            $j[key] = $("#g2t" + key, self.$popup);
+        });
+    };
+    let set_max_autocomplete_size = function () {
+        const max_k = window.innerHeight; // Was: self.draggable.height.max;
+        const $b_k = $j.Board;
+        const popup_offset_k = self.$popup.offset();
+        const popup_top_k = popup_offset_k.top;
+        const board_height_k = $b_k.outerHeight();
+        const calc_k =
+            max_k -
+            popup_top_k -
+            board_height_k -
+            90; /* titlebar of popup with some room*/
+        const val_k = calc_k > self.size_k.text.min ? calc_k : "60%";
+        $(".ui-autocomplete").css("max-height", val_k);
+    };
     if (!update) {
         setTimeout(() => {
-            this.comboInitialized = true;
-            $("#g2tBoard").combobox();
-            $("#g2tList").combobox();
-            $("#g2tCard").combobox();
+            self.comboInitialized = true;
+            setJQueryVals();
+            $.each($j, function (key, $value) {
+                $value.combobox();
+            });
+            /*
+            $("#g2tBoard", self.$popup).combobox();
+            $("#g2tCard", self.$popup).combobox();
+            $("#g2tList", self.$popup).combobox();
+            */
+            set_max_autocomplete_size();
         }, 1000);
-    } else {
+    } else if (self.comboInitialized) {
         // Updating type-in list's value when a value is changed.
-        if (this.comboInitialized) {
-            $("#g2tBoard").combobox(
-                "setInputValue",
-                $("#g2tBoard").children("option:selected").text()
-            );
-            $("#g2tList").combobox(
-                "setInputValue",
-                $("#g2tList").children("option:selected").text()
-            );
-            $("#g2tCard").combobox(
-                "setInputValue",
-                $("#g2tCard").children("option:selected").text()
-            );
-        }
+        setJQueryVals();
+        $.each($j, function (key, $value) {
+            $value.combobox();
+            "setInputValue", $value.children("option:selected").text();
+        });
+        /*
+        $("#g2tBoard", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tBoard", self.$popup).children("option:selected").text()
+        );
+        $("#g2tList", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tList", self.$popup).children("option:selected").text()
+        );
+        $("#g2tCard", self.$popup).combobox(
+            "setInputValue",
+            $("#g2tCard", self.$popup).children("option:selected").text()
+        );
+        */
+        set_max_autocomplete_size();
     }
 };
 
