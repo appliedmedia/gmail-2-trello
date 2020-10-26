@@ -78,10 +78,10 @@ Gmail2Trello.PopupView.prototype.init = function () {
 };
 Gmail2Trello.PopupView.prototype.comboBox = function (update) {
     let self = this;
-    let $j = { Board: "", Card: "", List: "" };
+    let $jVals = { Board: "", Card: "", List: "" };
     let setJQueryVals = function () {
-        $.each($j, function (key) {
-            $j[key] = $("#g2t" + key, self.$popup);
+        $.each($jVals, function (key) {
+            $jVals[key] = $("#g2t" + key, self.$popup);
         });
     };
     let set_max_autocomplete_size = function () {
@@ -102,7 +102,7 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
         setTimeout(() => {
             self.comboInitialized = true;
             setJQueryVals();
-            $.each($j, function (key, $value) {
+            $.each($jVals, function (key, $value) {
                 $value.combobox();
             });
             /*
@@ -115,7 +115,7 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
     } else if (self.comboInitialized) {
         // Updating type-in list's value when a value is changed.
         setJQueryVals();
-        $.each($j, function (key, $value) {
+        $.each($jVals, function (key, $value) {
             $value.combobox(
                 "setInputValue",
                 $value.children("option:selected").text()
