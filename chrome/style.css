@@ -481,7 +481,7 @@
     padding-top: 1px;
 }
 
-#g2tPopup #g2tLabel button:hover,
+#g2tPopup #g2tLabels button:hover,
 #g2tPopup #g2tMembers button:hover,
 #g2tPopup .imgOrAttach label:hover {
     border-color: #52a8d9 !important;

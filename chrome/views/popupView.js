@@ -86,10 +86,10 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
     };
     let set_max_autocomplete_size = function () {
         const max_k = window.innerHeight; // Was: self.draggable.height.max;
-        const $b_k = $j.Board;
+        const $board_k = $jVals.Board;
         const popup_offset_k = self.$popup.offset();
         const popup_top_k = popup_offset_k.top;
-        const board_height_k = $b_k.outerHeight();
+        const board_height_k = $board_k.outerHeight();
         const calc_k =
             max_k -
             popup_top_k -
