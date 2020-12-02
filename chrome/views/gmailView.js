@@ -23,10 +23,11 @@ Gmail2Trello.GmailView = function (parent) {
         // toolbarButton: '.G-Ni:first',
         emailName: ".gD",
         emailAddress: ".gD", // Was: '.go', now using same name property
+        emailCCs: "span[dir='ltr'].g2.ac2",
         emailSubject: ".hP",
         emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
         emailAttachments: ".aZo", // Was: '.aQy',
-        emailThreadID: ".a3s.aXjCH",
+        // emailThreadID: ".a3s.aXjCH", // (Ace, 2020-12-01): OBSOLETE?
         emailIDs: [
             "data-thread-perm-id",
             "data-thread-id",
@@ -217,17 +218,27 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let $host = $(selector, $visibleMail).first();
     let hostName = ($host.attr("name") || "").trim();
     let hostEmail = ($host.attr("email") || "").trim();
+    
+    selector = this.selectors.emailCCs;
+    let $emailCCs = $(selector, $visibleMail);
+    let emailCCs = $emailCCs.map(function () {
+        const item_k = ($(this).attr("email") || "").trim();
+        if (item_k && item_k.length > 0) {
+            return item_k;
+        }
+    });
 
     // email name
     selector = this.selectors.emailName;
     let emailName = ($(selector, $visibleMail).attr("name") || "").trim();
     selector = this.selectors.emailAddress;
     let emailAddress = ($(selector, $visibleMail).attr("email") || "").trim();
+    
     selector = this.selectors.emailAttachments;
     let emailAttachments = $(selector, $visibleMail).map(function () {
-        let item = $(this).attr("download_url");
-        if (item && item.length > 0) {
-            var attachment = item.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
+        const item_k = $(this).attr("download_url");
+        if (item_k && item_k.length > 0) {
+            var attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
             if (attachment && attachment.length > 3) {
                 const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
                 const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');

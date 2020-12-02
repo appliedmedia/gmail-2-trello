@@ -1,3 +1,6 @@
+=== 2.8.5.015@2020-12-01 ===
+ * Collect CCs
+
 === 2.8.5.014@2020-11-18 ===
  * Use more calculated .ui-autocomplete value
  * Fix highlighting of labels with mouseover--typo: g2tLabel ≠ g2tLabels
