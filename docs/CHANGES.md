@@ -1,5 +1,7 @@
-=== 2.8.5.015@2020-12-01 ===
+=== 2.8.5.015@2020-12-02 ===
  * Collect CCs
+ * Convert CCs to md
+ * To-do: Return CCs from gmailView; Add CCs checkbox
 
 === 2.8.5.014@2020-11-18 ===
  * Use more calculated .ui-autocomplete value

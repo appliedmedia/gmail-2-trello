@@ -20,24 +20,23 @@ Gmail2Trello.GmailView = function (parent) {
 
     this.selectors = {
         // selectors mapping, modify here when gmail's markup changes:
-        // toolbarButton: '.G-Ni:first',
-        emailName: ".gD",
-        emailAddress: ".gD", // Was: '.go', now using same name property
-        emailCCs: "span[dir='ltr'].g2.ac2",
+        // toolbarButton: '.G-Ni:first', // (Ace, 2020-12-01): OBSOLETE?
+        // emailThreadID: ".a3s.aXjCH", // (Ace, 2020-12-01): OBSOLETE?
+        // emailInThreads: ".kv,.h7", // (Ace, 2020-12-01): OBSOLETE?
+        // hiddenEmails: ".kv", // (Ace, 2020-12-01): OBSOLETE?
+        // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
+        emailFromNameAddress: "span.gD",
+        emailCCs: "span[dir='ltr'].g2",
         emailSubject: ".hP",
         emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
         emailAttachments: ".aZo", // Was: '.aQy',
-        // emailThreadID: ".a3s.aXjCH", // (Ace, 2020-12-01): OBSOLETE?
         emailIDs: [
             "data-thread-perm-id",
             "data-thread-id",
             "data-legacy-thread-id",
         ],
         viewport: ".aia, .nH", // .aia = split view, .nH = breakout view // Was: '.aeJ:first', now using .first()
-        // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
         expandedEmails: ".h7",
-        hiddenEmails: ".kv",
-        emailInThreads: ".kv,.h7",
         timestamp: ".gH .gK .g3",
         host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R'
         emailEmbedded: "div[dir='ltr']",
@@ -219,20 +218,25 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let hostName = ($host.attr("name") || "").trim();
     let hostEmail = ($host.attr("email") || "").trim();
     
+    // NOTE (Ace, 2020-12-02): Maybe use this to replace hosts lookup completely? (Use [0] for hostName/hostEmail?)
     selector = this.selectors.emailCCs;
     let $emailCCs = $(selector, $visibleMail);
     let emailCCs = $emailCCs.map(function () {
-        const item_k = ($(this).attr("email") || "").trim();
-        if (item_k && item_k.length > 0) {
-            return item_k;
+        const email = ($(this).attr("email") || "").trim();
+        const name = ($(this).attr("name") || "").trim();
+        if (email && email.length > 0) {
+            return {
+                email,
+                name
+            }
         }
     });
 
     // email name
-    selector = this.selectors.emailName;
-    let emailName = ($(selector, $visibleMail).attr("name") || "").trim();
-    selector = this.selectors.emailAddress;
-    let emailAddress = ($(selector, $visibleMail).attr("email") || "").trim();
+    selector = this.selectors.emailFromNameAddress;
+    let $emailFromNameAddress = $(selector, $visibleMail);
+    let emailFromName = ($emailFromNameAddress.attr("name") || "").trim();
+    let emailFromAddress = ($emailFromNameAddress.attr("email") || "").trim();
     
     selector = this.selectors.emailAttachments;
     let emailAttachments = $(selector, $visibleMail).map(function () {
@@ -286,8 +290,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         );
     }
 
-    let from_raw = emailName + " <" + emailAddress + "> " + data.time;
-    let from_md = "[" + emailName + "](" + emailAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
+    let from_raw = emailFromName + " <" + emailFromAddress + "> " + data.time;
+    let from_md = "[" + emailFromName + "](" + emailFromAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
 
     // subject
     selector = this.selectors.emailSubject;
@@ -371,8 +375,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         ];
 
         const dict = {
-            name: name,
-            email: email,
+            name,
+            email,
         };
 
         let anchor_md = self.parent.anchorMarkdownify(name, email); // Don't need to add 'mailto:'
@@ -388,9 +392,16 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     };
 
     let preprocess = { a: {} };
+
+    $.each(emailCCs, function (iter, item) {
+        $.extend(preprocess["a"],
+            make_preprocess_mailto(item.name, item.email)
+        );
+    });
+
     $.extend(
         preprocess["a"],
-        make_preprocess_mailto(emailName, emailAddress),
+        make_preprocess_mailto(emailFromName, emailFromAddress),
         make_preprocess_mailto(hostName, hostEmail)
     );
 
