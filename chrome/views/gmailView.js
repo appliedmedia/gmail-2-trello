@@ -169,6 +169,27 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         );
     };
 
+    let email_raw_md = function (name = "", email = "") {
+        let raw = "", md = "";
+        if (!email.length) {
+            return {
+                raw,
+                md
+            }
+        }
+        if (!name.length) {
+            name = self.parent.splitEmailDomain(email).name || "";
+        }
+        raw = (name.length > 0 ? name + " " : "")
+            + (email.length > 0 ? "<" + email + ">" : "");
+        md = "[" + (name.length > 0 ? name : "no-name") + "]"
+           + "(" + (email.length > 0 ? email : "no-email") + ")";
+        return {
+            raw,
+            md
+        }
+    };
+
     /* OBSOLETE (Ace, 2020-02-15): Don't think split is different than flat any more
     // find active email
     if (this.layoutMode === this.LAYOUT_SPLIT) {
@@ -290,8 +311,11 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         );
     }
 
-    let from_raw = emailFromName + " <" + emailFromAddress + "> " + data.time;
-    let from_md = "[" + emailFromName + "](" + emailFromAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
+    let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
+    let from_raw = (from_raw_md.raw.length > 0 ? " " : "") + data.time;
+    let from_md = (from_raw_md.md.length > 0 ? " " : "") + data.time;
+    // let from_raw = emailFromName + " <" + emailFromAddress + "> " + data.time;
+    // let from_md = "[" + emailFromName + "](" + emailFromAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
 
     // subject
     selector = this.selectors.emailSubject;
@@ -391,13 +415,32 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         return retn;
     };
 
-    let preprocess = { a: {} };
+    let cc_raw = '', cc_md = '', preprocess = { a: {} };
 
     $.each(emailCCs, function (iter, item) {
         $.extend(preprocess["a"],
             make_preprocess_mailto(item.name, item.email)
         );
+        let cc_raw_md = email_raw_md(item.name, item.email);
+        if (cc_raw_md.raw.length > 0 || cc_raw_md.md.length > 0) {
+            if (!cc_raw.length || !cc_md.length) {
+                cc_raw = "Cc: ";
+                cc_md = "Cc: ";
+            } else {
+                cc_raw += ", ";
+                cc_md += ", ";
+            }
+            cc_raw += cc_raw_md.raw;
+            cc_md += cc_raw_md.md;
+        }
     });
+
+    if (cc_raw.length > 0) {
+        cc_raw += "\n";
+    }
+    if (cc_md.length > 0) {
+        cc_md += "\n";
+    }
 
     $.extend(
         preprocess["a"],
@@ -408,13 +451,17 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let selectedText = this.parent.getSelectedText();
 
     data.body_raw =
-        from_raw +
-        ":\n\n" +
+        from_raw + 
+        ":\n" +
+        cc_raw +
+        "\n" +
         (selectedText ||
             this.parent.markdownify($emailBody1, false, preprocess));
     data.body_md =
-        from_md +
-        ":\n\n" +
+        from_md + 
+        ":\n" +
+        cc_md +
+        "\n" +
         (selectedText ||
             this.parent.markdownify($emailBody1, true, preprocess));
 

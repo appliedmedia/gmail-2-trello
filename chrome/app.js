@@ -337,6 +337,20 @@ Gmail2Trello.App.prototype.anchorMarkdownify = function (text, href, comment) {
 };
 
 /**
+ * Split an email into name and domain
+ */
+Gmail2Trello.App.prototype.splitEmailDomain = function (email = "") {
+    const split = email.split('@');
+    const name = split[0] || "";
+    const domain = split[1] || "";
+    return {
+        name,
+        domain
+    }
+}
+
+
+/**
  * Markdownify a text block
  */
 Gmail2Trello.App.prototype.markdownify = function (
