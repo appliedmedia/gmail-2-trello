@@ -20,25 +20,25 @@ Gmail2Trello.GmailView = function (parent) {
 
     this.selectors = {
         // selectors mapping, modify here when gmail's markup changes:
-        // toolbarButton: '.G-Ni:first',
-        emailName: ".gD",
-        emailAddress: ".gD", // Was: '.go', now using same name property
+        // toolbarButton: '.G-Ni:first', // (Ace, 2020-12-01): OBSOLETE?
+        // emailThreadID: ".a3s.aXjCH", // (Ace, 2020-12-01): OBSOLETE?
+        // emailInThreads: ".kv,.h7", // (Ace, 2020-12-01): OBSOLETE?
+        // hiddenEmails: ".kv", // (Ace, 2020-12-01): OBSOLETE?
+        // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
+        emailFromNameAddress: "span.gD",
+        emailCC: "span[dir='ltr'].g2",
         emailSubject: ".hP",
         emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
         emailAttachments: ".aZo", // Was: '.aQy',
-        emailThreadID: ".a3s.aXjCH",
         emailIDs: [
             "data-thread-perm-id",
             "data-thread-id",
             "data-legacy-thread-id",
         ],
         viewport: ".aia, .nH", // .aia = split view, .nH = breakout view // Was: '.aeJ:first', now using .first()
-        // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
         expandedEmails: ".h7",
-        hiddenEmails: ".kv",
-        emailInThreads: ".kv,.h7",
         timestamp: ".gH .gK .g3",
-        host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R'
+        // host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R' // OBSOLETE (Ace, 2020-12-29)
         emailEmbedded: "div[dir='ltr']",
         emailEmbeddedTitle: ".T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q",
         emailEmbeddedNameAttr: "aria-label",
@@ -169,6 +169,38 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         );
     };
 
+    let email_raw_md = function (name = "", email = "") {
+        let raw = "",
+            md = "";
+        if (!email.name && !email.length) {
+            return {
+                raw,
+                md,
+            };
+        }
+        if (!name.length) {
+            name = self.parent.splitEmailDomain(email).name || "";
+        }
+        raw =
+            self.parent.addSpace(name) +
+            (email.length > 0 ? "<" + email + ">" : "");
+
+        if (name.length > 0) {
+            if (email.length > 0) {
+                md = "[" + name + "](" + email + ")";
+            } else {
+                md = name;
+            }
+        } else if (email.length > 0) {
+            md = email;
+        }
+
+        return {
+            raw,
+            md,
+        };
+    };
+
     /* OBSOLETE (Ace, 2020-02-15): Don't think split is different than flat any more
     // find active email
     if (this.layoutMode === this.LAYOUT_SPLIT) {
@@ -212,22 +244,39 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     this.parsingData = true;
     // var startTime = new Date().getTime();
 
-    // host name
+    // OBSOLETE (Ace, 2020-12-29): host name - think this is captured with emailCC:
+    /*
     selector = this.selectors.host;
     let $host = $(selector, $visibleMail).first();
     let hostName = ($host.attr("name") || "").trim();
     let hostEmail = ($host.attr("email") || "").trim();
+    */
+
+    // NOTE (Ace, 2020-12-02): Maybe use this to replace hosts lookup completely? (Use [0] for hostName/hostEmail?)
+    selector = this.selectors.emailCC;
+    let $emailCC = $(selector, $visibleMail);
+    let emailCC = $emailCC.map(function () {
+        const email = ($(this).attr("email") || "").trim();
+        const name = ($(this).attr("name") || "").trim();
+        if (email && email.length > 0) {
+            return {
+                email,
+                name,
+            };
+        }
+    });
 
     // email name
-    selector = this.selectors.emailName;
-    let emailName = ($(selector, $visibleMail).attr("name") || "").trim();
-    selector = this.selectors.emailAddress;
-    let emailAddress = ($(selector, $visibleMail).attr("email") || "").trim();
+    selector = this.selectors.emailFromNameAddress;
+    let $emailFromNameAddress = $(selector, $visibleMail);
+    let emailFromName = ($emailFromNameAddress.attr("name") || "").trim();
+    let emailFromAddress = ($emailFromNameAddress.attr("email") || "").trim();
+
     selector = this.selectors.emailAttachments;
     let emailAttachments = $(selector, $visibleMail).map(function () {
-        let item = $(this).attr("download_url");
-        if (item && item.length > 0) {
-            var attachment = item.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
+        const item_k = $(this).attr("download_url");
+        if (item_k && item_k.length > 0) {
+            var attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
             if (attachment && attachment.length > 3) {
                 const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
                 const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');
@@ -275,8 +324,9 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         );
     }
 
-    let from_raw = emailName + " <" + emailAddress + "> " + data.time;
-    let from_md = "[" + emailName + "](" + emailAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
+    let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
+    let from_raw = self.parent.addSpace(from_raw_md.raw, data.time);
+    let from_md = self.parent.addSpace(from_raw_md.md, data.time);
 
     // subject
     selector = this.selectors.emailSubject;
@@ -321,7 +371,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let txtDirectComment = "Search by subject";
 
     if (data.emailId && data.emailId.length > 1) {
-        txtAnchor = "Id";
+        txtAnchor = "id";
         txtDirect =
             "https://mail.google.com" +
             window.location.pathname /* /mail/u/0/ */ +
@@ -344,7 +394,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
             .trim() + // don't need leading and trailing spaces
         " | " +
         self.parent
-            .anchorMarkdownify("Time", txtSearch, "Search by subject + time")
+            .anchorMarkdownify("time", txtSearch, "Search by subject + time")
             .trim() + // don't need leading and trailing spaces
         ")";
 
@@ -360,8 +410,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         ];
 
         const dict = {
-            name: name,
-            email: email,
+            name,
+            email,
         };
 
         let anchor_md = self.parent.anchorMarkdownify(name, email); // Don't need to add 'mailto:'
@@ -376,14 +426,43 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         return retn;
     };
 
-    let preprocess = { a: {} };
-    $.extend(
-        preprocess["a"],
-        make_preprocess_mailto(emailName, emailAddress),
-        make_preprocess_mailto(hostName, hostEmail)
-    );
+    let cc_raw = "",
+        cc_md = "",
+        a = make_preprocess_mailto(emailFromName, emailFromAddress),
+        preprocess = {
+            a,
+        };
+
+    $.each(emailCC, function (iter, item) {
+        $.extend(
+            preprocess["a"],
+            make_preprocess_mailto(item.name, item.email)
+        );
+        let cc_raw_md = email_raw_md(item.name, item.email);
+        if (cc_raw_md.raw.length > 0 || cc_raw_md.md.length > 0) {
+            if (!cc_raw.length || !cc_md.length) {
+                cc_raw = "To: ";
+                cc_md = "To: ";
+            } else {
+                cc_raw += ", ";
+                cc_md += ", ";
+            }
+            cc_raw += cc_raw_md.raw;
+            cc_md += cc_raw_md.md;
+        }
+    });
+
+    if (cc_raw.length > 0) {
+        cc_raw += "\n";
+    }
+    if (cc_md.length > 0) {
+        cc_md += "\n";
+    }
 
     let selectedText = this.parent.getSelectedText();
+
+    data.cc_raw = cc_raw;
+    data.cc_md = cc_md;
 
     data.body_raw =
         from_raw +
