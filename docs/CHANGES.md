@@ -1,6 +1,7 @@
 === 2.8.5.016@2020-12-29 ===
  * Return CCs from gmailView via body_raw, body_md
- * To-do: Add CCs checkbox
+ * CCs checkbox respected
+ * "Recipients" used instead of To/CC
 
 === 2.8.5.015@2020-12-02 ===
  * Collect CCs

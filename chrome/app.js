@@ -71,43 +71,43 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         self.popupView.validateData();
     });
 
-    this.model.event.addListener("onCardSubmitComplete", function (
-        target,
-        params
-    ) {
-        self.popupView.displaySubmitCompleteForm();
-        // If card lists or labels have been updated, reload:
-        const data_k = dl_k(params, ["data"]);
-        const emailId = dl_k(data_k, ["emailId"]);
-        const boardId_k = dl_k(data_k, ["data", "board", "id"]);
-        const listId_k = dl_k(data_k, ["data", "list", "id"]);
-        const cardId_k = dl_k(data_k, ["data", "card", "id"]);
-        const idBoard_k = dl_k(data_k, ["idBoard"]);
-        const idList_k = dl_k(data_k, ["idList"]);
-        const idCard_k = dl_k(data_k, ["idCard"]);
-        const boardId = boardId_k || idBoard_k || 0;
-        const listId = listId_k || idList_k || 0;
-        const cardId = cardId_k || idCard_k || 0;
-        // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
-        // we'll remember that new card ID and then keep defaulting to it for
-        // subsequent updates to that email. That means we'll have to get the return
-        // value/url from Trello and dissect that, potentially doing this update
-        // in that routine:
-        self.model.emailBoardListCardMapUpdate({
-            emailId,
-            boardId,
-            listId,
-            cardId,
-        });
+    this.model.event.addListener(
+        "onCardSubmitComplete",
+        function (target, params) {
+            self.popupView.displaySubmitCompleteForm();
+            // If card lists or labels have been updated, reload:
+            const data_k = dl_k(params, ["data"]);
+            const emailId = dl_k(data_k, ["emailId"]);
+            const boardId_k = dl_k(data_k, ["data", "board", "id"]);
+            const listId_k = dl_k(data_k, ["data", "list", "id"]);
+            const cardId_k = dl_k(data_k, ["data", "card", "id"]);
+            const idBoard_k = dl_k(data_k, ["idBoard"]);
+            const idList_k = dl_k(data_k, ["idList"]);
+            const idCard_k = dl_k(data_k, ["idCard"]);
+            const boardId = boardId_k || idBoard_k || 0;
+            const listId = listId_k || idList_k || 0;
+            const cardId = cardId_k || idCard_k || 0;
+            // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
+            // we'll remember that new card ID and then keep defaulting to it for
+            // subsequent updates to that email. That means we'll have to get the return
+            // value/url from Trello and dissect that, potentially doing this update
+            // in that routine:
+            self.model.emailBoardListCardMapUpdate({
+                emailId,
+                boardId,
+                listId,
+                cardId,
+            });
 
-        if (boardId) {
-            self.model.loadTrelloLabels(boardId);
-            self.model.loadTrelloMembers(boardId);
+            if (boardId) {
+                self.model.loadTrelloLabels(boardId);
+                self.model.loadTrelloMembers(boardId);
+            }
+            if (listId) {
+                self.model.loadTrelloCards(listId);
+            }
         }
-        if (listId) {
-            self.model.loadTrelloCards(listId);
-        }
-    });
+    );
 
     this.model.event.addListener("onAPIFailure", function (target, params) {
         self.popupView.displayAPIFailedForm(params);
@@ -135,25 +135,25 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         }, 3000);
     });
 
-    this.popupView.event.addListener("onBoardChanged", function (
-        target,
-        params
-    ) {
-        var boardId = params.boardId;
-        if (boardId !== "_" && boardId !== "" && boardId !== null) {
-            self.model.loadTrelloLists(boardId);
-            self.model.loadTrelloLabels(boardId);
-            self.model.loadTrelloMembers(boardId);
+    this.popupView.event.addListener(
+        "onBoardChanged",
+        function (target, params) {
+            var boardId = params.boardId;
+            if (boardId !== "_" && boardId !== "" && boardId !== null) {
+                self.model.loadTrelloLists(boardId);
+                self.model.loadTrelloLabels(boardId);
+                self.model.loadTrelloMembers(boardId);
+            }
         }
-    });
+    );
 
-    this.popupView.event.addListener("onListChanged", function (
-        target,
-        params
-    ) {
-        var listId = params.listId;
-        self.model.loadTrelloCards(listId);
-    });
+    this.popupView.event.addListener(
+        "onListChanged",
+        function (target, params) {
+            var listId = params.listId;
+            self.model.loadTrelloCards(listId);
+        }
+    );
 
     this.popupView.event.addListener("onSubmit", function () {
         self.model.submit();
@@ -340,15 +340,29 @@ Gmail2Trello.App.prototype.anchorMarkdownify = function (text, href, comment) {
  * Split an email into name and domain
  */
 Gmail2Trello.App.prototype.splitEmailDomain = function (email = "") {
-    const split = email.split('@');
+    const split = email.split("@");
     const name = split[0] || "";
     const domain = split[1] || "";
     return {
         name,
-        domain
-    }
-}
+        domain,
+    };
+};
 
+/**
+ * Add trailing space if not empty:
+ */
+Gmail2Trello.App.prototype.addSpace = function (front = "", back = "") {
+    if (front.length > 0) {
+        if (back.length > 0) {
+            return front + " " + back;
+        } else {
+            return front + " ";
+        }
+    } else {
+        return "";
+    }
+};
 
 /**
  * Markdownify a text block

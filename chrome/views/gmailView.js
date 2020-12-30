@@ -26,7 +26,7 @@ Gmail2Trello.GmailView = function (parent) {
         // hiddenEmails: ".kv", // (Ace, 2020-12-01): OBSOLETE?
         // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
         emailFromNameAddress: "span.gD",
-        emailCCs: "span[dir='ltr'].g2",
+        emailCC: "span[dir='ltr'].g2",
         emailSubject: ".hP",
         emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
         emailAttachments: ".aZo", // Was: '.aQy',
@@ -38,7 +38,7 @@ Gmail2Trello.GmailView = function (parent) {
         viewport: ".aia, .nH", // .aia = split view, .nH = breakout view // Was: '.aeJ:first', now using .first()
         expandedEmails: ".h7",
         timestamp: ".gH .gK .g3",
-        host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R'
+        // host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R' // OBSOLETE (Ace, 2020-12-29)
         emailEmbedded: "div[dir='ltr']",
         emailEmbeddedTitle: ".T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q",
         emailEmbeddedNameAttr: "aria-label",
@@ -170,24 +170,35 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     };
 
     let email_raw_md = function (name = "", email = "") {
-        let raw = "", md = "";
-        if (!email.length) {
+        let raw = "",
+            md = "";
+        if (!email.name && !email.length) {
             return {
                 raw,
-                md
-            }
+                md,
+            };
         }
         if (!name.length) {
             name = self.parent.splitEmailDomain(email).name || "";
         }
-        raw = (name.length > 0 ? name + " " : "")
-            + (email.length > 0 ? "<" + email + ">" : "");
-        md = "[" + (name.length > 0 ? name : "no-name") + "]"
-           + "(" + (email.length > 0 ? email : "no-email") + ")";
+        raw =
+            self.parent.addSpace(name) +
+            (email.length > 0 ? "<" + email + ">" : "");
+
+        if (name.length > 0) {
+            if (email.length > 0) {
+                md = "[" + name + "](" + email + ")";
+            } else {
+                md = name;
+            }
+        } else if (email.length > 0) {
+            md = email;
+        }
+
         return {
             raw,
-            md
-        }
+            md,
+        };
     };
 
     /* OBSOLETE (Ace, 2020-02-15): Don't think split is different than flat any more
@@ -233,23 +244,25 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     this.parsingData = true;
     // var startTime = new Date().getTime();
 
-    // host name
+    // OBSOLETE (Ace, 2020-12-29): host name - think this is captured with emailCC:
+    /*
     selector = this.selectors.host;
     let $host = $(selector, $visibleMail).first();
     let hostName = ($host.attr("name") || "").trim();
     let hostEmail = ($host.attr("email") || "").trim();
-    
+    */
+
     // NOTE (Ace, 2020-12-02): Maybe use this to replace hosts lookup completely? (Use [0] for hostName/hostEmail?)
-    selector = this.selectors.emailCCs;
-    let $emailCCs = $(selector, $visibleMail);
-    let emailCCs = $emailCCs.map(function () {
+    selector = this.selectors.emailCC;
+    let $emailCC = $(selector, $visibleMail);
+    let emailCC = $emailCC.map(function () {
         const email = ($(this).attr("email") || "").trim();
         const name = ($(this).attr("name") || "").trim();
         if (email && email.length > 0) {
             return {
                 email,
-                name
-            }
+                name,
+            };
         }
     });
 
@@ -258,7 +271,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let $emailFromNameAddress = $(selector, $visibleMail);
     let emailFromName = ($emailFromNameAddress.attr("name") || "").trim();
     let emailFromAddress = ($emailFromNameAddress.attr("email") || "").trim();
-    
+
     selector = this.selectors.emailAttachments;
     let emailAttachments = $(selector, $visibleMail).map(function () {
         const item_k = $(this).attr("download_url");
@@ -312,10 +325,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     }
 
     let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
-    let from_raw = (from_raw_md.raw.length > 0 ? " " : "") + data.time;
-    let from_md = (from_raw_md.md.length > 0 ? " " : "") + data.time;
-    // let from_raw = emailFromName + " <" + emailFromAddress + "> " + data.time;
-    // let from_md = "[" + emailFromName + "](" + emailFromAddress + ") " + data.time; // FYI (Ace, 10-Jan-2017): [name](url "comment") is markdown syntax
+    let from_raw = self.parent.addSpace(from_raw_md.raw, data.time);
+    let from_md = self.parent.addSpace(from_raw_md.md, data.time);
 
     // subject
     selector = this.selectors.emailSubject;
@@ -360,7 +371,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let txtDirectComment = "Search by subject";
 
     if (data.emailId && data.emailId.length > 1) {
-        txtAnchor = "Id";
+        txtAnchor = "id";
         txtDirect =
             "https://mail.google.com" +
             window.location.pathname /* /mail/u/0/ */ +
@@ -383,7 +394,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
             .trim() + // don't need leading and trailing spaces
         " | " +
         self.parent
-            .anchorMarkdownify("Time", txtSearch, "Search by subject + time")
+            .anchorMarkdownify("time", txtSearch, "Search by subject + time")
             .trim() + // don't need leading and trailing spaces
         ")";
 
@@ -415,17 +426,23 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         return retn;
     };
 
-    let cc_raw = '', cc_md = '', preprocess = { a: {} };
+    let cc_raw = "",
+        cc_md = "",
+        a = make_preprocess_mailto(emailFromName, emailFromAddress),
+        preprocess = {
+            a,
+        };
 
-    $.each(emailCCs, function (iter, item) {
-        $.extend(preprocess["a"],
+    $.each(emailCC, function (iter, item) {
+        $.extend(
+            preprocess["a"],
             make_preprocess_mailto(item.name, item.email)
         );
         let cc_raw_md = email_raw_md(item.name, item.email);
         if (cc_raw_md.raw.length > 0 || cc_raw_md.md.length > 0) {
             if (!cc_raw.length || !cc_md.length) {
-                cc_raw = "Cc: ";
-                cc_md = "Cc: ";
+                cc_raw = "To: ";
+                cc_md = "To: ";
             } else {
                 cc_raw += ", ";
                 cc_md += ", ";
@@ -442,26 +459,19 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         cc_md += "\n";
     }
 
-    $.extend(
-        preprocess["a"],
-        make_preprocess_mailto(emailFromName, emailFromAddress),
-        make_preprocess_mailto(hostName, hostEmail)
-    );
-
     let selectedText = this.parent.getSelectedText();
 
+    data.cc_raw = cc_raw;
+    data.cc_md = cc_md;
+
     data.body_raw =
-        from_raw + 
-        ":\n" +
-        cc_raw +
-        "\n" +
+        from_raw +
+        ":\n\n" +
         (selectedText ||
             this.parent.markdownify($emailBody1, false, preprocess));
     data.body_md =
-        from_md + 
-        ":\n" +
-        cc_md +
-        "\n" +
+        from_md +
+        ":\n\n" +
         (selectedText ||
             this.parent.markdownify($emailBody1, true, preprocess));
 
