@@ -1,3 +1,6 @@
+=== 2.8.5.017@2021-01-02 ===
+ * Update formatting of backlinks
+
 === 2.8.5.016@2020-12-29 ===
  * Return CCs from gmailView via body_raw, body_md
  * CCs checkbox respected

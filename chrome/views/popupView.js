@@ -328,7 +328,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
 
     if (valid_data_k) {
         $("#g2tDesc", self.$popup)
-            // .val(cc_k + link_k + desc_k)
+            // .val(self.parent.addSpace(link_k, cc_k + desc_k); // set below
             .attr("gmail-body-raw", data.body_raw || "")
             .attr("gmail-body-md", data.body_md || "")
             .attr("gmail-link-raw", data.link_raw || "")
@@ -347,7 +347,9 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
 
     const body_k = markdown_k ? data.body_md : data.body_raw;
     const link_k = useBackLink_k
-        ? self.parent.addSpace(markdown_k ? data.link_md : data.link_raw)
+        ? markdown_k
+            ? data.link_md
+            : data.link_raw
         : "";
     const cc_k = addCC_k ? (markdown_k ? data.cc_md : data.cc_raw) : "";
     const desc_k = self.parent.truncate(
@@ -355,7 +357,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
         self.MAX_BODY_SIZE - (link_k.length + cc_k.length),
         "..."
     );
-    const val_k = cc_k + link_k + desc_k;
+    const val_k = self.parent.addSpace(link_k, cc_k + desc_k);
 
     $g2tDesc.val(val_k);
     $g2tDesc.change();

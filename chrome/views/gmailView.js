@@ -386,9 +386,9 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         "&within=1d&date=" +
         dateSearch;
 
-    data.link_raw = "(<" + txtDirect + "> | <" + txtSearch + ">)";
+    data.link_raw = "[<" + txtDirect + "> | <" + txtSearch + ">]";
     data.link_md =
-        "(" +
+        "[" +
         self.parent
             .anchorMarkdownify(txtAnchor, txtDirect, txtDirectComment)
             .trim() + // don't need leading and trailing spaces
@@ -396,7 +396,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         self.parent
             .anchorMarkdownify("time", txtSearch, "Search by subject + time")
             .trim() + // don't need leading and trailing spaces
-        ")";
+        "]";
 
     // email body
     let make_preprocess_mailto = function (name, email) {
