@@ -55,6 +55,8 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.updatesPending = [];
     this.comboInitialized = false;
+
+    this.fullName = "";
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -316,7 +318,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     const addCC_k = $("#chkCC", self.$popup).is(":checked");
     var $g2tDesc = $("#g2tDesc", self.$popup);
 
-    const valid_data_k = self.parent.validHash(data, [
+    const fields_k = [
         "body_raw",
         "body_md",
         "link_raw",
@@ -324,9 +326,15 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
         "cc_raw",
         "cc_md",
         "emailId",
-    ]);
+    ];
+    const valid_data_k = self.parent.validHash(data, fields_k);
 
     if (valid_data_k) {
+        // Store data in description object attributes:
+        $.each(fields_k, function (index, value) {
+            $g2tDesc.attr("gmail_" + value, data[value] || "");
+        });
+        /*
         $("#g2tDesc", self.$popup)
             // .val(self.parent.addSpace(link_k, cc_k + desc_k); // set below
             .attr("gmail-body-raw", data.body_raw || "")
@@ -335,14 +343,21 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
             .attr("gmail-link-md", data.link_md || "")
             .attr("gmail-cc-raw", data.cc_raw || "")
             .attr("gmail-cc-md", data.cc_md || "")
-            .attr("gmail-id", data.emailId || 0);
+            .attr("gmail-id", data.emailId || 0); // NOTE (Ace, 2021-01-04): NOT "" and NOT "gmail-emailId"
+            */
     } else {
+        // Restore data values from description object attributes:
+        $.each(fields_k, function (index, value) {
+            data[value] = $g2tDesc.attr("gmail_" + value) || "";
+        }); // WARNING (Ace, 2021-01-04): this might override data.emailId when we don't want it to
+        /*
         data.body_raw = $g2tDesc.attr("gmail-body-raw") || "";
         data.body_md = $g2tDesc.attr("gmail-body-md") || "";
         data.link_raw = $g2tDesc.attr("gmail-link-raw") || "";
         data.link_md = $g2tDesc.attr("gmail-link-md") || "";
         data.cc_raw = $g2tDesc.attr("gmail-cc-raw") || "";
         data.cc_md = $g2tDesc.attr("gmail-cc-md") || "";
+        */
     }
 
     const body_k = markdown_k ? data.body_md : data.body_raw;
@@ -357,7 +372,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
         self.MAX_BODY_SIZE - (link_k.length + cc_k.length),
         "..."
     );
-    const val_k = self.parent.addSpace(link_k, cc_k + desc_k);
+    const val_k = link_k + cc_k + desc_k;
 
     $g2tDesc.val(val_k);
     $g2tDesc.change();
@@ -932,6 +947,8 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     // bind trello data
     const me = self.parent.deep_link(data, ["trello", "user"]); // First member is always this user
+    self.fullName = me.fullName; // Move a copy here
+
     const avatarUrl = me.avatarUrl || "";
     const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });
     let avatarText = "";
@@ -1058,7 +1075,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
         .attr("gmail-link-md", data.link_md || "")
         .attr("gmail-cc-raw", data.cc_raw || "")
         .attr("gmail-cc-md", data.cc_md || "")
-        .attr("gmail-id", data.emailId || 0);
+        .attr("gmail-id", data.emailId || 0); // NOTE (Ace, 2021-01-04): NOT "" and NOT "gmail-emailId"
 
     self.updateBody();
 
@@ -1579,7 +1596,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
     var due_Time = $("#g2tDue_Time", self.$popup).val();
     var title = $("#g2tTitle", self.$popup).val();
     var description = $("#g2tDesc", self.$popup).val();
-    var emailId = $("#g2tDesc", self.$popup).attr("gmail-id") || 0;
+    var emailId = $("#g2tDesc", self.$popup).attr("gmail_emailId") || 0;
     var useBackLink = $("#chkBackLink", self.$popup).is(":checked");
     var addCC = $("#chkCC", self.$popup).is(":checked");
     var markdown = $("#chkMarkdown", self.$popup).is(":checked");

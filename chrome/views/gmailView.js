@@ -153,7 +153,7 @@ Gmail2Trello.GmailView.prototype.detectEmailOpeningMode = function () {
     return result;
 };
 
-Gmail2Trello.GmailView.prototype.parseData = function () {
+Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     // g2t_log('parseData');
     if (this.parsingData) {
         return;
@@ -161,6 +161,10 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
 
     let self = this;
     let data = {};
+
+    const fullName_k = self.parent.validHash(args, ["fullName"])
+        ? args.fullName
+        : "";
 
     let url_with_filename = function (url_in = "", var_in = "") {
         return self.parent.url_add_var(
@@ -172,15 +176,20 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let email_raw_md = function (name = "", email = "") {
         let raw = "",
             md = "";
-        if (!email.name && !email.length) {
+        if (!name.length && !email.length) {
             return {
                 raw,
                 md,
             };
         }
+
         if (!name.length) {
             name = self.parent.splitEmailDomain(email).name || "";
+        } else if (name.toUpperCase() === email.toUpperCase()) {
+            // split out @domain name and email are the same:
+            name = self.parent.splitEmailDomain(name).name || name;
         }
+
         raw =
             self.parent.addSpace(name) +
             (email.length > 0 ? "<" + email + ">" : "");
@@ -257,7 +266,11 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     let $emailCC = $(selector, $visibleMail);
     let emailCC = $emailCC.map(function () {
         const email = ($(this).attr("email") || "").trim();
-        const name = ($(this).attr("name") || "").trim();
+        let name = ($(this).attr("name") || "").trim();
+        // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
+        if (name === "me" && fullName_k.length > 0) {
+            name = fullName_k;
+        }
         if (email && email.length > 0) {
             return {
                 email,
@@ -325,8 +338,8 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
     }
 
     let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
-    let from_raw = self.parent.addSpace(from_raw_md.raw, data.time);
-    let from_md = self.parent.addSpace(from_raw_md.md, data.time);
+    let from_raw = "From: " + self.parent.addSpace(from_raw_md.raw, data.time);
+    let from_md = "From: " + self.parent.addSpace(from_raw_md.md, data.time);
 
     // subject
     selector = this.selectors.emailSubject;
@@ -386,7 +399,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         "&within=1d&date=" +
         dateSearch;
 
-    data.link_raw = "[<" + txtDirect + "> | <" + txtSearch + ">]";
+    data.link_raw = "[<" + txtDirect + "> | <" + txtSearch + ">]\n";
     data.link_md =
         "[" +
         self.parent
@@ -396,7 +409,7 @@ Gmail2Trello.GmailView.prototype.parseData = function () {
         self.parent
             .anchorMarkdownify("time", txtSearch, "Search by subject + time")
             .trim() + // don't need leading and trailing spaces
-        "]";
+        "]\n";
 
     // email body
     let make_preprocess_mailto = function (name, email) {

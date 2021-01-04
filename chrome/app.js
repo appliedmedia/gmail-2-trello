@@ -123,8 +123,9 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         } else {
             self.popupView.reset();
         }
+        const fullName = self.popupView.fullName;
         self.gmailView.parsingData = false;
-        self.model.gmail = self.gmailView.parseData();
+        self.model.gmail = self.gmailView.parseData({ fullName });
         self.popupView.bindGmailData(self.model.gmail);
         self.popupView.event.fire("periodicChecks");
     });
@@ -213,8 +214,10 @@ Gmail2Trello.App.prototype.updateData = function () {
     if (self.model.trello.user !== null && self.model.trello.boards !== null) {
         self.popupView.bindData(self.model);
     }
+
+    const fullName = self.popupView.fullName;
     self.gmailView.parsingData = false;
-    self.model.gmail = self.gmailView.parseData();
+    self.model.gmail = self.gmailView.parseData({ fullName });
     self.popupView.bindGmailData(self.model.gmail);
 };
 
@@ -358,6 +361,21 @@ Gmail2Trello.App.prototype.addSpace = function (front = "", back = "") {
             return front + " " + back;
         } else {
             return front + " ";
+        }
+    } else {
+        return "";
+    }
+};
+
+/**
+ * Add trailing CRLF if not empty:
+ */
+Gmail2Trello.App.prototype.addCRLF = function (front = "", back = "") {
+    if (front.length > 0) {
+        if (back.length > 0) {
+            return front + "\n" + back;
+        } else {
+            return front + "\n";
         }
     } else {
         return "";
