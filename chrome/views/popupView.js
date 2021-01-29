@@ -53,6 +53,8 @@ Gmail2Trello.PopupView = function (parent) {
 
     this.VERSION_STORAGE = "g2t_version";
 
+    this.ATTRIBUTE_STORAGE = "g2t-attr-";
+
     this.updatesPending = [];
     this.comboInitialized = false;
 
@@ -313,18 +315,20 @@ Gmail2Trello.PopupView.prototype.resetDragResize = function () {
 
 Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     let self = this;
+    const attribute_storage_k = self.ATTRIBUTE_STORAGE;
+
     const markdown_k = $("#chkMarkdown", self.$popup).is(":checked");
     const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
     const addCC_k = $("#chkCC", self.$popup).is(":checked");
-    var $g2tDesc = $("#g2tDesc", self.$popup);
+    let $g2tDesc = $("#g2tDesc", self.$popup);
 
     const fields_k = [
-        "body_raw",
-        "body_md",
-        "link_raw",
-        "link_md",
-        "cc_raw",
-        "cc_md",
+        "bodyAsRaw",
+        "bodyAsMd",
+        "linkAsRaw",
+        "linkAsMd",
+        "ccAsRaw",
+        "ccAsMd",
         "emailId",
     ];
     const valid_data_k = self.parent.validHash(data, fields_k);
@@ -332,7 +336,9 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     if (valid_data_k) {
         // Store data in description object attributes:
         $.each(fields_k, function (index, value) {
-            $g2tDesc.attr("gmail_" + value, data[value] || "");
+            const val_k = data[value] || "";
+            const name_k = attribute_storage_k + value;
+            $g2tDesc.attr(name_k, val_k);
         });
         /*
         $("#g2tDesc", self.$popup)
@@ -348,7 +354,9 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     } else {
         // Restore data values from description object attributes:
         $.each(fields_k, function (index, value) {
-            data[value] = $g2tDesc.attr("gmail_" + value) || "";
+            const name_k = attribute_storage_k + value;
+            const val_k = $g2tDesc.attr(name_k) || "";
+            data[value] = val_k;
         }); // WARNING (Ace, 2021-01-04): this might override data.emailId when we don't want it to
         /*
         data.body_raw = $g2tDesc.attr("gmail-body-raw") || "";
@@ -360,13 +368,13 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
         */
     }
 
-    const body_k = markdown_k ? data.body_md : data.body_raw;
+    const body_k = markdown_k ? data.bodyAsMd : data.bodyAsRaw;
     const link_k = useBackLink_k
         ? markdown_k
-            ? data.link_md
-            : data.link_raw
+            ? data.linkAsMd
+            : data.linkAsRaw
         : "";
-    const cc_k = addCC_k ? (markdown_k ? data.cc_md : data.cc_raw) : "";
+    const cc_k = addCC_k ? (markdown_k ? data.ccAsMd : data.ccAsRaw) : "";
     const desc_k = self.parent.truncate(
         body_k,
         self.MAX_BODY_SIZE - (link_k.length + cc_k.length),

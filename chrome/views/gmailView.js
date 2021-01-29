@@ -399,8 +399,8 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         "&within=1d&date=" +
         dateSearch;
 
-    data.link_raw = "[<" + txtDirect + "> | <" + txtSearch + ">]\n";
-    data.link_md =
+    data.linkAsRaw = "[<" + txtDirect + "> | <" + txtSearch + ">]\n";
+    data.linkAsMd =
         "[" +
         self.parent
             .anchorMarkdownify(txtAnchor, txtDirect, txtDirectComment)
@@ -474,15 +474,15 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
 
     let selectedText = this.parent.getSelectedText();
 
-    data.cc_raw = cc_raw;
-    data.cc_md = cc_md;
+    data.ccAsRaw = cc_raw;
+    data.ccAsMd = cc_md;
 
-    data.body_raw =
+    data.bodyAsRaw =
         from_raw +
         ":\n\n" +
         (selectedText ||
             this.parent.markdownify($emailBody1, false, preprocess));
-    data.body_md =
+    data.bodyAsMd =
         from_md +
         ":\n\n" +
         (selectedText ||
