@@ -1455,12 +1455,7 @@ Gmail2Trello.PopupView.prototype.updateLabels = function () {
                     .css("border-color", item.color)
                     // .css("background-color", bkColor)
                     .append(item.name)
-                    .on("mousedown", (evt) => {
-                        var elm = $(evt.currentTarget);
-
-                        self.toggleActiveMouseDown(elm);
-                    })
-                    .on("mouseup", (evt) => {
+                    .on("mousedown mouseup", (evt) => {
                         var elm = $(evt.currentTarget);
                         self.toggleActiveMouseDown(elm);
                     })
@@ -1534,26 +1529,15 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
                             .attr("height", size_k)
                     )
                     .append(" " + txt)
-                    .on("mousedown", (evt) => {
+                    .on("mousedown mouseup", (evt) => {
                         var elm = $(evt.currentTarget);
                         self.toggleActiveMouseDown(elm);
                     })
-                    .on("mouseup", (evt) => {
-                        if (evt.which == 13) {
-                            var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm);
-                        }
-                    })
-                    .on("keydown", (evt) => {
-                        if (evt.which == 13) {
-                            var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm);
-                        }
-                    })
-                    .on("keyup", (evt) => {
-                        if (evt.which == 13) {
-                            var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm);
+                    .on("keydown keyup", (evt) => {
+                        if (evt.which == 13 || evt.which == 32) {
+                            $(evt.target).trigger("click");
+                            /* var elm = $(evt.currentTarget);
+                            self.toggleActiveMouseDown(elm); */
                         }
                     })
             );

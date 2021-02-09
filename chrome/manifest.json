@@ -1,7 +1,7 @@
 {
   "name": "Gmail-2-Trello",
   "short_name": "G2T",
-  "version": "2.8.5.018",
+  "version": "2.8.6.001",
   "manifest_version": 2,
   "description": "Gmail+Trello integration. Add Google mail to Trello cards with text, backlinks, and attachments.",
   "icons": {
@@ -32,7 +32,7 @@
         "lib/jquery-ui-1.12.1.min.js",
         "lib/trello.min.js",
         "lib/combo.js",
-        "lib/google-analytics-bundle.js",
+        "lib/google-analytics-bundle.min.js",
         "lib/eventTarget.js",
         "lib/menuControl.js",
         "lib/waitCounter.js",
