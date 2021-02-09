@@ -1459,6 +1459,19 @@ Gmail2Trello.PopupView.prototype.updateLabels = function () {
                         var elm = $(evt.currentTarget);
                         self.toggleActiveMouseDown(elm);
                     })
+                    .on("keypress", (evt) => {
+                        const trigger_k =
+                            evt.which == 13
+                                ? "mousedown"
+                                : evt.which == 32
+                                ? "click"
+                                : "";
+                        if (trigger_k) {
+                            $(evt.target).trigger(trigger_k);
+                        }
+                        /* var elm = $(evt.currentTarget);
+                            self.toggleActiveMouseDown(elm); */
+                    })
             );
         }
     }
@@ -1533,12 +1546,19 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
                         var elm = $(evt.currentTarget);
                         self.toggleActiveMouseDown(elm);
                     })
-                    .on("keydown keyup", (evt) => {
-                        if (evt.which == 13 || evt.which == 32) {
-                            $(evt.target).trigger("click");
-                            /* var elm = $(evt.currentTarget);
-                            self.toggleActiveMouseDown(elm); */
+                    // NOTE (Ace, 2021-02-08): crlf uses mousedown, spacebar uses click:
+                    .on("keypress", (evt) => {
+                        const trigger_k =
+                            evt.which == 13
+                                ? "mousedown"
+                                : evt.which == 32
+                                ? "click"
+                                : "";
+                        if (trigger_k) {
+                            $(evt.target).trigger(trigger_k);
                         }
+                        /* var elm = $(evt.currentTarget);
+                            self.toggleActiveMouseDown(elm); */
                     })
             );
         }
