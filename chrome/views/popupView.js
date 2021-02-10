@@ -393,14 +393,17 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     /** Popup's behavior **/
     this.resetDragResize();
 
-    $("#close-button", this.$popup).click(function () {
-        self.hidePopup();
-    });
+    $("#close-button", this.$popup)
+        .off("click")
+        .on("click", () => {
+            self.hidePopup();
+        });
 
     /** Add Card Panel's behavior **/
 
     this.$g2tButton
-        .click(function (event) {
+        .off("click")
+        .on("click", (event) => {
             if (self.parent.modKey(event)) {
                 // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
             } else {
@@ -422,7 +425,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         );
 
     var $board = $("#g2tBoard", this.$popup);
-    $board.change(function () {
+    $board.off("change").on("change", () => {
         var boardId = $board.val();
 
         var $list = $("#g2tList", self.$popup);
@@ -470,7 +473,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     });
 
     let $list = $("#g2tList", this.$popup);
-    $list.change(function () {
+    $list.off("change").on("change", () => {
         const listId = $list.val();
         self.event.fire("onListChanged", { listId });
         if (self.comboBox) self.comboBox("updateValue");
@@ -478,12 +481,14 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     });
 
     $("#g2tPosition")
-        .change(function (event) {
+        .off("change")
+        .on("change", (event) => {
             // Focusing the next element in select.
             $("#" + $(this).attr("next-select"))
                 .find("input")
                 .focus();
         })
+        .off("keyup")
         .on("keyup", (event) => {
             // Focusing the next element on enter key up.
             if (event.which == 13) {
@@ -493,162 +498,196 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
             }
         });
 
-    $("#g2tCard", this.$popup).change(function () {
-        if (self.comboBox) self.comboBox("updateValue");
-        self.validateData();
-    });
+    $("#g2tCard", this.$popup)
+        .off("change")
+        .on("change", () => {
+            if (self.comboBox) self.comboBox("updateValue");
+            self.validateData();
+        });
 
-    $("#g2tDue_Shortcuts", this.$popup).change(function () {
-        const dayOfWeek_k = {
-            sun: 0,
-            sunday: 0,
-            mon: 1,
-            monday: 1,
-            tue: 2,
-            tuesday: 2,
-            wed: 3,
-            wednesday: 3,
-            thu: 4,
-            thursday: 4,
-            fri: 5,
-            friday: 5,
-            sat: 6,
-            saturday: 6,
-        };
-        let pad0 = function (str = "", n = 2) {
-            return ("0".repeat(n) + str).slice(-n);
-        };
-        let dom_date_format = function (d = new Date()) {
-            // yyyy-MM-dd
-            return `${d.getFullYear()}-${pad0(d.getMonth() + 1)}-${pad0(
-                d.getDate()
-            )}`;
-        };
-        let dom_time_format = function (d = new Date()) {
-            // HH:mm
-            return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
-        };
+    $("#g2tDue_Shortcuts", this.$popup)
+        .off("change")
+        .on("change", () => {
+            const dayOfWeek_k = {
+                sun: 0,
+                sunday: 0,
+                mon: 1,
+                monday: 1,
+                tue: 2,
+                tuesday: 2,
+                wed: 3,
+                wednesday: 3,
+                thu: 4,
+                thursday: 4,
+                fri: 5,
+                friday: 5,
+                sat: 6,
+                saturday: 6,
+            };
+            let pad0 = function (str = "", n = 2) {
+                return ("0".repeat(n) + str).slice(-n);
+            };
+            let dom_date_format = function (d = new Date()) {
+                // yyyy-MM-dd
+                return `${d.getFullYear()}-${pad0(d.getMonth() + 1)}-${pad0(
+                    d.getDate()
+                )}`;
+            };
+            let dom_time_format = function (d = new Date()) {
+                // HH:mm
+                return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
+            };
 
-        var due = $(this).val().split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
+            var due = $(this).val().split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
 
-        var d = new Date();
+            var d = new Date();
 
-        var due_date = due[0] || "";
-        var due_time = due[1] || "";
+            var due_date = due[0] || "";
+            var due_time = due[1] || "";
 
-        var new_date = "";
-        var new_time = "";
+            var new_date = "";
+            var new_time = "";
 
-        if (due_date.substr(1, 1) === "+") {
-            d.setDate(d.getDate() + parseInt(due_date.substr(2)), 10);
-            new_date = dom_date_format(d); // d.toString(dom_date_format_k);
-        } else if (due_date.substr(1, 1) === "=") {
-            d.setDate(d.getDate() + 1); // advance to tomorrow, don't return today for "next x"
-            const weekday_k = due_date.substr(2).toLowerCase();
-            if (weekday_k === "0") {
-                new_date = "";
-            } else {
-                const weekday_num_k = dayOfWeek_k[weekday_k];
-                while (d.getDay() !== weekday_num_k) {
-                    d.setDate(d.getDate() + 1);
-                }
+            if (due_date.substr(1, 1) === "+") {
+                d.setDate(d.getDate() + parseInt(due_date.substr(2)), 10);
                 new_date = dom_date_format(d); // d.toString(dom_date_format_k);
-            }
-        } else {
-            g2t_log(
-                'due_Shortcuts:change: Unknown due date shortcut: "' +
-                    due_date +
-                    '"'
-            );
-        }
-
-        if (due_time.substr(2, 1) === "+") {
-            d.setTime(d.getTime() + parseInt(due_time.substr(3)), 10);
-            new_time = dom_time_format(d); // d.toString(dom_time_format_k);
-        } else if (due_time.substr(2, 1) === "=") {
-            if (due_time.substr(3) === "0") {
-                new_time = "";
+            } else if (due_date.substr(1, 1) === "=") {
+                d.setDate(d.getDate() + 1); // advance to tomorrow, don't return today for "next x"
+                const weekday_k = due_date.substr(2).toLowerCase();
+                if (weekday_k === "0") {
+                    new_date = "";
+                } else {
+                    const weekday_num_k = dayOfWeek_k[weekday_k];
+                    while (d.getDay() !== weekday_num_k) {
+                        d.setDate(d.getDate() + 1);
+                    }
+                    new_date = dom_date_format(d); // d.toString(dom_date_format_k);
+                }
             } else {
-                const am_k = due_time.substr(0, 1).toLowerCase() === "a";
-                const hhmm_k = due_time.substr(3).split(":");
-                var hours = parseInt(hhmm_k[0], 10);
-                // http://stackoverflow.com/questions/15083548/convert-12-hour-hhmm-am-pm-to-24-hour-hhmm:
-                if (hours === 12) {
-                    hours = 0;
-                }
-                if (!am_k) {
-                    hours += 12;
-                }
-                new_time =
-                    ("0" + hours.toString()).substr(-2) +
-                    ":" +
-                    ("0" + (hhmm_k[1] || 0).toString()).substr(-2);
+                g2t_log(
+                    'due_Shortcuts:change: Unknown due date shortcut: "' +
+                        due_date +
+                        '"'
+                );
             }
-        } else {
-            g2t_log(
-                'due_Shortcuts:change: Unknown due time shortcut: "' +
-                    due_time +
-                    '"'
-            );
-        }
 
-        $("#g2tDue_Date", this.$popup).val(new_date || "");
-        $("#g2tDue_Time", this.$popup).val(new_time || "");
+            if (due_time.substr(2, 1) === "+") {
+                d.setTime(d.getTime() + parseInt(due_time.substr(3)), 10);
+                new_time = dom_time_format(d); // d.toString(dom_time_format_k);
+            } else if (due_time.substr(2, 1) === "=") {
+                if (due_time.substr(3) === "0") {
+                    new_time = "";
+                } else {
+                    const am_k = due_time.substr(0, 1).toLowerCase() === "a";
+                    const hhmm_k = due_time.substr(3).split(":");
+                    var hours = parseInt(hhmm_k[0], 10);
+                    // http://stackoverflow.com/questions/15083548/convert-12-hour-hhmm-am-pm-to-24-hour-hhmm:
+                    if (hours === 12) {
+                        hours = 0;
+                    }
+                    if (!am_k) {
+                        hours += 12;
+                    }
+                    new_time =
+                        ("0" + hours.toString()).substr(-2) +
+                        ":" +
+                        ("0" + (hhmm_k[1] || 0).toString()).substr(-2);
+                }
+            } else {
+                g2t_log(
+                    'due_Shortcuts:change: Unknown due time shortcut: "' +
+                        due_time +
+                        '"'
+                );
+            }
 
-        if (self.comboBox) {
-            self.comboBox("updateValue");
-        }
+            $("#g2tDue_Date", this.$popup).val(new_date || "");
+            $("#g2tDue_Time", this.$popup).val(new_time || "");
 
-        if (due_date === "d=0") {
-            // Reset to hidden item if we're first "--" item (allows us to select "--" to clear any time):
-            $(this).val("none");
-        }
-        self.validateData();
-    });
+            if (self.comboBox) {
+                self.comboBox("updateValue");
+            }
 
-    $("#g2tTitle", this.$popup).change(function () {
-        self.validateData();
-    });
+            if (due_date === "d=0") {
+                // Reset to hidden item if we're first "--" item (allows us to select "--" to clear any time):
+                $(this).val("none");
+            }
+            self.validateData();
+        });
 
-    $("#g2tDesc", this.$popup).change(function () {
-        self.validateData();
-    });
+    $("#g2tTitle", this.$popup)
+        .off("change")
+        .on("change", () => {
+            self.validateData();
+        });
 
-    $("#chkMarkdown, #chkBackLink, #chkCC", this.$popup).change(function () {
-        self.updateBody();
-    });
+    $("#g2tDesc", this.$popup)
+        .off("change")
+        .on("change", () => {
+            self.validateData();
+        });
 
-    $("#addToTrello", this.$popup).click(function (event) {
-        if (self.parent.modKey(event)) {
-            self.displayAPIFailedForm();
-        } else {
-            self.submit();
-        }
-    });
+    $("#chkMarkdown, #chkBackLink, #chkCC", this.$popup)
+        .off("change")
+        .on("change", () => {
+            self.updateBody();
+        });
 
-    $("#g2tLabelsHeader", this.$popup).click(function (event) {
-        if (self.parent.modKey(event)) {
-            self.clearLabels();
-        }
-    });
+    $("#addToTrello", this.$popup)
+        .off("click")
+        .on("click", (event) => {
+            if (self.parent.modKey(event)) {
+                self.displayAPIFailedForm();
+            } else {
+                self.submit();
+            }
+        });
 
-    $("#g2tMembersHeader", this.$popup).click(function (event) {
-        if (self.parent.modKey(event)) {
-            self.clearMembers();
-        }
-    });
+    $("#g2tLabelsHeader", this.$popup)
+        .off("click")
+        .on("click", (event) => {
+            if (self.parent.modKey(event)) {
+                self.clearLabels();
+            }
+        });
 
-    $("#g2tAttachHeader", this.$popup).click(function (event) {
-        if (self.parent.modKey(event)) {
-            self.toggleCheckboxes("g2tAttachments");
-        }
-    });
+    $("#g2tMembersHeader", this.$popup)
+        .off("click")
+        .on("click", (event) => {
+            if (self.parent.modKey(event)) {
+                self.clearMembers();
+            }
+        });
 
-    $("#g2tImagesHeader", this.$popup).click(function (event) {
-        if (self.parent.modKey(event)) {
-            self.toggleCheckboxes("g2tImages");
-        }
-    });
+    $("#g2tAttachHeader", this.$popup)
+        .off("click")
+        .on("click", (event) => {
+            if (self.parent.modKey(event)) {
+                self.toggleCheckboxes("g2tAttachments");
+            }
+        });
+
+    $("#g2tImagesHeader", this.$popup)
+        .off("click")
+        .on("click", (event) => {
+            if (self.parent.modKey(event)) {
+                self.toggleCheckboxes("g2tImages");
+            }
+        });
+
+    /* NOTE (Ace, 2021-02-09: Uncomment if you want to enable/disable -> Trello via attach/images:
+    $("#g2tAttachments", this.$popup)
+        .off("change")
+        .on("change", () => {
+            self.validateData();
+        });
+
+    $("#g2tImages", this.$popup)
+        .off("change")
+        .on("change", () => {
+            self.validateData();
+        });
+    */
 };
 
 Gmail2Trello.PopupView.prototype.submit = function () {
@@ -1074,38 +1113,9 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
 
     self.updateBody(data);
 
-    /*
-    $("#g2tDesc", self.$popup)
-        // .val(cc_k + link_k + desc_k) // Will set the val in updateBody
-        .attr("gmail-body-raw", data.body_raw || "")
-        .attr("gmail-body-md", data.body_md || "")
-        .attr("gmail-link-raw", data.link_raw || "")
-        .attr("gmail-link-md", data.link_md || "")
-        .attr("gmail-cc-raw", data.cc_raw || "")
-        .attr("gmail-cc-md", data.cc_md || "")
-        .attr("gmail-id", data.emailId || 0); // NOTE (Ace, 2021-01-04): NOT "" and NOT "gmail-emailId"
-
-    self.updateBody();
-
-    const markdown_k = $("#chkMarkdown", self.$popup).is(":checked");
-    const useBackLink_k = $("#chkBackLink", self.$popup).is(":checked");
-    const addCC_k = $("#chkCC", self.$popup).is(":checked");
-
-    const body_k = markdown_k ? data.body_md : data.body_raw;
-    const link_k = useBackLink_k
-        ? self.parent.addSpace(markdown_k ? data.link_md : data.link_raw)
-        : "";
-    const cc_k = addCC_k ? (markdown_k ? data.cc_md : data.cc_raw) : "";
-    const desc_k = self.parent.truncate(
-        body_k,
-        self.MAX_BODY_SIZE - link_k.length,
-        "..."
-    );
-    */
-
     $("#g2tTitle", self.$popup).val(data.subject);
 
-    var mime_html = function (tag, isImage) {
+    const mime_html = function (tag, isImage) {
         var html = "";
         var img = "";
         var img_big = "";
@@ -1131,18 +1141,18 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
                 url: item.url,
                 name: item.name,
                 mimeType: item.mimeType,
-                img: img,
+                img,
                 id: item.name + ":" + x,
             };
 
             if (tag == "attachments") {
                 html += self.parent.replacer(
-                    '<div class="imgOrAttach textOnlyPopup"  title="%name%" ><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" /><label for="%id%">%name%</label></div>',
+                    '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
                     dict
                 );
             } else if (tag == "images") {
                 html += self.parent.replacer(
-                    '<div class="imgOrAttach"><input type="checkbox"  id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+                    '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
                     dict
                 );
             }
@@ -1430,6 +1440,7 @@ Gmail2Trello.PopupView.prototype.toggleCheckboxes = function (tag) {
     let $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop("checked") || false;
     $jTags.prop("checked", !checked_k);
+    this.validateData();
 };
 
 Gmail2Trello.PopupView.prototype.clearLabels = function () {
@@ -1652,29 +1663,43 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
         membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
 
-    var mime_array = function (tag) {
-        var $jTags = $("#" + tag + ' input[type="checkbox"]', self.$popup);
-        var array = [];
-        var array1 = {};
+    let mime_array = function (tag) {
+        let $jTags = $("#" + tag + ' input[type="checkbox"]', self.$popup),
+            array = [],
+            array1 = {},
+            checked_total = 0;
 
         $.each($jTags, function () {
+            const checked = $(this).is(":checked");
+            if (checked) {
+                checked_total++;
+            }
             array1 = {
                 url: $(this).attr("url"),
                 name: $(this).attr("name"),
                 mimeType: $(this).attr("mimeType"),
-                checked: $(this).is(":checked"),
+                checked,
             };
             array.push(array1);
         });
 
-        return array;
+        return { array, checked_total };
     };
 
-    var attachments = mime_array("g2tAttachments");
-    var images = mime_array("g2tImages");
+    const attach_k = mime_array("g2tAttachments");
+    let attachments = attach_k.array,
+        attachments_checked = attach_k.checked_total;
 
-    var validateStatus =
-        boardId && listId && title && description ? true : false; // Labels are not required
+    const images_k = mime_array("g2tImages");
+    let images = images_k.array,
+        images_checked = images_k.checked_total;
+
+    const validateStatus =
+        boardId &&
+        listId &&
+        title /* && (description || attachments_checked > 0 || images_checked > 0) // Not sure we need to require these */
+            ? true
+            : false; // Labels are not required
     // g2t_log('validateData: board:' + boardId + ' list:' + listId + ' title:' + title + ' desc:' + ((description || '') . length));
 
     if (validateStatus) {
