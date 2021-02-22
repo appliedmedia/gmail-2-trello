@@ -1,3 +1,17 @@
+=== 2.8.6.001@2021-02-08 ===
+ * Make spacebar also highlight/deselect Labels and Assign
+ * Automatically select attachments, when present (but not Images)
+ * Allow submitting to Trello with no Body (Title still required)
+ * Use off("change") trick to keep script from getting called twice
+
+=== 2.8.5.018@2021-01-29 ===
+ * User reports clicking markdown/Gmail-links/recipients clears body and doesn't return - confirmed, found really good bug, fixed
+
+=== 2.8.5.017@2021-01-04 ===
+ * Update formatting of backlinks
+ * Iterate fields instead of setting directly
+ * Change To: me to Trello ID name
+
 === 2.8.5.016@2020-12-29 ===
  * Return CCs from gmailView via body_raw, body_md
  * CCs checkbox respected

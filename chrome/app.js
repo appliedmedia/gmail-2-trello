@@ -123,8 +123,9 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         } else {
             self.popupView.reset();
         }
+        const fullName = self.popupView.fullName;
         self.gmailView.parsingData = false;
-        self.model.gmail = self.gmailView.parseData();
+        self.model.gmail = self.gmailView.parseData({ fullName });
         self.popupView.bindGmailData(self.model.gmail);
         self.popupView.event.fire("periodicChecks");
     });
@@ -213,8 +214,10 @@ Gmail2Trello.App.prototype.updateData = function () {
     if (self.model.trello.user !== null && self.model.trello.boards !== null) {
         self.popupView.bindData(self.model);
     }
+
+    const fullName = self.popupView.fullName;
     self.gmailView.parsingData = false;
-    self.model.gmail = self.gmailView.parseData();
+    self.model.gmail = self.gmailView.parseData({ fullName });
     self.popupView.bindGmailData(self.model.gmail);
 };
 
@@ -358,6 +361,21 @@ Gmail2Trello.App.prototype.addSpace = function (front = "", back = "") {
             return front + " " + back;
         } else {
             return front + " ";
+        }
+    } else {
+        return "";
+    }
+};
+
+/**
+ * Add trailing CRLF if not empty:
+ */
+Gmail2Trello.App.prototype.addCRLF = function (front = "", back = "") {
+    if (front.length > 0) {
+        if (back.length > 0) {
+            return front + "\n" + back;
+        } else {
+            return front + "\n";
         }
     } else {
         return "";
@@ -827,13 +845,14 @@ Gmail2Trello.App.prototype.modKey = function (event) {
 /**
  * Validate deep link or return empty object:
  */
-Gmail2Trello.App.prototype.deep_link = function (obj, fields) {
+Gmail2Trello.App.prototype.deep_link = function (obj = {}, reqs = []) {
     if (!obj) return "";
-    if (!fields) return "";
+    if (!reqs) return "";
 
-    var field1,
-        obj_ptr = obj;
-    var valid = true;
+    let field1,
+        obj_ptr = obj,
+        valid = true,
+        fields = [...reqs];
     while ((field1 = fields.shift()) && valid) {
         if ((valid = obj_ptr.hasOwnProperty(field1))) {
             obj_ptr = obj_ptr[field1];
@@ -845,13 +864,13 @@ Gmail2Trello.App.prototype.deep_link = function (obj, fields) {
 /**
  * Validate hash table entries are non-blank
  */
-Gmail2Trello.App.prototype.validHash = function (args, reqs = []) {
+Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
     if (!args) {
         g2t_log("validHash: Require args!");
         return false;
     }
 
-    var fields = reqs && reqs.length ? reqs : Object.keys(args),
+    let fields = reqs && reqs.length ? [...reqs] : Object.keys(args),
         field1,
         valid = true;
 
