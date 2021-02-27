@@ -424,7 +424,7 @@ Gmail2Trello.App.prototype.markdownify = function (
         return false;
     };
 
-    var body = $emailBody.innerText || "";
+    var body = $emailBody.text() || "";
     var $html = $emailBody || ""; // Was: $emailBody.innerHTML || "";
 
     // Replace hr:
@@ -852,8 +852,16 @@ Gmail2Trello.App.prototype.deep_link = function (obj = {}, reqs = []) {
     let field1,
         obj_ptr = obj,
         valid = true,
-        fields = [...reqs];
-    while ((field1 = fields.shift()) && valid) {
+        fields = reqs,
+        fieldCount = 0;
+
+    const field_max_k = fields.length;
+
+    while (
+        (field1 = fields[fieldCount]) &&
+        valid &&
+        field_max_k > fieldCount++
+    ) {
         if ((valid = obj_ptr.hasOwnProperty(field1))) {
             obj_ptr = obj_ptr[field1];
         }
@@ -870,11 +878,18 @@ Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
         return false;
     }
 
-    let fields = reqs && reqs.length ? [...reqs] : Object.keys(args),
+    let fields = reqs && reqs.length ? reqs : Object.keys(args),
         field1,
+        fieldCount = 0,
         valid = true;
 
-    while ((field1 = fields.shift()) && valid) {
+    const field_max_k = fields.length;
+
+    while (
+        (field1 = fields[fieldCount]) &&
+        valid &&
+        field_max_k > fieldCount++
+    ) {
         if (!args.hasOwnProperty(field1) || args[field1].length < 1) {
             valid = false;
         }

@@ -322,20 +322,14 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     const addCC_k = $("#chkCC", self.$popup).is(":checked");
     let $g2tDesc = $("#g2tDesc", self.$popup);
 
-    const fields_k = [
-        "bodyAsRaw",
-        "bodyAsMd",
-        "linkAsRaw",
-        "linkAsMd",
-        "ccAsRaw",
-        "ccAsMd",
-        "emailId",
-    ];
-    const valid_data_k = self.parent.validHash(data, fields_k);
+    let fields = ["bodyAsRaw", "bodyAsMd", "linkAsRaw", "linkAsMd", "emailId"];
+    const valid_data_k = self.parent.validHash(data, fields);
+
+    fields.push("ccAsRaw", "ccAsMd"); // These are conditional
 
     if (valid_data_k) {
         // Store data in description object attributes:
-        $.each(fields_k, function (index, value) {
+        $.each(fields, function (index, value) {
             const val_k = data[value] || "";
             const name_k = attribute_storage_k + value;
             $g2tDesc.attr(name_k, val_k);
@@ -353,7 +347,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
             */
     } else {
         // Restore data values from description object attributes:
-        $.each(fields_k, function (index, value) {
+        $.each(fields, function (index, value) {
             const name_k = attribute_storage_k + value;
             const val_k = $g2tDesc.attr(name_k) || "";
             data[value] = val_k;

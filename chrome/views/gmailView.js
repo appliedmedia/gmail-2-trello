@@ -19,29 +19,30 @@ Gmail2Trello.GmailView = function (parent) {
     this.runaway = 0;
 
     this.selectors = {
+        // OBSOLETE (Ace, 2021-02-27): Missing too much context having it all here, and needed to process many of them, so moved into context of where code used them
         // selectors mapping, modify here when gmail's markup changes:
         // toolbarButton: '.G-Ni:first', // (Ace, 2020-12-01): OBSOLETE?
         // emailThreadID: ".a3s.aXjCH", // (Ace, 2020-12-01): OBSOLETE?
         // emailInThreads: ".kv,.h7", // (Ace, 2020-12-01): OBSOLETE?
         // hiddenEmails: ".kv", // (Ace, 2020-12-01): OBSOLETE?
         // viewportSplit: '.aNW:first', // reading panel OBSOLETE (Ace, 2020-02-15): Don't know that this is ever used any more
-        emailFromNameAddress: "span.gD",
-        emailCC: "span[dir='ltr'].g2",
-        emailSubject: ".hP",
-        emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
-        emailAttachments: ".aZo", // Was: '.aQy',
-        emailIDs: [
-            "data-thread-perm-id",
-            "data-thread-id",
-            "data-legacy-thread-id",
-        ],
-        viewport: ".aia, .nH", // .aia = split view, .nH = breakout view // Was: '.aeJ:first', now using .first()
-        expandedEmails: ".h7",
-        timestamp: ".gH .gK .g3",
+        // emailCC: "span.g2", // Was: "span[dir='ltr'].g2",
+        // emailFromNameAddress: "span.gD",
+        // emailBody: ".adn.ads .gs:first .a3s.aiL", // Was: '.a3s.aXjCH', // Was: "div[dir='ltr']:first", // Was: '.adP:first', // Was: '.adO:first'
+        // emailAttachments: ".aZo", // Was: '.aQy',
+        // timestamp: ".gH .gK .g3",
+        // emailSubject: ".hP",
+        // emailIDs: [
+        //    "data-thread-perm-id",
+        //    "data-thread-id",
+        //    "data-legacy-thread-id",
+        //],
+        // viewport: ".aia, .nH", // .aia = split view, .nH = breakout view // Was: '.aeJ:first', now using .first()
+        // expandedEmails: ".h7",
         // host: "span[dir='ltr']", // Was: 'a.gb_b.gb_eb.gb_R' // OBSOLETE (Ace, 2020-12-29)
-        emailEmbedded: "div[dir='ltr']",
-        emailEmbeddedTitle: ".T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q",
-        emailEmbeddedNameAttr: "aria-label",
+        // emailEmbedded: "div[dir='ltr']",
+        // emailEmbeddedTitle: ".T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q",
+        // emailEmbeddedNameAttr: "aria-label",
     };
 };
 
@@ -112,8 +113,7 @@ Gmail2Trello.GmailView.prototype.detectToolbar = function () {
 
 Gmail2Trello.GmailView.prototype.detectEmailOpeningMode = function () {
     var self = this;
-    const sel_k = this.selectors.expandedEmails;
-    this.$expandedEmails = this.$root.find(sel_k);
+    this.$expandedEmails = this.$root.find(".h7"); // expandedEmails
 
     var result =
         this.$toolBar &&
@@ -210,14 +210,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         };
     };
 
-    /* OBSOLETE (Ace, 2020-02-15): Don't think split is different than flat any more
-    // find active email
-    if (this.layoutMode === this.LAYOUT_SPLIT) {
-        $viewport = $(this.selectors.viewportSplit, this.$root);
-    } else {
-*/
-    let selector = this.selectors.viewport;
-    $viewport = $(selector, this.$root).first();
+    $viewport = $(".aia, .nH", this.$root).first();
     //  }
     // g2t_log('GmailView:parseData::viewport: ' + JSON.stringify($viewport));
     if ($viewport.length == 0) {
@@ -228,8 +221,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     //g2t_log(y0);
     let $visibleMail = null;
     // parse expanded emails again
-    selector = this.selectors.expandedEmails;
-    $(selector, this.$root).each(function () {
+    $(".h7", this.$root).each(function () {
         let $this = $(this);
         if ($visibleMail === null && $this.offset().top >= y0)
             $visibleMail = $this;
@@ -239,32 +231,23 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         return;
     }
 
+    // Grab first email that's visible that we can find:
+    const $email1_k = $(".adn.ads div.gs", $visibleMail).first();
+
     // Check for email body first. If we don't have this, then bail.
-    selector = this.selectors.emailBody;
-    let $emailBody = $(selector, $visibleMail);
-    let $emailBody1 = $emailBody[0];
-    if (!$emailBody1) {
+    const $emailBody1_k = $(".a3s.aiL", $email1_k).first();
+    if (!$emailBody1_k) {
         g2t_log(
-            "GmailView:parseData::emailBody: " + JSON.stringify($emailBody)
+            "GmailView:parseData::emailBody: " + JSON.stringify($emailBody1_k)
         );
         return;
     }
 
     this.parsingData = true;
-    // var startTime = new Date().getTime();
 
-    // OBSOLETE (Ace, 2020-12-29): host name - think this is captured with emailCC:
-    /*
-    selector = this.selectors.host;
-    let $host = $(selector, $visibleMail).first();
-    let hostName = ($host.attr("name") || "").trim();
-    let hostEmail = ($host.attr("email") || "").trim();
-    */
-
-    // NOTE (Ace, 2020-12-02): Maybe use this to replace hosts lookup completely? (Use [0] for hostName/hostEmail?)
-    selector = this.selectors.emailCC;
-    let $emailCC = $(selector, $visibleMail);
-    let emailCC = $emailCC.map(function () {
+    // email ccs which includes from name
+    const $emailCC_k = $("span.g2", $email1_k);
+    let emailCC = $emailCC_k.map(function () {
         const email = ($(this).attr("email") || "").trim();
         let name = ($(this).attr("name") || "").trim();
         // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
@@ -280,13 +263,12 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     });
 
     // email name
-    selector = this.selectors.emailFromNameAddress;
-    let $emailFromNameAddress = $(selector, $visibleMail);
-    let emailFromName = ($emailFromNameAddress.attr("name") || "").trim();
-    let emailFromAddress = ($emailFromNameAddress.attr("email") || "").trim();
+    let $emailFromNameAddress_k = $("span.gD", $email1_k);
+    let emailFromName = ($emailFromNameAddress_k.attr("name") || "").trim();
+    let emailFromAddress = ($emailFromNameAddress_k.attr("email") || "").trim();
 
-    selector = this.selectors.emailAttachments;
-    let emailAttachments = $(selector, $visibleMail).map(function () {
+    // email attachments
+    let emailAttachments = $("span.aZo", $email1_k).map(function () {
         const item_k = $(this).attr("download_url");
         if (item_k && item_k.length > 0) {
             var attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
@@ -304,9 +286,10 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         }
     });
 
+    data.attachments = emailAttachments;
+
     // timestamp
-    selector = this.selectors.timestamp;
-    const $time_k = $(selector, $visibleMail).first();
+    const $time_k = $(".gH .gK .g3", $email1_k).first();
     const timeAttr_k = ($time_k.length > 0
         ? $time_k.attr("title") || $time_k.text() || $time_k.attr("alt")
         : ""
@@ -342,25 +325,29 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     let from_md = "From: " + self.parent.addSpace(from_raw_md.md, data.time);
 
     // subject
-    selector = this.selectors.emailSubject;
-    let $subject = $(selector, this.$root);
+    let $subject = $(".hP", this.$root).first(); // Is above the primary first email, so grab it from root
     data.subject = ($subject.text() || "").trim();
 
     // Find emailId via legacy
     // <span data-thread-id="#thread-f:1602441164947422913" data-legacy-thread-id="163d03bfda277ec1" data-legacy-last-message-id="163d03bfda277ec1">Tips for using your new inbox</span>
-    selector = this.selectors.emailIDs;
-    const ids_len_k = selector.length;
+    const emailIDs_k = [
+        "data-thread-perm-id",
+        "data-thread-id",
+        "data-legacy-thread-id",
+    ];
+    const ids_len_k = emailIDs_k.length;
     let iter = 0;
 
     data.emailId = 0;
     do {
-        data.emailId = ($subject.attr(selector[iter]) || "").trim(); // Try new Gmail format
+        data.emailId = ($subject.attr(emailIDs_k[iter]) || "").trim(); // Try new Gmail format
     } while (!data.emailId && ++iter < ids_len_k);
 
+    // OBSOLETE (Ace, 2021-02-27): Don't think this even exists any more:
     if (!data.emailId) {
         // try to find via explicitly named class item:
         var emailIdViaClass =
-            $emailBody1.classList[$emailBody1.classList.length - 1];
+            $emailBody1_k[0].classList[$emailBody1_k.classList.length - 1];
         if (emailIdViaClass && emailIdViaClass.length > 1) {
             if (
                 emailIdViaClass.charAt(0) === "m" &&
@@ -481,27 +468,22 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         from_raw +
         ":\n\n" +
         (selectedText ||
-            this.parent.markdownify($emailBody1, false, preprocess));
+            this.parent.markdownify($emailBody1_k, false, preprocess));
     data.bodyAsMd =
         from_md +
         ":\n\n" +
         (selectedText ||
-            this.parent.markdownify($emailBody1, true, preprocess));
-
-    data.attachments = emailAttachments;
+            this.parent.markdownify($emailBody1_k, true, preprocess));
 
     let emailImages = {};
 
-    $("img", $emailBody1).each(function (index, value) {
+    $("img", $emailBody1_k).each(function (index, value) {
         const href_k = ($(this).prop("src") || "").trim(); // Was attr
         const alt_k = $(this).prop("alt") || "";
         // <div id=":cb" class="T-I J-J5-Ji aQv T-I-ax7 L3 a5q" role="button" tabindex="0" aria-label="Download attachment Screen Shot 2020-02-05 at 6.04.37 PM.png" data-tooltip-class="a1V" data-tooltip="Download"><div class="aSK J-J5-Ji aYr"></div></div>}
-        selector = self.selectors.emailEmbedded;
-        const $divs_k = $(this).nextAll(selector);
-        selector = self.selectors.emailEmbeddedTitle;
-        const $div1_k = $divs_k.find(selector).first();
-        selector = self.selectors.emailEmbeddedNameAttr;
-        const aria_k = $div1_k.attr(selector) || "";
+        const $divs_k = $(this).nextAll("div[dir='ltr']"); // emailEmbedded
+        const $div1_k = $divs_k.find(".T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q").first(); // emailEmbeddedTitle
+        const aria_k = $div1_k.attr("aria-label") || ""; // emailEmbeddedNameAttr
         const aria_split_k = aria_k.split("Download attachment ");
         const aria_name_k = aria_split_k[aria_split_k.length - 1] || "";
         const name_k =

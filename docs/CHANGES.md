@@ -1,3 +1,8 @@
+=== 2.8.6.002@2021-02-22 ===
+ * Update hover text
+ * Body in cards not coming over
+ * Updated selectors and selector logic to reference within context of code
+
 === 2.8.6.001@2021-02-08 ===
  * Make spacebar also highlight/deselect Labels and Assign
  * Automatically select attachments, when present (but not Images)
