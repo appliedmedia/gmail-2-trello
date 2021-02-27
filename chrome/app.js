@@ -17,7 +17,8 @@ Gmail2Trello.App = function () {
 Gmail2Trello.App.prototype.bindEvents = function () {
     var self = this;
 
-    const dl_k = self.deep_link;
+    const dl_k = self.deep_link; // Convenience functions
+    const vh_k = self.validHash; // Convenience functions
 
     /*** Data's events binding ***/
     this.model.event.addListener("onBeforeAuthorize", function () {
@@ -123,7 +124,13 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         } else {
             self.popupView.reset();
         }
-        const fullName = self.popupView.fullName;
+
+        let fullName = "";
+        const trelloUser_k = dl_k(self, ["model", "trello", "user"]);
+        if (vh_k(trelloUser_k, ["fullName"])) {
+            fullName = trelloUser_k.fullName;
+        }
+
         self.gmailView.parsingData = false;
         self.model.gmail = self.gmailView.parseData({ fullName });
         self.popupView.bindGmailData(self.model.gmail);
@@ -209,13 +216,25 @@ Gmail2Trello.App.prototype.bindEvents = function () {
 };
 
 Gmail2Trello.App.prototype.updateData = function () {
-    var self = this;
+    let self = this;
+    const dl_k = self.deep_link;
+    const vh_k = self.validHash;
 
+    let fullName = "";
+    const trello_k = dl_k(self, ["model", "trello"]);
+    if (vh_k(trello_k, ["user", "boards"])) {
+        self.popupView.bindData(self.model);
+        if (vh_k(trello_k.user, ["fullName"])) {
+            fullName = trello_k.user.fullName;
+        }
+    }
+
+    /*
     if (self.model.trello.user !== null && self.model.trello.boards !== null) {
         self.popupView.bindData(self.model);
     }
+    */
 
-    const fullName = self.popupView.fullName;
     self.gmailView.parsingData = false;
     self.model.gmail = self.gmailView.parseData({ fullName });
     self.popupView.bindGmailData(self.model.gmail);
@@ -890,7 +909,11 @@ Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
         valid &&
         field_max_k > fieldCount++
     ) {
-        if (!args.hasOwnProperty(field1) || args[field1].length < 1) {
+        if (
+            !args.hasOwnProperty(field1) ||
+            args[field1] == null ||
+            args[field1].length < 1
+        ) {
             valid = false;
         }
     }

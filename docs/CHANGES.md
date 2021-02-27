@@ -1,3 +1,6 @@
+=== 2.8.6.003@2021-02-22 ===
+ * Extra logic to process "me" name
+
 === 2.8.6.002@2021-02-22 ===
  * Update hover text
  * Body in cards not coming over

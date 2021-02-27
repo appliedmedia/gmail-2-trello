@@ -58,7 +58,7 @@ Gmail2Trello.PopupView = function (parent) {
     this.updatesPending = [];
     this.comboInitialized = false;
 
-    this.fullName = "";
+    // this.fullName = "";
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -988,7 +988,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     // bind trello data
     const me = self.parent.deep_link(data, ["trello", "user"]); // First member is always this user
-    self.fullName = me.fullName; // Move a copy here
+    // self.fullName = me.fullName; // Move a copy here
 
     const avatarUrl = me.avatarUrl || "";
     const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });

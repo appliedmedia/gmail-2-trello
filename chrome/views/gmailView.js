@@ -247,14 +247,25 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
 
     // email ccs which includes from name
     const $emailCC_k = $("span.g2", $email1_k);
+    let me_email = "";
+    let me_name = "";
     let emailCC = $emailCC_k.map(function () {
         const email = ($(this).attr("email") || "").trim();
         let name = ($(this).attr("name") || "").trim();
         // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
-        if (name === "me" && fullName_k.length > 0) {
-            name = fullName_k;
+        if (name == "me") {
+            if (fullName_k.length > 0) {
+                name = fullName_k;
+            } else if (me_name.length > 0) {
+                name = me_name;
+            } else {
+                me_email = email;
+            }
         }
         if (email && email.length > 0) {
+            if (email == me_email) {
+                me_name = name;
+            }
             return {
                 email,
                 name,
@@ -434,6 +445,10 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         };
 
     $.each(emailCC, function (iter, item) {
+        if (item.name == "me") {
+            // We didn't have your full name in time to replace it earlier, we'll try now:
+            item.name = me_name && me_name.length > 0 ? me_name : "me";
+        }
         $.extend(
             preprocess["a"],
             make_preprocess_mailto(item.name, item.email)
