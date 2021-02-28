@@ -263,7 +263,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
             }
         }
         if (email && email.length > 0) {
-            if (email == me_email) {
+            if (email == me_email && name !== "me") {
                 me_name = name;
             }
             return {
@@ -277,6 +277,14 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     let $emailFromNameAddress_k = $("span.gD", $email1_k);
     let emailFromName = ($emailFromNameAddress_k.attr("name") || "").trim();
     let emailFromAddress = ($emailFromNameAddress_k.attr("email") || "").trim();
+    if (
+        me_name.length < 1 &&
+        emailFromName.length > 0 &&
+        emailFromAddress == me_email
+    ) {
+        // Try to correct "me" name if present:
+        me_name = emailFromName;
+    }
 
     // email attachments
     let emailAttachments = $("span.aZo", $email1_k).map(function () {
