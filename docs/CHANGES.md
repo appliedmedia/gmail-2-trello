@@ -1,5 +1,6 @@
 === 2.8.6.003@2021-02-22 ===
- * Extra logic to process "me" name
+ * Extra logic to process "me" name (still won't work first time due to when we refresh Trello username on popup first reveal)
+ * Due date pull-down doesn't populate fields (need to use $(event.taret) not $(this))
 
 === 2.8.6.002@2021-02-22 ===
  * Update hover text

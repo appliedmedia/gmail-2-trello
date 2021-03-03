@@ -474,11 +474,11 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         self.validateData();
     });
 
-    $("#g2tPosition")
+    $("#g2tPosition", this.$popup)
         .off("change")
         .on("change", (event) => {
             // Focusing the next element in select.
-            $("#" + $(this).attr("next-select"))
+            $("#" + $(event.target).attr("next-select"))
                 .find("input")
                 .focus();
         })
@@ -501,7 +501,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
     $("#g2tDue_Shortcuts", this.$popup)
         .off("change")
-        .on("change", () => {
+        .on("change", (event) => {
             const dayOfWeek_k = {
                 sun: 0,
                 sunday: 0,
@@ -532,15 +532,14 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
                 return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
             };
 
-            var due = $(this).val().split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
+            const due_k = ($(event.target).val() || "").split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
 
-            var d = new Date();
+            let d = new Date();
 
-            var due_date = due[0] || "";
-            var due_time = due[1] || "";
+            let [due_date, due_time] = due_k || [];
 
-            var new_date = "";
-            var new_time = "";
+            let new_date = "",
+                new_time = "";
 
             if (due_date.substr(1, 1) === "+") {
                 d.setDate(d.getDate() + parseInt(due_date.substr(2)), 10);
