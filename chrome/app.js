@@ -413,7 +413,7 @@ Gmail2Trello.App.prototype.markdownify = function (
         g2t_log("markdownify: Require emailBody!");
         return;
     }
-    var self = this;
+    let self = this;
 
     const min_text_length_k = 4;
     const max_replace_attempts_k = 10;
@@ -423,10 +423,10 @@ Gmail2Trello.App.prototype.markdownify = function (
     };
     const unique_placeholder_k = "g2t_placeholder:"; // Unique placeholder tag
 
-    var count = 0;
-    var replacer_dict = {};
+    let count = 0;
+    let replacer_dict = {};
 
-    var featureEnabled = function (elementTag) {
+    let featureEnabled = function (elementTag) {
         // Assume TRUE to process, unless explicitly restricted:
         if (typeof features === "undefined") {
             return true;
@@ -443,18 +443,36 @@ Gmail2Trello.App.prototype.markdownify = function (
         return false;
     };
 
-    var body = $emailBody.text() || "";
-    var $html = $emailBody || ""; // Was: $emailBody.innerHTML || "";
+    let $html = $emailBody || ""; // Was: $emailBody.innerHTML || "";
+    // let body = $emailBody.text() || "";
+    let body = $emailBody.html() || "";
+
+    // Different encodings handle CRLF differently, so we'll process the main body as html and convert to text:
+    // Convert paragraph marker to two returns:
+    let replaced = body.replace(/\s*[\n\r]*<p[^>]*>\s*[\n\r]*/g, "\n\n");
+    body = replaced;
+
+    // Convert br marker to one return:
+    replaced = body.replace(/\s*[\n\r]*<br[^>]*>\s*[\n\r]*/g, "\n");
+    body = replaced;
+
+    // Remove all other html markers:
+    replaced = body.replace(/<[^>]*>/g, "");
+    body = replaced;
+
+    // Decode HTML entities:
+    replaced = self.decodeEntities(body);
+    body = replaced;
 
     // Replace hr:
-    var replaced = body.replace(/\s*-{3,}\s*/g, "---\n");
+    replaced = body.replace(/\s*-{3,}\s*/g, "---\n");
     body = replaced;
 
     // Convert crlf x 2 (or more) to paragraph markers:
-    replaced = body.replace(/\s*[\n\r]+\s*[\n\r]+\s*/g, "<p />\n");
+    replaced = body.replace(/(\s*[\n\r]\s*){2,}/g, "<p />\n");
     body = replaced;
 
-    var toProcess = {};
+    let toProcess = {};
 
     /**
      * 5 explicit steps in 3 passes:
@@ -464,7 +482,7 @@ Gmail2Trello.App.prototype.markdownify = function (
      * (4) Replace with placeholder
      * (5) Replace placeholders with final text
      */
-    var sortAndPlaceholderize = function (tooProcess) {
+    let sortAndPlaceholderize = function (tooProcess) {
         if (tooProcess) {
             $.each(
                 Object.keys(tooProcess).sort(function (a, b) {

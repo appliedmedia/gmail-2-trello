@@ -1,6 +1,9 @@
+=== 2.8.6.004@2021-03-04 ===
+ * Doesn't respect crlfs in spanish email
+
 === 2.8.6.003@2021-02-22 ===
  * Extra logic to process "me" name (still won't work first time due to when we refresh Trello username on popup first reveal)
- * Due date pull-down doesn't populate fields (need to use $(event.taret) not $(this))
+ * Due date pull-down doesn't populate fields (need to use $(event.target) not $(this))
 
 === 2.8.6.002@2021-02-22 ===
  * Update hover text
