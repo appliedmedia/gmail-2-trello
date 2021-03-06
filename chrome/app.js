@@ -836,6 +836,7 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
         // Didn't work. Ignore.
     }
     var ta = document.createElement("textarea");
+    ta.style.cssText = "white-space: pre-line;";
     ta.innerHTML = s;
     return ta.value;
     // jQuery way, less safe: return $("<textarea />").html(s).text();
