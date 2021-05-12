@@ -1,3 +1,6 @@
+=== 2.8.6.004@2021-05-11 ===
+ * G2T Main button not popping. Stricter adherence to styles required.
+
 === 2.8.6.004@2021-03-04 ===
  * Doesn't respect crlfs in email
 
