@@ -17,7 +17,8 @@ Gmail2Trello.App = function () {
 Gmail2Trello.App.prototype.bindEvents = function () {
     var self = this;
 
-    const dl_k = self.deep_link;
+    const dl_k = self.deep_link; // Convenience functions
+    const vh_k = self.validHash; // Convenience functions
 
     /*** Data's events binding ***/
     this.model.event.addListener("onBeforeAuthorize", function () {
@@ -123,7 +124,13 @@ Gmail2Trello.App.prototype.bindEvents = function () {
         } else {
             self.popupView.reset();
         }
-        const fullName = self.popupView.fullName;
+
+        let fullName = "";
+        const trelloUser_k = dl_k(self, ["model", "trello", "user"]);
+        if (vh_k(trelloUser_k, ["fullName"])) {
+            fullName = trelloUser_k.fullName;
+        }
+
         self.gmailView.parsingData = false;
         self.model.gmail = self.gmailView.parseData({ fullName });
         self.popupView.bindGmailData(self.model.gmail);
@@ -209,13 +216,25 @@ Gmail2Trello.App.prototype.bindEvents = function () {
 };
 
 Gmail2Trello.App.prototype.updateData = function () {
-    var self = this;
+    let self = this;
+    const dl_k = self.deep_link;
+    const vh_k = self.validHash;
 
+    let fullName = "";
+    const trello_k = dl_k(self, ["model", "trello"]);
+    if (vh_k(trello_k, ["user", "boards"])) {
+        self.popupView.bindData(self.model);
+        if (vh_k(trello_k.user, ["fullName"])) {
+            fullName = trello_k.user.fullName;
+        }
+    }
+
+    /*
     if (self.model.trello.user !== null && self.model.trello.boards !== null) {
         self.popupView.bindData(self.model);
     }
+    */
 
-    const fullName = self.popupView.fullName;
     self.gmailView.parsingData = false;
     self.model.gmail = self.gmailView.parseData({ fullName });
     self.popupView.bindGmailData(self.model.gmail);
@@ -394,7 +413,7 @@ Gmail2Trello.App.prototype.markdownify = function (
         g2t_log("markdownify: Require emailBody!");
         return;
     }
-    var self = this;
+    let self = this;
 
     const min_text_length_k = 4;
     const max_replace_attempts_k = 10;
@@ -404,10 +423,10 @@ Gmail2Trello.App.prototype.markdownify = function (
     };
     const unique_placeholder_k = "g2t_placeholder:"; // Unique placeholder tag
 
-    var count = 0;
-    var replacer_dict = {};
+    let count = 0;
+    let replacer_dict = {};
 
-    var featureEnabled = function (elementTag) {
+    let featureEnabled = function (elementTag) {
         // Assume TRUE to process, unless explicitly restricted:
         if (typeof features === "undefined") {
             return true;
@@ -424,18 +443,36 @@ Gmail2Trello.App.prototype.markdownify = function (
         return false;
     };
 
-    var body = $emailBody.innerText || "";
-    var $html = $emailBody || ""; // Was: $emailBody.innerHTML || "";
+    let $html = $emailBody || ""; // Was: $emailBody.innerHTML || "";
+    // let body = $emailBody.text() || "";
+    let body = $emailBody.html() || "";
+
+    // Different encodings handle CRLF differently, so we'll process the main body as html and convert to text:
+    // Convert paragraph marker to two returns:
+    let replaced = body.replace(/\s*[\n\r]*<p[^>]*>\s*[\n\r]*/g, "\n\n");
+    body = replaced;
+
+    // Convert br marker to one return:
+    replaced = body.replace(/\s*[\n\r]*<br[^>]*>\s*[\n\r]*/g, "\n");
+    body = replaced;
+
+    // Remove all other html markers:
+    replaced = body.replace(/<[^>]*>/g, "");
+    body = replaced;
+
+    // Decode HTML entities:
+    replaced = self.decodeEntities(body);
+    body = replaced;
 
     // Replace hr:
-    var replaced = body.replace(/\s*-{3,}\s*/g, "---\n");
+    replaced = body.replace(/\s*-{3,}\s*/g, "---\n");
     body = replaced;
 
     // Convert crlf x 2 (or more) to paragraph markers:
-    replaced = body.replace(/\s*[\n\r]+\s*[\n\r]+\s*/g, "<p />\n");
+    replaced = body.replace(/(\s*[\n\r]\s*){2,}/g, "<p />\n");
     body = replaced;
 
-    var toProcess = {};
+    let toProcess = {};
 
     /**
      * 5 explicit steps in 3 passes:
@@ -445,7 +482,7 @@ Gmail2Trello.App.prototype.markdownify = function (
      * (4) Replace with placeholder
      * (5) Replace placeholders with final text
      */
-    var sortAndPlaceholderize = function (tooProcess) {
+    let sortAndPlaceholderize = function (tooProcess) {
         if (tooProcess) {
             $.each(
                 Object.keys(tooProcess).sort(function (a, b) {
@@ -799,6 +836,7 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
         // Didn't work. Ignore.
     }
     var ta = document.createElement("textarea");
+    ta.style.cssText = "white-space: pre-line;";
     ta.innerHTML = s;
     return ta.value;
     // jQuery way, less safe: return $("<textarea />").html(s).text();
@@ -852,8 +890,16 @@ Gmail2Trello.App.prototype.deep_link = function (obj = {}, reqs = []) {
     let field1,
         obj_ptr = obj,
         valid = true,
-        fields = [...reqs];
-    while ((field1 = fields.shift()) && valid) {
+        fields = reqs,
+        fieldCount = 0;
+
+    const field_max_k = fields.length;
+
+    while (
+        (field1 = fields[fieldCount]) &&
+        valid &&
+        field_max_k > fieldCount++
+    ) {
         if ((valid = obj_ptr.hasOwnProperty(field1))) {
             obj_ptr = obj_ptr[field1];
         }
@@ -870,12 +916,23 @@ Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
         return false;
     }
 
-    let fields = reqs && reqs.length ? [...reqs] : Object.keys(args),
+    let fields = reqs && reqs.length ? reqs : Object.keys(args),
         field1,
+        fieldCount = 0,
         valid = true;
 
-    while ((field1 = fields.shift()) && valid) {
-        if (!args.hasOwnProperty(field1) || args[field1].length < 1) {
+    const field_max_k = fields.length;
+
+    while (
+        (field1 = fields[fieldCount]) &&
+        valid &&
+        field_max_k > fieldCount++
+    ) {
+        if (
+            !args.hasOwnProperty(field1) ||
+            args[field1] == null ||
+            args[field1].length < 1
+        ) {
             valid = false;
         }
     }

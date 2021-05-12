@@ -58,7 +58,7 @@ Gmail2Trello.PopupView = function (parent) {
     this.updatesPending = [];
     this.comboInitialized = false;
 
-    this.fullName = "";
+    // this.fullName = "";
 };
 
 Gmail2Trello.PopupView.prototype.init = function () {
@@ -143,7 +143,7 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
             // g2t_log('PopupView:confirmPopup: add_to_trello_html already exists');
         } else {
             var img = "G2T",
-                classAdd = "Bn ";
+                classAdd = "Bn";
 
             // Refresh icon present? If so, use graphics, if not, use text:
             if (
@@ -161,13 +161,14 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
 
             this.html["add_to_trello"] =
                 '<div id="g2tButton" class="' +
-                'T-I J-J5-Ji ar7 nf T-I-ax7 L3" ' + // "lS T-I-ax7 ar7"
+                'G-Ni J-J5-Ji" ' + // "lS T-I-ax7 ar7" // 'G-Ni J-J5-Ji T-I ar7 nf T-I-ax7 L3" '
                 'data-tooltip="Add this Gmail to Trello">' +
-                '<div aria-haspopup="true" role="button" class="' +
+                '<div class="' +
                 classAdd +
-                'J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' + // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
+                '">' +
+                '<div aria-haspopup="true" role="button" class="J-J5-Ji W6eDmd L3 J-J5-Ji L3" tabindex="0">' + // class="J-J5-Ji W6eDmd L3 J-J5-Ji Bq L3">' // Bq = Delete icon
                 img +
-                '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div>';
+                '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div></div>';
         }
         // g2t_log('PopupView:confirmPopup: creating button');
         this.$toolBar.append(this.html["add_to_trello"]);
@@ -322,20 +323,14 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
     const addCC_k = $("#chkCC", self.$popup).is(":checked");
     let $g2tDesc = $("#g2tDesc", self.$popup);
 
-    const fields_k = [
-        "bodyAsRaw",
-        "bodyAsMd",
-        "linkAsRaw",
-        "linkAsMd",
-        "ccAsRaw",
-        "ccAsMd",
-        "emailId",
-    ];
-    const valid_data_k = self.parent.validHash(data, fields_k);
+    let fields = ["bodyAsRaw", "bodyAsMd", "linkAsRaw", "linkAsMd", "emailId"];
+    const valid_data_k = self.parent.validHash(data, fields);
+
+    fields.push("ccAsRaw", "ccAsMd"); // These are conditional
 
     if (valid_data_k) {
         // Store data in description object attributes:
-        $.each(fields_k, function (index, value) {
+        $.each(fields, function (index, value) {
             const val_k = data[value] || "";
             const name_k = attribute_storage_k + value;
             $g2tDesc.attr(name_k, val_k);
@@ -353,7 +348,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
             */
     } else {
         // Restore data values from description object attributes:
-        $.each(fields_k, function (index, value) {
+        $.each(fields, function (index, value) {
             const name_k = attribute_storage_k + value;
             const val_k = $g2tDesc.attr(name_k) || "";
             data[value] = val_k;
@@ -480,11 +475,11 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         self.validateData();
     });
 
-    $("#g2tPosition")
+    $("#g2tPosition", this.$popup)
         .off("change")
         .on("change", (event) => {
             // Focusing the next element in select.
-            $("#" + $(this).attr("next-select"))
+            $("#" + $(event.target).attr("next-select"))
                 .find("input")
                 .focus();
         })
@@ -507,7 +502,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
     $("#g2tDue_Shortcuts", this.$popup)
         .off("change")
-        .on("change", () => {
+        .on("change", (event) => {
             const dayOfWeek_k = {
                 sun: 0,
                 sunday: 0,
@@ -538,15 +533,14 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
                 return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
             };
 
-            var due = $(this).val().split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
+            const due_k = ($(event.target).val() || "").split(" "); // Examples: d=monday am=2 | d+0 pm=3:00
 
-            var d = new Date();
+            let d = new Date();
 
-            var due_date = due[0] || "";
-            var due_time = due[1] || "";
+            let [due_date, due_time] = due_k || [];
 
-            var new_date = "";
-            var new_time = "";
+            let new_date = "",
+                new_time = "";
 
             if (due_date.substr(1, 1) === "+") {
                 d.setDate(d.getDate() + parseInt(due_date.substr(2)), 10);
@@ -994,7 +988,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     // bind trello data
     const me = self.parent.deep_link(data, ["trello", "user"]); // First member is always this user
-    self.fullName = me.fullName; // Move a copy here
+    // self.fullName = me.fullName; // Move a copy here
 
     const avatarUrl = me.avatarUrl || "";
     const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });
