@@ -608,24 +608,26 @@ Gmail2Trello.Model.prototype.submit = function () {
 };
 
 Gmail2Trello.Model.prototype.emailBoardListCardMapLookup = function (
-    hash = {}
+    key_value = {}
 ) {
     const obj = this;
-    const fn = 'lookup';
+    const fn = "lookup";
     const retn_k = Gmail2Trello.Model.prototype.EmailBoardListCardMap.call_in({
         obj,
         fn,
-        hash
+        key_value,
     });
     return retn_k;
 };
-Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (hash = {}) {
+Gmail2Trello.Model.prototype.emailBoardListCardMapUpdate = function (
+    key_value = {}
+) {
     const obj = this;
     const fn = "add";
     const retn_k = Gmail2Trello.Model.prototype.EmailBoardListCardMap.call_in({
         obj,
         fn,
-        hash
+        key_value,
     });
 };
 Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
@@ -648,20 +650,21 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     static call_in(args) {
         const vh_k = Gmail2Trello.App.prototype.validHash;
 
-        if (!vh_k(args, [
-            "obj",
-            "fn",
-            "hash"
-        ])) {
+        if (!vh_k(args, ["obj", "fn", "key_value"])) {
             return {};
         }
 
-        if (!vh_k(args.hash)) {
+        if (!vh_k(args.key_value)) {
             return {};
         }
 
         const eblcMapID = this.id;
-        if (!(typeof(args.obj) === "object" && args.obj.hasOwnProperty(eblcMapID))) {
+        if (
+            !(
+                typeof args.obj === "object" &&
+                args.obj.hasOwnProperty(eblcMapID)
+            )
+        ) {
             g2t_log(`valid: no object with ${eblcMapID}!`);
             return {};
         }
@@ -672,7 +675,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
             return {};
         }
 
-        const retn_k = instance_k[args.fn](args.hash);
+        const retn_k = instance_k[args.fn](args.key_value);
         return retn_k;
     }
 

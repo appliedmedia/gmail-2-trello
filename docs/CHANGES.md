@@ -1,3 +1,6 @@
+=== 2.8.6.005@2021-06-15 ===
+ * mouseDown for main version getSelectedText works instead of click
+
 === 2.8.6.004@2021-05-11 ===
  * G2T Main button not popping. Stricter adherence to styles required.
 

@@ -397,14 +397,15 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     /** Add Card Panel's behavior **/
 
     this.$g2tButton
-        .off("click")
-        .on("click", (event) => {
+        .off("mousedown") // was: ("click")
+        .on("mousedown" /* was: "click" */, (event) => {
             if (self.parent.modKey(event)) {
                 // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
             } else {
                 if (self.popupVisible()) {
                     self.hidePopup();
                 } else {
+                    // const selectedText_k = self.parent.getSelectedText(); // grab selected text before click?
                     self.showPopup();
                 }
             }
@@ -418,6 +419,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
                 $(this).removeClass("T-I-JW");
             }
         );
+    /*
+        .off("mousedown")
+        .on("mousedown", (event) => {
+            
+        });
+        */
 
     var $board = $("#g2tBoard", this.$popup);
     $board.off("change").on("change", () => {
