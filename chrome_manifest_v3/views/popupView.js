@@ -1112,8 +1112,8 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
         return;
     }
 
-	data.settings = {};
-	$.extend(data.settings, self.data?.settings); // Add local data if we have it
+	// data.settings = {};
+	$.extend(data, {settings: self.data?.settings}); // Add local data if we have it
     self.updateBody(data);
 
     $("#g2tTitle", self.$popup).val(data.subject);
@@ -1640,10 +1640,8 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
     if (
         !labelsCount &&
         labelsId.length < 1 &&
-        self.data &&
-        self.data.settings &&
-        self.data.settings.labelsId
-    ) {
+		self.data?.settings?.labelsId
+		) {
         labelsId = self.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
     }
 
@@ -1659,9 +1657,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
     if (
         !membersCount &&
         membersId.length < 1 &&
-        self.data &&
-        self.data.settings &&
-        self.data.settings.membersId
+        self.data?.settings?.membersId
     ) {
         membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
@@ -1729,8 +1725,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
             position,
             timeStamp,
         };
-        self.data.newCard = newCard;
-        $.extend(self.data.settings, newCard);
+        $.extend(self.data, {newCard, settings: newCard}); // intentional copy in both places
 
         self.parent.saveSettings();
     }
