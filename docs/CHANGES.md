@@ -1,3 +1,6 @@
+=== 2.8.6.007@2023-06-09 ===
+ * Update Google Analytics ID
+ 
 === 2.8.6.006@2021-06-15 ===
  * mouseDown for main version getSelectedText works instead of click
 
