@@ -93,7 +93,7 @@
     "default_title": "Gmail-2-Trello options",
     "default_popup": "views/options.html"
   },
-  // "content_security_policy.extension_pages": {}, // Using defaults
+  // "content_security_policy": {}, // Using defaults
   "host_permissions": [
     "https://trello.com/",
     "https://*.trello.com/",
