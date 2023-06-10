@@ -117,7 +117,7 @@ function getGmailObject() {
 
     ["inject.js"].forEach(function (item, iter) {
         var script = document.createElement("script");
-        script.src = chrome.extension.getURL(item);
+        script.src = chrome.runtime.getURL(item);
         (document.head || document.documentElement).appendChild(script);
         script.onload = function () {
             script.parentNode.removeChild(script);

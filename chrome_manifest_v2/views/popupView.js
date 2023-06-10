@@ -154,7 +154,7 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
             ) {
                 img =
                     '<img class="f tk3N6e-I-J3" height="20" width="20" src="' +
-                    chrome.extension.getURL("images/icon-48.png") +
+                    chrome.runtime.getURL("images/icon-48.png") +
                     '" />';
                 classAdd = "asa ";
             }
@@ -197,9 +197,9 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
         } else {
             needInit = false;
             $.get(
-                chrome.extension.getURL("views/popupView.html"),
+                chrome.runtime.getURL("views/popupView.html"),
                 function (data) {
-                    // data = self.parent.replacer(data, {'jquery-ui-css': chrome.extension.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
+                    // data = self.parent.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
                     self.html["popup"] = data;
                     g2t_log("PopupView:confirmPopup: creating popup");
                     self.$toolBar.append(data);
@@ -397,14 +397,15 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     /** Add Card Panel's behavior **/
 
     this.$g2tButton
-        .off("click")
-        .on("click", (event) => {
+        .off("mousedown") // was: ("click")
+        .on("mousedown" /* was: "click" */, (event) => {
             if (self.parent.modKey(event)) {
                 // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
             } else {
                 if (self.popupVisible()) {
                     self.hidePopup();
                 } else {
+                    // const selectedText_k = self.parent.getSelectedText(); // grab selected text before click?
                     self.showPopup();
                 }
             }
@@ -418,6 +419,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
                 $(this).removeClass("T-I-JW");
             }
         );
+    /*
+        .off("mousedown")
+        .on("mousedown", (event) => {
+            
+        });
+        */
 
     var $board = $("#g2tBoard", this.$popup);
     $board.off("change").on("change", () => {
@@ -828,7 +835,7 @@ Gmail2Trello.PopupView.prototype.periodicChecks = function () {
             if (version_old > "0") {
                 if (version_old !== version_new) {
                     $.get(
-                        chrome.extension.getURL("views/versionUpdate.html"),
+                        chrome.runtime.getURL("views/versionUpdate.html"),
                         function (data) {
                             var dict = {
                                 version_old,
@@ -859,7 +866,7 @@ Gmail2Trello.PopupView.prototype.forceSetVersion = function () {
 Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
     var self = this;
 
-    $.get(chrome.extension.getURL("views/signOut.html"), function (data_in) {
+    $.get(chrome.runtime.getURL("views/signOut.html"), function (data_in) {
         self.showMessage(self, data_in);
     });
 };
@@ -879,7 +886,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     /*
     $("#g2tSubscribe", self.$popup).click(function () {
-        $.get(chrome.extension.getURL("views/subscribe.html"), function (
+        $.get(chrome.runtime.getURL("views/subscribe.html"), function (
             data_in
         ) {
             self.showMessage(self, data_in);
@@ -1161,7 +1168,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
                 $img.on("error", function () {
                     $img.attr(
                         "src",
-                        chrome.extension.getURL(
+                        chrome.runtime.getURL(
                             "images/doc-question-mark-512.png"
                         )
                     );
@@ -1531,7 +1538,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
                 self.parent.model.makeAvatarUrl({
                     avatarUrl: item.avatarUrl || "",
                 }) ||
-                chrome.extension.getURL(
+                chrome.runtime.getURL(
                     "images/avatar_generic_profile_gry_30x30.png"
                 ); // Default generic profile
             const size_k = 20;
@@ -1785,7 +1792,7 @@ Gmail2Trello.PopupView.prototype.displayAPIFailedForm = function (response) {
         keys: resp.keys || "?",
     };
 
-    $.get(chrome.extension.getURL("views/error.html"), function (data) {
+    $.get(chrome.runtime.getURL("views/error.html"), function (data) {
         const lastErrorHtml_k = self.parent.replacer(data, dict_k);
         self.showMessage(self, lastErrorHtml_k);
         self.lastError = JSON.stringify(dict_k);

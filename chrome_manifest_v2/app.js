@@ -252,7 +252,7 @@ Gmail2Trello.App.prototype.initialize = function () {
     service = analytics.getService("gmail-2-trello");
 
     // Get a Tracker using your Google Analytics app Tracking ID.
-    tracker = service.getTracker("UA-42442437-4"); // Was: UA-8469046-1"
+    tracker = service.getTracker("G-0QPEDL7YDL"); // Was: UA-8469046-1 -> UA-42442437-4
 
     // Record an "appView" each time the user launches your app or goes to a new
     // screen within the app.
