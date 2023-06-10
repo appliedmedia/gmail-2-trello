@@ -1,5 +1,7 @@
-=== 2.8.6.007@2023-06-09 ===
+=== 2.9.0.001@2023-06-09 ===
  * Update Google Analytics ID
+ * Fix Markdown checkbox not reflecting markdown in description correctly
+ * Update Trello API key to get rid of "Can't have wildcard" Trello API error
  
 === 2.8.6.006@2021-06-15 ===
  * mouseDown for main version getSelectedText works instead of click

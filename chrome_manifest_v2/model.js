@@ -2,7 +2,7 @@ var Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.Model = function (parent) {
     this.trello = {
-        apiKey: "c50413b23ee49ca49a5c75ccf32d0459",
+        apiKey: "21b411b1b5b549c54bd32f0e90738b41", // Was: "c50413b23ee49ca49a5c75ccf32d0459"
         user: null,
         boards: null,
     };

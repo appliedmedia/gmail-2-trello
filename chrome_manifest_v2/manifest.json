@@ -64,7 +64,7 @@
     "views/subscribe.html",
     "views/versionUpdate.html"
   ],
-  "homepage_url": "https://trello.com/b/CGU9BYgd/gmail-2-trello-chrome-extension",
+  "homepage_url": "https://g2t.support", // was: "https://trello.com/b/CGU9BYgd/gmail-2-trello-chrome-extension"
   "offline_enabled": false,
   "permissions": [
     "browsingData",
