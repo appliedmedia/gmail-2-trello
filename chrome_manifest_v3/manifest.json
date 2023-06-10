@@ -18,35 +18,10 @@
       "description": "Show the Gmail-2-Trello popup"
     }
   },
+  "homepage_url": "https://g2t.support",
   "background": {
     "service_worker": "service_worker.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://mail.google.com/*"
-      ],
-      "js": [
-        "lib/jquery-3.4.1.min.js",
-        "lib/jquery-ui-1.12.1.min.js",
-        "lib/trello.min.js",
-        "lib/combo.js",
-        "lib/google-analytics-bundle.min.js",
-        "lib/eventTarget.js",
-        "lib/menuControl.js",
-        "lib/waitCounter.js",
-        "views/gmailView.js",
-        "views/popupView.js",
-        "model.js",
-        "app.js",
-        "content-script.js"
-      ],
-      "css": [
-        "lib/jquery-ui-1.12.1.min.css",
-        "style.css"
-      ]
-    }
-  ],
   "web_accessible_resources": [
     {
       "resources": [
@@ -73,7 +48,32 @@
       ]
     }
   ],
-  "homepage_url": "https://g2t.support", // was: "https://trello.com/b/CGU9BYgd/gmail-2-trello-chrome-extension"
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "lib/jquery-3.4.1.min.js",
+        "lib/jquery-ui-1.12.1.min.js",
+        "lib/trello.min.js",
+        "lib/combo.js",
+        "lib/google-analytics-bundle.min.js",
+        "lib/eventTarget.js",
+        "lib/menuControl.js",
+        "lib/waitCounter.js",
+        "views/gmailView.js",
+        "views/popupView.js",
+        "model.js",
+        "app.js",
+        "content-script.js"
+      ],
+      "css": [
+        "lib/jquery-ui-1.12.1.min.css",
+        "style.css"
+      ]
+    }
+  ],
   "offline_enabled": false,
   "permissions": [
     "browsingData",
@@ -93,7 +93,7 @@
     "default_title": "Gmail-2-Trello options",
     "default_popup": "views/options.html"
   },
-  // "content_security_policy": {}, // Using defaults
+  "unused_content_security_policy": {},
   "host_permissions": [
     "https://trello.com/",
     "https://*.trello.com/",
