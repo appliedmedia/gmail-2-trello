@@ -1725,8 +1725,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
             position,
             timeStamp,
         };
-        self.data.newCard = newCard;
-        $.extend(self.data, {settings: newCard});
+        $.extend(self.data, {newCard, settings: newCard}); // intentional copy in both places
 
         self.parent.saveSettings();
     }
