@@ -1,7 +1,7 @@
 {
   "name": "Gmail-2-Trello",
   "short_name": "G2T",
-  "version": "2.9.0.001",
+  "version": "2.9.0.002",
   "manifest_version": 3,
   "description": "Gmail+Trello integration. Add Google mail to Trello cards with text, backlinks, and attachments.",
   "icons": {
@@ -93,7 +93,10 @@
     "default_title": "Gmail-2-Trello options",
     "default_popup": "views/options.html"
   },
-  "unused_content_security_policy": {},
+  "content_security_policy": {
+	"extension_pages": "script-src 'self'; object-src 'self';",
+	"sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+  },
   "host_permissions": [
     "https://trello.com/",
     "https://*.trello.com/",
