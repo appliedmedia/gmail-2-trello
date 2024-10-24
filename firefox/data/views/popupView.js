@@ -91,12 +91,12 @@ Gmail2Trello.PopupView.prototype.init = function () {
 </div>';
 
     this.$toolBar.append(strAddCardButtonHtml + strPopupHtml);
-    this.$addCardButton = jQuery("#g2tButton", this.$toolBar);
-    this.$popup = jQuery("#g2tPopup", this.$toolBar);
+    this.$addCardButton = $("#g2tButton", this.$toolBar);
+    this.$popup = $("#g2tPopup", this.$toolBar);
 
-    this.$popupMessage = jQuery(".popupMsg", this.$popup);
-    this.$popupContent = jQuery(".content", this.$popup);
-    this.$popupChkGmail = jQuery("#chkBackLink", this.$popup);
+    this.$popupMessage = $(".popupMsg", this.$popup);
+    this.$popupContent = $(".content", this.$popup);
+    this.$popupChkGmail = $("#chkBackLink", this.$popup);
     this.$popupChkSelfAssign = jQuery("#chkSelfAssign", this.$popup);
 
     //resize popup window
