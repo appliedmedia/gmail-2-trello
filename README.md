@@ -1,3 +1,4 @@
+The project now uses jQuery version 3.5.1 to address security vulnerabilities.
 Gmail-2-Trello
 =========================
 
