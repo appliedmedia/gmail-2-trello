@@ -4,7 +4,7 @@
  */
 
 MenuControl = function (itemSelector) {
-    this.items = jQuery(itemSelector);
+    this.items = $(itemSelector);
     this.event = new EventTarget();
 
     for (var i = 0; i < this.items.length; i++) {
