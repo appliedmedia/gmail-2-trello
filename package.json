@@ -1,0 +1,53 @@
+{
+  "name": "gmail-2-trello",
+  "version": "2.9.0.002",
+  "description": "Gmail+Trello integration. Extension for Chrome browser and other developments.",
+  "main": "chrome_manifest_v3/app.js",
+  "scripts": {
+    "dev": "echo '🚀 Development Setup: 1) Open chrome://extensions/ 2) Enable Developer mode 3) Load unpacked: chrome_manifest_v3/ 4) Go to Gmail to test'",
+    "build": "cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
+    "test": "node test/test.js",
+    "lint": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
+    "lint:fix": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js --fix",
+    "format": "prettier --write chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
+    "clean": "rm -rf node_modules package-lock.json",
+    "install-deps": "npm install",
+    "deploy": "node scripts/deploy.js",
+    "deploy:setup": "node scripts/setup-chrome-api.js",
+    "deploy:manual": "npm run build && echo '📦 Extension built. Upload manually to Chrome Web Store.'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "gmail",
+    "trello",
+    "integration",
+    "productivity"
+  ],
+  "author": "Andrew Coven <acoven>",
+  "contributors": [
+    "KS-CleverCopter",
+    "Original Author (https://github.com/tungbi)"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/appliedmedia/gmail-2-trello.git"
+  },
+  "bugs": {
+    "url": "https://github.com/appliedmedia/gmail-2-trello/issues"
+  },
+  "homepage": "https://g2t.support",
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0",
+    "web-ext": "^7.0.0"
+  },
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "googleapis": "^128.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
