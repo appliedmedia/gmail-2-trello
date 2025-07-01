@@ -110,10 +110,12 @@ npm test
 1. **Test thoroughly** in development
 2. **Update version** in `manifest.json`
 3. **Zip the extension**:
+
    ```zsh
    cd chrome_manifest_v3
    zip -r ../gmail-2-trello-v2.9.0.002.zip .
    ```
+
 4. **Upload to Chrome Web Store**
 
 ## API Keys and Security
