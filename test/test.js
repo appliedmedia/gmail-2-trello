@@ -43,7 +43,7 @@ TestSuite.addTest('Extension Loaded', () => {
   }
 
   const manifest = chrome.runtime.getManifest();
-  if (manifest.name !== 'Gmail-2-Trello') {
+  if (manifest?.name !== 'Gmail-2-Trello') {
     throw new Error('Extension name mismatch');
   }
 });
