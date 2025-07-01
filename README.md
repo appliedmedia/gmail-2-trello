@@ -74,12 +74,14 @@ Gmail-2-Trello is a Chrome extension that allows you to easily create Trello car
 
 ### Available Scripts
 
-- `npm run dev` - Development instructions
+- `npm run dev` - Development setup instructions
 - `npm run build` - Build extension zip file
-- `npm run test` - Run tests
-- `npm run lint` - Lint code
-- `npm run format` - Format code
-- `npm run clean` - Clean dependencies
+- `npm run test` - Run test suite
+- `npm run lint` - Lint code for issues
+- `npm run lint:fix` - Lint code and auto-fix issues
+- `npm run format` - Format code with Prettier
+- `npm run clean` - Remove node_modules and package-lock.json
+- `npm run install-deps` - Install dependencies
 - `npm run deploy` - Deploy to Chrome Web Store (automated)
 - `npm run deploy:setup` - Setup Chrome Web Store API credentials
 - `npm run deploy:manual` - Build for manual upload
