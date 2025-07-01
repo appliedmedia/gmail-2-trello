@@ -50,8 +50,9 @@ TestSuite.addTest('Extension Loaded', () => {
 
 // Test: Check if Gmail is available
 TestSuite.addTest('Gmail Detection', () => {
-  if (window.location.hostname !== 'mail.google.com') {
-    throw new Error('Not on Gmail domain');
+  const hostname = window.location.hostname;
+  if (!hostname.startsWith('mail.google.') && hostname !== 'mail.google.com') {
+    throw new Error(`Not on Gmail domain: ${hostname}`);
   }
 });
 
