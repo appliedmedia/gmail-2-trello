@@ -57,7 +57,7 @@ globalInit = true;
 // enough delay for gmail finishes rendering
 log("tabs.onUpdated - complete");
 setTimeout(function () {
-    jQuery(document).ready(function () {
+    $(document).ready(function () {
         log("document.ready");
         getGmailObject();
         app.initialize();

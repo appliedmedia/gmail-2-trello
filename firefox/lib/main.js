@@ -5,7 +5,7 @@ pageMod.PageMod({
     include: "https://mail.google.com/mail*",
     contentScriptWhen: 'end',
     contentScriptFile: [
-        "./lib/jquery.min.js",
+        "./lib/jquery-3.5.1.min.js",
         "./lib/jquery-ui.min.js",
         "./lib/jquery.datetimepicker.js",
         "./lib/trello.min.js",
