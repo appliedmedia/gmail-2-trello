@@ -651,7 +651,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     const instance_k = args.obj[eblcMapID];
-    if (!args.fn in instance_k) {
+    if (!(args.fn in instance_k)) {
       g2t_log(`valid: ${args.fn} missing!`);
       return {};
     }
