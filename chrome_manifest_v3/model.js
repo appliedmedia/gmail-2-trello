@@ -438,7 +438,8 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
     } else {
       let generateKeysAndValues = function (object) {
         let keysAndValues = [];
-        $.each(object, function (key, value) {
+        Object.keys(object).forEach(function (key) {
+          let value = object[key];
           keysAndValues.push(
             key +
               '=' +
