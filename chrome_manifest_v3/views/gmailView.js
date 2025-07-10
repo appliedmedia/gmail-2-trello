@@ -92,7 +92,7 @@ Gmail2Trello.GmailView.prototype.detectToolbar = function () {
 
   this.$toolBar = $toolBar;
 
-  const haveToolBar_k = $toolBar && $toolBar.length > 0 ? true : false;
+  const haveToolBar_k = $toolBar && $toolBar.length > 0;
 
   if (!haveToolBar_k) {
     setTimeout(function () {
