@@ -1,4 +1,4 @@
-var Gmail2Trello = Gmail2Trello || {};
+const Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.Model = function (parent) {
   this.trello = {
@@ -29,7 +29,7 @@ Gmail2Trello.Model.prototype.init = function () {
 Gmail2Trello.Model.prototype.initTrello = function () {
   // g2t_log("Model:initTrello");
 
-  var self = this;
+  let self = this;
 
   self.trello.user = null;
   self.trello.boards = null;
@@ -41,7 +41,7 @@ Gmail2Trello.Model.prototype.initTrello = function () {
 Gmail2Trello.Model.prototype.checkTrelloAuthorized = function () {
   // g2t_log("checkTrelloAuthorized");
 
-  var self = this;
+  let self = this;
 
   // Assures there's a token or not:
   Trello.authorize({
@@ -95,7 +95,7 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
 // "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
 // avatarUrl return format is "https://trello-members.s3.amazonaws.com/{member-id}/{member-avatar-hash}/30.png"
 Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
-  var retn = '';
+  let retn = '';
   if (
     args.hasOwnProperty('avatarUrl') &&
     args.avatarUrl &&
@@ -112,7 +112,7 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
   this.event.fire('onBeforeLoadTrello');
   this.trello.user = null;
 
-  var self = this;
+  let self = this;
 
   // get user's info
   // g2t_log('loadTrelloData: User info');
@@ -137,8 +137,8 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
           fields: 'name' /* "name,closed" */,
         },
         function (data) {
-          var validData = Array();
-          for (var i = 0; i < data.length; i++) {
+          let validData = Array();
+          for (let i = 0; i < data.length; i++) {
             // if (data[i].idOrganization === null)
             //   data[i].idOrganization = '-1';
 
@@ -181,7 +181,7 @@ Gmail2Trello.Model.prototype.checkTrelloDataReady = function () {
 Gmail2Trello.Model.prototype.loadTrelloLists = function (boardId) {
   // g2t_log('loadTrelloLists');
 
-  var self = this;
+  let self = this;
   this.trello.lists = null;
 
   Trello.get(
@@ -201,7 +201,7 @@ Gmail2Trello.Model.prototype.loadTrelloLists = function (boardId) {
 Gmail2Trello.Model.prototype.loadTrelloCards = function (listId) {
   // g2t_log('loadTrelloCards');
 
-  var self = this;
+  let self = this;
   this.trello.cards = null;
 
   Trello.get(
@@ -221,7 +221,7 @@ Gmail2Trello.Model.prototype.loadTrelloCards = function (listId) {
 Gmail2Trello.Model.prototype.loadTrelloLabels = function (boardId) {
   // g2t_log('loadTrelloLabels');
 
-  var self = this;
+  let self = this;
   this.trello.labels = null;
 
   Trello.get(
@@ -241,14 +241,14 @@ Gmail2Trello.Model.prototype.loadTrelloLabels = function (boardId) {
 Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
   // g2t_log('loadTrelloMembers');
 
-  var self = this;
+  let self = this;
   this.trello.members = null;
 
   Trello.get(
     'boards/' + boardId + '/members',
     { fields: 'id,fullName,username,initials,avatarUrl' },
     function (data) {
-      var me = self.trello.user;
+      let me = self.trello.user;
       // Remove this user from the members list:
       self.trello.members = data.map(function (item, iter) {
         return item.id !== me.id ? item : null;
@@ -506,9 +506,9 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   self.parent.saveSettings();
 
-  var data = self.newCard;
+  let data = self.newCard;
 
-  var text = data.title || '';
+  let text = data.title || '';
   if (text.length > 0) {
     if (data.markdown) {
       text = '**' + text + '**\n\n';
@@ -518,13 +518,13 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   text = self.parent.truncate(text, self.parent.popupView.MAX_BODY_SIZE, '...');
 
-  var desc = self.parent.truncate(
+  let desc = self.parent.truncate(
     data.description,
     self.parent.popupView.MAX_BODY_SIZE,
     '...'
   );
 
-  var due_text = '';
+  let due_text = '';
 
   if (data.due_Date && data.due_Date.length > 1) {
     // Will 400 if not valid date:

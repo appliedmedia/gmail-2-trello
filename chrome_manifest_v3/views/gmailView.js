@@ -1,7 +1,7 @@
-var Gmail2Trello = Gmail2Trello || {};
+const Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.GmailView = function (parent) {
-  var self = this;
+  let self = this;
 
   this.parent = parent;
 

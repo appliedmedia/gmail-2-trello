@@ -1,7 +1,7 @@
 /** Gmail2Trello Application
  */
 
-var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
+const Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
 
 Gmail2Trello.App = function () {
   this.CHROME_SETTINGS_ID = 'g2t_user_settings';
@@ -15,7 +15,7 @@ Gmail2Trello.App = function () {
 };
 
 Gmail2Trello.App.prototype.bindEvents = function () {
-  var self = this;
+  let self = this;
 
   const dl_k = self.deep_link; // Convenience functions
   const vh_k = self.validHash; // Convenience functions
@@ -144,7 +144,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
   });
 
   this.popupView.event.addListener('onBoardChanged', function (target, params) {
-    var boardId = params.boardId;
+    let boardId = params.boardId;
     if (boardId !== '_' && boardId !== '' && boardId !== null) {
       self.model.loadTrelloLists(boardId);
       self.model.loadTrelloLabels(boardId);
@@ -153,7 +153,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
   });
 
   this.popupView.event.addListener('onListChanged', function (target, params) {
-    var listId = params.listId;
+    let listId = params.listId;
     self.model.loadTrelloCards(listId);
   });
 
@@ -172,7 +172,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
     self.popupView.clearBoard();
   });
 
-  var eventDetectButton = function () {
+  let eventDetectButton = function () {
     if (self.gmailView.preDetect()) {
       self.popupView.$toolBar = self.gmailView.$toolBar;
       self.popupView.confirmPopup();
@@ -235,7 +235,7 @@ Gmail2Trello.App.prototype.updateData = function () {
 };
 
 Gmail2Trello.App.prototype.initialize = function () {
-  var self = this;
+  let self = this;
 
   this.model.isInitialized = false;
 
@@ -264,7 +264,7 @@ Gmail2Trello.App.prototype.escapeRegExp = function (str) {
  * Utility routine to replace variables
  */
 Gmail2Trello.App.prototype.replacer = function (text, dict) {
-  var self = this;
+  let self = this;
 
   if (!text || text.length < 1) {
     // g2t_log('Require text!');
@@ -274,17 +274,17 @@ Gmail2Trello.App.prototype.replacer = function (text, dict) {
     return text;
   }
 
-  var re, new_text;
-  var replacify = function () {
+  let re, new_text;
+  let replacify = function () {
     Object.keys(dict).forEach(function (key) {
-      var value = dict[key];
+      let value = dict[key];
       re = new RegExp('%' + self.escapeRegExp(key) + '%', 'gi');
       new_text = text.replace(re, value);
       text = new_text;
     });
   };
 
-  var runaway_max = 3;
+  let runaway_max = 3;
   while (text.indexOf('%') !== -1 && runaway_max-- > 0) {
     replacify();
   }
@@ -298,16 +298,16 @@ Gmail2Trello.App.prototype.replacer = function (text, dict) {
 Gmail2Trello.App.prototype.uriForDisplay = function (uri) {
   const uri_display_trigger_length_k = 20;
   const uri_length_max_k = 40;
-  var uri_display = uri || '';
+  let uri_display = uri || '';
   if (uri_display.length > uri_display_trigger_length_k) {
-    var re = RegExp('^\\w+://([\\w./_-]+).*?([\\w._-]*)$');
-    var matched = uri_display.match(re);
+    let re = RegExp('^\\w+://([\\w./_-]+).*?([\\w._-]*)$');
+    let matched = uri_display.match(re);
     if (matched && matched.length > 1) {
       const filename_k =
         matched[2].length < uri_length_max_k
           ? matched[2]
           : matched[2].slice(-uri_length_max_k);
-      var prelude = matched[1].substr(0, uri_length_max_k);
+      let prelude = matched[1].substr(0, uri_length_max_k);
       if (matched[1].length > uri_length_max_k) {
         prelude += '...';
       } else if (filename_k.length > 0) {
@@ -324,13 +324,13 @@ Gmail2Trello.App.prototype.uriForDisplay = function (uri) {
  * Make anchored backlink
  */
 Gmail2Trello.App.prototype.anchorMarkdownify = function (text, href, comment) {
-  var text1 = (text || '').trim();
-  var text1lc = text1.toLowerCase();
-  var href1 = (href || '').trim();
-  var href1lc = href1.toLowerCase();
-  var comment1 = (comment || '').trim();
+  let text1 = (text || '').trim();
+  let text1lc = text1.toLowerCase();
+  let href1 = (href || '').trim();
+  let href1lc = href1.toLowerCase();
+  let comment1 = (comment || '').trim();
 
-  var retn = '';
+  let retn = '';
 
   if (text1.length < 1 && href1.length < 1) {
     // Intetionally blank
@@ -483,13 +483,13 @@ Gmail2Trello.App.prototype.markdownify = function (
         // Go by order of largest to smallest
         return b.length - a.length;
       }).forEach(function (value) {
-        var replace = tooProcess[value];
-        var swap = unique_placeholder_k + (count++).toString();
-        var re = new RegExp(
+        let replace = tooProcess[value];
+        let swap = unique_placeholder_k + (count++).toString();
+        let re = new RegExp(
           regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
           'gi'
         );
-        var replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
+        let replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
         if (body !== replaced) {
           body = replaced;
           replacer_dict[swap] = replace;
@@ -497,13 +497,13 @@ Gmail2Trello.App.prototype.markdownify = function (
       });
     }
   };
-  var processMarkdown = function (elementTag, replaceText) {
+  let processMarkdown = function (elementTag, replaceText) {
     if (elementTag && replaceText && featureEnabled(elementTag)) {
       toProcess = preprocess[elementTag] || {};
       $(elementTag, $html).each(function (index, value) {
-        var text = ($(this).text() || '').trim();
+        let text = ($(this).text() || '').trim();
         if (text && text.length > min_text_length_k) {
-          var replace = self.replacer(replaceText, { text: text });
+          let replace = self.replacer(replaceText, { text: text });
           toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
         }
       });
@@ -513,9 +513,9 @@ Gmail2Trello.App.prototype.markdownify = function (
   /**
    * Repeat replace for max attempts or when done, whatever comes first
    */
-  var repeatReplace = function (body, inRegexp, replaceWith) {
-    var replace1 = '';
-    for (var iter = max_replace_attempts_k; iter > 0; iter--) {
+  let repeatReplace = function (body, inRegexp, replaceWith) {
+    let replace1 = '';
+    for (let iter = max_replace_attempts_k; iter > 0; iter--) {
       replace1 = body.replace(inRegexp, replaceWith);
       if (body === replace1) {
         iter = 0; // All done
@@ -544,10 +544,10 @@ Gmail2Trello.App.prototype.markdownify = function (
   if (featureEnabled('h')) {
     toProcess = preprocess['h'] || {};
     $(':header', $html).each(function (index, value) {
-      var text = ($(this).text() || '').trim();
-      var nodeName = $(this).prop('nodeName') || '0';
+      let text = ($(this).text() || '').trim();
+      let nodeName = $(this).prop('nodeName') || '0';
       if (nodeName && text && text.length > min_text_length_k) {
-        var x = nodeName.substr(-1);
+        let x = nodeName.substr(-1);
         toProcess[text.toLowerCase()] =
           '\n' + '#'.repeat(x) + ' ' + text + '\n'; // Intentionally overwrites duplicates
       }
@@ -571,8 +571,8 @@ Gmail2Trello.App.prototype.markdownify = function (
   if (featureEnabled('a')) {
     toProcess = preprocess['a'] || {};
     $('a', $html).each(function (index, value) {
-      var text = ($(this).text() || '').trim();
-      var href = ($(this).prop('href') || '').trim(); // Was attr
+      let text = ($(this).text() || '').trim();
+      let href = ($(this).prop('href') || '').trim(); // Was attr
       /*
             var uri_display = self.uriForDisplay(href);
             var comment = ' "' + text + ' via ' + uri_display + '"';
@@ -643,20 +643,20 @@ Gmail2Trello.App.prototype.markdownify = function (
  * Determine luminance of a color so we can augment with darker/lighter background
  */
 Gmail2Trello.App.prototype.luminance = function (color) {
-  var bkColorLight = 'lightGray'; // or white
-  var bkColorDark = 'darkGray'; // 'gray' is even darker
-  var bkColorReturn = bkColorLight;
+  let bkColorLight = 'lightGray'; // or white
+  let bkColorDark = 'darkGray'; // 'gray' is even darker
+  let bkColorReturn = bkColorLight;
 
-  var re = new RegExp('rgb\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)');
-  var matched = color.match(re, 'i');
+  let re = new RegExp('rgb\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)');
+  let matched = color.match(re, 'i');
   if (matched && matched.length > 2) {
     // 0 is total string:
-    var r = matched[1];
-    var g = matched[2];
-    var b = matched[3];
+    let r = matched[1];
+    let g = matched[2];
+    let b = matched[3];
     // var 1 = matched[4]; // if alpha is provided
 
-    var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+    let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
 
     if (luma < 40) {
       bkColorReturn = bkColorDark;
@@ -691,9 +691,9 @@ Gmail2Trello.App.prototype.bookend = function (bookend, text, style) {
  * http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
  */
 Gmail2Trello.App.prototype.getSelectedText = function () {
-  var text = '';
-  var activeEl = document.activeElement;
-  var activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
+  let text = '';
+  let activeEl = document.activeElement;
+  let activeElTagName = activeEl ? activeEl.tagName.toLowerCase() : null;
   if (
     (activeElTagName == 'textarea' || activeElTagName == 'input') &&
     /^(?:text|search|password|tel|url)$/i.test(activeEl.type) &&
@@ -716,7 +716,7 @@ Gmail2Trello.App.prototype.getSelectedText = function () {
  * Truncate a string
  */
 Gmail2Trello.App.prototype.truncate = function (text, max, add) {
-  var retn = text || '';
+  let retn = text || '';
   const add_k = this.decodeEntities(add || '');
   const max_k = max - add_k.length;
 
@@ -730,7 +730,7 @@ Gmail2Trello.App.prototype.truncate = function (text, max, add) {
  * Middle-truncate a string
  */
 Gmail2Trello.App.prototype.midTruncate = function (text, max, add) {
-  var retn = text || '';
+  let retn = text || '';
   const add_k = this.decodeEntities(add || '');
   const max_k = Math.abs((max || 0) - add_k.length);
   const mid_k = (max_k + 0.01) / 2;
@@ -797,7 +797,7 @@ Gmail2Trello.App.prototype.saveSettings = function () {
  * Encode entities
  */
 Gmail2Trello.App.prototype.encodeEntities = function (s) {
-  var ta = document.createElement('textarea');
+  let ta = document.createElement('textarea');
   ta.value = s;
   return ta.innerHTML;
   // jQuery way, less safe: return $("<textarea />").text(s).html();
@@ -807,11 +807,11 @@ Gmail2Trello.App.prototype.encodeEntities = function (s) {
  * Decode entities
  */
 Gmail2Trello.App.prototype.decodeEntities = function (s) {
-  var self = this;
+  let self = this;
   const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
-  var re, new_s;
+  let re, new_s;
   Object.keys(dict_k).forEach(function (key) {
-    var value = dict_k[key];
+    let value = dict_k[key];
     re = new RegExp(self.escapeRegExp(key), 'gi');
     new_s = s.replace(re, value);
     s = new_s;
@@ -822,7 +822,7 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
   } catch (e) {
     // Didn't work. Ignore.
   }
-  var ta = document.createElement('textarea');
+  let ta = document.createElement('textarea');
   ta.style.cssText = 'white-space: pre-line;';
   ta.innerHTML = s;
   return ta.value;
@@ -833,7 +833,7 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
  * Check for ctrl/alt/shift down:
  */
 Gmail2Trello.App.prototype.modKey = function (event) {
-  var retn = '';
+  let retn = '';
 
   if (event.ctrlKey) {
     retn = 'ctrl-';

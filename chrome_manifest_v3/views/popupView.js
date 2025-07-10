@@ -1,4 +1,4 @@
-var Gmail2Trello = Gmail2Trello || {};
+const Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.PopupView = function (parent) {
   this.parent = parent;
@@ -131,7 +131,7 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
     return; // button not available yet
   }
 
-  var self = this,
+  let self = this,
     needInit = false,
     $button = $('#g2tButton'),
     $popup = $('#g2tPopup');
@@ -144,7 +144,7 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
     ) {
       // g2t_log('PopupView:confirmPopup: add_to_trello_html already exists');
     } else {
-      var img = 'G2T',
+      let img = 'G2T',
         classAdd = 'Bn';
 
       // Refresh icon present? If so, use graphics, if not, use text:
@@ -216,19 +216,19 @@ Gmail2Trello.PopupView.prototype.confirmPopup = function () {
  * "Add card" button to the edge of the window and then center that under the "Add card" button:
  */
 Gmail2Trello.PopupView.prototype.centerPopup = function (useWidth) {
-  var g2tLeft = this.$g2tButton.position().left;
-  var g2tRight = g2tLeft + this.$g2tButton.width();
-  var g2tCenter = g2tLeft + this.$g2tButton.outerWidth() / 2;
+  let g2tLeft = this.$g2tButton.position().left;
+  let g2tRight = g2tLeft + this.$g2tButton.width();
+  let g2tCenter = g2tLeft + this.$g2tButton.outerWidth() / 2;
 
-  var parent = this.$g2tButton.offsetParent();
-  var parentRight = parent.position().left + parent.width();
+  let parent = this.$g2tButton.offsetParent();
+  let parentRight = parent.position().left + parent.width();
 
   const length_from_left_k = g2tLeft * 1.5;
   const length_from_right_k = (parentRight - g2tRight) * 1.5;
   const calcWidth_k = Math.min(length_from_left_k, length_from_right_k); // If we need a width to use
 
   // We'll make our popup 1.25x as wide as the button to the end of the window up to max width:
-  var newPopupWidth = this.size_k.width.min;
+  let newPopupWidth = this.size_k.width.min;
   if (useWidth && useWidth > 0) {
     newPopupWidth = useWidth; // May snap to min if necessary
     g2tCenter = this.$popup.position().left;
@@ -249,7 +249,7 @@ Gmail2Trello.PopupView.prototype.centerPopup = function (useWidth) {
     Math.max(this.size_k.width.min, newPopupWidth)
   );
 
-  var newPopupLeft = g2tCenter - newPopupWidth / 2;
+  let newPopupLeft = g2tCenter - newPopupWidth / 2;
 
   if (newPopupLeft < 0) {
     // button positions have moved, recalculate
@@ -425,14 +425,14 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
 
   var $board = $('#g2tBoard', this.$popup);
   $board.off('change').on('change', () => {
-    var boardId = $board.val();
+    let boardId = $board.val();
 
-    var $list = $('#g2tList', self.$popup);
-    var $card = $('#g2tCard', self.$popup);
-    var $labels = $('#g2tLabels', self.$popup);
-    var $members = $('#g2tMembers', self.$popup);
-    var $labelsMsg = $('#g2tLabelsMsg', self.$popup);
-    var $membersMsg = $('#g2tMembersMsg', self.$popup);
+      let $list = $('#g2tList', self.$popup);
+  let $card = $('#g2tCard', self.$popup);
+  let $labels = $('#g2tLabels', self.$popup);
+  let $members = $('#g2tMembers', self.$popup);
+  let $labelsMsg = $('#g2tLabelsMsg', self.$popup);
+  let $membersMsg = $('#g2tMembersMsg', self.$popup);
 
     if (boardId === '_') {
       $board.val('');

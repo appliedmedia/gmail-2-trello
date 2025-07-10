@@ -14,7 +14,7 @@
 /**
  * Variable for debugging purpose only
  */
-var globalInit = false;
+let globalInit = false;
 
 /**
  * Global log. A wrapper for console.log, depend on logEnabled flag
@@ -35,7 +35,7 @@ function g2t_log(data) {
     });
   }
 
-  var l = window.g2t_log_g;
+  let l = window.g2t_log_g;
 
   if (data) {
     const count_size_k = l.max.toString().length;
@@ -99,8 +99,8 @@ function requestHandler(request, sender, sendResponse) {
 // Register Handler
 chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
 
-var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
-var app = new Gmail2Trello.App();
+const Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
+const app = new Gmail2Trello.App();
 
 /**
  * Inject code: for accessing Gmail's GLOBALS object
@@ -115,7 +115,7 @@ function getGmailObject() {
   });
 
   ['inject.js'].forEach(function (item, iter) {
-    var script = document.createElement('script');
+    let script = document.createElement('script');
     script.src = chrome.runtime.getURL(item);
     (document.head || document.documentElement).appendChild(script);
     script.onload = function () {
