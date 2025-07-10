@@ -455,8 +455,8 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
       let method = upload1.method || 'post';
       let property = this.parent.parent.replacer(upload1.property, dict_k);
-      delete upload1.method;
-      delete upload1.property;
+      upload1.method = undefined;
+      upload1.property = undefined;
 
       const fn_k = property.endsWith(self.attachments)
         ? self.attach
