@@ -2,7 +2,8 @@ const CLEAR_EXT_BROWSING_DATA = 'g2t_clear_extension_browsing_data';
 const UPLOAD_ATTACH = 'g2t_upload_attach';
 const UPLOAD_ATTACH_STORE = 'g2t_upload_attach_store';
 const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
-var debugMode_g;
+-let debugMode_g;
++let debugMode_g;
 
 /**
  * Call console.log if in DEBUG mode only
