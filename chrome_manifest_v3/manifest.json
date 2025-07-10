@@ -55,7 +55,7 @@
       ],
       "js": [
         "lib/jquery-3.7.1.min.js",
-        "lib/jquery-ui-1.14.1.min.js",
+        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.js",
         "lib/trello.min.js",
         "lib/combo.js",
         "lib/google-analytics-bundle.min.js",
@@ -69,7 +69,7 @@
         "content-script.js"
       ],
       "css": [
-        "lib/jquery-ui-1.14.1.min.css",
+        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.css",
         "style.css"
       ]
     }
