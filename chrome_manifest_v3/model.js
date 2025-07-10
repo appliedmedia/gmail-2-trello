@@ -1,4 +1,4 @@
-var Gmail2Trello = Gmail2Trello || {};
+var Gmail2Trello = Gmail2Trello || {}; // must be var to guarantee correct scope
 
 Gmail2Trello.Model = function (parent) {
   this.trello = {
