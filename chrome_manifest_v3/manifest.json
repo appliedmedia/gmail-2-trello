@@ -36,7 +36,7 @@
         "images/ui-icons_777777_256x240.png",
         "images/ui-icons_ffffff_256x240.png",
         "inject.js",
-        "lib/jquery-3.4.1.min.map",
+        "lib/jquery-3.7.1.min.map",
         "views/error.html",
         "views/popupView.html",
         "views/signOut.html",
@@ -54,8 +54,8 @@
         "https://mail.google.com/*"
       ],
       "js": [
-        "lib/jquery-3.5.1.min.js",
-        "lib/jquery-ui-1.12.1.min.js",
+        "lib/jquery-3.7.1.min.js",
+        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.js",
         "lib/trello.min.js",
         "lib/combo.js",
         "lib/google-analytics-bundle.min.js",
@@ -69,7 +69,7 @@
         "content-script.js"
       ],
       "css": [
-        "lib/jquery-ui-1.12.1.min.css",
+        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.css",
         "style.css"
       ]
     }
