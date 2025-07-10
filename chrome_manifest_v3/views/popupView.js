@@ -84,7 +84,7 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
   let self = this;
   let $jVals = { Board: '', Card: '', List: '' };
   let setJQueryVals = function () {
-    $.each($jVals, function (key) {
+    Object.keys($jVals).forEach(function (key) {
       $jVals[key] = $('#g2t' + key, self.$popup);
     });
   };
@@ -106,7 +106,8 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
     setTimeout(() => {
       self.comboInitialized = true;
       setJQueryVals();
-      $.each($jVals, function (key, $value) {
+      Object.keys($jVals).forEach(function (key) {
+        var $value = $jVals[key];
         $value.combobox();
       });
       set_max_autocomplete_size();
@@ -114,7 +115,8 @@ Gmail2Trello.PopupView.prototype.comboBox = function (update) {
   } else if (self.comboInitialized) {
     // Updating type-in list's value when a value is changed.
     setJQueryVals();
-    $.each($jVals, function (key, $value) {
+    Object.keys($jVals).forEach(function (key) {
+      var $value = $jVals[key];
       $value.combobox(
         'setInputValue',
         $value.children('option:selected').text()
@@ -325,7 +327,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
 
   if (valid_data_k) {
     // Store data in description object attributes:
-    $.each(fields, function (index, value) {
+    fields.forEach(function (value) {
       const val_k = data[value] || '';
       const name_k = attribute_storage_k + value;
       $g2tDesc.attr(name_k, val_k);
@@ -343,7 +345,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
             */
   } else {
     // Restore data values from description object attributes:
-    $.each(fields, function (index, value) {
+    fields.forEach(function (value) {
       const name_k = attribute_storage_k + value;
       const val_k = $g2tDesc.attr(name_k) || '';
       data[value] = val_k;
@@ -455,7 +457,6 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
       self.data.settings.listId = '';
       self.data.settings.cardId = '';
       // self.data.settings.membersId = ''; // NOTE (Ace, 28-Mar-2017): Do NOT clear membersId, as we can persist selections across boards
-      $;
     } else {
       $members.hide(); // clear it out
       $labels.hide(); // hiding when loading is being showed.
@@ -935,10 +936,12 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
       '<option value="none" selected disabled hidden>-</option>' +
       '<option value="d=0 am=0">--</option>';
 
-    $.each(due, function (key, value) {
+    Object.keys(due).forEach(function (key) {
+      var value = due[key];
       if (typeof value === 'object') {
         opt += '<optgroup label="' + key + '">';
-        $.each(value, function (key1, value1) {
+        Object.keys(value).forEach(function (key1) {
+          var value1 = value[key1];
           opt += '<option value="' + value1 + '">' + key1 + '</option>';
         });
         opt += '</optgroup>';
@@ -1056,7 +1059,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     const dl_k = self.parent.deep_link; // Pointer to function for expedience
     const data_k = dl_k(self, ['data']);
     const newCard_k = dl_k(data_k, ['newCard']);
-    let newCard = $.extend({}, newCard_k);
+    let newCard = Object.assign({}, newCard_k);
     //// delete newCard.title;
     delete newCard.description;
     const user_k = dl_k(data_k, ['trello', 'user']);
@@ -1090,7 +1093,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
   }
 
   // data.settings = {};
-  $.extend(data, { settings: self.data?.settings }); // Add local data if we have it
+  Object.assign(data, { settings: self.data?.settings }); // Add local data if we have it
   self.updateBody(data);
 
   $('#g2tTitle', self.$popup).val(data.subject);
@@ -1113,7 +1116,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
     }
 
     var x = 0;
-    $.each(data[tag], function (iter, item) {
+    data[tag].forEach(function (item) {
       var dict = {
         url: item.url,
         name: item.name,
@@ -1269,7 +1272,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
 
   let newArray = {};
 
-  $.each(array_k, function (iter, item) {
+  array_k.forEach(function (item) {
     const org_k =
       item.hasOwnProperty('organization') &&
       item.organization.hasOwnProperty('displayName')
@@ -1287,7 +1290,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
 
   $g2t.append($('<option value="">Select a board....</option>'));
 
-  $.each(Object.keys(newArray).sort(), function (iter, item) {
+  Object.keys(newArray).sort().forEach(function (item) {
     const id_k = newArray[item].id;
     const display_k = newArray[item].display.substring(1); // Ignore first char, it's used just for sorting
     const selected_k = id_k == restoreId_k;
@@ -1334,7 +1337,7 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
   var $g2t = $('#g2tList', this.$popup);
   $g2t.html('');
 
-  $.each(array_k, function (iter, item) {
+  array_k.forEach(function (item) {
     const id_k = item.id;
     const display_k = item.name;
     const selected_k = id_k == restoreId_k;
@@ -1386,7 +1389,7 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
   var $g2t = $('#g2tCard', this.$popup);
   $g2t.html(new_k);
 
-  $.each(array_k, function (iter, item) {
+  array_k.forEach(function (item) {
     const id_k = item.id;
     const display_k = self.parent.truncate(item.name, 80, '...');
     const selected_k = id_k == restoreId_k;
@@ -1617,7 +1620,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
       array1 = {},
       checked_total = 0;
 
-    $.each($jTags, function () {
+    $jTags.each(function () {
       const checked = $(this).is(':checked');
       if (checked) {
         checked_total++;
@@ -1674,7 +1677,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
       position,
       timeStamp,
     };
-    $.extend(self.data, { newCard, settings: newCard }); // intentional copy in both places
+    Object.assign(self.data, { newCard, settings: newCard }); // intentional copy in both places
 
     self.parent.saveSettings();
   }

@@ -298,7 +298,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
   exclude: function (list, exclude) {
     let list_new = [];
-    $.each(list.split(','), function (iter, item) {
+    list.split(',').forEach(function (item) {
       if (exclude.indexOf(item) === -1) {
         list_new.push(item);
       }
@@ -470,7 +470,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
         property,
         upload1,
         function success(data) {
-          $.extend(data, {
+          Object.assign(data, {
             method: method + ' ' + property,
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
@@ -485,7 +485,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
           }
         },
         function failure(data) {
-          $.extend(data, {
+          Object.assign(data, {
             method: method + ' ' + property,
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
@@ -578,7 +578,7 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   let imagesAndAttachments = (data.images || []).concat(data.attachments || []);
 
-  $.each(imagesAndAttachments, function (iter, item) {
+  imagesAndAttachments.forEach(function (item) {
     if (
       item.hasOwnProperty('checked') &&
       item.checked &&

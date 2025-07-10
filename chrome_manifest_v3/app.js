@@ -276,7 +276,8 @@ Gmail2Trello.App.prototype.replacer = function (text, dict) {
 
   var re, new_text;
   var replacify = function () {
-    $.each(dict, function (key, value) {
+    Object.keys(dict).forEach(function (key) {
+      var value = dict[key];
       re = new RegExp('%' + self.escapeRegExp(key) + '%', 'gi');
       new_text = text.replace(re, value);
       text = new_text;
@@ -478,25 +479,22 @@ Gmail2Trello.App.prototype.markdownify = function (
    */
   let sortAndPlaceholderize = function (tooProcess) {
     if (tooProcess) {
-      $.each(
-        Object.keys(tooProcess).sort(function (a, b) {
-          // Go by order of largest to smallest
-          return b.length - a.length;
-        }),
-        function (index, value) {
-          var replace = tooProcess[value];
-          var swap = unique_placeholder_k + (count++).toString();
-          var re = new RegExp(
-            regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
-            'gi'
-          );
-          var replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
-          if (body !== replaced) {
-            body = replaced;
-            replacer_dict[swap] = replace;
-          }
+      Object.keys(tooProcess).sort(function (a, b) {
+        // Go by order of largest to smallest
+        return b.length - a.length;
+      }).forEach(function (value) {
+        var replace = tooProcess[value];
+        var swap = unique_placeholder_k + (count++).toString();
+        var re = new RegExp(
+          regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
+          'gi'
+        );
+        var replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
+        if (body !== replaced) {
+          body = replaced;
+          replacer_dict[swap] = replace;
         }
-      );
+      });
     }
   };
   var processMarkdown = function (elementTag, replaceText) {
@@ -772,7 +770,7 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
 Gmail2Trello.App.prototype.saveSettings = function () {
   let self = this;
   const setID = this.CHROME_SETTINGS_ID;
-  let settings = $.extend({}, this.popupView.data.settings);
+  let settings = Object.assign({}, this.popupView.data.settings);
 
   // Delete large, potentially needing secure, data bits:
   settings.description = '';
@@ -812,7 +810,8 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
   var self = this;
   const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
   var re, new_s;
-  $.each(dict_k, function (key, value) {
+  Object.keys(dict_k).forEach(function (key) {
+    var value = dict_k[key];
     re = new RegExp(self.escapeRegExp(key), 'gi');
     new_s = s.replace(re, value);
     s = new_s;

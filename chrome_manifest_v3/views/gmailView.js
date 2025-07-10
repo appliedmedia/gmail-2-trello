@@ -467,7 +467,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
 
     let retn = {};
 
-    $.each(forms, function (iter, item) {
+    forms.forEach(function (item) {
       let item1 = self.parent.replacer(item, dict);
       retn[item1.toLowerCase()] = anchor_md;
     });
