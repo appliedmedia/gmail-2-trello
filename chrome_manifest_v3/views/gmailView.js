@@ -184,10 +184,43 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     }
 
     if (!name.length) {
-      name = self.parent.splitEmailDomain(email).name || '';
-    } else if (name.toUpperCase() === email.toUpperCase()) {
-      // split out @domain name and email are the same:
-      name = self.parent.splitEmailDomain(name).name || name;
+ let email_raw_md = function (name = '', email = '') {
+   let raw = '',
+     md = '';
+   if (!name.length && !email.length) {
+     return {
+       raw,
+       md,
+     };
+   }
+
+   // introduce a local variable instead of reassigning the `name` parameter
+   let displayName = name;
+   if (!name.length) {
+     displayName = self.parent.splitEmailDomain(email).name || '';
+   } else if (name.toUpperCase() === email.toUpperCase()) {
+     // split out @domain when name and email match exactly
+     displayName = self.parent.splitEmailDomain(name).name || name;
+   }
+
+   raw =
+     self.parent.addSpace(displayName) + (email.length > 0 ? '<' + email + '>' : '');
+
+   if (displayName.length > 0) {
+     if (email.length > 0) {
+       md = '[' + displayName + '](' + email + ')';
+     } else {
+       md = displayName;
+     }
+   } else if (email.length > 0) {
+     md = email;
+   }
+
+   return {
+     raw,
+     md,
+   };
+ };
     }
 
     raw =
