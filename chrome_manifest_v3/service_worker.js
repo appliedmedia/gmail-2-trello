@@ -51,7 +51,7 @@ function g2t_clearExtensionBrowsingData(callback) {
     since: 0,
     originTypes: { extension: true },
   };
-  if (chrome && chrome.browsingData && chrome.browsingData.remove) {
+  if (chrome?.browsingData?.remove) {
     logbs('clearExtensionBrowsingData: browsingData exists!');
     chrome.browsingData.remove(
       opts_k,
