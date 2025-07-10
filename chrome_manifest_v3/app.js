@@ -479,22 +479,24 @@ Gmail2Trello.App.prototype.markdownify = function (
    */
   let sortAndPlaceholderize = function (tooProcess) {
     if (tooProcess) {
-      Object.keys(tooProcess).sort(function (a, b) {
-        // Go by order of largest to smallest
-        return b.length - a.length;
-      }).forEach(function (value) {
-        let replace = tooProcess[value];
-        let swap = unique_placeholder_k + (count++).toString();
-        let re = new RegExp(
-          regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
-          'gi'
-        );
-        let replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
-        if (body !== replaced) {
-          body = replaced;
-          replacer_dict[swap] = replace;
-        }
-      });
+      Object.keys(tooProcess)
+        .sort(function (a, b) {
+          // Go by order of largest to smallest
+          return b.length - a.length;
+        })
+        .forEach(function (value) {
+          let replace = tooProcess[value];
+          let swap = unique_placeholder_k + (count++).toString();
+          let re = new RegExp(
+            regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
+            'gi'
+          );
+          let replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
+          if (body !== replaced) {
+            body = replaced;
+            replacer_dict[swap] = replace;
+          }
+        });
     }
   };
   let processMarkdown = function (elementTag, replaceText) {

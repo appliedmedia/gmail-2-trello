@@ -427,12 +427,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
   $board.off('change').on('change', () => {
     let boardId = $board.val();
 
-      let $list = $('#g2tList', self.$popup);
-  let $card = $('#g2tCard', self.$popup);
-  let $labels = $('#g2tLabels', self.$popup);
-  let $members = $('#g2tMembers', self.$popup);
-  let $labelsMsg = $('#g2tLabelsMsg', self.$popup);
-  let $membersMsg = $('#g2tMembersMsg', self.$popup);
+    let $list = $('#g2tList', self.$popup);
+    let $card = $('#g2tCard', self.$popup);
+    let $labels = $('#g2tLabels', self.$popup);
+    let $members = $('#g2tMembers', self.$popup);
+    let $labelsMsg = $('#g2tLabelsMsg', self.$popup);
+    let $membersMsg = $('#g2tMembersMsg', self.$popup);
 
     if (boardId === '_') {
       $board.val('');
@@ -1290,17 +1290,19 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
 
   $g2t.append($('<option value="">Select a board....</option>'));
 
-  Object.keys(newArray).sort().forEach(function (item) {
-    const id_k = newArray[item].id;
-    const display_k = newArray[item].display.substring(1); // Ignore first char, it's used just for sorting
-    const selected_k = id_k == restoreId_k;
-    $g2t.append(
-      $('<option>')
-        .attr('value', id_k)
-        .prop('selected', selected_k)
-        .append(display_k)
-    );
-  });
+  Object.keys(newArray)
+    .sort()
+    .forEach(function (item) {
+      const id_k = newArray[item].id;
+      const display_k = newArray[item].display.substring(1); // Ignore first char, it's used just for sorting
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
+    });
   $g2t.change();
 };
 
@@ -1728,6 +1730,12 @@ Gmail2Trello.PopupView.prototype.displayAPIFailedForm = function (response) {
     resp = response.data;
   }
 
+  // Check for 400 errors and show reload option
+  if (resp?.status == 400) {
+    resp.statusText =
+      'Board/List data may be stale. You can try reloading your Trello boards.';
+  }
+
   if (this.data && this.data.newCard) {
     resp.title = this.data.newCard.title; // Put a temp copy of this over where we'll get the other data
   }
@@ -1742,11 +1750,28 @@ Gmail2Trello.PopupView.prototype.displayAPIFailedForm = function (response) {
   };
 
   $.get(chrome.runtime.getURL('views/error.html'), function (data) {
-    const lastErrorHtml_k = self.parent.replacer(data, dict_k);
+    let lastErrorHtml_k = self.parent.replacer(data, dict_k);
+
+    // Add reload button for 400 errors
+    if (resp?.status == 400) {
+      lastErrorHtml_k +=
+        '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
+    }
+
     self.showMessage(self, lastErrorHtml_k);
     self.lastError = JSON.stringify(dict_k);
     self.$popupContent.hide();
-    if (resp.status && resp.status == 401) {
+
+    // Handle reload button click for 400 errors
+    if (resp?.status == 400) {
+      $('#reloadTrelloBoards').on('click', function () {
+        g2t_log('User clicked reload Trello boards button');
+        self.parent.model.loadTrelloData();
+        self.reset(); // Hide error message and show popup content
+      });
+    }
+
+    if (resp?.status == 401) {
       // Invalid token, so deauthorize Trello
       self.event.fire('onRequestDeauthorizeTrello');
     }
