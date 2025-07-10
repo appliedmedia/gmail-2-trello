@@ -99,8 +99,8 @@ function requestHandler(request, sender, sendResponse) {
 // Register Handler
 chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
 
-const Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
-const app = new Gmail2Trello.App();
+var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
+var app = new Gmail2Trello.App();
 
 /**
  * Inject code: for accessing Gmail's GLOBALS object

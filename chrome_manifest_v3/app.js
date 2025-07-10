@@ -1,7 +1,7 @@
 /** Gmail2Trello Application
  */
 
-const Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
+var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization
 
 Gmail2Trello.App = function () {
   this.CHROME_SETTINGS_ID = 'g2t_user_settings';

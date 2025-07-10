@@ -1,4 +1,4 @@
-const Gmail2Trello = Gmail2Trello || {};
+var Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.Model = function (parent) {
   this.trello = {

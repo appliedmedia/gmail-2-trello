@@ -1,4 +1,4 @@
-const Gmail2Trello = Gmail2Trello || {};
+var Gmail2Trello = Gmail2Trello || {};
 
 Gmail2Trello.PopupView = function (parent) {
   this.parent = parent;
