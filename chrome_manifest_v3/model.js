@@ -250,8 +250,10 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
     function (data) {
       var me = self.trello.user;
       // Remove this user from the members list:
-      self.trello.members = $.map(data, function (item, iter) {
+      self.trello.members = data.map(function (item, iter) {
         return item.id !== me.id ? item : null;
+      }).filter(function(item) {
+        return item !== null;
       });
       // And shove this user in the first position:
       self.trello.members.unshift({
@@ -277,7 +279,7 @@ Gmail2Trello.Model.prototype.Uploader = function (args) {
     return;
   }
 
-  $.extend(this, args);
+  Object.assign(this, args);
 
   this.data = [];
 
