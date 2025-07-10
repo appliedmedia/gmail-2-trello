@@ -2,7 +2,7 @@
  * This function is injected into the page for the content-script to receive information
  */
 setTimeout(function () {
-  var userEmail = '?';
+  let userEmail = '?';
   if (typeof GLOBALS !== 'undefined') {
     userEmail = GLOBALS[10];
   } else if (
@@ -12,7 +12,7 @@ setTimeout(function () {
   ) {
     userEmail = window.opener.GLOBALS[10];
   }
-  var G2T_event = new CustomEvent('g2t_connect_extension', {
+  const G2T_event = new CustomEvent('g2t_connect_extension', {
     detail: { userEmail: userEmail },
   });
   document.dispatchEvent(G2T_event);
