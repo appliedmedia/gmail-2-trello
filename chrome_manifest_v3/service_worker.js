@@ -17,7 +17,7 @@ function logbs(data) {
   }
 
   if (debugMode_g) {
-    console.log('g2t→' + data);
+    console.log(`g2t→${data}`);
   }
 }
 
@@ -126,7 +126,7 @@ function g2t_uploadAttach(args, callback) {
       callback(data);
     } else {
       logbs(
-        'ERROR: g2t_uploadAttach callback failed data:' + JSON.stringify(data)
+        `ERROR: g2t_uploadAttach callback failed data:${JSON.stringify(data)}`
       );
     }
   };
@@ -158,10 +158,10 @@ function g2t_uploadAttach(args, callback) {
     .then(blob => {
       const file_k = new File([blob], args['filename']);
       logbs(
-        'Attaching filename:"' + args['filename'] + '" size:' + file_k.size
+        `Attaching filename:"${args['filename']}" size:${file_k.size}`
       );
       if (!file_k.size) {
-        msg = 'ERROR: Empty content! Filename:"' + args['filename'] + '"';
+        msg = `ERROR: Empty content! Filename:"${args['filename']}"`;
         logbs(msg);
         data = {
           status: 'size:0',
