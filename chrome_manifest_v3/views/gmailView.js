@@ -84,7 +84,7 @@ Gmail2Trello.GmailView.prototype.detectToolbar = function () {
   // g2t_log('GmailView:detectToolbar');
   var self = this;
 
-  var $toolBar = $("[gh='mtb']", this.$root) || null;
+  let $toolBar = $("[gh='mtb']", this.$root) || null;
 
   while ($($toolBar).children().length === 1) {
     $toolBar = $($toolBar).children().first();
