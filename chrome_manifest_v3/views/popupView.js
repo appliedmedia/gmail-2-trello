@@ -1042,11 +1042,11 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
   }
 
   if (data.settings?.due_Date !== undefined) {
-    $('#g2tDue_Date', this.$popup).val(data.settings.due_Date);
+    $('#g2tDue_Date', this.$popup).val(data.settings.dueDate);
   }
 
   if (data.settings?.due_Time !== undefined) {
-    $('#g2tDue_Time', this.$popup).val(data.settings.due_Time);
+    $('#g2tDue_Time', this.$popup).val(data.settings.dueTime);
   }
 
   // Attach reportError function to report id if in text:
@@ -1575,8 +1575,8 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
   var cardPos = $card.prop('pos') || '';
   var cardMembers = $card.prop('members') || '';
   var cardLabels = $card.prop('labels') || '';
-  var due_Date = $('#g2tDue_Date', self.$popup).val();
-  var due_Time = $('#g2tDue_Time', self.$popup).val();
+  var dueDate = $('#g2tDue_Date', self.$popup).val();
+  var dueTime = $('#g2tDue_Time', self.$popup).val();
   var title = $('#g2tTitle', self.$popup).val();
   var description = $('#g2tDesc', self.$popup).val();
   var emailId = $('#g2tDesc', self.$popup).attr('gmail_emailId') || 0;
@@ -1661,8 +1661,8 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
       cardLabels,
       labelsId,
       membersId,
-      due_Date,
-      due_Time,
+      dueDate,
+      dueTime,
       title,
       description,
       attachments,

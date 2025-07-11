@@ -521,16 +521,16 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   let due_text = '';
 
-  if (data.due_Date?.length > 1) {
+  if (data.dueDate?.length > 1) {
     // Will 400 if not valid date:
     /* Workaround for quirk in Date object,
      * See: http://stackoverflow.com/questions/28234572/html5-datetime-local-chrome-how-to-input-datetime-in-current-time-zone
      * Was: dueDate.replace('T', ' ').replace('-','/')
      */
-    let due = data.due_Date.replace('-', '/');
+    let due = data.dueDate.replace('-', '/');
 
-    if (data.due_Time?.length > 1) {
-      due += ` ${data.due_Time}`;
+    if (data.dueTime?.length > 1) {
+      due += ` ${data.dueTime}`;
     } else {
       due += ' 00:00'; // Must provide time
     }
