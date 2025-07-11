@@ -427,13 +427,12 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
   $board.off('change').on('change', () => {
     let boardId = $board.val();
 
-    let $list = $('#g2tList', self.$popup);
-    let $card = $('#g2tCard', self.$popup);
-    let $labels = $('#g2tLabels', self.$popup);
-    let $members = $('#g2tMembers', self.$popup);
-    let $labelsMsg = $('#g2tLabelsMsg', self.$popup);
-    let $membersMsg = $('#g2tMembersMsg', self.$popup);
-
+    const $list = $('#g2tList', self.$popup);
+    const $card = $('#g2tCard', self.$popup);
+    const $labels = $('#g2tLabels', self.$popup);
+    const $members = $('#g2tMembers', self.$popup);
+    const $labelsMsg = $('#g2tLabelsMsg', self.$popup);
+    const $membersMsg = $('#g2tMembersMsg', self.$popup);
     if (boardId === '_') {
       $board.val('');
     }
