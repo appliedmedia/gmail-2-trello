@@ -370,12 +370,10 @@ Gmail2Trello.App.prototype.addChar = function (
 ) {
   if (front.length > 0) {
     if (back.length > 0) {
-      return `${front} ${back}`;
+      return `${front}${addChar}${back}`;
     } else {
-      return `${front} `;
+      return `${front}${addChar}`;
     }
-  } else if (back.length > 0) {
-    return `${addChar}${back}`;
   } else {
     return '';
   }
