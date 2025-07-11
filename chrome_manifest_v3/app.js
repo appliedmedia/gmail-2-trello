@@ -374,8 +374,10 @@ Gmail2Trello.App.prototype.addChar = function (
     } else {
       return `${front}${addChar}`;
     }
+  } else if (back.length > 0) {
+    return `${addChar}${back}`;
   } else {
-    return '';
+    return "";
   }
 };
 
