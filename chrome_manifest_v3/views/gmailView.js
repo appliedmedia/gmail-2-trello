@@ -299,7 +299,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   $('span.aZo', $email1_k).each(function () {
     const item_k = $(this).attr('download_url');
     if (item_k && item_k.length > 0) {
-      var attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
+      const attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
       if (attachment && attachment.length > 3) {
         const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
         const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');
