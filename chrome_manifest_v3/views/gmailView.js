@@ -405,7 +405,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     txtDirectComment = 'Open by id';
   }
 
-  var txtSearch = `https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch}`;
+  const txtSearch = `https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch}`;
 
   data.linkAsRaw = `[<${txtDirect}> | <${txtSearch}>]\n`;
   data.linkAsMd = `[${self.parent
