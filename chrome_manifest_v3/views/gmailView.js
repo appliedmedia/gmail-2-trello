@@ -350,8 +350,8 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   }
 
   let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
-  let from_raw = `From: ${self.parent.addSpace(from_raw_md.raw, data.time)}`;
-  let from_md = `From: ${self.parent.addSpace(from_raw_md.md, data.time)}`;
+  const from_raw = `From: ${self.parent.addSpace(from_raw_md.raw, data.time)}`;
+  const from_md = `From: ${self.parent.addSpace(from_raw_md.md, data.time)}`;
 
   // subject
   let $subject = $('.hP', this.$root).first(); // Is above the primary first email, so grab it from root
