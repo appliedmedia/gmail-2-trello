@@ -248,7 +248,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
     `boards/${boardId}/members`,
     { fields: 'id,fullName,username,initials,avatarUrl' },
     function (data) {
-      let me = self.trello.user;
+      const me = self.trello.user;
       // Remove this user from the members list:
       self.trello.members = data
         .map(function (item, iter) {
