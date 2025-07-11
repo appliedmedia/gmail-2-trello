@@ -433,7 +433,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
   },
 
   upload: function () {
-    let self = this;
+    const self = this;
     const generateKeysAndValues = function (object) {
       let keysAndValues = [];
       g2t_each(object, function (value, key) {
