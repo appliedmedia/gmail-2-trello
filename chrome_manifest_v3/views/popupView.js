@@ -1203,7 +1203,7 @@ Gmail2Trello.PopupView.prototype.showMessage = function (parent, text) {
   });
 
   $(':button', self.$popupMessage).click(function () {
-    let $status = $(`span#${this.id}`, self.$popupMessage) || '';
+    const $status = $(`span#${this.id}`, self.$popupMessage) || '';
     switch (this.id) {
       case 'signout':
         $status.html('Done');
