@@ -156,7 +156,7 @@ function getGmailObject() {
   const scripts_to_inject = ['inject.js']; // Just one, currently
   for (const item of scripts_to_inject) {
     try {
-      let script = document.createElement('script');
+      const script = document.createElement('script');
       script.src = chrome.runtime.getURL(item);
       (document.head || document.documentElement).appendChild(script);
       script.onload = function () {
