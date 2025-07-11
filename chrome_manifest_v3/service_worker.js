@@ -2,8 +2,22 @@ const CLEAR_EXT_BROWSING_DATA = 'g2t_clear_extension_browsing_data';
 const UPLOAD_ATTACH = 'g2t_upload_attach';
 const UPLOAD_ATTACH_STORE = 'g2t_upload_attach_store';
 const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
--let debugMode_g;
-+let debugMode_g;
+let debugMode_g;
+
+/**
+ * Generic hasOwnProperty check that can be easily changed if needed
+ * @param {Object} obj - The object to check
+ * @param {string} prop - The property name to check
+ * @returns {boolean} - True if the object has the property as its own property
+ */
+function hasbs(obj, prop) {
+  // Use modern Object.hasOwn() if available, otherwise fall back to hasOwnProperty
+  if (typeof Object.hasOwn === 'function') {
+    return Object.hasOwn(obj, prop);
+  } else {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+}
 
 /**
  * Call console.log if in DEBUG mode only
@@ -11,14 +25,14 @@ const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
 function logbs(data) {
   if (typeof debugMode_g === 'undefined') {
     chrome.storage.sync.get('debugMode', function (response) {
-      if (response.hasOwnProperty('debugMode') && response['debugMode']) {
+      if (hasbs(response, 'debugMode') && response['debugMode']) {
         debugMode_g = true;
       }
     });
   }
 
   if (debugMode_g) {
-    console.log('g2t→' + data);
+    console.log(`g2t→${data}`);
   }
 }
 
@@ -108,7 +122,7 @@ function g2t_checkForValidUrl(tab) {
 function g2t_hasAllKeys(dict, keys) {
   const size_k = keys.length;
   for (let iter = 0; iter < size_k; iter++) {
-    if (!dict.hasOwnProperty(keys[iter]) || dict[keys[iter]].length < 1) {
+    if (!hasbs(dict, keys[iter]) || dict[keys[iter]].length < 1) {
       return false;
     }
   }
@@ -127,7 +141,7 @@ function g2t_uploadAttach(args, callback) {
       callback(data);
     } else {
       logbs(
-        'ERROR: g2t_uploadAttach callback failed data:' + JSON.stringify(data)
+        `ERROR: g2t_uploadAttach callback failed data:${JSON.stringify(data)}`
       );
     }
   };
@@ -157,20 +171,16 @@ function g2t_uploadAttach(args, callback) {
   fetch(args['url_asset'])
     .then(response => response.blob())
     .then(blob => {
-      const file_k = new File([blob], args['filename']);
-      logbs(
-        'Attaching filename:"' + args['filename'] + '" size:' + file_k.size
-      );
+      const filename_k = args['filename'];
+      const file_k = new File([blob], filename_k);
+      logbs(`Attaching filename:"${filename_k}" size:${file_k.size}`);
       if (!file_k.size) {
-        msg = 'ERROR: Empty content! Filename:"' + args['filename'] + '"';
+        const msg = `ERROR: Empty content! Filename:"${filename_k}"`;
         logbs(msg);
-        data = {
+        const data = {
           status: 'size:0',
           statusText: msg,
-          responseText:
-            'Attachment retrieval failure: Try creating/updating card again without attachment "' +
-            filename_k +
-            '"',
+          responseText: `Attachment retrieval failure: Try creating/updating card again without attachment "${filename_k}"`,
           keys: '<none>',
         };
         return callback_failure(data);
@@ -199,20 +209,34 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   // local storage request
   if (!request) {
     // Intentionally blank, don't do anything in this case
-  } else if (request.hasOwnProperty('storage') && request.storage) {
+  } else if (hasbs(request, 'storage') && request.storage) {
     // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
+    // Commented out as this code path is not used and localStorage is not available in service workers
+    /*
     if (typeof request.value !== 'undefined') {
-      localStorage[request.storage] = request.value;
-      logbs('backgroundOnMessage: storage requested!');
+      chrome.storage.local.set(
+        { [request.storage]: request.value },
+        function () {
+          logbs('backgroundOnMessage: storage requested!');
+        }
+      );
     }
-    sendResponse({ storage: localStorage[request.storage] });
+    chrome.storage.local.get([request.storage], function (result) {
+      sendResponse({ storage: result[request.storage] });
+    });
+    return true; // Asynchronous
+    */
+    logbs(
+      'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
+    );
+    sendResponse({ storage: null });
   } else if (
-    request.hasOwnProperty(CLEAR_EXT_BROWSING_DATA) &&
+    hasbs(request, CLEAR_EXT_BROWSING_DATA) &&
     request[CLEAR_EXT_BROWSING_DATA] === true
   ) {
     g2t_clearExtensionBrowsingData(sendResponse);
     return true; // Asynchronous
-  } else if (request.hasOwnProperty(UPLOAD_ATTACH)) {
+  } else if (hasbs(request, UPLOAD_ATTACH)) {
     g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
     return true; // Asynchronous
   } else {

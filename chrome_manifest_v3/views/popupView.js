@@ -730,7 +730,7 @@ Gmail2Trello.PopupView.prototype.showPopup = function () {
         if (
           $(event.target).closest('#g2tButton').length == 0 &&
           $(event.target).closest('#g2tPopup').length == 0 &&
-          self.mouseDownTracker.hasOwnProperty(event.target) &&
+          g2t_has(self.mouseDownTracker, event.target) &&
           self.mouseDownTracker[event.target] === 1 &&
           $(event.target).closest('.ui-autocomplete').length == 0
         ) {
@@ -803,7 +803,7 @@ Gmail2Trello.PopupView.prototype.popupVisible = function () {
 Gmail2Trello.PopupView.prototype.getManifestVersion = function () {
   if (typeof chrome.runtime.getManifest === 'function') {
     const manifest_k = chrome.runtime.getManifest();
-    if (manifest_k.hasOwnProperty('version')) {
+    if (g2t_has(manifest_k, 'version')) {
       return manifest_k.version;
     }
   }
@@ -818,7 +818,7 @@ Gmail2Trello.PopupView.prototype.periodicChecks = function () {
   if (version_new > '0') {
     chrome.storage.sync.get(version_storage_k, function (response) {
       const version_old =
-        response && response.hasOwnProperty(version_storage_k)
+        response && g2t_has(response, version_storage_k)
           ? response[version_storage_k]
           : '0';
       if (version_old > '0') {
@@ -1019,11 +1019,11 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     .attr('href', me.url)
     .text(me.username || '?');
 
-  if (data.settings.hasOwnProperty('useBackLink')) {
+  if (g2t_has(data.settings, 'useBackLink')) {
     $('#chkBackLink', this.$popup).prop('checked', data.settings.useBackLink);
   }
 
-  if (data.settings.hasOwnProperty('addCC')) {
+  if (g2t_has(data.settings, 'addCC')) {
     $('#chkCC', this.$popup).prop('checked', data.settings.addCC);
   }
 
@@ -1038,15 +1038,15 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     }
   });
 
-  if (data.settings.hasOwnProperty('markdown')) {
+  if (g2t_has(data.settings, 'markdown')) {
     $('#chkMarkdown', this.$popup).prop('checked', data.settings.markdown);
   }
 
-  if (data.settings.hasOwnProperty('due_Date')) {
+  if (g2t_has(data.settings, 'due_Date')) {
     $('#g2tDue_Date', this.$popup).val(data.settings.due_Date);
   }
 
-  if (data.settings.hasOwnProperty('due_Time')) {
+  if (g2t_has(data.settings, 'due_Time')) {
     $('#g2tDue_Time', this.$popup).val(data.settings.due_Time);
   }
 
@@ -1274,8 +1274,7 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
 
   array_k.forEach(function (item) {
     const org_k =
-      item.hasOwnProperty('organization') &&
-      item.organization.hasOwnProperty('displayName')
+      g2t_has(item, 'organization') && g2t_has(item.organization, 'displayName')
         ? '!' + item.organization.displayName + ': '
         : '~';
     const display_k = org_k + item.name; // Ignore first char, it's used just for sorting
@@ -1319,17 +1318,16 @@ Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
   const boardId_k = $('#g2tBoard', this.$popup).val();
 
   const prev_item_k =
-    settings_k.hasOwnProperty('boardId') &&
+    g2t_has(settings_k, 'boardId') &&
     settings_k.boardId == boardId_k &&
-    settings_k.hasOwnProperty('listId')
+    g2t_has(settings_k, 'listId')
       ? settings_k.listId
       : 0;
 
   const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
 
   const updatePending_k =
-    self.updatesPending.length &&
-    self.updatesPending[0].hasOwnProperty('listId')
+    self.updatesPending.length && g2t_has(self.updatesPending[0], 'listId')
       ? self.updatesPending.shift().listId
       : 0;
 
@@ -1371,17 +1369,16 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
   const listId_k = $('#g2tList', this.$popup).val();
 
   const prev_item_k =
-    settings_k.hasOwnProperty('listId') &&
+    g2t_has(settings_k, 'listId') &&
     settings_k.listId == listId_k &&
-    settings_k.hasOwnProperty('cardId')
+    g2t_has(settings_k, 'cardId')
       ? settings_k.cardId
       : 0;
 
   const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
 
   const updatePending_k =
-    self.updatesPending.length &&
-    self.updatesPending[0].hasOwnProperty('cardId')
+    self.updatesPending.length && g2t_has(self.updatesPending[0], 'cardId')
       ? self.updatesPending.shift().cardId
       : 0;
 

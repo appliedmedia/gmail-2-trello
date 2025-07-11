@@ -17,11 +17,26 @@
 let globalInit = false;
 
 /**
+ * Generic hasOwnProperty check that can be easily changed if needed
+ * @param {Object} obj - The object to check
+ * @param {string} prop - The property name to check
+ * @returns {boolean} - True if the object has the property as its own property
+ */
+function g2t_has(obj, prop) {
+  // Use modern Object.hasOwn() if available, otherwise fall back to hasOwnProperty
+  if (typeof Object.hasOwn === 'function') {
+    return Object.hasOwn(obj, prop);
+  } else {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+}
+
+/**
  * Global log. A wrapper for console.log, depend on logEnabled flag
  * @param  {any} data data to write log
  */
 function g2t_log(data) {
-  if (!window.hasOwnProperty('g2t_log_g')) {
+  if (!g2t_has(window, 'g2t_log_g')) {
     window.g2t_log_g = {
       memory: [],
       count: 0,
@@ -29,7 +44,7 @@ function g2t_log(data) {
       debugMode: false,
     };
     chrome.storage.sync.get('debugMode', function (response) {
-      if (response.hasOwnProperty('debugMode') && response['debugMode']) {
+      if (g2t_has(response, 'debugMode') && response['debugMode']) {
         window.g2t_log_g.debugMode = true;
       }
     });
@@ -73,7 +88,7 @@ function g2t_log(data) {
 function requestHandler(request, sender, sendResponse) {
   if (
     request &&
-    request.hasOwnProperty('message') &&
+    g2t_has(request, 'message') &&
     request.message === 'g2t_initialize'
   ) {
     // g2t_log('GlobalInit: '+globalInit.toString());

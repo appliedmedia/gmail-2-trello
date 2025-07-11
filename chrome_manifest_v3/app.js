@@ -201,7 +201,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
   ) {
     if (
       request &&
-      request.hasOwnProperty('message') &&
+      g2t_hasOwn(request, 'message') &&
       request.message === 'g2t_keyboard_shortcut'
     ) {
       self.popupView.showPopup();
@@ -429,7 +429,7 @@ Gmail2Trello.App.prototype.markdownify = function (
     if (features === false) {
       return false;
     }
-    if (!features.hasOwnProperty(elementTag)) {
+    if (!g2t_has(features, elementTag)) {
       return true;
     }
     if (features[elementTag] !== false) {
@@ -749,7 +749,7 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
   let self = this;
   const setID = this.CHROME_SETTINGS_ID;
   chrome.storage.sync.get(setID, function (response) {
-    if (response && response.hasOwnProperty(setID)) {
+    if (response && g2t_has(response, setID)) {
       // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
       try {
         self.popupView.data.settings = JSON.parse(response[setID]);
@@ -885,7 +885,7 @@ Gmail2Trello.App.prototype.deep_link = function (obj = {}, reqs = []) {
   const field_max_k = fields.length;
 
   while ((field1 = fields[fieldCount]) && valid && field_max_k > fieldCount++) {
-    if ((valid = obj_ptr.hasOwnProperty(field1))) {
+    if ((valid = g2t_has(obj_ptr, field1))) {
       obj_ptr = obj_ptr[field1];
     }
   }
@@ -910,7 +910,7 @@ Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
 
   while ((field1 = fields[fieldCount]) && valid && field_max_k > fieldCount++) {
     if (
-      !args.hasOwnProperty(field1) ||
+      !g2t_has(args, field1) ||
       args[field1] == null ||
       args[field1].length < 1
     ) {

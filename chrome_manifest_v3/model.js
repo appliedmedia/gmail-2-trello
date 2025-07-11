@@ -97,7 +97,7 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
 Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
   let retn = '';
   if (
-    args.hasOwnProperty('avatarUrl') &&
+    g2t_has(args, 'avatarUrl') &&
     args.avatarUrl &&
     args.avatarUrl.length > 8
   ) {
@@ -120,7 +120,7 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
     'members/me',
     {},
     function (data) {
-      if (!data || !data.hasOwnProperty('id')) {
+      if (!data || !g2t_has(data, 'id')) {
         return false;
       }
 
@@ -250,11 +250,13 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
     function (data) {
       let me = self.trello.user;
       // Remove this user from the members list:
-      self.trello.members = data.map(function (item, iter) {
-        return item.id !== me.id ? item : null;
-      }).filter(function(item) {
-        return item !== null;
-      });
+      self.trello.members = data
+        .map(function (item, iter) {
+          return item.id !== me.id ? item : null;
+        })
+        .filter(function (item) {
+          return item !== null;
+        });
       // And shove this user in the first position:
       self.trello.members.unshift({
         id: me.id,
@@ -275,7 +277,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
 };
 
 Gmail2Trello.Model.prototype.Uploader = function (args) {
-  if (!args || !args.hasOwnProperty('parent')) {
+  if (!args || !g2t_has(args, 'parent')) {
     return;
   }
 
@@ -409,7 +411,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
     let callback = function (args) {
       if (
-        args.hasOwnProperty(UPLOAD_ATTACH_RESULTS) &&
+        g2t_has(args, UPLOAD_ATTACH_RESULTS) &&
         args[UPLOAD_ATTACH_RESULTS] === 'success'
       ) {
         success(args);
@@ -580,7 +582,7 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   imagesAndAttachments.forEach(function (item) {
     if (
-      item.hasOwnProperty('checked') &&
+      g2t_has(item, 'checked') &&
       item.checked &&
       item.url &&
       item.url.length > 5
@@ -623,7 +625,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
   constructor(args) {
     this.list = [];
     this.parent = this;
-    if (args && args.hasOwnProperty('parent')) {
+    if (args && g2t_has(args, 'parent')) {
       this.parent = args.parent;
     }
     this.chrome_restore();
@@ -648,7 +650,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     }
 
     const eblcMapID = this.id;
-    if (!(typeof args.obj === 'object' && args.obj.hasOwnProperty(eblcMapID))) {
+    if (!(typeof args.obj === 'object' && g2t_has(args.obj, eblcMapID))) {
       g2t_log(`valid: no object with ${eblcMapID}!`);
       return {};
     }
@@ -687,7 +689,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     const id_k = this.id;
     try {
       chrome.storage.sync.get(id_k, function (response) {
-        if (response && response.hasOwnProperty(id_k)) {
+        if (response && g2t_has(response, id_k)) {
           try {
             self.list = JSON.parse(response[id_k]);
           } catch (err) {
