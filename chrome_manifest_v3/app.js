@@ -484,13 +484,13 @@ Gmail2Trello.App.prototype.markdownify = function (
           return b.length - a.length;
         }),
         function (value) {
-          let replace = tooProcess[value];
-          let swap = unique_placeholder_k + (count++).toString();
-          let re = new RegExp(
+          const replace = tooProcess[value];
+          const swap = `${unique_placeholder_k}${(count++).toString()}`;
+          const re = new RegExp(
             regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
             'gi'
           );
-          let replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
+          const replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
           if (body !== replaced) {
             body = replaced;
             replacer_dict[swap] = replace;
