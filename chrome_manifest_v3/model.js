@@ -101,7 +101,7 @@ Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
     args.avatarUrl &&
     args.avatarUrl.length > 8
   ) {
-    retn = args.avatarUrl + '/30.png';
+    retn = `${args.avatarUrl}/30.png`;
   }
   return retn;
 };
@@ -185,7 +185,7 @@ Gmail2Trello.Model.prototype.loadTrelloLists = function (boardId) {
   this.trello.lists = null;
 
   Trello.get(
-    'boards/' + boardId,
+    `boards/${boardId}`,
     { lists: 'open', list_fields: 'name' },
     function (data) {
       self.trello.lists = data.lists;
@@ -205,7 +205,7 @@ Gmail2Trello.Model.prototype.loadTrelloCards = function (listId) {
   this.trello.cards = null;
 
   Trello.get(
-    'lists/' + listId + '/cards',
+    `lists/${listId}/cards`,
     { fields: 'name,pos,idMembers,idLabels' },
     function (data) {
       self.trello.cards = data;
@@ -225,7 +225,7 @@ Gmail2Trello.Model.prototype.loadTrelloLabels = function (boardId) {
   this.trello.labels = null;
 
   Trello.get(
-    'boards/' + boardId + '/labels',
+    `boards/${boardId}/labels`,
     { fields: 'color,name' },
     function (data) {
       self.trello.labels = data;
@@ -245,7 +245,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
   this.trello.members = null;
 
   Trello.get(
-    'boards/' + boardId + '/members',
+    `boards/${boardId}/members`,
     { fields: 'id,fullName,username,initials,avatarUrl' },
     function (data) {
       let me = self.trello.user;
@@ -300,7 +300,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
   exclude: function (list, exclude) {
     let list_new = [];
-    list.split(',').forEach(function (item) {
+    g2t_each(list.split(','), function (item) {
       if (exclude.indexOf(item) === -1) {
         list_new.push(item);
       }
@@ -315,7 +315,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
         this.data[0][args.property] = args.value;
       } else {
         const cardId_k = this.pos === 'at' ? this.cardId : '%cardId%'; // Won't know until we store the initial card
-        args.property = 'cards/' + cardId_k + '/' + args.property;
+        args.property = `cards/${cardId_k}/${args.property}`;
         this.data.push(args);
       }
     }
@@ -361,7 +361,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
     let shortLink = dl_k(card_k, ['shortLink']);
     if (shortLink && shortLink.length > 0) {
-      shortLink = 'https://trello.com/c/' + shortLink;
+      shortLink = `https://trello.com/c/${shortLink}`;
     }
 
     const add_id_k = dl_k(card_k, ['id']);
@@ -370,10 +370,10 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
     const new_url_k = shortLink || url_k || '';
     const new_id_k = add_id_k || id_k || '';
 
-    if (new_url_k && this.parent.newCard && !this.parent.newCard.url) {
+    if (new_url_k && this.parent.newCard?.url === undefined) {
       this.parent.newCard.url = new_url_k;
     }
-    if (new_id_k && this.parent.newCard && !this.parent.newCard.id) {
+    if (new_id_k && this.parent.newCard?.id === undefined) {
       this.parent.newCard.id = new_id_k;
       this.cardId = new_id_k;
     }
@@ -409,7 +409,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
     const filename_k =
       begin_question_split_k || upload1.name || param_k || 'unknown_filename'; // Use found string or reasonable fallbacks
 
-    let callback = function (args) {
+    const callback = function (args) {
       if (
         g2t_has(args, UPLOAD_ATTACH_RESULTS) &&
         args[UPLOAD_ATTACH_RESULTS] === 'success'
@@ -426,7 +426,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       filename: filename_k,
       trello_key: Trello.key(),
       trello_token: Trello.token(),
-      url_upload: trello_url_k + property,
+      url_upload: `${trello_url_k}${property}`,
     };
 
     chrome.runtime.sendMessage(dict, callback);
@@ -434,28 +434,21 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
 
   upload: function () {
     let self = this;
+    const generateKeysAndValues = function (object) {
+      let keysAndValues = [];
+      g2t_each(object, function (value, key) {
+        keysAndValues.push(
+          `${key}=${value || ''} (${(value || '').toString().length})`
+        );
+      });
+      return keysAndValues.sort().join(' ');
+    };
     let upload1 = self.data.shift();
     if (!upload1) {
       self.parent.event.fire('onCardSubmitComplete', {
         data: { emailId: self.emailId },
       });
     } else {
-      let generateKeysAndValues = function (object) {
-        let keysAndValues = [];
-        Object.keys(object).forEach(function (key) {
-          let value = object[key];
-          keysAndValues.push(
-            key +
-              '=' +
-              (value || '') +
-              ' (' +
-              (value || '').toString().length +
-              ')'
-          );
-        });
-        return keysAndValues.sort().join(' ');
-      };
-
       const dict_k = { cardId: this.cardId || '' };
 
       let method = upload1.method || 'post';
@@ -473,12 +466,12 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
         upload1,
         function success(data) {
           Object.assign(data, {
-            method: method + ' ' + property,
+            method: `${method} ${property}`,
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
           });
           self.process_response(data);
-          if (self.data && self.data.length > 0) {
+          if (self.data?.length > 0) {
             self.upload();
           } else {
             self.parent.event.fire('onCardSubmitComplete', {
@@ -488,7 +481,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
         },
         function failure(data) {
           Object.assign(data, {
-            method: method + ' ' + property,
+            method: `${method} ${property}`,
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
           });
@@ -513,7 +506,7 @@ Gmail2Trello.Model.prototype.submit = function () {
   let text = data.title || '';
   if (text.length > 0) {
     if (data.markdown) {
-      text = '**' + text + '**\n\n';
+      text = `**${text}**\n\n`;
     }
   }
   text += data.description;
@@ -528,7 +521,7 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   let due_text = '';
 
-  if (data.due_Date && data.due_Date.length > 1) {
+  if (data.due_Date?.length > 1) {
     // Will 400 if not valid date:
     /* Workaround for quirk in Date object,
      * See: http://stackoverflow.com/questions/28234572/html5-datetime-local-chrome-how-to-input-datetime-in-current-time-zone
@@ -536,8 +529,8 @@ Gmail2Trello.Model.prototype.submit = function () {
      */
     let due = data.due_Date.replace('-', '/');
 
-    if (data.due_Time && data.due_Time.length > 1) {
-      due += ' ' + data.due_Time;
+    if (data.due_Time?.length > 1) {
+      due += ` ${data.due_Time}`;
     } else {
       due += ' 00:00'; // Must provide time
     }
@@ -580,7 +573,7 @@ Gmail2Trello.Model.prototype.submit = function () {
 
   let imagesAndAttachments = (data.images || []).concat(data.attachments || []);
 
-  imagesAndAttachments.forEach(function (item) {
+  g2t_each(imagesAndAttachments, function (item) {
     if (
       g2t_has(item, 'checked') &&
       item.checked &&
@@ -689,18 +682,18 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     const id_k = this.id;
     try {
       chrome.storage.sync.get(id_k, function (response) {
-        if (response && g2t_has(response, id_k)) {
+        if (response?.[id_k]) {
           try {
             self.list = JSON.parse(response[id_k]);
           } catch (err) {
             g2t_log(
-              'chrome_restore: JSON parse failed! Error: ' + JSON.stringify(err)
+              `chrome_restore: JSON parse failed! Error: ${JSON.stringify(err)}`
             );
           }
         }
       });
     } catch (err) {
-      g2t_log('chrome_restore: failed! Error: ' + JSON.stringify(err));
+      g2t_log(`chrome_restore: failed! Error: ${JSON.stringify(err)}`);
     }
     return this;
   }
@@ -710,7 +703,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
     try {
       chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
     } catch (err) {
-      g2t_log('chrome_save: failed! Error: ' + JSON.stringify(err));
+      g2t_log(`chrome_save: failed! Error: ${JSON.stringify(err)}`);
     }
     return this;
   }

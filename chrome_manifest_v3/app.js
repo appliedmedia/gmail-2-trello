@@ -172,7 +172,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
     self.popupView.clearBoard();
   });
 
-  let eventDetectButton = function () {
+  const eventDetectButton = function () {
     if (self.gmailView.preDetect()) {
       self.popupView.$toolBar = self.gmailView.$toolBar;
       self.popupView.confirmPopup();
@@ -201,7 +201,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
   ) {
     if (
       request &&
-      g2t_hasOwn(request, 'message') &&
+      g2t_has(request, 'message') &&
       request.message === 'g2t_keyboard_shortcut'
     ) {
       self.popupView.showPopup();
@@ -275,10 +275,9 @@ Gmail2Trello.App.prototype.replacer = function (text, dict) {
   }
 
   let re, new_text;
-  let replacify = function () {
-    Object.keys(dict).forEach(function (key) {
-      let value = dict[key];
-      re = new RegExp('%' + self.escapeRegExp(key) + '%', 'gi');
+  const replacify = function () {
+    g2t_each(dict, function (value, key) {
+      re = new RegExp(`%${self.escapeRegExp(key)}%`, 'gi');
       new_text = text.replace(re, value);
       text = new_text;
     });
@@ -335,19 +334,14 @@ Gmail2Trello.App.prototype.anchorMarkdownify = function (text, href, comment) {
   if (text1.length < 1 && href1.length < 1) {
     // Intetionally blank
   } else if (text1lc === href1lc) {
-    retn = ' <' + href1 + '> '; // This renders correctly in Trello as a sole URL
+    retn = ` <${href1}> `; // This renders correctly in Trello as a sole URL
     // NOTE (Ace, 17-Feb-2017): Turns out Trello doesn't support markdown [] only, so we'll construct a nice displayable text vs url:
     // text1 = this.uriForDisplay(text1);
-  } else if ('mailto:' + text1lc === href1lc) {
-    retn = ' <' + text1 + '> '; // This renders correctly in Trello as a mailto: url
+  } else if (`mailto:${text1lc}` === href1lc) {
+    retn = ` <${text1}> `; // This renders correctly in Trello as a mailto: url
   } else {
-    retn =
-      ' [' +
-      text1 +
-      '](' +
-      href1 +
-      (comment1 ? ' "' + comment1 + '"' : '') +
-      ') ';
+    const comment1QuotedSpaced = comment1.length > 0 ? ` "${comment1}"` : '';
+    retn = ` [${text1}](<${href1}>${comment1QuotedSpaced}) `;
   }
 
   return retn;
@@ -367,33 +361,38 @@ Gmail2Trello.App.prototype.splitEmailDomain = function (email = '') {
 };
 
 /**
- * Add trailing space if not empty:
+ * Add trailing char if not empty:
  */
-Gmail2Trello.App.prototype.addSpace = function (front = '', back = '') {
+Gmail2Trello.App.prototype.addChar = function (
+  front = '',
+  back = '',
+  addChar = ' '
+) {
   if (front.length > 0) {
     if (back.length > 0) {
-      return front + ' ' + back;
+      return `${front} ${back}`;
     } else {
-      return front + ' ';
+      return `${front} `;
     }
+  } else if (back.length > 0) {
+    return `${addChar}${back}`;
   } else {
     return '';
   }
 };
 
 /**
+ * Add trailing space if not empty:
+ */
+Gmail2Trello.App.prototype.addSpace = function (front = '', back = '') {
+  return this.addChar(front, back, ' ');
+};
+
+/**
  * Add trailing CRLF if not empty:
  */
 Gmail2Trello.App.prototype.addCRLF = function (front = '', back = '') {
-  if (front.length > 0) {
-    if (back.length > 0) {
-      return front + '\n' + back;
-    } else {
-      return front + '\n';
-    }
-  } else {
-    return '';
-  }
+  return this.addChar(front, back, '\n');
 };
 
 /**
@@ -421,7 +420,7 @@ Gmail2Trello.App.prototype.markdownify = function (
   let count = 0;
   let replacer_dict = {};
 
-  let featureEnabled = function (elementTag) {
+  const featureEnabled = function (elementTag) {
     // Assume TRUE to process, unless explicitly restricted:
     if (typeof features === 'undefined') {
       return true;
@@ -477,29 +476,30 @@ Gmail2Trello.App.prototype.markdownify = function (
    * (4) Replace with placeholder
    * (5) Replace placeholders with final text
    */
-  let sortAndPlaceholderize = function (tooProcess) {
+  const sortAndPlaceholderize = function (tooProcess) {
     if (tooProcess) {
-      Object.keys(tooProcess)
-        .sort(function (a, b) {
+      g2t_each(
+        Object.keys(tooProcess).sort(function (a, b) {
           // Go by order of largest to smallest
           return b.length - a.length;
-        })
-        .forEach(function (value) {
+        }),
+        function (value) {
           let replace = tooProcess[value];
           let swap = unique_placeholder_k + (count++).toString();
           let re = new RegExp(
             regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
             'gi'
           );
-          let replaced = body.replace(re, '%' + swap + '%'); // Replace occurance with placeholder
+          let replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
           if (body !== replaced) {
             body = replaced;
             replacer_dict[swap] = replace;
           }
-        });
+        }
+      );
     }
   };
-  let processMarkdown = function (elementTag, replaceText) {
+  const processMarkdown = function (elementTag, replaceText) {
     if (elementTag && replaceText && featureEnabled(elementTag)) {
       toProcess = preprocess[elementTag] || {};
       $(elementTag, $html).each(function (index, value) {
@@ -515,7 +515,7 @@ Gmail2Trello.App.prototype.markdownify = function (
   /**
    * Repeat replace for max attempts or when done, whatever comes first
    */
-  let repeatReplace = function (body, inRegexp, replaceWith) {
+  const repeatReplace = function (body, inRegexp, replaceWith) {
     let replace1 = '';
     for (let iter = max_replace_attempts_k; iter > 0; iter--) {
       replace1 = body.replace(inRegexp, replaceWith);
@@ -550,8 +550,7 @@ Gmail2Trello.App.prototype.markdownify = function (
       let nodeName = $(this).prop('nodeName') || '0';
       if (nodeName && text && text.length > min_text_length_k) {
         let x = nodeName.substr(-1);
-        toProcess[text.toLowerCase()] =
-          '\n' + '#'.repeat(x) + ' ' + text + '\n'; // Intentionally overwrites duplicates
+        toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
       }
     });
     sortAndPlaceholderize(toProcess);
@@ -749,7 +748,7 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
   let self = this;
   const setID = this.CHROME_SETTINGS_ID;
   chrome.storage.sync.get(setID, function (response) {
-    if (response && g2t_has(response, setID)) {
+    if (response?.[setID]) {
       // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
       try {
         self.popupView.data.settings = JSON.parse(response[setID]);
@@ -812,8 +811,8 @@ Gmail2Trello.App.prototype.decodeEntities = function (s) {
   let self = this;
   const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
   let re, new_s;
-  Object.keys(dict_k).forEach(function (key) {
-    let value = dict_k[key];
+  g2t_each(dict_k, function (value, key) {
+    // value is already available from the callback parameter
     re = new RegExp(self.escapeRegExp(key), 'gi');
     new_s = s.replace(re, value);
     s = new_s;
@@ -901,7 +900,7 @@ Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
     return false;
   }
 
-  let fields = reqs && reqs.length ? reqs : Object.keys(args),
+  let fields = reqs?.length ? reqs : Object.keys(args),
     field1,
     fieldCount = 0,
     valid = true;

@@ -135,7 +135,7 @@ function g2t_hasAllKeys(dict, keys) {
  * @return blob
  */
 function g2t_uploadAttach(args, callback) {
-  let callback_return = function (status = 'failure', data = {}) {
+  const callback_return = function (status = 'failure', data = {}) {
     if (callback && typeof callback === 'function') {
       data[UPLOAD_ATTACH_RESULTS] = status;
       callback(data);
@@ -146,11 +146,11 @@ function g2t_uploadAttach(args, callback) {
     }
   };
 
-  let callback_failure = function (data = {}) {
+  const callback_failure = function (data = {}) {
     callback_return('failure', data);
   };
 
-  let callback_success = function (data = {}) {
+  const callback_success = function (data = {}) {
     callback_return('success', data);
   };
 
