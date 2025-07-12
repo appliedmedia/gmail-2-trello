@@ -155,7 +155,7 @@ function g2t_checkForValidUrl(tab) {
  */
 function g2t_hasAllKeys(dict, keys) {
   if (!dict || !keys?.length) return false;
-  return keys.every(key => {
+  const hasAllKeys = keys.every(key => {
     const val = dict[key];
     return val != null && (
       typeof val === "number" ||
@@ -163,6 +163,7 @@ function g2t_hasAllKeys(dict, keys) {
       val.length > 0
     );
   });
+  return hasAllKeys;
 }
 
 /**
