@@ -641,7 +641,14 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
 
   add(args = {}) {
     if (
-      ['emailId', 'boardId', 'listId', 'cardId'].every(field => !!args?.[field])
+      ['emailId', 'boardId', 'listId', 'cardId'].every(field => {
+        const val = args?.[field];
+        return val != null && (
+          typeof val === "number" ||
+          typeof val === "boolean" ||
+          val.length > 0
+        );
+      })
     ) {
       // args.timestamp = Date.now(); // NOTE (acoven@2020-05-23): Turn on for circular file
       const emailId = args.emailId;
