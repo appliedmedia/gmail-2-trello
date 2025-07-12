@@ -285,6 +285,7 @@ Gmail2Trello.PopupView.prototype.onResize = function () {
 };
 
 Gmail2Trello.PopupView.prototype.resetDragResize = function () {
+  const self = this;
   const $g2tDesc = $('#g2tDesc', self.$popup);
   const $popupBB = $('#g2tPopup', self.$popup);
   const padding = 95;
