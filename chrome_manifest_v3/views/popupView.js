@@ -80,6 +80,7 @@ Gmail2Trello.PopupView.prototype.init = function () {
     self.event.fire('detectButton');
   }, 2000);
 };
+
 Gmail2Trello.PopupView.prototype.comboBox = function (update) {
   let self = this;
   let $jVals = { Board: '', Card: '', List: '' };
@@ -800,46 +801,68 @@ Gmail2Trello.PopupView.prototype.popupVisible = function () {
 };
 
 Gmail2Trello.PopupView.prototype.getManifestVersion = function () {
-  return chrome?.runtime?.getManifest?.()?.version || '0';
+  try {
+    return chrome?.runtime?.getManifest?.()?.version || '0';
+  } catch (error) {
+    g2t_log(
+      `getManifestVersion ERROR: extension context invalidated - failed "chrome.runtime.getManifest"`
+    );
+    this.displayExtensionInvalidReload();
+    return '0';
+  }
 };
 
 Gmail2Trello.PopupView.prototype.periodicChecks = function () {
-  let self = this;
+  const self = this;
   const version_storage_k = self.VERSION_STORAGE;
   const version_new = self.getManifestVersion();
 
   if (version_new > '0') {
-    chrome.storage.sync.get(version_storage_k, function (response) {
-      const version_old = response?.[version_storage_k] || '0';
-      if (version_old > '0') {
-        if (version_old !== version_new) {
-          $.get(
-            chrome.runtime.getURL('views/versionUpdate.html'),
-            function (data) {
-              const dict = {
-                version_old,
-                version_new,
-              };
-              data = self.parent.replacer(data, dict);
-              self.showMessage(self, data);
-            }
-          );
+    try {
+      chrome.storage.sync.get(version_storage_k, function (response) {
+        const version_old = response?.[version_storage_k] || '0';
+        if (version_old > '0') {
+          if (version_old !== version_new) {
+            $.get(
+              chrome.runtime.getURL('views/versionUpdate.html'),
+              function (data) {
+                const dict = {
+                  version_old,
+                  version_new,
+                };
+                data = self.parent.replacer(data, dict);
+                self.showMessage(self, data);
+              }
+            );
+          }
+        } else {
+          self.forceSetVersion();
         }
-      } else {
-        self.forceSetVersion();
-      }
-    });
+      });
+    } catch (error) {
+      g2t_log(
+        `periodicChecks ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+      );
+      self?.displayExtensionInvalidReload();
+    }
   }
 };
 
 Gmail2Trello.PopupView.prototype.forceSetVersion = function () {
-  let self = this;
+  const self = this;
   const version_storage_k = self.VERSION_STORAGE;
   const version_new = self.getManifestVersion();
   const dict_k = {
     [version_storage_k]: version_new,
   };
-  chrome.storage.sync.set(dict_k);
+  try {
+    chrome.storage.sync.set(dict_k);
+  } catch (error) {
+    g2t_log(
+      `forceSetVersion ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
+    );
+    self?.displayExtensionInvalidReload();
+  }
 };
 
 Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
@@ -851,7 +874,7 @@ Gmail2Trello.PopupView.prototype.showSignOutOptions = function (data) {
 };
 
 Gmail2Trello.PopupView.prototype.bindData = function (data) {
-  let self = this;
+  const self = this;
   $('.header a').each(() => {
     $(document).on('keyup', $(this), evt => {
       if (evt.which == 13 || evt.which == 32) {
@@ -884,66 +907,73 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     });
     */
 
-  chrome.storage.sync.get('dueShortcuts', function (response) {
-    // Borrowed from options file until this gets persisted everywhere:
-    const dueShortcuts_k = JSON.stringify({
-      today: {
-        am: 'd+0 am=9:00',
-        noon: 'd+0 pm=12:00',
-        pm: 'd+0 pm=3:00',
-        end: 'd+0 pm=6:00',
-        eve: 'd+0 pm=11:00',
-      },
-      tomorrow: {
-        am: 'd+1 am=9:00',
-        noon: 'd+1 pm=12:00',
-        pm: 'd+1 pm=3:00',
-        end: 'd+1 pm=6:00',
-        eve: 'd+1 pm=11:00',
-      },
-      'next monday': {
-        am: 'd=monday am=9:00',
-        noon: 'd=monday pm=12:00',
-        pm: 'd=monday pm=3:00',
-        end: 'd=monday pm=6:00',
-        eve: 'd=monday pm=11:00',
-      },
-      'next friday': {
-        am: 'd=friday am=9:00',
-        noon: 'd=friday pm=12:00',
-        pm: 'd=friday pm=3:00',
-        end: 'd=friday pm=6:00',
-        eve: 'd=friday pm=11:00',
-      },
-    });
+  try {
+    chrome.storage.sync.get('dueShortcuts', function (response) {
+      // Borrowed from options file until this gets persisted everywhere:
+      const dueShortcuts_k = JSON.stringify({
+        today: {
+          am: 'd+0 am=9:00',
+          noon: 'd+0 pm=12:00',
+          pm: 'd+0 pm=3:00',
+          end: 'd+0 pm=6:00',
+          eve: 'd+0 pm=11:00',
+        },
+        tomorrow: {
+          am: 'd+1 am=9:00',
+          noon: 'd+1 pm=12:00',
+          pm: 'd+1 pm=3:00',
+          end: 'd+1 pm=6:00',
+          eve: 'd+1 pm=11:00',
+        },
+        'next monday': {
+          am: 'd=monday am=9:00',
+          noon: 'd=monday pm=12:00',
+          pm: 'd=monday pm=3:00',
+          end: 'd=monday pm=6:00',
+          eve: 'd=monday pm=11:00',
+        },
+        'next friday': {
+          am: 'd=friday am=9:00',
+          noon: 'd=friday pm=12:00',
+          pm: 'd=friday pm=3:00',
+          end: 'd=friday pm=6:00',
+          eve: 'd=friday pm=11:00',
+        },
+      });
 
-    const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
+      const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
 
-    const $g2t = $('#g2tDue_Shortcuts', self.$popup);
-    $g2t.html(''); // Clear it.
+      const $g2t = $('#g2tDue_Shortcuts', self.$popup);
+      $g2t.html(''); // Clear it.
 
-    let opt =
-      '<option value="none" selected disabled hidden>-</option>' +
-      '<option value="d=0 am=0">--</option>';
+      let opt =
+        '<option value="none" selected disabled hidden>-</option>' +
+        '<option value="d=0 am=0">--</option>';
 
-    g2t_each(due, function (value, key) {
-      // value is already available from the callback parameter
-      if (typeof value === 'object') {
-        opt += `<optgroup label="${key}">`;
-        g2t_each(value, function (value1, key1) {
-          // value1 is already available from the callback parameter
-          opt += `<option value="${value1}">${key1}</option>`;
-        });
-        opt += '</optgroup>';
-      } else {
-        opt += `<option value="${value}">${key}</option>`;
+      g2t_each(due, function (value, key) {
+        // value is already available from the callback parameter
+        if (typeof value === 'object') {
+          opt += `<optgroup label="${key}">`;
+          g2t_each(value, function (value1, key1) {
+            // value1 is already available from the callback parameter
+            opt += `<option value="${value1}">${key1}</option>`;
+          });
+          opt += '</optgroup>';
+        } else {
+          opt += `<option value="${value}">${key}</option>`;
+        }
+      });
+
+      if (opt) {
+        $g2t.append($(opt));
       }
     });
-
-    if (opt) {
-      $g2t.append($(opt));
-    }
-  });
+  } catch (error) {
+    g2t_log(
+      `bindData ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+    );
+    self?.displayExtensionInvalidReload();
+  }
 
   if (!data) {
     g2t_log("bindData shouldn't continue without data!");
@@ -1180,7 +1210,7 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
 };
 
 Gmail2Trello.PopupView.prototype.showMessage = function (parent, text) {
-  let self = this;
+  const self = this;
   self.$popupMessage.html(text);
 
   // Attach hideMessage function to hideMsg class if in text:
@@ -1204,12 +1234,19 @@ Gmail2Trello.PopupView.prototype.showMessage = function (parent, text) {
         $status.html('Clearing');
         let hash = {};
         hash[self.CLEAR_EXT_BROWSING_DATA] = true;
-        chrome.runtime.sendMessage(hash, function () {
-          $status.html('Done');
-          setTimeout(function () {
-            $status.html('&nbsp;');
-          }, 2500);
-        });
+        try {
+          chrome.runtime.sendMessage(hash, function () {
+            $status.html('Done');
+            setTimeout(function () {
+              $status.html('&nbsp;');
+            }, 2500);
+          });
+        } catch (error) {
+          g2t_log(
+            `showMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
+          );
+          self?.displayExtensionInvalidReload();
+        }
         break;
       case 'showsignout':
         self.showSignOutOptions();
@@ -1751,6 +1788,15 @@ Gmail2Trello.PopupView.prototype.displayAPIFailedForm = function (response) {
       self.event.fire('onRequestDeauthorizeTrello');
     }
   });
+};
+
+Gmail2Trello.PopupView.prototype.displayExtensionInvalidReload = function () {
+  // can't get this from html doc via chrome call if context is invalidated
+  const message = `<a class="hideMsg" title="Dismiss message">&times;</a><h3>Gmail-2-Trello has changed</h3>
+    The page needs to be reloaded to work correctly.
+    <button id="reload">Click here to reload this page</button> <span id="reload" style="color: red">&nbsp;</span>`;
+
+  this.showMessage(this, message);
 };
 
 // End, popupView.js

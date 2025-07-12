@@ -15,7 +15,7 @@ Gmail2Trello.App = function () {
 };
 
 Gmail2Trello.App.prototype.bindEvents = function () {
-  let self = this;
+  const self = this;
 
   /*** Data's events binding ***/
   this.model.event.addListener('onBeforeAuthorize', function () {
@@ -200,7 +200,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
 };
 
 Gmail2Trello.App.prototype.updateData = function () {
-  let self = this;
+  const self = this;
 
   const fullName = self?.model?.trello?.user?.fullName || '';
 
@@ -212,7 +212,7 @@ Gmail2Trello.App.prototype.updateData = function () {
 };
 
 Gmail2Trello.App.prototype.initialize = function () {
-  let self = this;
+  const self = this;
 
   this.model.isInitialized = false;
 
@@ -384,7 +384,7 @@ Gmail2Trello.App.prototype.markdownify = function (
     g2t_log('markdownify: Require emailBody!');
     return;
   }
-  let self = this;
+  const self = this;
 
   const min_text_length_k = 4;
   const max_replace_attempts_k = 10;
@@ -709,8 +709,8 @@ Gmail2Trello.App.prototype.midTruncate = function (text, max, add) {
  * Load settings
  */
 Gmail2Trello.App.prototype.loadSettings = function (popup) {
-  let self = this;
-  const setID = this.CHROME_SETTINGS_ID;
+  const self = this;
+  const setID = self.CHROME_SETTINGS_ID;
   chrome.storage.sync.get(setID, function (response) {
     if (response?.[setID]) {
       // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
@@ -733,9 +733,9 @@ Gmail2Trello.App.prototype.loadSettings = function (popup) {
  * Save settings
  */
 Gmail2Trello.App.prototype.saveSettings = function () {
-  let self = this;
-  const setID = this.CHROME_SETTINGS_ID;
-  let settings = Object.assign({}, this.popupView.data.settings);
+  const self = this;
+  const setID = self.CHROME_SETTINGS_ID;
+  let settings = Object.assign({}, self.popupView.data.settings);
 
   // Delete large, potentially needing secure, data bits:
   settings.description = '';
@@ -752,9 +752,16 @@ Gmail2Trello.App.prototype.saveSettings = function () {
   hash = {};
   hash[setID] = settings_string_k;
 
-  if (!self.lastSettingsSave || self.lastSettingsSave !== settings_string_k) {
-    chrome.storage.sync.set(hash); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
-    self.lastSettingsSave = settings_string_k;
+  if (self.lastSettingsSave !== settings_string_k) {
+    try {
+      chrome.storage.sync.set(hash); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
+      self.lastSettingsSave = settings_string_k;
+    } catch (error) {
+      g2t_log(
+        `saveSettings ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
+      );
+      self?.popupView?.displayExtensionInvalidReload();
+    }
   }
 };
 
@@ -772,7 +779,7 @@ Gmail2Trello.App.prototype.encodeEntities = function (s) {
  * Decode entities
  */
 Gmail2Trello.App.prototype.decodeEntities = function (s) {
-  let self = this;
+  const self = this;
   const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
   let re, new_s;
   g2t_each(dict_k, function (value, key) {

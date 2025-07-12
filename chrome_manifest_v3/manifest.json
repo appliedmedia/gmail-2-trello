@@ -38,6 +38,7 @@
         "inject.js",
         "lib/jquery-3.7.1.min.map",
         "views/error.html",
+        "views/extensionInvalidReload.html",
         "views/popupView.html",
         "views/signOut.html",
         "views/subscribe.html",

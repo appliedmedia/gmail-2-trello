@@ -101,6 +101,19 @@ function g2t_log(data) {
 }
 
 /**
+ * Show extension context invalidated dialog
+ */
+function extensionInvalidConfirmReload() {
+  if (
+    confirm(
+      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+    )
+  ) {
+    window.location.reload();
+  }
+}
+
+/**
  * Handle request from background.js
  * @param  request      Request object, contain parameters
  * @param  sender
@@ -132,10 +145,10 @@ function requestHandler(request, sender, sendResponse) {
 try {
   chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
 } catch (error) {
-  console.warn(
-    'Extension context invalidated, cannot register message listener:',
-    error
+  g2t_log(
+    `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
   );
+  extensionInvalidConfirmReload();
 }
 
 var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization - must be var to guarantee correct scope
@@ -163,10 +176,10 @@ function getGmailObject() {
         script.parentNode.removeChild(script);
       };
     } catch (error) {
-      console.warn(
-        'Extension context invalidated, cannot inject script:',
-        error
+      g2t_log(
+        `getGmailObject ERROR: extension context invalidated - failed "chrome.runtime.getURL"`
       );
+      extensionInvalidConfirmReload();
     }
   }
 }

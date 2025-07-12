@@ -9,11 +9,17 @@ let debugMode_g;
  */
 function logbs(data) {
   if (typeof debugMode_g === 'undefined') {
-    chrome.storage.sync.get('debugMode', function (response) {
-      if (response?.debugMode) {
-        debugMode_g = true;
-      }
-    });
+    try {
+      chrome.storage.sync.get('debugMode', function (response) {
+        if (response?.debugMode) {
+          debugMode_g = true;
+        }
+      });
+    } catch (error) {
+      console.log(
+        `logbs ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+      );
+    }
   }
 
   if (debugMode_g) {
@@ -24,25 +30,49 @@ function logbs(data) {
 /**
  * Detect Gmail's URL everytimes a tab is reloaded or openned
  */
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  logbs(changeInfo.status);
-  if (changeInfo.status === 'complete') {
-    g2t_checkForValidUrl(tab);
-  }
-});
+try {
+  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    logbs(changeInfo.status);
+    if (changeInfo.status === 'complete') {
+      g2t_checkForValidUrl(tab);
+    }
+  });
+} catch (error) {
+  logbs(
+    `service_worker ERROR: extension context invalidated - failed "chrome.tabs.onUpdated.addListener"`
+  );
+}
 
 /**
  * Manage Keyboard Shortcut
  */
-chrome.commands.onCommand.addListener(function (command) {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { message: 'g2t_keyboard_shortcut' },
-      function (response) {}
-    );
+try {
+  chrome.commands.onCommand.addListener(function (command) {
+    try {
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        try {
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            { message: 'g2t_keyboard_shortcut' },
+            function (response) {}
+          );
+        } catch (error) {
+          logbs(
+            `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`
+          );
+        }
+      });
+    } catch (error) {
+      logbs(
+        `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.query"`
+      );
+    }
   });
-});
+} catch (error) {
+  logbs(
+    `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.commands.onCommand.addListener"`
+  );
+}
 
 function g2t_clearExtensionBrowsingData(callback) {
   logbs('clearExtensionBrowsingData');
@@ -82,19 +112,38 @@ function g2t_clearExtensionBrowsingData(callback) {
  * @return bool     Return True if you're on Gmail
  */
 function g2t_checkForValidUrl(tab) {
-  chrome.action.disable(tab.id);
+  try {
+    chrome.action.disable(tab.id);
+  } catch (error) {
+    logbs(
+      `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.disable"`
+    );
+  }
+
   if (tab.url.indexOf('https://mail.google.com/') == 0) {
-    chrome.action.enable(tab.id);
+    try {
+      chrome.action.enable(tab.id);
+    } catch (error) {
+      logbs(
+        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.enable"`
+      );
+    }
 
     logbs(tab.url);
 
     // Call content-script initialize function
-    chrome.tabs.sendMessage(
-      //Selected tab id
-      tab.id,
-      //Params inside a object data
-      { message: 'g2t_initialize' }
-    );
+    try {
+      chrome.tabs.sendMessage(
+        //Selected tab id
+        tab.id,
+        //Params inside a object data
+        { message: 'g2t_initialize' }
+      );
+    } catch (error) {
+      logbs(
+        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`
+      );
+    }
   }
 }
 
@@ -184,20 +233,25 @@ function g2t_uploadAttach(args, callback) {
 /**
  * Manage content script activities that for security reasons and otherwise need to beh andled in background script:
  */
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  // Was: chrome.extension.onMessage.addListener
-  // local storage request
-  if (!request) {
-    // Intentionally blank, don't do anything in this case
-  } else if (request?.storage) {
-    // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
-    // Commented out as this code path is not used and localStorage is not available in service workers
-    /*
-    if (typeof request.value !== 'undefined') {
-      chrome.storage.local.set(
-        { [request.storage]: request.value },
-        function () {
-          logbs('backgroundOnMessage: storage requested!');
+try {
+  chrome.runtime.onMessage.addListener(function (
+    request,
+    sender,
+    sendResponse
+  ) {
+    // Was: chrome.extension.onMessage.addListener
+    // local storage request
+    if (!request) {
+      // Intentionally blank, don't do anything in this case
+    } else if (request?.storage) {
+      // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
+      // Commented out as this code path is not used and localStorage is not available in service workers
+      /*
+      if (typeof request.value !== 'undefined') {
+        chrome.storage.local.set(
+          { [request.storage]: request.value },
+          function () {
+            logbs('backgroundOnMessage: storage requested!');
         }
       );
     }
@@ -206,19 +260,24 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true; // Asynchronous
     */
-    logbs(
-      'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
-    );
-    sendResponse({ storage: null });
-  } else if (request?.CLEAR_EXT_BROWSING_DATA) {
-    g2t_clearExtensionBrowsingData(sendResponse);
-    return true; // Asynchronous
-  } else if (request?.[UPLOAD_ATTACH] != null) {
-    g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
-    return true; // Asynchronous
-  } else {
-    sendResponse({});
-  }
-});
+      logbs(
+        'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
+      );
+      sendResponse({ storage: null });
+    } else if (request?.[CLEAR_EXT_BROWSING_DATA]) {
+      g2t_clearExtensionBrowsingData(sendResponse);
+      return true; // Asynchronous
+    } else if (request?.[UPLOAD_ATTACH] != null) {
+      g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
+      return true; // Asynchronous
+    } else {
+      sendResponse({});
+    }
+  });
+} catch (error) {
+  logbs(
+    `onMessage ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
+  );
+}
 
 // End, background.js

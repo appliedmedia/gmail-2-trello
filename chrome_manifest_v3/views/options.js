@@ -61,12 +61,26 @@ function restore_options() {
   });
 }
 
+function extensionInvalidConfirmReload() {
+  if (
+    confirm(
+      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+    )
+  ) {
+    window.location.reload();
+  }
+}
+
 document.addEventListener('DOMContentLoaded', restore_options);
 document.querySelector('#save').addEventListener('click', save_options);
 document
   .querySelector('#default-dueshortcuts')
   .addEventListener('click', default_dueshortcuts);
-document.getElementById('g2tVersion').textContent =
-  chrome.runtime.getManifest().version || 'unknown';
+try {
+  document.getElementById('g2tVersion').textContent =
+    chrome.runtime.getManifest().version || 'unknown';
+} catch (error) {
+  extensionInvalidConfirmReload();
+}
 
 // End, options.js

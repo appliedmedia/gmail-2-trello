@@ -377,6 +377,8 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
   },
 
   attach: function (method, property, upload1, success, failure) {
+    const self = this;
+
     if (
       !property ||
       property.length < 6 ||
@@ -404,7 +406,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       begin_question_split_k || upload1.name || param_k || 'unknown_filename'; // Use found string or reasonable fallbacks
 
     const callback = function (args) {
-      if (args?.UPLOAD_ATTACH_RESULTS === 'success') {
+      if (args?.[UPLOAD_ATTACH_RESULTS] === 'success') {
         success(args);
       } else {
         failure(args);
@@ -420,7 +422,14 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    chrome.runtime.sendMessage(dict, callback);
+    try {
+      chrome.runtime.sendMessage(dict, callback);
+    } catch (error) {
+      g2t_log(
+        `sendMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
+    }
   },
 
   upload: function () {
@@ -638,8 +647,8 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
   }
 
   chrome_restore() {
-    let self = this;
-    const id_k = this.id;
+    const self = this;
+    const id_k = self.id;
     try {
       chrome.storage.sync.get(id_k, function (response) {
         if (response?.[id_k]) {
@@ -652,18 +661,25 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
           }
         }
       });
-    } catch (err) {
-      g2t_log(`chrome_restore: failed! Error: ${JSON.stringify(err)}`);
+    } catch (error) {
+      g2t_log(
+        `chrome_restore ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
     }
     return this;
   }
 
   chrome_save() {
-    const id_k = this.id;
+    const self = this;
+    const id_k = self.id;
     try {
-      chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
-    } catch (err) {
-      g2t_log(`chrome_save: failed! Error: ${JSON.stringify(err)}`);
+      chrome.storage.sync.set({ [id_k]: JSON.stringify(self.list) });
+    } catch (error) {
+      g2t_log(
+        `chrome_save ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
     }
     return this;
   }
