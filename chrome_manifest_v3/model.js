@@ -305,7 +305,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
   },
 
   add: function (args) {
-    if (args && Object.keys(args).some(key => !!args[key])) {
+    if (args && Object.keys(args).every(key => !!args[key])) {
       if (this.pos !== 'at' && args.property !== this.attachments) {
         // It's a new card so add to the existing hash:
         this.data[0][args.property] = args.value;
