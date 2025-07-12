@@ -155,7 +155,14 @@ function g2t_checkForValidUrl(tab) {
  */
 function g2t_hasAllKeys(dict, keys) {
   if (!dict || !keys?.length) return false;
-  return keys.every(key => dict[key]);
+  return keys.every(key => {
+    const val = dict[key];
+    return val != null && (
+      typeof val === "number" ||
+      typeof val === "boolean" ||
+      val.length > 0
+    );
+  });
 }
 
 /**
