@@ -17,22 +17,58 @@
 let globalInit = false;
 
 /**
+ * Generic hasOwnProperty check that can be easily changed if needed
+ * @param {Object} obj - The object to check
+ * @param {string} prop - The property name to check
+ * @returns {boolean} - True if the object has the property as its own property
+ */
+function g2t_has(obj, prop) {
+  // Use modern Object.hasOwn() if available, otherwise fall back to hasOwnProperty
+  if (typeof Object.hasOwn === 'function') {
+    return Object.hasOwn(obj, prop);
+  } else {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+}
+
+/**
+ * g2t_each: Iterate over arrays or objects like jQuery's $.each
+ * @param {Array|Object} obj - The array or object to iterate
+ * @param {Function} callback - function(value, keyOrIndex, obj)
+ */
+function g2t_each(obj, callback) {
+  if (Array.isArray(obj)) {
+    obj.forEach(function (value, index) {
+      callback(value, index, obj);
+    });
+  } else if (typeof obj === 'object' && obj !== null) {
+    Object.keys(obj).forEach(function (key) {
+      callback(obj[key], key, obj);
+    });
+  }
+  // else: do nothing for null/undefined
+}
+
+/**
  * Global log. A wrapper for console.log, depend on logEnabled flag
  * @param  {any} data data to write log
  */
 function g2t_log(data) {
-  if (!window.hasOwnProperty('g2t_log_g')) {
-    window.g2t_log_g = {
-      memory: [],
-      count: 0,
-      max: 100,
-      debugMode: false,
-    };
+  window.g2t_log_g ??= {
+    memory: [],
+    count: 0,
+    max: 100,
+    debugMode: false,
+  };
+
+  try {
     chrome.storage.sync.get('debugMode', function (response) {
-      if (response.hasOwnProperty('debugMode') && response['debugMode']) {
+      if (response?.debugMode) {
         window.g2t_log_g.debugMode = true;
       }
     });
+  } catch (error) {
+    // Extension context invalidated, continue without debug mode
   }
 
   let l = window.g2t_log_g;
@@ -48,7 +84,7 @@ function g2t_log(data) {
       data = JSON.stringify(data);
     }
 
-    data = now_k + '.' + counter_k + ' G2T→' + data;
+    data = `${now_k}.${counter_k} G2T→${data}`;
 
     l.memory[l.count] = data;
     if (++l.count >= l.max) {
@@ -71,11 +107,7 @@ function g2t_log(data) {
  * @param  sendResponse Callback function
  */
 function requestHandler(request, sender, sendResponse) {
-  if (
-    request &&
-    request.hasOwnProperty('message') &&
-    request.message === 'g2t_initialize'
-  ) {
+  if (request?.message === 'g2t_initialize') {
     // g2t_log('GlobalInit: '+globalInit.toString());
     globalInit = true;
     // enough delay for gmail finishes rendering
@@ -97,7 +129,14 @@ function requestHandler(request, sender, sendResponse) {
 }
 
 // Register Handler
-chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
+try {
+  chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
+} catch (error) {
+  console.warn(
+    'Extension context invalidated, cannot register message listener:',
+    error
+  );
+}
 
 var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization - must be var to guarantee correct scope
 var app = new Gmail2Trello.App();
@@ -114,16 +153,20 @@ function getGmailObject() {
     app.model.userEmail = e.detail.userEmail; // Was: e.detail[10];
   });
 
-  ['inject.js'].forEach(function (item, iter) {
-    let script = document.createElement('script');
-    script.src = chrome.runtime.getURL(item);
-    (document.head || document.documentElement).appendChild(script);
-    script.onload = function () {
-      script.parentNode.removeChild(script);
-    };
-  });
+  const scripts_to_inject = ['inject.js']; // Just one, currently
+  for (const item of scripts_to_inject) {
+    try {
+      const script = document.createElement('script');
+      script.src = chrome.runtime.getURL(item);
+      (document.head || document.documentElement).appendChild(script);
+      script.onload = function () {
+        script.parentNode.removeChild(script);
+      };
+    } catch (error) {
+      console.warn(
+        'Extension context invalidated, cannot inject script:',
+        error
+      );
+    }
+  }
 }
-
-/*
- *  UNIT TESTING GOES HERE. AFFECT TO EVERY PAGES
- */

@@ -166,14 +166,24 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
     ? args.fullName
     : '';
 
-  let url_with_filename = function (url_in = '', var_in = '') {
+  const url_with_filename = function (url_in = '', var_in = '') {
     return self.parent.url_add_var(
       url_in,
-      self.parent.UNIQUE_URI_VAR + '=/' + var_in
+      `${self.parent.UNIQUE_URI_VAR}=/${var_in}`
     );
   };
 
-  let email_raw_md = function (name = '', email = '') {
+  /**
+   * Format name and email with proper spacing and angle brackets
+   * @param {string} name - The display name
+   * @param {string} email - The email address
+   * @returns {string} - Formatted string like "John Doe <john@example.com>"
+   */
+  const displayNameAndEmail = function (name = '', email = '') {
+    return self.parent.addSpace(name, email.length > 0 ? `<${email}>` : '');
+  };
+
+  const email_raw_md = function (name = '', email = '') {
     let raw = '',
       md = '';
     if (!name.length && !email.length) {
@@ -183,54 +193,22 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
       };
     }
 
+    // introduce a local variable instead of reassigning the `name` parameter
+    let displayName = name;
     if (!name.length) {
- let email_raw_md = function (name = '', email = '') {
-   let raw = '',
-     md = '';
-   if (!name.length && !email.length) {
-     return {
-       raw,
-       md,
-     };
-   }
-
-   // introduce a local variable instead of reassigning the `name` parameter
-   let displayName = name;
-   if (!name.length) {
-     displayName = self.parent.splitEmailDomain(email).name || '';
-   } else if (name.toUpperCase() === email.toUpperCase()) {
-     // split out @domain when name and email match exactly
-     displayName = self.parent.splitEmailDomain(name).name || name;
-   }
-
-   raw =
-     self.parent.addSpace(displayName) + (email.length > 0 ? '<' + email + '>' : '');
-
-   if (displayName.length > 0) {
-     if (email.length > 0) {
-       md = '[' + displayName + '](' + email + ')';
-     } else {
-       md = displayName;
-     }
-   } else if (email.length > 0) {
-     md = email;
-   }
-
-   return {
-     raw,
-     md,
-   };
- };
+      displayName = self.parent.splitEmailDomain(email).name || '';
+    } else if (name.toUpperCase() === email.toUpperCase()) {
+      // split out @domain when name and email match exactly
+      displayName = self.parent.splitEmailDomain(name).name || name;
     }
 
-    raw =
-      self.parent.addSpace(name) + (email.length > 0 ? '<' + email + '>' : '');
+    raw = displayNameAndEmail(displayName, email);
 
-    if (name.length > 0) {
+    if (displayName.length > 0) {
       if (email.length > 0) {
-        md = '[' + name + '](' + email + ')';
+        md = `[${displayName}](${email})`;
       } else {
-        md = name;
+        md = displayName;
       }
     } else if (email.length > 0) {
       md = email;
@@ -278,7 +256,8 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   const $emailCC_k = $('span.g2', $email1_k);
   let me_email = '';
   let me_name = '';
-  let emailCC = $emailCC_k.map(function () {
+  let emailCC = [];
+  $emailCC_k.each(function () {
     const email = ($(this).attr('email') || '').trim();
     let name = ($(this).attr('name') || '').trim();
     // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
@@ -295,10 +274,10 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
       if (email == me_email && name !== 'me') {
         me_name = name;
       }
-      return {
+      emailCC.push({
         email,
         name,
-      };
+      });
     }
   });
 
@@ -316,20 +295,21 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   }
 
   // email attachments
-  let emailAttachments = $('span.aZo', $email1_k).map(function () {
+  let emailAttachments = [];
+  $('span.aZo', $email1_k).each(function () {
     const item_k = $(this).attr('download_url');
     if (item_k && item_k.length > 0) {
-      var attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
+      const attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
       if (attachment && attachment.length > 3) {
         const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
         const url_k = attachment[3]; // Was: self.parent.midTruncate(attachment[3], 50, '...');
-        return {
+        emailAttachments.push({
           mimeType: attachment[1],
           name: name_k,
           // NOTE (Ace@2017-04-20): Adding this explicitly at the end of the URL so it'll pick up the "filename":
           url: url_with_filename(url_k, name_k),
           checked: 'false',
-        }; // [0] is the whole string
+        }); // [0] is the whole string
       }
     }
   });
@@ -370,8 +350,8 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   }
 
   let from_raw_md = email_raw_md(emailFromName, emailFromAddress);
-  let from_raw = 'From: ' + self.parent.addSpace(from_raw_md.raw, data.time);
-  let from_md = 'From: ' + self.parent.addSpace(from_raw_md.md, data.time);
+  const from_raw = `From: ${self.parent.addSpace(from_raw_md.raw, data.time)}`;
+  const from_md = `From: ${self.parent.addSpace(from_raw_md.md, data.time)}`;
 
   // subject
   let $subject = $('.hP', this.$root).first(); // Is above the primary first email, so grab it from root
@@ -416,39 +396,26 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   let dateSearch = encodeURIComponent(data.time);
 
   let txtAnchor = 'Search';
-  let txtDirect = 'https://mail.google.com/mail/#search/' + subject;
+  let txtDirect = `https://mail.google.com/mail/#search/${subject}`;
   let txtDirectComment = 'Search by subject';
 
   if (data.emailId && data.emailId.length > 1) {
     txtAnchor = 'id';
-    txtDirect =
-      'https://mail.google.com' +
-      window.location.pathname /* /mail/u/0/ */ +
-      '#all/' +
-      data.emailId;
+    txtDirect = `https://mail.google.com${window.location.pathname}#all/${data.emailId}`;
     txtDirectComment = 'Open by id';
   }
 
-  var txtSearch =
-    'https://mail.google.com/mail/#advanced-search/subset=all&has=' +
-    subject +
-    '&within=1d&date=' +
-    dateSearch;
+  const txtSearch = `https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch}`;
 
-  data.linkAsRaw = '[<' + txtDirect + '> | <' + txtSearch + '>]\n';
-  data.linkAsMd =
-    '[' +
-    self.parent
-      .anchorMarkdownify(txtAnchor, txtDirect, txtDirectComment)
-      .trim() + // don't need leading and trailing spaces
-    ' | ' +
-    self.parent
-      .anchorMarkdownify('time', txtSearch, 'Search by subject + time')
-      .trim() + // don't need leading and trailing spaces
-    ']\n';
+  data.linkAsRaw = `[<${txtDirect}> | <${txtSearch}>]\n`;
+  data.linkAsMd = `[${self.parent
+    .anchorMarkdownify(txtAnchor, txtDirect, txtDirectComment)
+    .trim()} | ${self.parent
+    .anchorMarkdownify('time', txtSearch, 'Search by subject + time')
+    .trim()}]\n`;
 
   // email body
-  let make_preprocess_mailto = function (name, email) {
+  const make_preprocess_mailto = function (name, email) {
     let forms = [
       '%name% <%email%>',
       '%name% (%email%)',
@@ -467,7 +434,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
 
     let retn = {};
 
-    forms.forEach(function (item) {
+    g2t_each(forms, function (item) {
       let item1 = self.parent.replacer(item, dict);
       retn[item1.toLowerCase()] = anchor_md;
     });
@@ -514,14 +481,12 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   data.ccAsRaw = cc_raw;
   data.ccAsMd = cc_md;
 
-  data.bodyAsRaw =
-    from_raw +
-    ':\n\n' +
-    (selectedText || this.parent.markdownify($emailBody1_k, false, preprocess));
-  data.bodyAsMd =
-    from_md +
-    ':\n\n' +
-    (selectedText || this.parent.markdownify($emailBody1_k, true, preprocess));
+  data.bodyAsRaw = `${from_raw}:\n\n${
+    selectedText || this.parent.markdownify($emailBody1_k, false, preprocess)
+  }`;
+  data.bodyAsMd = `${from_md}:\n\n${
+    selectedText || this.parent.markdownify($emailBody1_k, true, preprocess)
+  }`;
 
   let emailImages = {};
 
