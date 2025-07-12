@@ -684,7 +684,6 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
     */
 };
 
-Gmail2Trello.PopupView.prototype.submit = function () {
   let self = this;
 
   if (self.validateData()) {
@@ -778,7 +777,6 @@ Gmail2Trello.PopupView.prototype.toggleActiveMouseDown = function (elm) {
     $(activeDiv).removeClass('active-mouseDown');
   }
 };
-Gmail2Trello.PopupView.prototype.hidePopup = function () {
   let self = this;
 
   if (self.$g2tButton && self.$popup) {
@@ -787,13 +785,12 @@ Gmail2Trello.PopupView.prototype.hidePopup = function () {
   }
 };
 
-Gmail2Trello.PopupView.prototype.popupVisible = function () {
   let self = this;
   let visible = false;
   if (
-    self.$g2tButton &&
-    self.$popup &&
-    self.$popup.css('display') === 'block'
+    this.$g2tButton &&
+    this.$popup &&
+    this.$popup.css('display') === 'block'
   ) {
     visible = true;
   }
