@@ -1736,7 +1736,8 @@ Gmail2Trello.PopupView.prototype.displaySubmitCompleteForm = function () {
 };
 
 Gmail2Trello.PopupView.prototype.displayAPIFailedForm = function (response) {
-  let self = this;
+-  let self = this;
++  const self = this;
 
   let resp = {};
   if (response && response.data) {
