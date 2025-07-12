@@ -575,7 +575,7 @@ Gmail2Trello.PopupView.prototype.bindEvents = function () {
         } else {
           const am_k = due_time.substr(0, 1).toLowerCase() === 'a';
           const hhmm_k = due_time.substr(3).split(':');
-          let hours = parseInt(hhmm_k[0], 10);
+          let hours = Number.parseInt(hhmm_k[0], 10);
           // http://stackoverflow.com/questions/15083548/convert-12-hour-hhmm-am-pm-to-24-hour-hhmm:
           if (hours === 12) {
             hours = 0;
