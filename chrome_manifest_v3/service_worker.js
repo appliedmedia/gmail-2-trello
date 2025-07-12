@@ -5,27 +5,12 @@ const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
 let debugMode_g;
 
 /**
- * Generic hasOwnProperty check that can be easily changed if needed
- * @param {Object} obj - The object to check
- * @param {string} prop - The property name to check
- * @returns {boolean} - True if the object has the property as its own property
- */
-function hasbs(obj, prop) {
-  // Use modern Object.hasOwn() if available, otherwise fall back to hasOwnProperty
-  if (typeof Object.hasOwn === 'function') {
-    return Object.hasOwn(obj, prop);
-  } else {
-    return Object.prototype.hasOwnProperty.call(obj, prop);
-  }
-}
-
-/**
  * Call console.log if in DEBUG mode only
  */
 function logbs(data) {
   if (typeof debugMode_g === 'undefined') {
     chrome.storage.sync.get('debugMode', function (response) {
-      if (hasbs(response, 'debugMode') && response['debugMode']) {
+      if (response?.debugMode) {
         debugMode_g = true;
       }
     });
@@ -122,7 +107,7 @@ function g2t_checkForValidUrl(tab) {
 function g2t_hasAllKeys(dict, keys) {
   const size_k = keys.length;
   for (let iter = 0; iter < size_k; iter++) {
-    if (!hasbs(dict, keys[iter]) || dict[keys[iter]].length < 1) {
+    if (!dict?.[keys[iter]]?.length) {
       return false;
     }
   }
@@ -209,7 +194,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   // local storage request
   if (!request) {
     // Intentionally blank, don't do anything in this case
-  } else if (hasbs(request, 'storage') && request.storage) {
+  } else if (request?.storage) {
     // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
     // Commented out as this code path is not used and localStorage is not available in service workers
     /*
@@ -231,12 +216,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     );
     sendResponse({ storage: null });
   } else if (
-    hasbs(request, CLEAR_EXT_BROWSING_DATA) &&
-    request[CLEAR_EXT_BROWSING_DATA] === true
+    request?[CLEAR_EXT_BROWSING_DATA] === true &&
+    
   ) {
     g2t_clearExtensionBrowsingData(sendResponse);
     return true; // Asynchronous
-  } else if (hasbs(request, UPLOAD_ATTACH)) {
+  } else if (request?.[UPLOAD_ATTACH] != null) {
     g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
     return true; // Asynchronous
   } else {
