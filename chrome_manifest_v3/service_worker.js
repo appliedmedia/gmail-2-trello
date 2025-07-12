@@ -105,13 +105,8 @@ function g2t_checkForValidUrl(tab) {
  * @return true if present with value, false if not
  */
 function g2t_hasAllKeys(dict, keys) {
-  const size_k = keys.length;
-  for (let iter = 0; iter < size_k; iter++) {
-    if (!dict?.[keys[iter]]?.length) {
-      return false;
-    }
-  }
-  return true;
+  if (!dict || !keys?.length) return false;
+  return keys.every(key => dict[key]);
 }
 
 /**
@@ -215,10 +210,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
     );
     sendResponse({ storage: null });
-  } else if (
-    request?[CLEAR_EXT_BROWSING_DATA] === true &&
-    
-  ) {
+  } else if (request?.CLEAR_EXT_BROWSING_DATA) {
     g2t_clearExtensionBrowsingData(sendResponse);
     return true; // Asynchronous
   } else if (request?.[UPLOAD_ATTACH] != null) {

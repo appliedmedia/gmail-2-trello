@@ -17,9 +17,6 @@ Gmail2Trello.App = function () {
 Gmail2Trello.App.prototype.bindEvents = function () {
   let self = this;
 
-  const dl_k = self.deep_link; // Convenience functions
-  const vh_k = self.validHash; // Convenience functions
-
   /*** Data's events binding ***/
   this.model.event.addListener('onBeforeAuthorize', function () {
     self.popupView.bindData(''); // Intentionally blank
@@ -77,14 +74,14 @@ Gmail2Trello.App.prototype.bindEvents = function () {
     function (target, params) {
       self.popupView.displaySubmitCompleteForm();
       // If card lists or labels have been updated, reload:
-      const data_k = dl_k(params, ['data']);
-      const emailId = dl_k(data_k, ['emailId']);
-      const boardId_k = dl_k(data_k, ['data', 'board', 'id']);
-      const listId_k = dl_k(data_k, ['data', 'list', 'id']);
-      const cardId_k = dl_k(data_k, ['data', 'card', 'id']);
-      const idBoard_k = dl_k(data_k, ['idBoard']);
-      const idList_k = dl_k(data_k, ['idList']);
-      const idCard_k = dl_k(data_k, ['idCard']);
+      const data_k = params?.data || {};
+      const emailId = data_k?.emailId || 0;
+      const boardId_k = data_k?.data?.board?.id || 0;
+      const listId_k = data_k?.data?.list?.id || 0;
+      const cardId_k = data_k?.data?.card?.id || 0;
+      const idBoard_k = data_k?.idBoard || 0;
+      const idList_k = data_k?.idList || 0;
+      const idCard_k = data_k?.idCard || 0;
       const boardId = boardId_k || idBoard_k || 0;
       const listId = listId_k || idList_k || 0;
       const cardId = cardId_k || idCard_k || 0;
@@ -125,11 +122,8 @@ Gmail2Trello.App.prototype.bindEvents = function () {
       self.popupView.reset();
     }
 
-    let fullName = '';
-    const trelloUser_k = dl_k(self, ['model', 'trello', 'user']);
-    if (vh_k(trelloUser_k, ['fullName'])) {
-      fullName = trelloUser_k.fullName;
-    }
+    const trelloUser_k = self?.model?.trello?.user || {};
+    const fullName = trelloUser_k?.fullName || '';
 
     self.gmailView.parsingData = false;
     self.model.gmail = self.gmailView.parseData({ fullName });
@@ -199,11 +193,7 @@ Gmail2Trello.App.prototype.bindEvents = function () {
     sender,
     sendResponse
   ) {
-    if (
-      request &&
-      g2t_has(request, 'message') &&
-      request.message === 'g2t_keyboard_shortcut'
-    ) {
+    if (request?.message === 'g2t_keyboard_shortcut') {
       self.popupView.showPopup();
     }
   });
@@ -211,23 +201,10 @@ Gmail2Trello.App.prototype.bindEvents = function () {
 
 Gmail2Trello.App.prototype.updateData = function () {
   let self = this;
-  const dl_k = self.deep_link;
-  const vh_k = self.validHash;
 
-  let fullName = '';
-  const trello_k = dl_k(self, ['model', 'trello']);
-  if (vh_k(trello_k, ['user', 'boards'])) {
-    self.popupView.bindData(self.model);
-    if (vh_k(trello_k.user, ['fullName'])) {
-      fullName = trello_k.user.fullName;
-    }
-  }
+  const fullName = self?.model?.trello?.user?.fullName || '';
 
-  /*
-    if (self.model.trello.user !== null && self.model.trello.boards !== null) {
-        self.popupView.bindData(self.model);
-    }
-    */
+  self.popupView.bindData(self.model);
 
   self.gmailView.parsingData = false;
   self.model.gmail = self.gmailView.parseData({ fullName });
@@ -377,7 +354,7 @@ Gmail2Trello.App.prototype.addChar = function (
   } else if (back.length > 0) {
     return `${addChar}${back}`;
   } else {
-    return "";
+    return '';
   }
 };
 
@@ -421,20 +398,7 @@ Gmail2Trello.App.prototype.markdownify = function (
   let replacer_dict = {};
 
   const featureEnabled = function (elementTag) {
-    // Assume TRUE to process, unless explicitly restricted:
-    if (typeof features === 'undefined') {
-      return true;
-    }
-    if (features === false) {
-      return false;
-    }
-    if (!g2t_has(features, elementTag)) {
-      return true;
-    }
-    if (features[elementTag] !== false) {
-      return true;
-    }
-    return false;
+    return features?.[elementTag] !== false;
   };
 
   let $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
@@ -866,58 +830,6 @@ Gmail2Trello.App.prototype.modKey = function (event) {
   }
 
   return retn;
-};
-
-/**
- * Validate deep link or return empty object:
- */
-Gmail2Trello.App.prototype.deep_link = function (obj = {}, reqs = []) {
-  if (!obj) return '';
-  if (!reqs) return '';
-
-  let field1,
-    obj_ptr = obj,
-    valid = true,
-    fields = reqs,
-    fieldCount = 0;
-
-  const field_max_k = fields.length;
-
-  while ((field1 = fields[fieldCount]) && valid && field_max_k > fieldCount++) {
-    if ((valid = g2t_has(obj_ptr, field1))) {
-      obj_ptr = obj_ptr[field1];
-    }
-  }
-  return valid ? obj_ptr : '';
-};
-
-/**
- * Validate hash table entries are non-blank
- */
-Gmail2Trello.App.prototype.validHash = function (args = {}, reqs = []) {
-  if (!args) {
-    g2t_log('validHash: Require args!');
-    return false;
-  }
-
-  let fields = reqs?.length ? reqs : Object.keys(args),
-    field1,
-    fieldCount = 0,
-    valid = true;
-
-  const field_max_k = fields.length;
-
-  while ((field1 = fields[fieldCount]) && valid && field_max_k > fieldCount++) {
-    if (
-      !g2t_has(args, field1) ||
-      args[field1] == null ||
-      args[field1].length < 1
-    ) {
-      valid = false;
-    }
-  }
-
-  return valid;
 };
 
 Gmail2Trello.App.prototype.url_add_var = function (url_in = '', var_in = '') {

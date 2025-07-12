@@ -162,9 +162,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   let self = this;
   let data = {};
 
-  const fullName_k = self.parent.validHash(args, ['fullName'])
-    ? args.fullName
-    : '';
+  const fullName_k = args?.fullName || '';
 
   const url_with_filename = function (url_in = '', var_in = '') {
     return self.parent.url_add_var(
@@ -270,7 +268,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
         me_email = email;
       }
     }
-    if (email && email.length > 0) {
+    if (email?.length > 0) {
       if (email == me_email && name !== 'me') {
         me_name = name;
       }
@@ -298,7 +296,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   let emailAttachments = [];
   $('span.aZo', $email1_k).each(function () {
     const item_k = $(this).attr('download_url');
-    if (item_k && item_k.length > 0) {
+    if (item_k?.length > 0) {
       const attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
       if (attachment && attachment.length > 3) {
         const name_k = self.parent.decodeEntities(attachment[2]); // was: decodeURIComponent
@@ -452,7 +450,7 @@ Gmail2Trello.GmailView.prototype.parseData = function (args = {}) {
   $.each(emailCC, function (iter, item) {
     if (item.name == 'me') {
       // We didn't have your full name in time to replace it earlier, we'll try now:
-      item.name = me_name && me_name.length > 0 ? me_name : 'me';
+      item.name = me_name || 'me';
     }
     $.extend(preprocess['a'], make_preprocess_mailto(item.name, item.email));
     let cc_raw_md = email_raw_md(item.name, item.email);

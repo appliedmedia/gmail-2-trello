@@ -321,7 +321,7 @@ Gmail2Trello.PopupView.prototype.updateBody = function (data = {}) {
   let $g2tDesc = $('#g2tDesc', self.$popup);
 
   let fields = ['bodyAsRaw', 'bodyAsMd', 'linkAsRaw', 'linkAsMd', 'emailId'];
-  const valid_data_k = self.parent.validHash(data, fields);
+  const valid_data_k = fields.every(field => !!data?.[field]);
 
   fields.push('ccAsRaw', 'ccAsMd'); // These are conditional
 
@@ -800,13 +800,7 @@ Gmail2Trello.PopupView.prototype.popupVisible = function () {
 };
 
 Gmail2Trello.PopupView.prototype.getManifestVersion = function () {
-  if (typeof chrome.runtime.getManifest === 'function') {
-    const manifest_k = chrome.runtime.getManifest();
-    if (g2t_has(manifest_k, 'version')) {
-      return manifest_k.version;
-    }
-  }
-  return '0';
+  return chrome?.runtime?.getManifest?.()?.version || '0';
 };
 
 Gmail2Trello.PopupView.prototype.periodicChecks = function () {
@@ -816,10 +810,7 @@ Gmail2Trello.PopupView.prototype.periodicChecks = function () {
 
   if (version_new > '0') {
     chrome.storage.sync.get(version_storage_k, function (response) {
-      const version_old =
-        response && g2t_has(response, version_storage_k)
-          ? response[version_storage_k]
-          : '0';
+      const version_old = response?.[version_storage_k] || '0';
       if (version_old > '0') {
         if (version_old !== version_new) {
           $.get(
@@ -959,17 +950,11 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     return;
   }
 
-  const settings_existing_k = self.parent.deep_link(self, ['data', 'settings']);
-  const settings_existing_boardId_valid_k = self.parent.validHash(
-    settings_existing_k,
-    ['boardId']
-  );
+  const settings_existing_k = self?.data?.settings || {};
+  const settings_existing_boardId_valid_k = !!settings_existing_k?.boardId;
 
-  const settings_incoming_k = self.parent.deep_link(data, ['settings']);
-  const settings_incoming_boardId_valid_k = self.parent.validHash(
-    settings_incoming_k,
-    ['boardId']
-  );
+  const settings_incoming_k = data?.settings || {};
+  const settings_incoming_boardId_valid_k = !!settings_incoming_k?.boardId;
 
   self.data = data;
 
@@ -980,23 +965,23 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
   }
 
   // bind trello data
-  const me = self.parent.deep_link(data, ['trello', 'user']); // First member is always this user
+  const me = data?.trello?.user || {}; // First member is always this user
   // self.fullName = me.fullName; // Move a copy here
 
   const avatarUrl = me.avatarUrl || '';
   const avatarSrc = self.parent.model.makeAvatarUrl({ avatarUrl });
   let avatarText = '';
+  let initials = '?';
 
   if (!avatarSrc) {
-    var initials = '?';
-    if (me.initials && me.initials.length > 0) {
+    if (me.initials?.length > 0) {
       initials = me.initials;
-    } else if (me.fullName && me.fullName.length > 1) {
-      var matched = me.fullName.match(/^(\w).*?[\s\\W]+(\w)\w*$/);
+    } else if (me.fullName?.length > 1) {
+      const matched = me.fullName.match(/^(\w).*?[\s\\W]+(\w)\w*$/);
       if (matched && matched.length > 1) {
         initials = matched[1] + matched[2]; // 0 is whole string
       }
-    } else if (me.username && me.username.length > 0) {
+    } else if (me.username?.length > 0) {
       initials = me.username.slice(0, 1);
     }
 
@@ -1055,16 +1040,15 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
 
     const lastError_k = (self.lastError || '') + (self.lastError ? '\n' : '');
 
-    const dl_k = self.parent.deep_link; // Pointer to function for expedience
-    const data_k = dl_k(self, ['data']);
-    const newCard_k = dl_k(data_k, ['newCard']);
+    const data_k = self?.data || {};
+    const newCard_k = data_k?.newCard || {};
     let newCard = Object.assign({}, newCard_k);
     //// delete newCard.title;
     delete newCard.description;
-    const user_k = dl_k(data_k, ['trello', 'user']);
-    const username_k = dl_k(user_k, ['username']);
-    const fullname_k = dl_k(user_k, ['fullName']);
-    const date_k = new Date().toISOString().substr(0, 10);
+    const user_k = data_k?.trello?.user || {};
+    const username_k = user_k?.username || '';
+    const fullname_k = user_k?.fullName || '';
+    const date_k = new Date().toISOString().substring(0, 10);
     self.updateBoards('52e1397addf85d4751f99319'); // GtT board
     $('#g2tDesc', self.$popup).val(
       lastError_k + JSON.stringify(newCard) + '\n' + g2t_log()
@@ -1176,7 +1160,9 @@ Gmail2Trello.PopupView.prototype.bindGmailData = function (data = {}) {
     emailId,
   });
 
-  if (self.parent.validHash(mapAvailable_k, ['boardId', 'listId', 'cardId'])) {
+  if (
+    ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
+  ) {
     // If we're restoring we must be adding to an existing card:
     $('#g2tPosition', self.$popup).val('to');
 
@@ -1261,23 +1247,21 @@ Gmail2Trello.PopupView.prototype.clearBoard = function () {
 Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
   var self = this;
 
-  const array_k = self.parent.deep_link(self, ['data', 'trello', 'boards']);
+  const array_k = self?.data?.trello?.boards || [];
 
   if (!array_k) {
     return;
   }
 
-  const restoreId_k =
-    tempId || self.parent.deep_link(self, ['data', 'settings', 'boardId']) || 0;
+  const restoreId_k = tempId || self?.data?.settings?.boardId || 0;
 
   let newArray = {};
 
   g2t_each(array_k, function (item) {
-    const org_k =
-      g2t_has(item, 'organization') && g2t_has(item.organization, 'displayName')
-        ? '!' + item.organization.displayName + ': '
-        : '~';
-    const display_k = org_k + item.name; // Ignore first char, it's used just for sorting
+    const org_k = item?.organization?.displayName
+      ? `!${item.organization.displayName}: `
+      : '~';
+    const display_k = `${org_k}${item.name}`; // Ignore first char, it's used just for sorting
     newArray[display_k.toLowerCase()] = {
       id: item.id,
       display: display_k,
@@ -1305,29 +1289,26 @@ Gmail2Trello.PopupView.prototype.updateBoards = function (tempId = 0) {
 
 Gmail2Trello.PopupView.prototype.updateLists = function (tempId = 0) {
   var self = this;
-  const array_k = self.parent.deep_link(self, ['data', 'trello', 'lists']);
+  const array_k = self?.data?.trello?.lists || [];
 
   if (!array_k) {
     return;
   }
 
-  const settings_k = self.parent.deep_link(self, ['data', 'settings']);
+  const settings_k = self?.data?.settings || {};
 
   const boardId_k = $('#g2tBoard', this.$popup).val();
 
   const prev_item_k =
-    g2t_has(settings_k, 'boardId') &&
-    settings_k.boardId == boardId_k &&
-    g2t_has(settings_k, 'listId')
+    settings_k?.boardId == boardId_k && settings_k?.listId
       ? settings_k.listId
       : 0;
 
   const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
 
-  const updatePending_k =
-    self.updatesPending.length && g2t_has(self.updatesPending[0], 'listId')
-      ? self.updatesPending.shift().listId
-      : 0;
+  const updatePending_k = self.updatesPending[0]?.listId
+    ? self.updatesPending.shift().listId
+    : 0;
 
   const restoreId_k =
     updatePending_k || tempId || prev_item_k || first_item_k || 0;
@@ -1355,30 +1336,27 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
   const new_k = '<option value="-1">(new card at top)</option>';
 
-  const array_k = self.parent.deep_link(self, ['data', 'trello', 'cards']);
+  const array_k = self?.data?.trello?.cards || [];
   // var cards = this.data.trello.cards;
 
   if (!array_k) {
     return;
   }
 
-  const settings_k = self.parent.deep_link(self, ['data', 'settings']);
+  const settings_k = self?.data?.settings || {};
 
   const listId_k = $('#g2tList', this.$popup).val();
 
   const prev_item_k =
-    g2t_has(settings_k, 'listId') &&
-    settings_k.listId == listId_k &&
-    g2t_has(settings_k, 'cardId')
+    settings_k?.listId == listId_k && settings_k?.cardId
       ? settings_k.cardId
       : 0;
 
   const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
 
-  const updatePending_k =
-    self.updatesPending.length && g2t_has(self.updatesPending[0], 'cardId')
-      ? self.updatesPending.shift().cardId
-      : 0;
+  const updatePending_k = self.updatesPending[0]?.cardId
+    ? self.updatesPending.shift().cardId
+    : 0;
 
   const restoreId_k =
     updatePending_k || tempId || prev_item_k || first_item_k || 0;
@@ -1427,7 +1405,7 @@ Gmail2Trello.PopupView.prototype.updateLabels = function () {
 
   for (var i = 0; i < labels.length; i++) {
     var item = labels[i];
-    if (item.name && item.name.length > 0) {
+    if (item.name?.length > 0) {
       var $color = $("<div id='g2t_temp'>").css('color', item.color);
       var bkColor = self.parent.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
       $g2t.append(
@@ -1546,7 +1524,7 @@ Gmail2Trello.PopupView.prototype.updateMembers = function () {
   });
 
   var settings = this.data.settings;
-  if (settings.membersId && settings.membersId.length > 0) {
+  if (settings.membersId?.length > 0) {
     var settingId = settings.membersId;
     for (var i = 0; i < members.length; i++) {
       var item = members[i];
@@ -1678,10 +1656,7 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
 
     self.parent.saveSettings();
   }
-  $('#addToTrello', self.$popup).attr(
-    'disabled',
-    validateStatus ? false : 'disabled'
-  );
+  $('#addToTrello', self.$popup).attr('disabled', validateStatus || 'disabled');
 
   return validateStatus;
 };
