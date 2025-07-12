@@ -1074,7 +1074,7 @@ Gmail2Trello.PopupView.prototype.bindData = function (data) {
     const newCard_k = data_k?.newCard || {};
     let newCard = Object.assign({}, newCard_k);
     //// delete newCard.title;
-    delete newCard.description;
+    newCard.description = undefined;
     const user_k = data_k?.trello?.user || {};
     const username_k = user_k?.username || '';
     const fullname_k = user_k?.fullName || '';
