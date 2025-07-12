@@ -1384,7 +1384,7 @@ Gmail2Trello.PopupView.prototype.updateCards = function (tempId = 0) {
 
 // Select/de-select attachments and images based on first button's state:
 Gmail2Trello.PopupView.prototype.toggleCheckboxes = function (tag) {
-  var $jTags = $('#' + tag + ' input[type="checkbox"]', self.$popup);
+  var $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
   let $jTag1 = $jTags.first();
   const checked_k = $jTag1.prop('checked') || false;
   $jTags.prop('checked', !checked_k);
@@ -1656,7 +1656,12 @@ Gmail2Trello.PopupView.prototype.validateData = function () {
 
     self.parent.saveSettings();
   }
-  $('#addToTrello', self.$popup).attr('disabled', validateStatus || 'disabled');
+
+  const setDisabledAttrToFalseWhenValid = validateStatus ? false : 'disabled';
+  $('#addToTrello', self.$popup).attr(
+    'disabled',
+    setDisabledAttrToFalseWhenValid
+  );
 
   return validateStatus;
 };
