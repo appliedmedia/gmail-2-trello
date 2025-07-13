@@ -96,11 +96,7 @@ Gmail2Trello.Model.prototype.deauthorizeTrello = function () {
 // avatarUrl return format is "https://trello-members.s3.amazonaws.com/{member-id}/{member-avatar-hash}/30.png"
 Gmail2Trello.Model.prototype.makeAvatarUrl = function (args) {
   let retn = '';
-  if (
-    g2t_has(args, 'avatarUrl') &&
-    args.avatarUrl &&
-    args.avatarUrl.length > 8
-  ) {
+  if (args?.avatarUrl?.length > 8) {
     retn = `${args.avatarUrl}/30.png`;
   }
   return retn;
@@ -120,7 +116,7 @@ Gmail2Trello.Model.prototype.loadTrelloData = function () {
     'members/me',
     {},
     function (data) {
-      if (!data || !g2t_has(data, 'id')) {
+      if (!data?.id) {
         return false;
       }
 
@@ -277,7 +273,7 @@ Gmail2Trello.Model.prototype.loadTrelloMembers = function (boardId) {
 };
 
 Gmail2Trello.Model.prototype.Uploader = function (args) {
-  if (!args || !g2t_has(args, 'parent')) {
+  if (!args?.parent) {
     return;
   }
 
@@ -309,7 +305,14 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
   },
 
   add: function (args) {
-    if (this.parent.parent.validHash(args)) {
+    if (args && Object.keys(args).every(key => {
+      const val = args[key];
+      return val != null && (
+        typeof val === "number" ||
+        typeof val === "boolean" ||
+        val.length > 0
+      );
+    })) {
       if (this.pos !== 'at' && args.property !== this.attachments) {
         // It's a new card so add to the existing hash:
         this.data[0][args.property] = args.value;
@@ -353,19 +356,17 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
   },
 
   process_response: function (data_in) {
-    const dl_k = this.parent.parent.deep_link; // Pointer to function for expedience
+    const url_k = data_in?.url || '';
+    const id_k = data_in?.id || '';
+    const card_k = data_in?.data?.card || {};
 
-    const url_k = dl_k(data_in, ['url']);
-    const id_k = dl_k(data_in, ['id']);
-    const card_k = dl_k(data_in, ['data', 'card']);
-
-    let shortLink = dl_k(card_k, ['shortLink']);
-    if (shortLink && shortLink.length > 0) {
+    let shortLink = card_k?.shortLink || '';
+    if (shortLink.length > 0) {
       shortLink = `https://trello.com/c/${shortLink}`;
     }
 
-    const add_id_k = dl_k(card_k, ['id']);
-    const add_title_k = dl_k(card_k, ['name']);
+    const add_id_k = card_k?.id || 0;
+    const add_title_k = card_k?.name || '';
 
     const new_url_k = shortLink || url_k || '';
     const new_id_k = add_id_k || id_k || '';
@@ -377,12 +378,14 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       this.parent.newCard.id = new_id_k;
       this.cardId = new_id_k;
     }
-    if (add_title_k && add_title_k.length > 0) {
+    if (add_title_k?.length > 0) {
       this.parent.newCard.title = add_title_k;
     }
   },
 
   attach: function (method, property, upload1, success, failure) {
+    const self = this;
+
     if (
       !property ||
       property.length < 6 ||
@@ -410,10 +413,7 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       begin_question_split_k || upload1.name || param_k || 'unknown_filename'; // Use found string or reasonable fallbacks
 
     const callback = function (args) {
-      if (
-        g2t_has(args, UPLOAD_ATTACH_RESULTS) &&
-        args[UPLOAD_ATTACH_RESULTS] === 'success'
-      ) {
+      if (args?.[UPLOAD_ATTACH_RESULTS] === 'success') {
         success(args);
       } else {
         failure(args);
@@ -429,7 +429,14 @@ Gmail2Trello.Model.prototype.Uploader.prototype = {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    chrome.runtime.sendMessage(dict, callback);
+    try {
+      chrome.runtime.sendMessage(dict, callback);
+    } catch (error) {
+      g2t_log(
+        `sendMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
+    }
   },
 
   upload: function () {
@@ -574,12 +581,7 @@ Gmail2Trello.Model.prototype.submit = function () {
   let imagesAndAttachments = (data.images || []).concat(data.attachments || []);
 
   g2t_each(imagesAndAttachments, function (item) {
-    if (
-      g2t_has(item, 'checked') &&
-      item.checked &&
-      item.url &&
-      item.url.length > 5
-    ) {
+    if (item?.checked && item.url?.length > 5) {
       uploader.add({
         property: uploader.attachments,
         value: item.url,
@@ -618,7 +620,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
   constructor(args) {
     this.list = [];
     this.parent = this;
-    if (args && g2t_has(args, 'parent')) {
+    if (args?.parent) {
       this.parent = args.parent;
     }
     this.chrome_restore();
@@ -632,40 +634,21 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
   }
 
   static call_in(args) {
-    const vh_k = Gmail2Trello.App.prototype.validHash;
-
-    if (!vh_k(args, ['obj', 'fn', 'key_value'])) {
-      return {};
-    }
-
-    if (!vh_k(args.key_value)) {
-      return {};
-    }
-
-    const eblcMapID = this.id;
-    if (!(typeof args.obj === 'object' && g2t_has(args.obj, eblcMapID))) {
-      g2t_log(`valid: no object with ${eblcMapID}!`);
-      return {};
-    }
-
-    const instance_k = args.obj[eblcMapID];
-    if (!(args.fn in instance_k)) {
-      g2t_log(`valid: ${args.fn} missing!`);
-      return {};
-    }
-
-    const retn_k = instance_k[args.fn](args.key_value);
+    const eblcMapID = this.id || 0;
+    const retn_k = args?.obj?.[eblcMapID]?.[args.fn]?.(args.key_value) || {};
     return retn_k;
   }
 
   add(args = {}) {
     if (
-      this.parent.parent.validHash(args, [
-        'emailId',
-        'boardId',
-        'listId',
-        'cardId',
-      ])
+      ['emailId', 'boardId', 'listId', 'cardId'].every(field => {
+        const val = args?.[field];
+        return val != null && (
+          typeof val === "number" ||
+          typeof val === "boolean" ||
+          val.length > 0
+        );
+      })
     ) {
       // args.timestamp = Date.now(); // NOTE (acoven@2020-05-23): Turn on for circular file
       const emailId = args.emailId;
@@ -678,8 +661,8 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
   }
 
   chrome_restore() {
-    let self = this;
-    const id_k = this.id;
+    const self = this;
+    const id_k = self.id;
     try {
       chrome.storage.sync.get(id_k, function (response) {
         if (response?.[id_k]) {
@@ -692,18 +675,25 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
           }
         }
       });
-    } catch (err) {
-      g2t_log(`chrome_restore: failed! Error: ${JSON.stringify(err)}`);
+    } catch (error) {
+      g2t_log(
+        `chrome_restore ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
     }
     return this;
   }
 
   chrome_save() {
-    const id_k = this.id;
+    const self = this;
+    const id_k = self.id;
     try {
-      chrome.storage.sync.set({ [id_k]: JSON.stringify(this.list) });
-    } catch (err) {
-      g2t_log(`chrome_save: failed! Error: ${JSON.stringify(err)}`);
+      chrome.storage.sync.set({ [id_k]: JSON.stringify(self.list) });
+    } catch (error) {
+      g2t_log(
+        `chrome_save ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
     }
     return this;
   }
@@ -716,7 +706,7 @@ Gmail2Trello.Model.prototype.EmailBoardListCardMap = class {
    */
   find(key_value = {}) {
     const key_k = Object.keys(key_value)[0] || '';
-    const value_k = (key_k ? key_value[key_k] : '') || '';
+    const value_k = key_value[key_k] || '';
     // NOTE (acoven@2020-05-23): FindIndex returns -1 if not found, and
     // 0 is a valid index, so don't || these results:
     const index_k = this.list.findIndex(item => item[key_k] == value_k);
