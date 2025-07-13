@@ -3,7 +3,7 @@
 
 var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization - must be var to guarantee correct scope
 
-class Gmail2TrelloApp {
+class App {
   constructor() {
     this.CHROME_SETTINGS_ID = 'g2t_user_settings';
     this.UNIQUE_URI_VAR = 'g2t_filename';
@@ -844,8 +844,5 @@ class Gmail2TrelloApp {
     return url_in + add + var_in;
   }
 }
-
-// Assign the class to the namespace for backward compatibility
-Gmail2Trello.App = Gmail2TrelloApp;
 
 // End, class_app.js
