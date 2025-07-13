@@ -1,6 +1,6 @@
 var Gmail2Trello = Gmail2Trello || {};
 
-class Gmail2TrelloModel {
+class Model {
     constructor() {
         this.trello = {
             apiKey: "c50413b23ee49ca49a5c75ccf32d0459",
@@ -275,4 +275,4 @@ class Gmail2TrelloModel {
 }
 
 // Assign the class to the global namespace for backward compatibility
-Gmail2Trello.Model = Gmail2TrelloModel;
+Gmail2Trello.Model = Model;
