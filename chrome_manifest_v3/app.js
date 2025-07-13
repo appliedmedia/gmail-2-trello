@@ -397,9 +397,8 @@ Gmail2Trello.App.prototype.markdownify = function (
   let count = 0;
   let replacer_dict = {};
 
-  const featureEnabled = function (elementTag) {
-    return features?.[elementTag] !== false;
-  };
+  const featureEnabled = (elementTag = '') =>
+    features === false ? false : features?.[elementTag] !== false;
 
   let $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
   // let body = $emailBody.text() || "";
