@@ -99,11 +99,6 @@ class Model {
     return retn;
   }
 
-  // Generic Trello API wrapper
-  trelloGet(endpoint, params, successCallback, failureCallback) {
-    Trello.get(endpoint, params, successCallback, failureCallback);
-  }
-
   loadTrelloData_success_user(data) {
     if (!data?.id) {
       return false;
@@ -113,7 +108,7 @@ class Model {
 
     // g2t_log('loadTrelloData: User boards');
     this.trello.boards = null;
-    this.trelloGet(
+    Trello.get(
       'members/me/boards',
       {
         organization: 'true',
@@ -160,7 +155,7 @@ class Model {
 
     // get user's info
     // g2t_log('loadTrelloData: User info');
-    this.trelloGet(
+    Trello.get(
       'members/me',
       {},
       this.loadTrelloData_success_user.bind(this),
@@ -193,7 +188,7 @@ class Model {
 
     this.trello.lists = null;
 
-    this.trelloGet(
+    Trello.get(
       `boards/${boardId}`,
       { lists: 'open', list_fields: 'name' },
       this.loadTrelloLists_success.bind(this),
@@ -216,7 +211,7 @@ class Model {
 
     this.trello.cards = null;
 
-    this.trelloGet(
+    Trello.get(
       `lists/${listId}/cards`,
       { fields: 'name,desc,due,idMembers' },
       this.loadTrelloCards_success.bind(this),
@@ -239,7 +234,7 @@ class Model {
 
     this.trello.members = null;
 
-    this.trelloGet(
+    Trello.get(
       `boards/${boardId}/members`,
       { fields: 'fullName,username,avatarUrl' },
       this.loadTrelloMembers_success.bind(this),
