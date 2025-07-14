@@ -702,31 +702,31 @@ class App {
   /**
    * Encode entities
    */
-  encodeEntities(s) {
-    let ta = document.createElement('textarea');
-    ta.value = s;
+  encodeEntities(sourceText) {
+    const ta = document.createElement('textarea');
+    ta.value = sourceText;
     return ta.innerHTML;
-    // jQuery way, less safe: return $("<textarea />").text(s).html();
+    // jQuery way, less safe: return $("<textarea />").text(sourceText).html();
   }
 
   /**
    * Decode entities
    */
-  decodeEntities(s) {
+  decodeEntities(sourceText) {
     const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
     let re, new_s;
-    g2t_each(dict_k, this.decodeEntities_onEach.bind(this, s, re, new_s));
+    g2t_each(dict_k, this.decodeEntities_onEach.bind(this, sourceText, re, new_s));
     try {
-      new_s = decodeURIComponent(s);
-      s = new_s;
+      new_s = decodeURIComponent(sourceText);
+      sourceText = new_s;
     } catch (e) {
       // Didn't work. Ignore.
     }
-    let ta = document.createElement('textarea');
+    const ta = document.createElement('textarea');
     ta.style.cssText = 'white-space: pre-line;';
-    ta.innerHTML = s;
+    ta.innerHTML = sourceText;
     return ta.value;
-    // jQuery way, less safe: return $("<textarea />").html(s).text();
+    // jQuery way, less safe: return $("<textarea />").html(sourceText).text();
   }
 
   /**
@@ -859,11 +859,11 @@ class App {
   }
 
   // Callback methods for decodeEntities
-  decodeEntities_onEach(s, re, new_s, value, key) {
+  decodeEntities_onEach(sourceText, re, new_s, value, key) {
     // value is already available from the callback parameter
     re = new RegExp(this.escapeRegExp(key), 'gi');
-    new_s = s.replace(re, value);
-    s = new_s;
+    new_s = sourceText.replace(re, value);
+    sourceText = new_s;
   }
 }
 
