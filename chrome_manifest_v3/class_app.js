@@ -668,17 +668,7 @@ class App {
    */
   saveSettings() {
     const setID = this.CHROME_SETTINGS_ID;
-    const settings = Object.assign({}, this.popupView.data.settings);
-
-    // Delete large, potentially needing secure, data bits:
-    settings.description = '';
-    settings.title = '';
-    settings.attachments = [];
-    settings.images = [];
-    settings.description = undefined;
-    settings.title = undefined;
-    settings.attachments = undefined;
-    settings.images = undefined;
+    const { description, title, attachments, images, ...settings } = this.popupView.data.settings;
 
     const settings_string_k = JSON.stringify(settings);
 
