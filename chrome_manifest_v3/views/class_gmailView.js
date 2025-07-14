@@ -187,10 +187,10 @@ class GmailView {
     // introduce a local variable instead of reassigning the `name` parameter
     let displayName = name;
     if (!name.length) {
-      displayName = this.parent.splitEmailDomain(email).name || '';
+      displayName = this.parent.splitEmailDomain(email)?.name || '';
     } else if (name.toUpperCase() === email.toUpperCase()) {
       // split out @domain when name and email match exactly
-      displayName = this.parent.splitEmailDomain(name).name || name;
+      displayName = this.parent.splitEmailDomain(name)?.name || name;
     }
 
     raw = this.displayNameAndEmail(displayName, email);
@@ -451,7 +451,7 @@ class GmailView {
     if (!data.emailId) {
       // try to find via explicitly named class item:
       var emailIdViaClass =
-        $emailBody1_k[0].classList[$emailBody1_k.classList.length - 1];
+        $emailBody1_k[0]?.classList?.[$emailBody1_k.classList?.length - 1];
       if (emailIdViaClass && emailIdViaClass.length > 1) {
         if (
           emailIdViaClass.charAt(0) === 'm' &&
