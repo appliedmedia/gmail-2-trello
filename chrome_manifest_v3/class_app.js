@@ -668,7 +668,7 @@ class App {
    */
   saveSettings() {
     const setID = this.CHROME_SETTINGS_ID;
-    const { description, title, attachments, images, ...settings } = this.popupView.data.settings;
+    const { description: _desc, title: _title, attachments: _att, images: _img, ...settings } = this.popupView.data.settings;
 
     const settings_string_k = JSON.stringify(settings);
 
