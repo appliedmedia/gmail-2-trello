@@ -676,10 +676,10 @@ class App {
     settings.title = '';
     settings.attachments = [];
     settings.images = [];
-    delete settings.description;
-    delete settings.title;
-    delete settings.attachments;
-    delete settings.images;
+    settings.description = undefined;
+    settings.title = undefined;
+    settings.attachments = undefined;
+    settings.images = undefined;
 
     const settings_string_k = JSON.stringify(settings);
 
