@@ -683,7 +683,7 @@ class App {
 
     const settings_string_k = JSON.stringify(settings);
 
-    hash = {};
+    let hash = {};
     hash[setID] = settings_string_k;
 
     if (this.lastSettingsSave !== settings_string_k) {
