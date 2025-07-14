@@ -12,10 +12,11 @@ class Model {
     this.isInitialized = false;
     this.event = new EventTarget();
     this.newCard = null;
+    this.userEmail = null; // Set this when user data loads
   }
 
   init() {
-    const eblcMapID = Model.prototype.EmailBoardListCardMap.id;
+    const eblcMapID = this.constructor.EmailBoardListCardMap.id;
 
     this[eblcMapID] = new this.EmailBoardListCardMap({
       parent: this,
@@ -29,14 +30,14 @@ class Model {
 
   // Callback methods for checkTrelloAuthorized
   checkTrelloAuthorized_onSuccess(data) {
-    this.event.fire('onAuthorized');
+    this.event.dispatchEvent(new CustomEvent('onAuthorized'));
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_onError(data) {
     if (!Trello.authorized()) {
       // Assure token is invalid
-      this.event.fire('onBeforeAuthorize');
+      this.event.dispatchEvent(new CustomEvent('onBeforeAuthorize'));
       Trello.authorize({
         type: 'popup',
         name: 'Gmail-2-Trello',
@@ -50,7 +51,7 @@ class Model {
     } else {
       g2t_log('Model:checkTrelloAuthorized: failed');
       // We have a valid token, so...how did we get here?
-      // this.event.fire('onAuthorized');
+      // this.event.dispatchEvent(new CustomEvent('onAuthorized'));
       // this.loadTrelloData();
       // g2t_log(Trello);
       // g2t_log(Trello.token());
@@ -60,12 +61,12 @@ class Model {
   checkTrelloAuthorized_popup_onSuccess(data) {
     g2t_log('checkTrelloAuthorized: Trello authorization successful');
     // g2t_log(data);
-    this.event.fire('onAuthorized');
+    this.event.dispatchEvent(new CustomEvent('onAuthorized'));
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_popup_onError(data) {
-    this.event.fire('onAuthorizeFail');
+    this.event.dispatchEvent(new CustomEvent('onAuthorizeFail'));
   }
 
   initTrello() {
@@ -101,11 +102,7 @@ class Model {
   // "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
   // avatarUrl return format is "https://trello-members.s3.amazonaws.com/{member-id}/{member-avatar-hash}/30.png"
   makeAvatarUrl(args) {
-    let retn = '';
-    if (args?.avatarUrl?.length > 8) {
-      retn = `${args.avatarUrl}/30.png`;
-    }
-    return retn;
+    return args?.avatarUrl ? `${args.avatarUrl}/30.png` : '';
   }
 
   loadTrelloData_success_user(data) {
@@ -114,6 +111,7 @@ class Model {
     }
 
     this.trello.user = data;
+    this.userEmail = data.email || '';
 
     // g2t_log('loadTrelloData: User boards');
     this.trello.boards = null;
@@ -153,13 +151,13 @@ class Model {
   }
 
   loadTrelloData_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
   }
 
   loadTrelloData() {
     // g2t_log('loadTrelloData');
 
-    this.event.fire('onBeforeLoadTrello');
+    this.event.dispatchEvent(new CustomEvent('onBeforeLoadTrello'));
     this.trello.user = null;
 
     // get user's info
@@ -177,7 +175,7 @@ class Model {
       // yeah! the data is ready
       //g2t_log('checkTrelloDataReady: YES');
       //g2t_log(this);
-      this.event.fire('onTrelloDataReady');
+      this.event.dispatchEvent(new CustomEvent('onTrelloDataReady'));
     }
     //else g2t_log('checkTrelloDataReady: NO');
   }
@@ -185,11 +183,11 @@ class Model {
   loadTrelloLists_success(data) {
     this.trello.lists = data.lists;
     // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
-    this.event.fire('onLoadTrelloListSuccess');
+    this.event.dispatchEvent(new CustomEvent('onLoadTrelloListSuccess'));
   }
 
   loadTrelloLists_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
   }
 
   loadTrelloLists(boardId) {
@@ -208,11 +206,11 @@ class Model {
   loadTrelloCards_success(data) {
     this.trello.cards = data;
     // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-    this.event.fire('onLoadTrelloCardSuccess');
+    this.event.dispatchEvent(new CustomEvent('onLoadTrelloCardSuccess'));
   }
 
   loadTrelloCards_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
   }
 
   loadTrelloCards(listId) {
@@ -231,11 +229,11 @@ class Model {
   loadTrelloMembers_success(data) {
     this.trello.members = data;
     // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
-    this.event.fire('onLoadTrelloMemberSuccess');
+    this.event.dispatchEvent(new CustomEvent('onLoadTrelloMemberSuccess'));
   }
 
   loadTrelloMembers_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
   }
 
   loadTrelloMembers(boardId) {
@@ -265,7 +263,7 @@ class Model {
         email +
         '](' +
         document.location.href +
-        ' "Direct link to creator\'s email, not acccessible from anyone else")';
+        ' "Direct link to creator\'s email, not accessible from anyone else")';
 
       const subject = encodeURIComponent(data.title);
 
@@ -308,10 +306,7 @@ class Model {
       selfAssign: data.selfAssign,
     });
 
-    let idMembers = null;
-    if (data.selfAssign) {
-      idMembers = this.trello.user.id;
-    }
+    const idMembers = data.selfAssign ? this.trello.user.id : null;
 
     //submit data
     const card = {
@@ -325,7 +320,7 @@ class Model {
   }
 
   submit_onSuccess(data) {
-    this.event.fire('onSubmitComplete', { data: data });
+    this.event.dispatchEvent(new CustomEvent('onSubmitComplete', { detail: { data: data } }));
     g2t_log(data);
     //setTimeout(() => {this.popupNode.hide();}, 10000);
   }
