@@ -128,7 +128,7 @@ function requestHandler(request, sender, sendResponse) {
     jQuery(document).ready(function () {
       g2t_log('document.ready');
       getGmailObject();
-      app.initialize();
+      app.init();
     });
     // Was:
     // setTimeout(function() {

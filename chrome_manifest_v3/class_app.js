@@ -214,7 +214,7 @@ class App {
     this.popupView.bindGmailData(this.model.gmail);
   }
 
-  initialize() {
+  init() {
     this.model.isInitialized = false;
 
     // g2t_log('App:initialize');
