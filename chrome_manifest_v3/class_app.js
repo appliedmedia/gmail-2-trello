@@ -246,8 +246,6 @@ class App {
    * Utility routine to replace variables
    */
   replacer(text, dict) {
-    let self = this;
-
     if (!text || text.length < 1) {
       // g2t_log('Require text!');
       return '';
@@ -257,12 +255,8 @@ class App {
     }
 
     let re, new_text;
-    const replacify = function () {
-      g2t_each(dict, function (value, key) {
-        re = new RegExp(`%${self.escapeRegExp(key)}%`, 'gi');
-        new_text = text.replace(re, value);
-        text = new_text;
-      });
+    const replacify = () => {
+      g2t_each(dict, this.replacer_onEach.bind(this, text, re, new_text));
     };
 
     let runaway_max = 3;
@@ -271,6 +265,12 @@ class App {
     }
 
     return text;
+  }
+
+  replacer_onEach(text, re, new_text, value, key) {
+    re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
+    new_text = text.replace(re, value);
+    text = new_text;
   }
 
   /**
@@ -381,7 +381,6 @@ class App {
       g2t_log('markdownify: Require emailBody!');
       return;
     }
-    const self = this;
 
     const min_text_length_k = 4;
     const max_replace_attempts_k = 10;
@@ -415,7 +414,7 @@ class App {
     body = replaced;
 
     // Decode HTML entities:
-    replaced = self.decodeEntities(body);
+    replaced = this.decodeEntities(body);
     body = replaced;
 
     // Replace hr:
@@ -436,46 +435,25 @@ class App {
      * (4) Replace with placeholder
      * (5) Replace placeholders with final text
      */
-    const sortAndPlaceholderize = function (tooProcess) {
+    const sortAndPlaceholderize = (tooProcess) => {
       if (tooProcess) {
         g2t_each(
-          Object.keys(tooProcess).sort(function (a, b) {
-            // Go by order of largest to smallest
-            return b.length - a.length;
-          }),
-          function (value) {
-            const replace = tooProcess[value];
-            const swap = `${unique_placeholder_k}${(count++).toString()}`;
-            const re = new RegExp(
-              regexp_k.begin + self.escapeRegExp(value) + regexp_k.end,
-              'gi'
-            );
-            const replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
-            if (body !== replaced) {
-              body = replaced;
-              replacer_dict[swap] = replace;
-            }
-          }
+          Object.keys(tooProcess).sort(this.markdownify_sortByLength.bind(this)),
+          this.markdownify_onSortEach.bind(this, tooProcess, unique_placeholder_k, count, regexp_k, body, replacer_dict)
         );
       }
     };
-    const processMarkdown = function (elementTag, replaceText) {
+    const processMarkdown = (elementTag, replaceText) => {
       if (elementTag && replaceText && featureEnabled(elementTag)) {
         toProcess = preprocess[elementTag] || {};
-        $(elementTag, $html).each(function (index, value) {
-          let text = ($(this).text() || '').trim();
-          if (text && text.length > min_text_length_k) {
-            let replace = self.replacer(replaceText, { text: text });
-            toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
-          }
-        });
+        $(elementTag, $html).each(this.markdownify_onElementEach.bind(this, replaceText, toProcess, min_text_length_k));
         sortAndPlaceholderize(toProcess);
       }
     };
     /**
      * Repeat replace for max attempts or when done, whatever comes first
      */
-    const repeatReplace = function (body, inRegexp, replaceWith) {
+    const repeatReplace = (body, inRegexp, replaceWith) => {
       let replace1 = '';
       for (let iter = max_replace_attempts_k; iter > 0; iter--) {
         replace1 = body.replace(inRegexp, replaceWith);
@@ -505,14 +483,7 @@ class App {
     // H6 -> ######
     if (featureEnabled('h')) {
       toProcess = preprocess['h'] || {};
-      $(':header', $html).each(function (index, value) {
-        let text = ($(this).text() || '').trim();
-        let nodeName = $(this).prop('nodeName') || '0';
-        if (nodeName && text && text.length > min_text_length_k) {
-          let x = nodeName.substr(-1);
-          toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
-        }
-      });
+      $(':header', $html).each(this.markdownify_onHeaderEach.bind(this, toProcess, min_text_length_k));
       sortAndPlaceholderize(toProcess);
     }
 
@@ -531,21 +502,7 @@ class App {
     // a -> [text](html)
     if (featureEnabled('a')) {
       toProcess = preprocess['a'] || {};
-      $('a', $html).each(function (index, value) {
-        let text = ($(this).text() || '').trim();
-        let href = ($(this).prop('href') || '').trim(); // Was attr
-        /*
-              var uri_display = self.uriForDisplay(href);
-              var comment = ' "' + text + ' via ' + uri_display + '"';
-              var re = new RegExp(self.escapeRegExp(text), "i");
-              if (uri.match(re)) {
-                  comment = ' "Open ' + uri_display + '"';
-              }
-              */
-        if (href && text && text.length >= min_text_length_k) {
-          toProcess[text.toLowerCase()] = self.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
-        }
-      });
+      $('a', $html).each(this.markdownify_onLinkEach.bind(this, toProcess, min_text_length_k));
       sortAndPlaceholderize(toProcess);
     }
 
@@ -706,24 +663,8 @@ class App {
    * Load settings
    */
   loadSettings(popup) {
-    const self = this;
-    const setID = self.CHROME_SETTINGS_ID;
-    chrome.storage.sync.get(setID, function (response) {
-      if (response?.[setID]) {
-        // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
-        try {
-          self.popupView.data.settings = JSON.parse(response[setID]);
-        } catch (err) {
-          g2t_log(
-            'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
-          );
-        }
-      }
-      if (popup) {
-        popup.init_popup();
-        self.updateData();
-      }
-    });
+    const setID = this.CHROME_SETTINGS_ID;
+    chrome.storage.sync.get(setID, this.loadSettings_onSuccess.bind(this, popup));
   }
 
   /**
@@ -776,15 +717,9 @@ class App {
    * Decode entities
    */
   decodeEntities(s) {
-    const self = this;
     const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
     let re, new_s;
-    g2t_each(dict_k, function (value, key) {
-      // value is already available from the callback parameter
-      re = new RegExp(self.escapeRegExp(key), 'gi');
-      new_s = s.replace(re, value);
-      s = new_s;
-    });
+    g2t_each(dict_k, this.decodeEntities_onEach.bind(this, s, re, new_s));
     try {
       new_s = decodeURIComponent(s);
       s = new_s;
@@ -846,6 +781,93 @@ class App {
     }
 
     return url_in + add + var_in;
+  }
+
+  // Callback methods for replacer
+  replacer_onEach(text, re, new_text, value, key) {
+    re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
+    new_text = text.replace(re, value);
+    text = new_text;
+  }
+
+  // Callback methods for markdownify
+  markdownify_sortByLength(a, b) {
+    // Go by order of largest to smallest
+    return b.length - a.length;
+  }
+
+  markdownify_onSortEach(tooProcess, unique_placeholder_k, count, regexp_k, body, replacer_dict, value) {
+    const replace = tooProcess[value];
+    const swap = `${unique_placeholder_k}${(count++).toString()}`;
+    const re = new RegExp(
+      regexp_k.begin + this.escapeRegExp(value) + regexp_k.end,
+      'gi'
+    );
+    const replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
+    if (body !== replaced) {
+      body = replaced;
+      replacer_dict[swap] = replace;
+    }
+  }
+
+  markdownify_onElementEach(replaceText, toProcess, min_text_length_k, index, value) {
+    let text = ($(this).text() || '').trim();
+    if (text && text.length > min_text_length_k) {
+      let replace = this.replacer(replaceText, { text: text });
+      toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
+    }
+  }
+
+  markdownify_onHeaderEach(toProcess, min_text_length_k, index, value) {
+    let text = ($(this).text() || '').trim();
+    let nodeName = $(this).prop('nodeName') || '0';
+    if (nodeName && text && text.length > min_text_length_k) {
+      let x = nodeName.substr(-1);
+      toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
+    }
+  }
+
+  markdownify_onLinkEach(toProcess, min_text_length_k, index, value) {
+    let text = ($(this).text() || '').trim();
+    let href = ($(this).prop('href') || '').trim(); // Was attr
+    /*
+      var uri_display = this.uriForDisplay(href);
+      var comment = ' "' + text + ' via ' + uri_display + '"';
+      var re = new RegExp(this.escapeRegExp(text), "i");
+      if (uri.match(re)) {
+          comment = ' "Open ' + uri_display + '"';
+      }
+      */
+    if (href && text && text.length >= min_text_length_k) {
+      toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
+    }
+  }
+
+  // Callback methods for loadSettings
+  loadSettings_onSuccess(popup, response) {
+    const setID = this.CHROME_SETTINGS_ID;
+    if (response?.[setID]) {
+      // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
+      try {
+        this.popupView.data.settings = JSON.parse(response[setID]);
+      } catch (err) {
+        g2t_log(
+          'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
+        );
+      }
+    }
+    if (popup) {
+      popup.init_popup();
+      this.updateData();
+    }
+  }
+
+  // Callback methods for decodeEntities
+  decodeEntities_onEach(s, re, new_s, value, key) {
+    // value is already available from the callback parameter
+    re = new RegExp(this.escapeRegExp(key), 'gi');
+    new_s = s.replace(re, value);
+    s = new_s;
   }
 }
 
