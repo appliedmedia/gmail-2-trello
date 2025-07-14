@@ -205,20 +205,16 @@ class App {
   }
 
   updateData() {
-    const self = this;
+    const fullName = this?.model?.trello?.user?.fullName || '';
 
-    const fullName = self?.model?.trello?.user?.fullName || '';
+    this.popupView.bindData(this.model);
 
-    self.popupView.bindData(self.model);
-
-    self.gmailView.parsingData = false;
-    self.model.gmail = self.gmailView.parseData({ fullName });
-    self.popupView.bindGmailData(self.model.gmail);
+    this.gmailView.parsingData = false;
+    this.model.gmail = this.gmailView.parseData({ fullName });
+    this.popupView.bindGmailData(this.model.gmail);
   }
 
   initialize() {
-    const self = this;
-
     this.model.isInitialized = false;
 
     // g2t_log('App:initialize');
@@ -671,9 +667,8 @@ class App {
    * Save settings
    */
   saveSettings() {
-    const self = this;
-    const setID = self.CHROME_SETTINGS_ID;
-    let settings = Object.assign({}, self.popupView.data.settings);
+    const setID = this.CHROME_SETTINGS_ID;
+    let settings = Object.assign({}, this.popupView.data.settings);
 
     // Delete large, potentially needing secure, data bits:
     settings.description = '';
@@ -690,15 +685,15 @@ class App {
     hash = {};
     hash[setID] = settings_string_k;
 
-    if (self.lastSettingsSave !== settings_string_k) {
+    if (this.lastSettingsSave !== settings_string_k) {
       try {
         chrome.storage.sync.set(hash); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
-        self.lastSettingsSave = settings_string_k;
+        this.lastSettingsSave = settings_string_k;
       } catch (error) {
         g2t_log(
           `saveSettings ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
         );
-        self?.popupView?.displayExtensionInvalidReload();
+        this?.popupView?.displayExtensionInvalidReload();
       }
     }
   }
