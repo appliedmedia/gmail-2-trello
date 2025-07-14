@@ -301,11 +301,11 @@ class App {
    * Make anchored backlink
    */
   anchorMarkdownify(text, href, comment) {
-    let text1 = (text || '').trim();
-    let text1lc = text1.toLowerCase();
-    let href1 = (href || '').trim();
-    let href1lc = href1.toLowerCase();
-    let comment1 = (comment || '').trim();
+    const text1 = (text || '').trim();
+    const text1lc = text1.toLowerCase();
+    const href1 = (href || '').trim();
+    const href1lc = href1.toLowerCase();
+    const comment1 = (comment || '').trim();
 
     let retn = '';
 
