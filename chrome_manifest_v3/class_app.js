@@ -158,7 +158,7 @@ class App {
   }
 
   handleBoardChanged(target, params) {
-    let boardId = params.boardId;
+    const boardId = params.boardId;
     if (boardId !== '_' && boardId !== '' && boardId !== null) {
       this.model.loadTrelloLists(boardId);
       this.model.loadTrelloLabels(boardId);
@@ -167,7 +167,7 @@ class App {
   }
 
   handleListChanged(target, params) {
-    let listId = params.listId;
+    const listId = params.listId;
     this.model.loadTrelloCards(listId);
   }
 
@@ -277,8 +277,8 @@ class App {
     const uri_length_max_k = 40;
     let uri_display = uri || '';
     if (uri_display.length > uri_display_trigger_length_k) {
-      let re = RegExp('^\\w+://([\\w./_-]+).*?([\\w._-]*)$');
-      let matched = uri_display.match(re);
+      const re = RegExp('^\\w+://([\\w./_-]+).*?([\\w._-]*)$');
+      const matched = uri_display.match(re);
       if (matched && matched.length > 1) {
         const filename_k =
           matched[2].length < uri_length_max_k
@@ -307,7 +307,7 @@ class App {
     const href1lc = href1.toLowerCase();
     const comment1 = (comment || '').trim();
 
-    let retn = '';
+    const retn = '';
 
     if (text1.length < 1 && href1.length < 1) {
       // Intetionally blank
@@ -392,7 +392,7 @@ class App {
     const featureEnabled = (elementTag = '') =>
       features === false ? false : features?.[elementTag] !== false;
 
-    let $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
+    const $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
     // let body = $emailBody.text() || "";
     let body = $emailBody.html() || '';
 
@@ -557,17 +557,17 @@ class App {
    * Determine luminance of a color so we can augment with darker/lighter background
    */
   luminance(color) {
-    let bkColorLight = 'lightGray'; // or white
-    let bkColorDark = 'darkGray'; // 'gray' is even darker
+    const bkColorLight = 'lightGray'; // or white
+    const bkColorDark = 'darkGray'; // 'gray' is even darker
     let bkColorReturn = bkColorLight;
 
-    let re = new RegExp('rgb\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)');
-    let matched = color.match(re, 'i');
+    const re = new RegExp('rgb\\D+(\\d+)\\D+(\\d+)\\D+(\\d+)');
+    const matched = color.match(re, 'i');
     if (matched && matched.length > 2) {
       // 0 is total string:
-      let r = matched[1];
-      let g = matched[2];
-      let b = matched[3];
+      const r = matched[1];
+      const g = matched[2];
+      const b = matched[3];
       // var 1 = matched[4]; // if alpha is provided
 
       let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
@@ -613,7 +613,6 @@ class App {
       /^(?:text|search|password|tel|url)$/i.test(activeEl.type) &&
       typeof activeEl.selectionStart === 'number'
     ) {
-    ) {
       text = activeEl.value
         .slice(activeEl.selectionStart, activeEl.selectionEnd)
         .trim();
@@ -631,7 +630,7 @@ class App {
    * Truncate a string
    */
   truncate(text, max, add) {
-    let retn = text || '';
+    const retn = text || '';
     const add_k = this.decodeEntities(add || '');
     const max_k = max - add_k.length;
 
@@ -645,7 +644,7 @@ class App {
    * Middle-truncate a string
    */
   midTruncate(text, max, add) {
-    let retn = text || '';
+    const retn = text || '';
     const add_k = this.decodeEntities(add || '');
     const max_k = Math.abs((max || 0) - add_k.length);
     const mid_k = (max_k + 0.01) / 2;
@@ -669,7 +668,7 @@ class App {
    */
   saveSettings() {
     const setID = this.CHROME_SETTINGS_ID;
-    let settings = Object.assign({}, this.popupView.data.settings);
+    const settings = Object.assign({}, this.popupView.data.settings);
 
     // Delete large, potentially needing secure, data bits:
     settings.description = '';
@@ -733,7 +732,7 @@ class App {
    * Check for ctrl/alt/shift down:
    */
   modKey(event) {
-    let retn = '';
+    const retn = '';
 
     if (event.ctrlKey) {
       retn = 'ctrl-';
@@ -809,7 +808,7 @@ class App {
   markdownify_onElementEach(replaceText, toProcess, min_text_length_k, index, value) {
     let text = ($(this).text() || '').trim();
     if (text && text.length > min_text_length_k) {
-      let replace = this.replacer(replaceText, { text: text });
+      const replace = this.replacer(replaceText, { text: text });
       toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
     }
   }
@@ -818,7 +817,7 @@ class App {
     let text = ($(this).text() || '').trim();
     let nodeName = $(this).prop('nodeName') || '0';
     if (nodeName && text && text.length > min_text_length_k) {
-      let x = nodeName.substr(-1);
+      const x = nodeName.substr(-1);
       toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
     }
   }
