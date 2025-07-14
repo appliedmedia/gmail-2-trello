@@ -284,14 +284,14 @@ class App {
           matched[2].length < uri_length_max_k
             ? matched[2]
             : matched[2].slice(-uri_length_max_k);
-        let prelude = matched[1].substr(0, uri_length_max_k);
+        const prelude = matched[1].substr(0, uri_length_max_k);
         if (matched[1].length > uri_length_max_k) {
-          prelude += '...';
+          uri_display = prelude + '...' + filename_k;
         } else if (filename_k.length > 0) {
-          prelude += ':';
+          uri_display = prelude + ':' + filename_k;
+        } else {
+          uri_display = prelude + filename_k;
         }
-
-        uri_display = prelude + filename_k;
       }
     }
     return uri_display;
@@ -307,7 +307,7 @@ class App {
     const href1lc = href1.toLowerCase();
     const comment1 = (comment || '').trim();
 
-    const retn = '';
+    let retn = '';
 
     if (text1.length < 1 && href1.length < 1) {
       // Intetionally blank
@@ -771,9 +771,9 @@ class App {
 
   // Callback methods for replacer
   replacer_onEach(text, re, new_text, value, key) {
-    re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
-    new_text = text.replace(re, value);
-    text = new_text;
+    const regex = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
+    const replaced = text.replace(regex, value);
+    return replaced;
   }
 
   // Callback methods for markdownify
@@ -785,19 +785,20 @@ class App {
   markdownify_onSortEach(tooProcess, unique_placeholder_k, count, regexp_k, body, replacer_dict, value) {
     const replace = tooProcess[value];
     const swap = `${unique_placeholder_k}${(count++).toString()}`;
-    const re = new RegExp(
+    const regex = new RegExp(
       regexp_k.begin + this.escapeRegExp(value) + regexp_k.end,
       'gi'
     );
-    const replaced = body.replace(re, `%${swap}%`); // Replace occurance with placeholder
+    const replaced = body.replace(regex, `%${swap}%`); // Replace occurance with placeholder
     if (body !== replaced) {
-      body = replaced;
       replacer_dict[swap] = replace;
+      return replaced;
     }
+    return body;
   }
 
   markdownify_onElementEach(replaceText, toProcess, min_text_length_k, index, value) {
-    let text = ($(this).text() || '').trim();
+    const text = ($(this).text() || '').trim();
     if (text && text.length > min_text_length_k) {
       const replace = this.replacer(replaceText, { text: text });
       toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
@@ -805,8 +806,8 @@ class App {
   }
 
   markdownify_onHeaderEach(toProcess, min_text_length_k, index, value) {
-    let text = ($(this).text() || '').trim();
-    let nodeName = $(this).prop('nodeName') || '0';
+    const text = ($(this).text() || '').trim();
+    const nodeName = $(this).prop('nodeName') || '0';
     if (nodeName && text && text.length > min_text_length_k) {
       const x = nodeName.substr(-1);
       toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
@@ -814,8 +815,8 @@ class App {
   }
 
   markdownify_onLinkEach(toProcess, min_text_length_k, index, value) {
-    let text = ($(this).text() || '').trim();
-    let href = ($(this).prop('href') || '').trim(); // Was attr
+    const text = ($(this).text() || '').trim();
+    const href = ($(this).prop('href') || '').trim(); // Was attr
     /*
       var uri_display = this.uriForDisplay(href);
       var comment = ' "' + text + ' via ' + uri_display + '"';
@@ -851,9 +852,9 @@ class App {
   // Callback methods for decodeEntities
   decodeEntities_onEach(sourceText, re, new_s, value, key) {
     // value is already available from the callback parameter
-    re = new RegExp(this.escapeRegExp(key), 'gi');
-    new_s = sourceText.replace(re, value);
-    sourceText = new_s;
+    const regex = new RegExp(this.escapeRegExp(key), 'gi');
+    const replaced = sourceText.replace(regex, value);
+    return replaced;
   }
 }
 
