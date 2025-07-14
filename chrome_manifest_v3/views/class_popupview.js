@@ -747,7 +747,932 @@ class PopupView {
     this.displayExtensionInvalidReload();
   }
 
-  // ... rest of the methods would continue here, but I'll focus on the key fixes first
+  periodicChecks() {
+    const version_storage_k = this.VERSION_STORAGE;
+    const version_new = this.getManifestVersion();
+
+    if (version_new > '0') {
+      try {
+        chrome.storage.sync.get(version_storage_k, (response) => {
+          const version_old = response?.[version_storage_k] || '0';
+          if (version_old > '0') {
+            if (version_old !== version_new) {
+              $.get(
+                chrome.runtime.getURL('views/versionUpdate.html'),
+                (data) => {
+                  const dict = {
+                    version_old,
+                    version_new,
+                  };
+                  data = this.parent.replacer(data, dict);
+                  this.showMessage(this, data);
+                }
+              );
+            }
+          } else {
+            this.forceSetVersion();
+          }
+        });
+      } catch (error) {
+        this.handleChromeAPIError(error, 'periodicChecks');
+      }
+    }
+  }
+
+  forceSetVersion() {
+    const version_storage_k = this.VERSION_STORAGE;
+    const version_new = this.getManifestVersion();
+    const dict_k = {
+      [version_storage_k]: version_new,
+    };
+    try {
+      chrome.storage.sync.set(dict_k);
+    } catch (error) {
+      this.handleChromeAPIError(error, 'forceSetVersion');
+    }
+  }
+
+  showSignOutOptions(data) {
+    $.get(chrome.runtime.getURL('views/signOut.html'), (data_in) => {
+      this.showMessage(this, data_in);
+    });
+  }
+
+  bindData(data) {
+    $('.header a').each(() => {
+      $(document).on('keyup', $(this), (evt) => {
+        if (evt.which == 13 || evt.which == 32) {
+          $(evt.target).trigger('click');
+        }
+      });
+    });
+    $('#g2tSignOutButton', this.$popup).click(() => {
+      this.showSignOutOptions();
+    });
+
+    try {
+      chrome.storage.sync.get('dueShortcuts', (response) => {
+        // Borrowed from options file until this gets persisted everywhere:
+        const dueShortcuts_k = JSON.stringify({
+          today: {
+            am: 'd+0 am=9:00',
+            noon: 'd+0 pm=12:00',
+            pm: 'd+0 pm=3:00',
+            end: 'd+0 pm=6:00',
+            eve: 'd+0 pm=11:00',
+          },
+          tomorrow: {
+            am: 'd+1 am=9:00',
+            noon: 'd+1 pm=12:00',
+            pm: 'd+1 pm=3:00',
+            end: 'd+1 pm=6:00',
+            eve: 'd+1 pm=11:00',
+          },
+          'next monday': {
+            am: 'd=monday am=9:00',
+            noon: 'd=monday pm=12:00',
+            pm: 'd=monday pm=3:00',
+            end: 'd=monday pm=6:00',
+            eve: 'd=monday pm=11:00',
+          },
+          'next friday': {
+            am: 'd=friday am=9:00',
+            noon: 'd=friday pm=12:00',
+            pm: 'd=friday pm=3:00',
+            end: 'd=friday pm=6:00',
+            eve: 'd=friday pm=11:00',
+          },
+        });
+
+        const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
+
+        const $g2t = $('#g2tDue_Shortcuts', this.$popup);
+        $g2t.html(''); // Clear it.
+
+        let opt =
+          '<option value="none" selected disabled hidden>-</option>' +
+          '<option value="d=0 am=0">--</option>';
+
+        g2t_each(due, (value, key) => {
+          // value is already available from the callback parameter
+          if (typeof value === 'object') {
+            opt += `<optgroup label="${key}">`;
+            g2t_each(value, (value1, key1) => {
+              // value1 is already available from the callback parameter
+              opt += `<option value="${value1}">${key1}</option>`;
+            });
+            opt += '</optgroup>';
+          } else {
+            opt += `<option value="${value}">${key}</option>`;
+          }
+        });
+
+        if (opt) {
+          $g2t.append($(opt));
+        }
+      });
+    } catch (error) {
+      this.handleChromeAPIError(error, 'bindData');
+    }
+
+    if (!data) {
+      g2t_log("bindData shouldn't continue without data!");
+      return;
+    }
+
+    const settings_existing_k = this?.data?.settings || {};
+    const settings_existing_boardId_valid_k = !!settings_existing_k?.boardId;
+
+    const settings_incoming_k = data?.settings || {};
+    const settings_incoming_boardId_valid_k = !!settings_incoming_k?.boardId;
+
+    this.data = data;
+
+    if (settings_incoming_k && settings_incoming_boardId_valid_k) {
+      // leave settings that came in, they look valid
+    } else if (settings_existing_k && settings_existing_boardId_valid_k) {
+      data.settings = settings_existing_k;
+    }
+
+    // bind trello data
+    const me = data?.trello?.user || {}; // First member is always this user
+
+    const avatarUrl = me.avatarUrl || '';
+    const avatarSrc = this.parent.model.makeAvatarUrl({ avatarUrl });
+    let avatarText = '';
+    let initials = '?';
+
+    if (!avatarSrc) {
+      if (me.initials?.length > 0) {
+        initials = me.initials;
+      } else if (me.fullName?.length > 1) {
+        const matched = me.fullName.match(/^(\w).*?[\s\\W]+(\w)\w*$/);
+        if (matched && matched.length > 1) {
+          initials = matched[1] + matched[2]; // 0 is whole string
+        }
+      } else if (me.username?.length > 0) {
+        initials = me.username.slice(0, 1);
+      }
+
+      avatarText = initials.toUpperCase();
+      $('#g2tAvatarImgOrText', this.$popup).text(avatarText);
+    } else {
+      $('#g2tAvatarImgOrText', this.$popup).html(
+        '<img width="30" height="30" alt="' +
+          me.username +
+          '" src="' +
+          avatarSrc +
+          '">'
+      );
+    }
+
+    $('#g2tAvatarUrl', this.$popup).attr('href', me.url);
+
+    $('#g2tUsername', this.$popup)
+      .attr('href', me.url)
+      .text(me.username || '?');
+
+    if (data.settings?.useBackLink !== undefined) {
+      $('#chkBackLink', this.$popup).prop('checked', data.settings.useBackLink);
+    }
+
+    if (data.settings?.addCC !== undefined) {
+      $('#chkCC', this.$popup).prop('checked', data.settings.addCC);
+    }
+
+    $(document).on('keyup', '.g2t-checkbox', (evt) => {
+      if (evt.which == 13 || evt.which == 32) {
+        $(evt.target).trigger('click');
+      }
+    });
+    $(document).on('keydown', '.g2t-checkbox', (evt) => {
+      if (evt.which == 13 || evt.which == 32) {
+        $(evt.target).trigger('mousedown');
+      }
+    });
+
+    if (data.settings?.markdown !== undefined) {
+      $('#chkMarkdown', this.$popup).prop('checked', data.settings.markdown);
+    }
+
+    if (data.settings?.due_Date !== undefined) {
+      $('#g2tDue_Date', this.$popup).val(data.settings.dueDate);
+    }
+
+    if (data.settings?.due_Time !== undefined) {
+      $('#g2tDue_Time', this.$popup).val(data.settings.dueTime);
+    }
+
+    // Attach reportError function to report id if in text:
+    $('#report', this.$popup).click(() => {
+      this.reset();
+
+      const lastError_k = (this.lastError || '') + (this.lastError ? '\n' : '');
+
+      const data_k = this?.data || {};
+      const newCard_k = data_k?.newCard || {};
+      let newCard = Object.assign({}, newCard_k);
+      //// delete newCard.title;
+      newCard.description = undefined;
+      const user_k = data_k?.trello?.user || {};
+      const username_k = user_k?.username || '';
+      const fullname_k = user_k?.fullName || '';
+      const date_k = new Date().toISOString().substring(0, 10);
+      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
+      $('#g2tDesc', this.$popup).val(
+        lastError_k + JSON.stringify(newCard) + '\n' + g2t_log()
+      );
+      $('#g2tTitle', this.$popup).val(
+        'Error report card: ' + [fullname_k, username_k].join(' @') + ' ' + date_k
+      );
+      this.validateData();
+    });
+
+    this.$popupMessage.hide();
+    this.$popupContent.show();
+
+    this.updateBoards();
+
+    // Setting up comboboxes after loading data.
+    this.comboBox();
+  }
+
+  bindGmailData(data = {}) {
+    if ($.isEmptyObject(data)) {
+      return;
+    }
+
+    // data.settings = {};
+    Object.assign(data, { settings: this.data?.settings }); // Add local data if we have it
+    this.updateBody(data);
+
+    $('#g2tTitle', this.$popup).val(data.subject);
+
+    const mime_html = (tag, isImage) => {
+      let html = '';
+      let img = '';
+      let img_big = '';
+      const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
+        .slice(1)
+        .toLowerCase()}`;
+      const $domTag = $(domTag_k, this.$popup);
+
+      const domTagContainer = domTag_k + 'Container';
+      const $domTagContainer = $(domTagContainer, this.$popup);
+      $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
+
+      if (isImage && isImage === true) {
+        img =
+          '<div class="img-container"><img src="%url%" alt="%name%" /></div> '; // See style.css for #g2tImage img style REMOVED: height="32" width="32"
+      }
+
+      let x = 0;
+      g2t_each(data[tag], (item) => {
+        const dict = {
+          url: item.url,
+          name: item.name,
+          mimeType: item.mimeType,
+          img,
+          id: `${item.name}:${x}`,
+        };
+
+        if (tag == 'attachments') {
+          html += this.parent.replacer(
+            '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
+            dict
+          );
+        } else if (tag == 'images') {
+          html += this.parent.replacer(
+            '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+            dict
+          );
+        }
+        x++;
+      });
+
+      $domTag.html(html);
+
+      if (isImage && isImage === true) {
+        $('img', $domTag).each(function () {
+          const $img = $(this);
+          $img
+            .on('error', function () {
+              $img.attr(
+                'src',
+                chrome.runtime.getURL('images/doc-question-mark-512.png')
+              );
+            })
+            .tooltip({
+              track: true,
+              content: function () {
+                const dict = {
+                  src: $img.attr('src'),
+                  alt: $img.attr('alt'),
+                };
+                return this.parent.replacer('<img src="%src%">%alt%', dict);
+              },
+            });
+        });
+        $('.textOnlyPopup').tooltip({
+          track: true,
+        });
+      }
+    };
+
+    mime_html('attachments');
+    mime_html('images', true /* isImage */);
+
+    const emailId = data.emailId || 0;
+    const mapAvailable_k = this.parent.model.emailBoardListCardMapLookup({
+      emailId,
+    });
+
+    if (
+      ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
+    ) {
+      // If we're restoring we must be adding to an existing card:
+      $('#g2tPosition', this.$popup).val('to');
+
+      this.updateBoards(mapAvailable_k.boardId); // Causes a cascade of updates if it's changed
+
+      // We have a small pending queue for updates to grab these changes and show them, if possible:
+      const listId = mapAvailable_k.listId;
+      const cardId = mapAvailable_k.cardId;
+      this.updatesPending.push({ listId }); // instead of: this.updateLists(listId);
+      this.updatesPending.push({ cardId }); // instead of: this.updateCards(cardId);
+    }
+
+    this.dataDirty = false;
+    this.validateData();
+  }
+
+  showMessage(parent, text) {
+    this.$popupMessage.html(text);
+
+    // Attach hideMessage function to hideMsg class if in text:
+    $('.hideMsg', this.$popupMessage).click(() => {
+      parent.hideMessage();
+    });
+
+    $(':button', this.$popupMessage).click(() => {
+      const $status = $(`span#${this.id}`, this.$popupMessage) || '';
+      switch (this.id) {
+        case 'signout':
+          $status.html('Done');
+          this.event.fire('onRequestDeauthorizeTrello');
+          break;
+        case 'reload':
+          this.forceSetVersion(); // Sets value for version if needing update
+          $status.html('Reloading');
+          window.location.reload(true);
+          break;
+        case 'clearCacheNow':
+          $status.html('Clearing');
+          let hash = {};
+          hash[this.CLEAR_EXT_BROWSING_DATA] = true;
+          try {
+            chrome.runtime.sendMessage(hash, () => {
+              $status.html('Done');
+              setTimeout(() => {
+                $status.html('&nbsp;');
+              }, 2500);
+            });
+          } catch (error) {
+            this.handleChromeAPIError(error, 'showMessage');
+          }
+          break;
+        case 'showsignout':
+          this.showSignOutOptions();
+        default:
+          g2t_log(`showMessage: ERROR unhandled case "${this.id}"`);
+      }
+      if ($status.length > 0) {
+        setTimeout(() => {
+          $status.html('&nbsp;');
+        }, 2500);
+      }
+    });
+
+    this.$popupMessage.show();
+  }
+
+  hideMessage() {
+    if (this.$popupContent.is(':hidden')) {
+      // Rest of box is hidden so close it all:
+      this.$popup.hide(); // Parent is popup, so hide the whole thing
+    } else {
+      this.$popupMessage.hide();
+    }
+  }
+
+  clearBoard() {
+    const $g2t = $('#g2tBoard', this.$popup);
+    $g2t.html(''); // Clear it.
+
+    $g2t.append($('<option value="">Select a board....</option>'));
+
+    $g2t.change();
+  }
+
+  updateBoards(tempId = 0) {
+    const array_k = this?.data?.trello?.boards || [];
+
+    if (!array_k) {
+      return;
+    }
+
+    const restoreId_k = tempId || this?.data?.settings?.boardId || 0;
+
+    let newArray = {};
+
+    g2t_each(array_k, (item) => {
+      const org_k = item?.organization?.displayName
+        ? `!${item.organization.displayName}: `
+        : '~';
+      const display_k = `${org_k}${item.name}`; // Ignore first char, it's used just for sorting
+      newArray[display_k.toLowerCase()] = {
+        id: item.id,
+        display: display_k,
+      };
+    });
+
+    const $g2t = $('#g2tBoard', this.$popup);
+    $g2t.html(''); // Clear it.
+
+    $g2t.append($('<option value="">Select a board....</option>'));
+
+    g2t_each(Object.keys(newArray).sort(), (item) => {
+      const id_k = newArray[item].id;
+      const display_k = newArray[item].display.substring(1); // Ignore first char, it's used just for sorting
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
+    });
+    $g2t.change();
+  }
+
+  updateLists(tempId = 0) {
+    const array_k = this?.data?.trello?.lists || [];
+
+    if (!array_k) {
+      return;
+    }
+
+    const settings_k = this?.data?.settings || {};
+
+    const boardId_k = $('#g2tBoard', this.$popup).val();
+
+    const prev_item_k =
+      settings_k?.boardId == boardId_k && settings_k?.listId
+        ? settings_k.listId
+        : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k = this.updatesPending[0]?.listId
+      ? this.updatesPending.shift().listId
+      : 0;
+
+    const restoreId_k =
+      updatePending_k || tempId || prev_item_k || first_item_k || 0;
+
+    const $g2t = $('#g2tList', this.$popup);
+    $g2t.html('');
+
+    g2t_each(array_k, (item) => {
+      const id_k = item.id;
+      const display_k = item.name;
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
+    });
+
+    $g2t.change();
+  }
+
+  updateCards(tempId = 0) {
+    const new_k = '<option value="-1">(new card at top)</option>';
+
+    const array_k = this?.data?.trello?.cards || [];
+
+    if (!array_k) {
+      return;
+    }
+
+    const settings_k = this?.data?.settings || {};
+
+    const listId_k = $('#g2tList', this.$popup).val();
+
+    const prev_item_k =
+      settings_k?.listId == listId_k && settings_k?.cardId
+        ? settings_k.cardId
+        : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k = this.updatesPending[0]?.cardId
+      ? this.updatesPending.shift().cardId
+      : 0;
+
+    const restoreId_k =
+      updatePending_k || tempId || prev_item_k || first_item_k || 0;
+
+    const $g2t = $('#g2tCard', this.$popup);
+    $g2t.html(new_k);
+
+    g2t_each(array_k, (item) => {
+      const id_k = item.id;
+      const display_k = this.parent.truncate(item.name, 80, '...');
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('pos', item.pos)
+          .prop('members', item.idMembers)
+          .prop('labels', item.idLabels)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
+    });
+
+    $g2t.change();
+  }
+
+  // Select/de-select attachments and images based on first button's state:
+  toggleCheckboxes(tag) {
+    const $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
+    const $jTag1 = $jTags.first();
+    const checked_k = $jTag1.prop('checked') || false;
+    $jTags.prop('checked', !checked_k);
+    this.validateData();
+  }
+
+  clearLabels() {
+    this.data.settings.labelsId = '';
+    this.updateLabels();
+    this.validateData();
+  }
+
+  updateLabels() {
+    const labels = this.data.trello.labels;
+    const $g2t = $('#g2tLabels', this.$popup);
+    $g2t.html(''); // Clear out
+
+    for (let i = 0; i < labels.length; i++) {
+      const item = labels[i];
+      if (item.name?.length > 0) {
+        const $color = $("<div id='g2t_temp'>").css('color', item.color);
+        const bkColor = this.parent.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
+        $g2t.append(
+          $('<button>')
+            .attr('trelloId-label', item.id)
+            .css('border-color', item.color)
+            // .css("background-color", bkColor)
+            .append(item.name)
+            .on('mousedown mouseup', (evt) => {
+              const elm = $(evt.currentTarget);
+              this.toggleActiveMouseDown(elm);
+            })
+            .on('keypress', (evt) => {
+              const trigger_k =
+                evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
+              if (trigger_k) {
+                $(evt.target).trigger(trigger_k);
+              }
+            })
+        );
+      }
+    }
+
+    $('#g2tLabelsMsg', this.$popup).hide();
+
+    const control = new MenuControl({
+      selectors: '#g2tLabels button',
+      nonexclusive: true,
+    });
+    control.event.addListener('onMenuClick', (e, params) => {
+      this.validateData();
+    });
+
+    const settings = this.data.settings;
+    const boardId = $('#g2tBoard', this.$popup).val();
+    if (settings.boardId && settings.boardId === boardId && settings.labelsId) {
+      const settingId = settings.labelsId;
+      for (let i = 0; i < labels.length; i++) {
+        const item = labels[i];
+        if (settingId.indexOf(item.id) !== -1) {
+          $(
+            '#g2tLabels button[trelloId-label="' + item.id + '"]',
+            this.$popup
+          ).click();
+        }
+      }
+    } else {
+      settings.labelsId = ''; // Labels do not have to be set, so no default.
+    }
+
+    $g2t.show();
+  }
+
+  clearMembers() {
+    this.data.settings.membersId = '';
+    this.updateMembers();
+    this.validateData();
+  }
+
+  updateMembers() {
+    const members = this.data.trello.members;
+    const $g2t = $('#g2tMembers', this.$popup);
+    $g2t.html(''); // Clear out
+
+    for (let i = 0; i < members.length; i++) {
+      const item = members[i];
+      if (item && item.id) {
+        const txt = item.initials || item.username || '?';
+        const avatar =
+          this.parent.model.makeAvatarUrl({
+            avatarUrl: item.avatarUrl || '',
+          }) ||
+          chrome.runtime.getURL('images/avatar_generic_profile_gry_30x30.png'); // Default generic profile
+        const size_k = 20;
+        $g2t.append(
+          $('<button>')
+            .attr('trelloId-member', item.id)
+            .attr('title', item.fullName + ' @' + item.username || '?')
+            .attr('class', 'g2t-holder-button')
+            .append(
+              $('<img>')
+                .attr('src', avatar)
+                .attr('width', size_k)
+                .attr('height', size_k)
+            )
+            .append(' ' + txt)
+            .on('mousedown mouseup', (evt) => {
+              const elm = $(evt.currentTarget);
+              this.toggleActiveMouseDown(elm);
+            })
+            // NOTE (Ace, 2021-02-08): crlf uses mousedown, spacebar uses click:
+            .on('keypress', (evt) => {
+              const trigger_k =
+                evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
+              if (trigger_k) {
+                $(evt.target).trigger(trigger_k);
+              }
+            })
+        );
+      }
+    }
+
+    $('#g2tMembersMsg', this.$popup).hide();
+
+    const control = new MenuControl({
+      selectors: '#g2tMembers button',
+      nonexclusive: true,
+    });
+    control.event.addListener('onMenuClick', (e, params) => {
+      this.validateData();
+    });
+
+    const settings = this.data.settings;
+    if (settings.membersId?.length > 0) {
+      const settingId = settings.membersId;
+      for (let i = 0; i < members.length; i++) {
+        const item = members[i];
+        if (settingId.indexOf(item.id) !== -1) {
+          $(
+            '#g2tMembers button[trelloId-member="' + item.id + '"]',
+            this.$popup
+          ).click();
+        }
+      }
+    } else {
+      settings.membersId = '';
+    }
+
+    $g2t.show();
+  }
+
+  validateData() {
+    let newCard = {};
+    const boardId = $('#g2tBoard', this.$popup).val();
+    const listId = $('#g2tList', this.$popup).val();
+    const position = $('#g2tPosition', this.$popup).val();
+    const $card = $('#g2tCard', this.$popup).find(':selected').first();
+    const cardId = $card.val() || '';
+    const cardPos = $card.prop('pos') || '';
+    const cardMembers = $card.prop('members') || '';
+    const cardLabels = $card.prop('labels') || '';
+    const dueDate = $('#g2tDue_Date', this.$popup).val();
+    const dueTime = $('#g2tDue_Time', this.$popup).val();
+    const title = $('#g2tTitle', this.$popup).val();
+    const description = $('#g2tDesc', this.$popup).val();
+    const emailId = $('#g2tDesc', this.$popup).attr('gmail_emailId') || 0;
+    const useBackLink = $('#chkBackLink', this.$popup).is(':checked');
+    const addCC = $('#chkCC', this.$popup).is(':checked');
+    const markdown = $('#chkMarkdown', this.$popup).is(':checked');
+    const timeStamp = $('.gH .gK .g3:first', this.$visibleMail).attr('title');
+    const popupWidth = this.$popup.css('width');
+    let labelsId = $('#g2tLabels button.active', this.$popup)
+      .map(function (iter, item) {
+        const val = $(item).attr('trelloId-label');
+        return val;
+      })
+      .get()
+      .join();
+    const labelsCount = $('#g2tLabels button', this.$popup).length;
+
+    if (!labelsCount && labelsId.length < 1 && this.data?.settings?.labelsId) {
+      labelsId = this.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
+    }
+
+    let membersId = $('#g2tMembers button.active', this.$popup)
+      .map(function (iter, item) {
+        const val = $(item).attr('trelloId-member');
+        return val;
+      })
+      .get()
+      .join();
+    const membersCount = $('#g2tMembers button', this.$popup).length;
+
+    if (!membersCount && membersId.length < 1 && this.data?.settings?.membersId) {
+      membersId = this.data.settings.membersId; // We're not yet showing members so override membersId with settings
+    }
+
+    const mime_array = (tag) => {
+      let $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
+      let array = [];
+      let array1 = {};
+      let checked_total = 0;
+
+      $jTags.each(function () {
+        const checked = $(this).is(':checked');
+        if (checked) {
+          checked_total++;
+        }
+        array1 = {
+          url: $(this).attr('url'),
+          name: $(this).attr('name'),
+          mimeType: $(this).attr('mimeType'),
+          checked,
+        };
+        array.push(array1);
+      });
+
+      return { array, checked_total };
+    };
+
+    const attach_k = mime_array('g2tAttachments');
+    let attachments = attach_k.array;
+    let attachments_checked = attach_k.checked_total;
+
+    const images_k = mime_array('g2tImages');
+    let images = images_k.array;
+    let images_checked = images_k.checked_total;
+
+    const validateStatus =
+      boardId &&
+      listId &&
+      title /* && (description || attachments_checked > 0 || images_checked > 0) // Not sure we need to require these */
+        ? true
+        : false; // Labels are not required
+
+    if (validateStatus) {
+      newCard = {
+        emailId,
+        boardId,
+        listId,
+        cardId,
+        cardPos,
+        cardMembers,
+        cardLabels,
+        labelsId,
+        membersId,
+        dueDate,
+        dueTime,
+        title,
+        description,
+        attachments,
+        images,
+        useBackLink,
+        addCC,
+        markdown,
+        popupWidth,
+        position,
+        timeStamp,
+      };
+      Object.assign(this.data, { newCard, settings: newCard }); // intentional copy in both places
+
+      this.parent.saveSettings();
+    }
+
+    const setDisabledAttrToFalseWhenValid = validateStatus ? false : 'disabled';
+    $('#addToTrello', this.$popup).attr(
+      'disabled',
+      setDisabledAttrToFalseWhenValid
+    );
+
+    return validateStatus;
+  }
+
+  reset() {
+    this.$popupMessage.hide();
+    this.$popupContent.show();
+  }
+
+  displaySubmitCompleteForm() {
+    const data = this.data.newCard;
+
+    // NB: this is a terrible hack. The existing showMessage displays HTML by directly substituting text strings.
+    // This is very dangerous (very succeptible to XSS attacks) and generally bad practice.  It should be either
+    // switched to a templating system, or changed to use jQuery. For now, I've used this to fix
+    // vulnerabilities without having to completely rewrite the substitution part of this code.
+    // TODO(vijayp): clean this up in the future
+    const jQueryToRawHtml = (jQueryObject) => {
+      return jQueryObject.prop('outerHTML');
+    };
+    this.showMessage(
+      this,
+      '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
+        jQueryToRawHtml(
+          $('<a>')
+            .attr('href', data.url)
+            .attr('target', '_blank')
+            .append(data.title)
+        )
+    );
+    this.$popupContent.hide();
+  }
+
+  displayAPIFailedForm(response) {
+    let resp = {};
+    if (response && response.data) {
+      resp = response.data;
+    }
+
+    // Check for 400 errors and show reload option
+    if (resp?.status == 400) {
+      resp.statusText =
+        'Board/List data may be stale. You can try reloading your Trello boards.';
+    }
+
+    if (this.data && this.data.newCard) {
+      resp.title = this.data.newCard.title; // Put a temp copy of this over where we'll get the other data
+    }
+
+    const dict_k = {
+      title: resp.title || '?',
+      status: resp.status || '?',
+      statusText: resp.statusText || '?',
+      responseText: resp.responseText || JSON.stringify(response),
+      method: resp.method || '?',
+      keys: resp.keys || '?',
+    };
+
+    $.get(chrome.runtime.getURL('views/error.html'), (data) => {
+      let lastErrorHtml_k = this.parent.replacer(data, dict_k);
+
+      // Add reload button for 400 errors
+      if (resp?.status == 400) {
+        lastErrorHtml_k +=
+          '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
+      }
+
+      this.showMessage(this, lastErrorHtml_k);
+      this.lastError = JSON.stringify(dict_k);
+      this.$popupContent.hide();
+
+      // Handle reload button click for 400 errors
+      if (resp?.status == 400) {
+        $('#reloadTrelloBoards').on('click', () => {
+          g2t_log('User clicked reload Trello boards button');
+          this.parent.model.loadTrelloData();
+          this.reset(); // Hide error message and show popup content
+        });
+      }
+
+      if (resp?.status == 401) {
+        // Invalid token, so deauthorize Trello
+        this.event.fire('onRequestDeauthorizeTrello');
+      }
+    });
+  }
+
+  displayExtensionInvalidReload() {
+    // can't get this from html doc via chrome call if context is invalidated
+    const message = `<a class="hideMsg" title="Dismiss message">&times;</a><h3>Gmail-2-Trello has changed</h3>
+    The page needs to be reloaded to work correctly.
+    <button id="reload">Click here to reload this page</button> <span id="reload" style="color: red">&nbsp;</span>`;
+
+    this.showMessage(this, message);
+  }
 }
 
 // Export the class
