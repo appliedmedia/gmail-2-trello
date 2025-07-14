@@ -27,6 +27,47 @@ class Model {
     this.initTrello();
   }
 
+  // Callback methods for checkTrelloAuthorized
+  checkTrelloAuthorized_onSuccess(data) {
+    this.event.fire('onAuthorized');
+    this.loadTrelloData();
+  }
+
+  checkTrelloAuthorized_onError(data) {
+    if (!Trello.authorized()) {
+      // Assure token is invalid
+      this.event.fire('onBeforeAuthorize');
+      Trello.authorize({
+        type: 'popup',
+        name: 'Gmail-2-Trello',
+        interactive: true,
+        persit: true,
+        scope: { read: true, write: true },
+        expiration: 'never',
+        success: this.checkTrelloAuthorized_popup_onSuccess.bind(this),
+        error: this.checkTrelloAuthorized_popup_onError.bind(this),
+      });
+    } else {
+      g2t_log('Model:checkTrelloAuthorized: failed');
+      // We have a valid token, so...how did we get here?
+      // this.event.fire('onAuthorized');
+      // this.loadTrelloData();
+      // g2t_log(Trello);
+      // g2t_log(Trello.token());
+    }
+  }
+
+  checkTrelloAuthorized_popup_onSuccess(data) {
+    g2t_log('checkTrelloAuthorized: Trello authorization successful');
+    // g2t_log(data);
+    this.event.fire('onAuthorized');
+    this.loadTrelloData();
+  }
+
+  checkTrelloAuthorized_popup_onError(data) {
+    this.event.fire('onAuthorizeFail');
+  }
+
   initTrello() {
     // g2t_log("Model:initTrello");
 
@@ -43,40 +84,8 @@ class Model {
     // Assures there's a token or not:
     Trello.authorize({
       interactive: false,
-      success: (data) => {
-        this.event.fire('onAuthorized');
-        this.loadTrelloData();
-      },
-      error: (data) => {
-        if (!Trello.authorized()) {
-          // Assure token is invalid
-          this.event.fire('onBeforeAuthorize');
-          Trello.authorize({
-            type: 'popup',
-            name: 'Gmail-2-Trello',
-            interactive: true,
-            persit: true,
-            scope: { read: true, write: true },
-            expiration: 'never',
-            success: (data) => {
-              g2t_log('checkTrelloAuthorized: Trello authorization successful');
-              // g2t_log(data);
-              this.event.fire('onAuthorized');
-              this.loadTrelloData();
-            },
-            error: (data) => {
-              this.event.fire('onAuthorizeFail');
-            },
-          });
-        } else {
-          g2t_log('Model:checkTrelloAuthorized: failed');
-          // We have a valid token, so...how did we get here?
-          // this.event.fire('onAuthorized');
-          // this.loadTrelloData();
-          // g2t_log(Trello);
-          // g2t_log(Trello.token());
-        }
-      },
+      success: this.checkTrelloAuthorized_onSuccess.bind(this),
+      error: this.checkTrelloAuthorized_onError.bind(this),
     });
   }
 
@@ -312,11 +321,13 @@ class Model {
       idMembers: idMembers,
     };
     if (data.due) card.due = data.due;
-    Trello.post('cards', card, (data) => {
-      this.event.fire('onSubmitComplete', { data: data });
-      g2t_log(data);
-      //setTimeout(() => {this.popupNode.hide();}, 10000);
-    });
+    Trello.post('cards', card, this.submit_onSuccess.bind(this));
+  }
+
+  submit_onSuccess(data) {
+    this.event.fire('onSubmitComplete', { data: data });
+    g2t_log(data);
+    //setTimeout(() => {this.popupNode.hide();}, 10000);
   }
 
   retrieveSettings() {
@@ -367,21 +378,25 @@ class Model {
       return entry;
     }
 
+    chrome_restore_onSuccess(result) {
+      if (result[this.chrome_storage_key]) {
+        this.data = result[this.chrome_storage_key];
+        g2t_log('EmailBoardListCardMap: restored from chrome storage');
+      }
+    }
+
+    chrome_save_onSuccess() {
+      g2t_log('EmailBoardListCardMap: saved to chrome storage');
+    }
+
     chrome_restore() {
-      chrome.storage.local.get([this.chrome_storage_key], (result) => {
-        if (result[this.chrome_storage_key]) {
-          this.data = result[this.chrome_storage_key];
-          g2t_log('EmailBoardListCardMap: restored from chrome storage');
-        }
-      });
+      chrome.storage.local.get([this.chrome_storage_key], this.chrome_restore_onSuccess.bind(this));
     }
 
     chrome_save() {
       chrome.storage.local.set(
         { [this.chrome_storage_key]: this.data },
-        () => {
-          g2t_log('EmailBoardListCardMap: saved to chrome storage');
-        }
+        this.chrome_save_onSuccess.bind(this)
       );
     }
 
