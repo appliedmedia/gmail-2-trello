@@ -99,6 +99,59 @@ class Model {
     return retn;
   }
 
+  // Generic Trello API wrapper
+  trelloGet(endpoint, params, successCallback, failureCallback) {
+    Trello.get(endpoint, params, successCallback, failureCallback);
+  }
+
+  loadTrelloData_success_user(data) {
+    if (!data?.id) {
+      return false;
+    }
+
+    this.trello.user = data;
+
+    // g2t_log('loadTrelloData: User boards');
+    this.trello.boards = null;
+    this.trelloGet(
+      'members/me/boards',
+      {
+        organization: 'true',
+        organization_fields: 'displayName',
+        filter: 'open',
+        fields: 'name' /* "name,closed" */,
+      },
+      this.loadTrelloData_success_boards.bind(this),
+      this.loadTrelloData_failure.bind(this)
+    );
+    this.checkTrelloDataReady();
+  }
+
+  loadTrelloData_success_boards(data) {
+    let validData = Array();
+    for (let i = 0; i < data.length; i++) {
+      // if (data[i].idOrganization === null)
+      //   data[i].idOrganization = '-1';
+
+      // Only accept opening boards
+      if (i == 0) {
+        // g2t_log(JSON.stringify(data[i]));
+      }
+      if (data[i].closed != true) {
+        validData.push(data[i]);
+      }
+    }
+    // g2t_log('loadTrelloData: Boards data');
+    // g2t_log(JSON.stringify(data));
+    // g2t_log(JSON.stringify(validData));
+    this.trello.boards = validData;
+    this.checkTrelloDataReady();
+  }
+
+  loadTrelloData_failure(data) {
+    this.event.fire('onAPIFailure', { data: data });
+  }
+
   loadTrelloData() {
     // g2t_log('loadTrelloData');
 
@@ -107,55 +160,11 @@ class Model {
 
     // get user's info
     // g2t_log('loadTrelloData: User info');
-    Trello.get(
+    this.trelloGet(
       'members/me',
       {},
-      (data) => {
-        if (!data?.id) {
-          return false;
-        }
-
-        this.trello.user = data;
-
-        // g2t_log('loadTrelloData: User boards');
-        this.trello.boards = null;
-        Trello.get(
-          'members/me/boards',
-          {
-            organization: 'true',
-            organization_fields: 'displayName',
-            filter: 'open',
-            fields: 'name' /* "name,closed" */,
-          },
-          (data) => {
-            let validData = Array();
-            for (let i = 0; i < data.length; i++) {
-              // if (data[i].idOrganization === null)
-              //   data[i].idOrganization = '-1';
-
-              // Only accept opening boards
-              if (i == 0) {
-                // g2t_log(JSON.stringify(data[i]));
-              }
-              if (data[i].closed != true) {
-                validData.push(data[i]);
-              }
-            }
-            // g2t_log('loadTrelloData: Boards data');
-            // g2t_log(JSON.stringify(data));
-            // g2t_log(JSON.stringify(validData));
-            this.trello.boards = validData;
-            this.checkTrelloDataReady();
-          },
-          (data) => {
-            this.event.fire('onAPIFailure', { data: data });
-          }
-        );
-        this.checkTrelloDataReady();
-      },
-      (data) => {
-        this.event.fire('onAPIFailure', { data: data });
-      }
+      this.loadTrelloData_success_user.bind(this),
+      this.loadTrelloData_failure.bind(this)
     );
   }
 
@@ -169,23 +178,37 @@ class Model {
     //else g2t_log('checkTrelloDataReady: NO');
   }
 
+  loadTrelloLists_success(data) {
+    this.trello.lists = data.lists;
+    // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
+    this.event.fire('onLoadTrelloListSuccess');
+  }
+
+  loadTrelloLists_failure(data) {
+    this.event.fire('onAPIFailure', { data: data });
+  }
+
   loadTrelloLists(boardId) {
     // g2t_log('loadTrelloLists');
 
     this.trello.lists = null;
 
-    Trello.get(
+    this.trelloGet(
       `boards/${boardId}`,
       { lists: 'open', list_fields: 'name' },
-      (data) => {
-        this.trello.lists = data.lists;
-        // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
-        this.event.fire('onLoadTrelloListSuccess');
-      },
-      (data) => {
-        this.event.fire('onAPIFailure', { data: data });
-      }
+      this.loadTrelloLists_success.bind(this),
+      this.loadTrelloLists_failure.bind(this)
     );
+  }
+
+  loadTrelloCards_success(data) {
+    this.trello.cards = data;
+    // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
+    this.event.fire('onLoadTrelloCardSuccess');
+  }
+
+  loadTrelloCards_failure(data) {
+    this.event.fire('onAPIFailure', { data: data });
   }
 
   loadTrelloCards(listId) {
@@ -193,18 +216,22 @@ class Model {
 
     this.trello.cards = null;
 
-    Trello.get(
+    this.trelloGet(
       `lists/${listId}/cards`,
       { fields: 'name,desc,due,idMembers' },
-      (data) => {
-        this.trello.cards = data;
-        // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-        this.event.fire('onLoadTrelloCardSuccess');
-      },
-      (data) => {
-        this.event.fire('onAPIFailure', { data: data });
-      }
+      this.loadTrelloCards_success.bind(this),
+      this.loadTrelloCards_failure.bind(this)
     );
+  }
+
+  loadTrelloMembers_success(data) {
+    this.trello.members = data;
+    // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
+    this.event.fire('onLoadTrelloMemberSuccess');
+  }
+
+  loadTrelloMembers_failure(data) {
+    this.event.fire('onAPIFailure', { data: data });
   }
 
   loadTrelloMembers(boardId) {
@@ -212,17 +239,11 @@ class Model {
 
     this.trello.members = null;
 
-    Trello.get(
+    this.trelloGet(
       `boards/${boardId}/members`,
       { fields: 'fullName,username,avatarUrl' },
-      (data) => {
-        this.trello.members = data;
-        // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
-        this.event.fire('onLoadTrelloMemberSuccess');
-      },
-      (data) => {
-        this.event.fire('onAPIFailure', { data: data });
-      }
+      this.loadTrelloMembers_success.bind(this),
+      this.loadTrelloMembers_failure.bind(this)
     );
   }
 
