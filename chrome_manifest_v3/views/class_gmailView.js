@@ -65,16 +65,16 @@ class GmailView {
   }
 
   // Callback methods for parseData
-  parseData_onVisibleMailEach() {
-    let $this = $(this);
+  parseData_onVisibleMailEach(index, element) {
+    const $this = $(element);
     if (this.$visibleMail === null && $this.offset().top >= this.y0) {
       this.$visibleMail = $this;
     }
   }
 
-  parseData_onEmailCCEach() {
-    const email = ($(this).attr('email') || '').trim();
-    let name = ($(this).attr('name') || '').trim();
+  parseData_onEmailCCEach(index, element) {
+    const email = ($(element).attr('email') || '').trim();
+    let name = ($(element).attr('name') || '').trim();
     // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
     if (name == 'me') {
       if (this.fullName_k.length > 0) {
@@ -96,8 +96,8 @@ class GmailView {
     }
   }
 
-  parseData_onAttachmentEach() {
-    const item_k = $(this).attr('download_url');
+  parseData_onAttachmentEach(index, element) {
+    const item_k = $(element).attr('download_url');
     if (item_k?.length > 0) {
       const attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
       if (attachment && attachment.length > 3) {
@@ -134,11 +134,11 @@ class GmailView {
     }
   }
 
-  parseData_onImageEach(index, value) {
-    const href_k = ($(this).prop('src') || '').trim(); // Was attr
-    const alt_k = $(this).prop('alt') || '';
+  parseData_onImageEach(index, element) {
+    const href_k = ($(element).prop('src') || '').trim(); // Was attr
+    const alt_k = $(element).prop('alt') || '';
     // <div id=":cb" class="T-I J-J5-Ji aQv T-I-ax7 L3 a5q" role="button" tabindex="0" aria-label="Download attachment Screen Shot 2020-02-05 at 6.04.37 PM.png" data-tooltip-class="a1V" data-tooltip="Download"><div class="aSK J-J5-Ji aYr"></div></div>}
-    const $divs_k = $(this).nextAll("div[dir='ltr']"); // emailEmbedded
+    const $divs_k = $(element).nextAll("div[dir='ltr']"); // emailEmbedded
     const $div1_k = $divs_k.find('.T-I.J-J5-Ji.aQv.T-I-ax7.L3.a5q').first(); // emailEmbeddedTitle
     const aria_k = $div1_k.attr('aria-label') || ''; // emailEmbeddedNameAttr
     const aria_split_k = aria_k.split('Download attachment ');
@@ -150,7 +150,7 @@ class GmailView {
     const display_k = this.parent.decodeEntities(
       this.parent.midTruncate(name_k.trim(), 50, '...')
     );
-    const type_k = ($(this).prop('type') || 'text/link').trim(); // Was attr
+    const type_k = ($(element).prop('type') || 'text/link').trim(); // Was attr
     if (href_k.length > 0 && display_k.length > 0) {
       // Will store as key/value pairs to automatically overide duplicates
       this.emailImages[href_k] = {
@@ -309,9 +309,9 @@ class GmailView {
         .find(
           '.kv:not([g2t_event]), .h7:not([g2t_event]), .kQ:not([g2t_event]), .kx:not([g2t_event])'
         )
-        .each(function () {
+        .each((index, element) => {
           counter++;
-          $(this)
+          $(element)
             .attr('g2t_event', 1)
             .click(() => this.detectEmailOpeningMode_onEmailClick());
         });
@@ -347,7 +347,7 @@ class GmailView {
     //g2t_log(y0);
     this.$visibleMail = null;
     // parse expanded emails again
-    $('.h7', this.$root).each(() => this.parseData_onVisibleMailEach());
+    $('.h7', this.$root).each((index, element) => this.parseData_onVisibleMailEach(index, element));
 
     if (!this.$visibleMail) {
       return;
@@ -370,7 +370,7 @@ class GmailView {
     this.me_email = '';
     this.me_name = '';
     this.emailCC = [];
-    $emailCC_k.each(() => this.parseData_onEmailCCEach());
+    $emailCC_k.each((index, element) => this.parseData_onEmailCCEach(index, element));
 
     // email name
     let $emailFromNameAddress_k = $('span.gD', $email1_k);
@@ -387,7 +387,7 @@ class GmailView {
 
     // email attachments
     this.emailAttachments = [];
-    $('span.aZo', $email1_k).each(() => this.parseData_onAttachmentEach());
+    $('span.aZo', $email1_k).each((index, element) => this.parseData_onAttachmentEach(index, element));
 
     data.attachments = this.emailAttachments;
 
@@ -520,7 +520,7 @@ class GmailView {
 
     this.emailImages = {};
 
-    $('img', $emailBody1_k).each((index, value) => this.parseData_onImageEach(index, value));
+    $('img', $emailBody1_k).each((index, element) => this.parseData_onImageEach(index, element));
 
     data.images = Object.values(this.emailImages);
 
