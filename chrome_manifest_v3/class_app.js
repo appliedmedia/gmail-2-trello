@@ -221,6 +221,8 @@ class App {
 
     this.gmailView.detect();
 
+    // Declare before use to avoid undeclared globals
+    let service, tracker;
     service = analytics.getService('gmail-2-trello');
 
     // Get a Tracker using your Google Analytics app Tracking ID.
