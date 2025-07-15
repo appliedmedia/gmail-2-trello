@@ -16,9 +16,9 @@ class Model {
   }
 
   init() {
-    const eblcMapID = this.constructor.EmailBoardListCardMap.id;
+    const eblcMapID = G2T.Model.EmailBoardListCardMap.id;
 
-    this[eblcMapID] = new this.EmailBoardListCardMap({
+    this[eblcMapID] = new G2T.Model.EmailBoardListCardMap({
       parent: this,
     });
 
@@ -349,130 +349,135 @@ class Model {
     localStorage['userSettings'] = JSON.stringify(settings);
   }
 
-  // EmailBoardListCardMap class
-  static EmailBoardListCardMap = class {
-    constructor(args) {
-      this.parent = args.parent;
-      this.data = [];
-      this.maxSize = 100;
-      this.chrome_storage_key = 'gmail2trello_eblc_map';
-    }
+  emailBoardListCardMapLookup(key_value = {}) {
+    const mapInstance = this[G2T.Model.EmailBoardListCardMap.id];
+    return mapInstance ? mapInstance.lookup(key_value) : null;
+  }
 
-    static get id() {
-      return 'emailBoardListCardMap';
-    }
-
-    get id() {
-      return Model.EmailBoardListCardMap.id;
-    }
-
-    static call_in(args) {
-      return args.parent[Model.EmailBoardListCardMap.id];
-    }
-
-    add(args = {}) {
-      const entry = {
-        email: args.email || '',
-        boardId: args.boardId || '',
-        listId: args.listId || '',
-        cardId: args.cardId || '',
-        timestamp: Date.now(),
-      };
-
-      this.push(entry);
-      return entry;
-    }
-
-    chrome_restore_onSuccess(result) {
-      if (result[this.chrome_storage_key]) {
-        this.data = result[this.chrome_storage_key];
-        g2t_log('EmailBoardListCardMap: restored from chrome storage');
-      }
-    }
-
-    chrome_save_onSuccess() {
-      g2t_log('EmailBoardListCardMap: saved to chrome storage');
-    }
-
-    chrome_restore() {
-      chrome.storage.local.get(
-        [this.chrome_storage_key],
-        this.chrome_restore_onSuccess.bind(this)
-      );
-    }
-
-    chrome_save() {
-      chrome.storage.local.set(
-        { [this.chrome_storage_key]: this.data },
-        this.chrome_save_onSuccess.bind(this)
-      );
-    }
-
-    find(key_value = {}) {
-      return this.data.find(entry => {
-        return Object.keys(key_value).every(
-          key => entry[key] === key_value[key]
-        );
-      });
-    }
-
-    lookup(key_value = {}) {
-      const entry = this.find(key_value);
-      return entry || null;
-    }
-
-    makeRoom(index = -1) {
-      if (this.data.length >= this.maxSize) {
-        if (index === -1) {
-          this.data.shift(); // Remove oldest
-        } else {
-          this.data.splice(index, 1); // Remove specific index
-        }
-      }
-    }
-
-    max() {
-      return this.maxSize;
-    }
-
-    maxxed() {
-      return this.data.length >= this.maxSize;
-    }
-
-    oldest() {
-      if (this.data.length === 0) return null;
-
-      let oldestEntry = this.data[0];
-      let oldestTime = oldestEntry.timestamp;
-
-      for (let i = 1; i < this.data.length; i++) {
-        if (this.data[i].timestamp < oldestTime) {
-          oldestTime = this.data[i].timestamp;
-          oldestEntry = this.data[i];
-        }
-      }
-
-      return oldestEntry;
-    }
-
-    push(entry = {}) {
-      this.makeRoom();
-      this.data.push(entry);
-      this.chrome_save();
-    }
-
-    remove(index = -1) {
-      if (index === -1) {
-        this.data.pop();
-      } else {
-        this.data.splice(index, 1);
-      }
-      this.chrome_save();
-    }
-  };
+  emailBoardListCardMapUpdate(key_value = {}) {
+    const mapInstance = this[G2T.Model.EmailBoardListCardMap.id];
+    return mapInstance ? mapInstance.add(key_value) : null;
+  }
 }
 
-// Assign the class to the global namespace for backward compatibility
+// EmailBoardListCardMap class
+class EmailBoardListCardMap {
+  constructor(args) {
+    this.parent = args.parent;
+    this.data = [];
+    this.maxSize = 100;
+    this.chrome_storage_key = 'gmail2trello_eblc_map';
+  }
+
+  static get id() {
+    return 'emailBoardListCardMap';
+  }
+
+  get id() {
+    return EmailBoardListCardMap.id;
+  }
+
+  add(args = {}) {
+    const entry = {
+      email: args.email || '',
+      boardId: args.boardId || '',
+      listId: args.listId || '',
+      cardId: args.cardId || '',
+      timestamp: Date.now(),
+    };
+
+    this.push(entry);
+    return entry;
+  }
+
+  chrome_restore_onSuccess(result) {
+    if (result[this.chrome_storage_key]) {
+      this.data = result[this.chrome_storage_key];
+      g2t_log('EmailBoardListCardMap: restored from chrome storage');
+    }
+  }
+
+  chrome_save_onSuccess() {
+    g2t_log('EmailBoardListCardMap: saved to chrome storage');
+  }
+
+  chrome_restore() {
+    chrome.storage.local.get(
+      [this.chrome_storage_key],
+      this.chrome_restore_onSuccess.bind(this)
+    );
+  }
+
+  chrome_save() {
+    chrome.storage.local.set(
+      { [this.chrome_storage_key]: this.data },
+      this.chrome_save_onSuccess.bind(this)
+    );
+  }
+
+  find(key_value = {}) {
+    return this.data.find(entry => {
+      return Object.keys(key_value).every(key => entry[key] === key_value[key]);
+    });
+  }
+
+  lookup(key_value = {}) {
+    const entry = this.find(key_value);
+    return entry || null;
+  }
+
+  makeRoom(index = -1) {
+    if (this.data.length >= this.maxSize) {
+      if (index === -1) {
+        this.data.shift(); // Remove oldest
+      } else {
+        this.data.splice(index, 1); // Remove specific index
+      }
+    }
+  }
+
+  max() {
+    return this.maxSize;
+  }
+
+  maxxed() {
+    return this.data.length >= this.maxSize;
+  }
+
+  oldest() {
+    if (this.data.length === 0) return null;
+
+    let oldestEntry = this.data[0];
+    let oldestTime = oldestEntry.timestamp;
+
+    for (let i = 1; i < this.data.length; i++) {
+      if (this.data[i].timestamp < oldestTime) {
+        oldestTime = this.data[i].timestamp;
+        oldestEntry = this.data[i];
+      }
+    }
+
+    return oldestEntry;
+  }
+
+  push(entry = {}) {
+    this.makeRoom();
+    this.data.push(entry);
+    this.chrome_save();
+  }
+
+  remove(index = -1) {
+    if (index === -1) {
+      this.data.pop();
+    } else {
+      this.data.splice(index, 1);
+    }
+    this.chrome_save();
+  }
+}
+
+// Assign classes to namespace
 G2T.Model = Model;
+G2T.Model.EmailBoardListCardMap = EmailBoardListCardMap;
 
 // End, class_model.js
