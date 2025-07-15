@@ -211,7 +211,7 @@ Gmail2Trello.App.prototype.updateData = function () {
   self.popupView.bindGmailData(self.model.gmail);
 };
 
-Gmail2Trello.App.prototype.initialize = function () {
+Gmail2Trello.App.prototype.init = function () {
   const self = this;
 
   this.model.isInitialized = false;
