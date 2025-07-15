@@ -63,10 +63,10 @@
         "lib/eventTarget.js",
         "lib/menuControl.js",
         "lib/waitCounter.js",
-        "views/gmailView.js",
-        "views/popupView.js",
-        "model.js",
-        "app.js",
+        "views/class_gmailView.js",
+        "views/class_popupView.js",
+        "class_model.js",
+        "class_app.js",
         "content-script.js"
       ],
       "css": [

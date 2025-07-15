@@ -1,4 +1,4 @@
-var Gmail2Trello = Gmail2Trello || {}; // must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class Model {
   constructor(parent) {
@@ -10,7 +10,7 @@ class Model {
     this.parent = parent;
     this.settings = {};
     this.isInitialized = false;
-    this.event = new EventTarget();
+    this.event = new G2T.EventTarget();
     this.newCard = null;
     this.userEmail = null; // Set this when user data loads
   }
@@ -151,7 +151,9 @@ class Model {
   }
 
   loadTrelloData_failure(data) {
-    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
+    this.event.dispatchEvent(
+      new CustomEvent('onAPIFailure', { detail: { data: data } })
+    );
   }
 
   loadTrelloData() {
@@ -187,7 +189,9 @@ class Model {
   }
 
   loadTrelloLists_failure(data) {
-    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
+    this.event.dispatchEvent(
+      new CustomEvent('onAPIFailure', { detail: { data: data } })
+    );
   }
 
   loadTrelloLists(boardId) {
@@ -210,7 +214,9 @@ class Model {
   }
 
   loadTrelloCards_failure(data) {
-    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
+    this.event.dispatchEvent(
+      new CustomEvent('onAPIFailure', { detail: { data: data } })
+    );
   }
 
   loadTrelloCards(listId) {
@@ -233,7 +239,9 @@ class Model {
   }
 
   loadTrelloMembers_failure(data) {
-    this.event.dispatchEvent(new CustomEvent('onAPIFailure', { detail: { data: data } }));
+    this.event.dispatchEvent(
+      new CustomEvent('onAPIFailure', { detail: { data: data } })
+    );
   }
 
   loadTrelloMembers(boardId) {
@@ -320,7 +328,9 @@ class Model {
   }
 
   submit_onSuccess(data) {
-    this.event.dispatchEvent(new CustomEvent('onSubmitComplete', { detail: { data: data } }));
+    this.event.dispatchEvent(
+      new CustomEvent('onSubmitComplete', { detail: { data: data } })
+    );
     g2t_log(data);
     //setTimeout(() => {this.popupNode.hide();}, 10000);
   }
@@ -385,7 +395,10 @@ class Model {
     }
 
     chrome_restore() {
-      chrome.storage.local.get([this.chrome_storage_key], this.chrome_restore_onSuccess.bind(this));
+      chrome.storage.local.get(
+        [this.chrome_storage_key],
+        this.chrome_restore_onSuccess.bind(this)
+      );
     }
 
     chrome_save() {
@@ -396,8 +409,10 @@ class Model {
     }
 
     find(key_value = {}) {
-      return this.data.find((entry) => {
-        return Object.keys(key_value).every((key) => entry[key] === key_value[key]);
+      return this.data.find(entry => {
+        return Object.keys(key_value).every(
+          key => entry[key] === key_value[key]
+        );
       });
     }
 
@@ -458,4 +473,6 @@ class Model {
 }
 
 // Assign the class to the global namespace for backward compatibility
-Gmail2Trello.Model = Model;
+G2T.Model = Model;
+
+// End, class_model.js

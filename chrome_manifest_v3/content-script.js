@@ -151,8 +151,8 @@ try {
   extensionInvalidConfirmReload();
 }
 
-var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization - must be var to guarantee correct scope
-var app = new Gmail2Trello.App();
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+var app = new G2T.App();
 
 /**
  * Inject code: for accessing Gmail's GLOBALS object

@@ -1,47 +1,107 @@
 /** Gmail2Trello Application - ES6 Class Version
  */
 
-var Gmail2Trello = Gmail2Trello || {}; // Namespace initialization - must be var to guarantee correct scope
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class App {
   constructor() {
     this.CHROME_SETTINGS_ID = 'g2t_user_settings';
     this.UNIQUE_URI_VAR = 'g2t_filename';
 
-    this.model = new Gmail2Trello.Model(this);
-    this.gmailView = new Gmail2Trello.GmailView(this);
-    this.popupView = new Gmail2Trello.PopupView(this);
+    this.model = new G2T.Model(this);
+    this.gmailView = new G2T.GmailView(this);
+    this.popupView = new G2T.PopupView(this);
 
     this.bindEvents();
   }
 
   bindEvents() {
     /*** Data's events binding ***/
-    this.model.event.addListener('onBeforeAuthorize', this.handleBeforeAuthorize.bind(this));
-    this.model.event.addListener('onAuthorizeFail', this.handleAuthorizeFail.bind(this));
-    this.model.event.addListener('onAuthorized', this.handleAuthorized.bind(this));
-    this.model.event.addListener('onBeforeLoadTrello', this.handleBeforeLoadTrello.bind(this));
-    this.model.event.addListener('onTrelloDataReady', this.handleTrelloDataReady.bind(this));
-    this.model.event.addListener('onLoadTrelloListSuccess', this.handleLoadTrelloListSuccess.bind(this));
-    this.model.event.addListener('onLoadTrelloCardsSuccess', this.handleLoadTrelloCardsSuccess.bind(this));
-    this.model.event.addListener('onLoadTrelloLabelsSuccess', this.handleLoadTrelloLabelsSuccess.bind(this));
-    this.model.event.addListener('onLoadTrelloMembersSuccess', this.handleLoadTrelloMembersSuccess.bind(this));
-    this.model.event.addListener('onCardSubmitComplete', this.handleCardSubmitComplete.bind(this));
-    this.model.event.addListener('onAPIFailure', this.handleAPIFailure.bind(this));
+    this.model.event.addListener(
+      'onBeforeAuthorize',
+      this.handleBeforeAuthorize.bind(this)
+    );
+    this.model.event.addListener(
+      'onAuthorizeFail',
+      this.handleAuthorizeFail.bind(this)
+    );
+    this.model.event.addListener(
+      'onAuthorized',
+      this.handleAuthorized.bind(this)
+    );
+    this.model.event.addListener(
+      'onBeforeLoadTrello',
+      this.handleBeforeLoadTrello.bind(this)
+    );
+    this.model.event.addListener(
+      'onTrelloDataReady',
+      this.handleTrelloDataReady.bind(this)
+    );
+    this.model.event.addListener(
+      'onLoadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    this.model.event.addListener(
+      'onLoadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    this.model.event.addListener(
+      'onLoadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    this.model.event.addListener(
+      'onLoadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    this.model.event.addListener(
+      'onCardSubmitComplete',
+      this.handleCardSubmitComplete.bind(this)
+    );
+    this.model.event.addListener(
+      'onAPIFailure',
+      this.handleAPIFailure.bind(this)
+    );
 
     /*** PopupView's events binding ***/
-    this.popupView.event.addListener('onPopupVisible', this.handlePopupVisible.bind(this));
-    this.popupView.event.addListener('periodicChecks', this.handlePeriodicChecks.bind(this));
-    this.popupView.event.addListener('onBoardChanged', this.handleBoardChanged.bind(this));
-    this.popupView.event.addListener('onListChanged', this.handleListChanged.bind(this));
+    this.popupView.event.addListener(
+      'onPopupVisible',
+      this.handlePopupVisible.bind(this)
+    );
+    this.popupView.event.addListener(
+      'periodicChecks',
+      this.handlePeriodicChecks.bind(this)
+    );
+    this.popupView.event.addListener(
+      'onBoardChanged',
+      this.handleBoardChanged.bind(this)
+    );
+    this.popupView.event.addListener(
+      'onListChanged',
+      this.handleListChanged.bind(this)
+    );
     this.popupView.event.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.popupView.event.addListener('checkTrelloAuthorized', this.handleCheckTrelloAuthorized.bind(this));
-    this.popupView.event.addListener('onRequestDeauthorizeTrello', this.handleRequestDeauthorizeTrello.bind(this));
-    this.popupView.event.addListener('detectButton', this.handleDetectButton.bind(this));
+    this.popupView.event.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.popupView.event.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
+    this.popupView.event.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
 
     // GMailView's events:
-    this.gmailView.event.addListener('onDetected', this.handleGmailDetected.bind(this));
-    this.gmailView.event.addListener('detectButton', this.handleDetectButton.bind(this));
+    this.gmailView.event.addListener(
+      'onDetected',
+      this.handleGmailDetected.bind(this)
+    );
+    this.gmailView.event.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
 
     chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
   }
@@ -433,18 +493,35 @@ class App {
      * (4) Replace with placeholder
      * (5) Replace placeholders with final text
      */
-    const sortAndPlaceholderize = (tooProcess) => {
+    const sortAndPlaceholderize = tooProcess => {
       if (tooProcess) {
         g2t_each(
-          Object.keys(tooProcess).sort(this.markdownify_sortByLength.bind(this)),
-          this.markdownify_onSortEach.bind(this, tooProcess, unique_placeholder_k, count, regexp_k, body, replacer_dict)
+          Object.keys(tooProcess).sort(
+            this.markdownify_sortByLength.bind(this)
+          ),
+          this.markdownify_onSortEach.bind(
+            this,
+            tooProcess,
+            unique_placeholder_k,
+            count,
+            regexp_k,
+            body,
+            replacer_dict
+          )
         );
       }
     };
     const processMarkdown = (elementTag, replaceText) => {
       if (elementTag && replaceText && featureEnabled(elementTag)) {
         toProcess = preprocess[elementTag] || {};
-        $(elementTag, $html).each(this.markdownify_onElementEach.bind(this, replaceText, toProcess, min_text_length_k));
+        $(elementTag, $html).each(
+          this.markdownify_onElementEach.bind(
+            this,
+            replaceText,
+            toProcess,
+            min_text_length_k
+          )
+        );
         sortAndPlaceholderize(toProcess);
       }
     };
@@ -481,7 +558,9 @@ class App {
     // H6 -> ######
     if (featureEnabled('h')) {
       toProcess = preprocess['h'] || {};
-      $(':header', $html).each(this.markdownify_onHeaderEach.bind(this, toProcess, min_text_length_k));
+      $(':header', $html).each(
+        this.markdownify_onHeaderEach.bind(this, toProcess, min_text_length_k)
+      );
       sortAndPlaceholderize(toProcess);
     }
 
@@ -500,7 +579,9 @@ class App {
     // a -> [text](html)
     if (featureEnabled('a')) {
       toProcess = preprocess['a'] || {};
-      $('a', $html).each(this.markdownify_onLinkEach.bind(this, toProcess, min_text_length_k));
+      $('a', $html).each(
+        this.markdownify_onLinkEach.bind(this, toProcess, min_text_length_k)
+      );
       sortAndPlaceholderize(toProcess);
     }
 
@@ -657,12 +738,34 @@ class App {
     return retn;
   }
 
+  // Callback methods for loadSettings
+  loadSettings_onSuccess(popup, response) {
+    const setID = this.CHROME_SETTINGS_ID;
+    if (response?.[setID]) {
+      // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
+      try {
+        this.popupView.data.settings = JSON.parse(response[setID]);
+      } catch (err) {
+        g2t_log(
+          'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
+        );
+      }
+    }
+    if (popup) {
+      popup.init_popup();
+      this.updateData();
+    }
+  }
+
   /**
    * Load settings
    */
   loadSettings(popup) {
     const setID = this.CHROME_SETTINGS_ID;
-    chrome.storage.sync.get(setID, this.loadSettings_onSuccess.bind(this, popup));
+    chrome.storage.sync.get(
+      setID,
+      this.loadSettings_onSuccess.bind(this, popup)
+    );
   }
 
   /**
@@ -670,7 +773,8 @@ class App {
    */
   saveSettings() {
     const setID = this.CHROME_SETTINGS_ID;
-    const { description, title, attachments, images, ...settings } = this.popupView.data.settings;
+    const { description, title, attachments, images, ...settings } =
+      this.popupView.data.settings;
     void (description || title || attachments || images); // silence linter unused var warnings
 
     const settings_string_k = JSON.stringify(settings);
@@ -701,13 +805,24 @@ class App {
     // jQuery way, less safe: return $("<textarea />").text(sourceText).html();
   }
 
+  // Callback methods for decodeEntities
+  decodeEntities_onEach(sourceText, re, new_s, value, key) {
+    // value is already available from the callback parameter
+    const regex = new RegExp(this.escapeRegExp(key), 'gi');
+    const replaced = sourceText.replace(regex, value);
+    return replaced;
+  }
+
   /**
    * Decode entities
    */
   decodeEntities(sourceText) {
     const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
     let re, new_s;
-    g2t_each(dict_k, this.decodeEntities_onEach.bind(this, sourceText, re, new_s));
+    g2t_each(
+      dict_k,
+      this.decodeEntities_onEach.bind(this, sourceText, re, new_s)
+    );
     try {
       new_s = decodeURIComponent(sourceText);
       sourceText = new_s;
@@ -784,7 +899,15 @@ class App {
     return b.length - a.length;
   }
 
-  markdownify_onSortEach(tooProcess, unique_placeholder_k, count, regexp_k, body, replacer_dict, value) {
+  markdownify_onSortEach(
+    tooProcess,
+    unique_placeholder_k,
+    count,
+    regexp_k,
+    body,
+    replacer_dict,
+    value
+  ) {
     const replace = tooProcess[value];
     const swap = `${unique_placeholder_k}${(count++).toString()}`;
     const regex = new RegExp(
@@ -799,7 +922,13 @@ class App {
     return body;
   }
 
-  markdownify_onElementEach(replaceText, toProcess, min_text_length_k, index, value) {
+  markdownify_onElementEach(
+    replaceText,
+    toProcess,
+    min_text_length_k,
+    index,
+    value
+  ) {
     const text = ($(this).text() || '').trim();
     if (text && text.length > min_text_length_k) {
       const replace = this.replacer(replaceText, { text: text });
@@ -831,33 +960,9 @@ class App {
       toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
     }
   }
-
-  // Callback methods for loadSettings
-  loadSettings_onSuccess(popup, response) {
-    const setID = this.CHROME_SETTINGS_ID;
-    if (response?.[setID]) {
-      // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
-      try {
-        this.popupView.data.settings = JSON.parse(response[setID]);
-      } catch (err) {
-        g2t_log(
-          'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
-        );
-      }
-    }
-    if (popup) {
-      popup.init_popup();
-      this.updateData();
-    }
-  }
-
-  // Callback methods for decodeEntities
-  decodeEntities_onEach(sourceText, re, new_s, value, key) {
-    // value is already available from the callback parameter
-    const regex = new RegExp(this.escapeRegExp(key), 'gi');
-    const replaced = sourceText.replace(regex, value);
-    return replaced;
-  }
 }
+
+// Assign class to namespace
+G2T.App = App;
 
 // End, class_app.js

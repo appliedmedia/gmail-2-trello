@@ -1,9 +1,9 @@
-var Gmail2Trello = Gmail2Trello || {}; // must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class PopupView {
   constructor(parent) {
     this.parent = parent;
-    this.event = new EventTarget();
+    this.event = new G2T.EventTarget();
     this.isInitialized = false;
 
     this.data = { settings: {} };
@@ -189,7 +189,7 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        $.get(chrome.runtime.getURL('views/popupView.html'), (data) => {
+        $.get(chrome.runtime.getURL('views/popupView.html'), data => {
           // data = this.parent.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
           this.html['popup'] = data;
           g2t_log('PopupView:confirmPopup: creating popup');
@@ -226,10 +226,11 @@ class PopupView {
       newPopupWidth = useWidth; // May snap to min if necessary
       g2tCenter = this.$popup.position().left;
       g2tCenter += this.$popup.width() / 2;
-    } else if (
-      this.data?.settings?.popupWidth?.length > 0
-    ) {
-      newPopupWidth = Number.parseFloat(this.data.settings.popupWidth, 10 /* base 10 */);
+    } else if (this.data?.settings?.popupWidth?.length > 0) {
+      newPopupWidth = Number.parseFloat(
+        this.data.settings.popupWidth,
+        10 /* base 10 */
+      );
     } else {
       newPopupWidth = calcWidth_k;
     }
@@ -304,26 +305,33 @@ class PopupView {
     const markdown_k =
       data.settings?.markdown ?? $('#chkMarkdown', this.$popup).is(':checked');
     const useBackLink_k =
-      data.settings?.useBackLink ?? $('#chkBackLink', this.$popup).is(':checked');
+      data.settings?.useBackLink ??
+      $('#chkBackLink', this.$popup).is(':checked');
     const addCC_k =
       data.settings?.addCC ?? $('#chkCC', this.$popup).is(':checked');
     const $g2tDesc = $('#g2tDesc', this.$popup);
 
-    const fields = ['bodyAsRaw', 'bodyAsMd', 'linkAsRaw', 'linkAsMd', 'emailId'];
+    const fields = [
+      'bodyAsRaw',
+      'bodyAsMd',
+      'linkAsRaw',
+      'linkAsMd',
+      'emailId',
+    ];
     const valid_data_k = fields.every(field => !!data?.[field]);
 
     fields.push('ccAsRaw', 'ccAsMd'); // These are conditional
 
     if (valid_data_k) {
       // Store data in description object attributes:
-      g2t_each(fields, (value) => {
+      g2t_each(fields, value => {
         const val_k = data[value] || '';
         const name_k = attribute_storage_k + value;
         $g2tDesc.attr(name_k, val_k);
       });
     } else {
       // Restore data values from description object attributes:
-      g2t_each(fields, (value) => {
+      g2t_each(fields, value => {
         const name_k = attribute_storage_k + value;
         const val_k = $g2tDesc.attr(name_k) || '';
         data[value] = val_k;
@@ -364,7 +372,7 @@ class PopupView {
 
     this.$g2tButton
       .off('mousedown') // was: ("click")
-      .on('mousedown' /* was: "click" */, (event) => {
+      .on('mousedown' /* was: "click" */, event => {
         if (this.parent.modKey(event)) {
           // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
         } else {
@@ -437,14 +445,14 @@ class PopupView {
 
     $('#g2tPosition', this.$popup)
       .off('change')
-      .on('change', (event) => {
+      .on('change', event => {
         // Focusing the next element in select.
         $('#' + $(event.target).attr('next-select'))
           .find('input')
           .focus();
       })
       .off('keyup')
-      .on('keyup', (event) => {
+      .on('keyup', event => {
         // Focusing the next element on enter key up.
         if (event.which == 13) {
           $('#' + $(event.target).attr('next-select'))
@@ -462,7 +470,7 @@ class PopupView {
 
     $('#g2tDue_Shortcuts', this.$popup)
       .off('change')
-      .on('change', (event) => {
+      .on('change', event => {
         const dayOfWeek_k = {
           sun: 0,
           sunday: 0,
@@ -584,7 +592,7 @@ class PopupView {
 
     $('#addToTrello', this.$popup)
       .off('click')
-      .on('click', (event) => {
+      .on('click', event => {
         if (this.parent.modKey(event)) {
           this.displayAPIFailedForm();
         } else {
@@ -594,7 +602,7 @@ class PopupView {
 
     $('#g2tLabelsHeader', this.$popup)
       .off('click')
-      .on('click', (event) => {
+      .on('click', event => {
         if (this.parent.modKey(event)) {
           this.clearLabels();
         }
@@ -602,7 +610,7 @@ class PopupView {
 
     $('#g2tMembersHeader', this.$popup)
       .off('click')
-      .on('click', (event) => {
+      .on('click', event => {
         if (this.parent.modKey(event)) {
           this.clearMembers();
         }
@@ -610,7 +618,7 @@ class PopupView {
 
     $('#g2tAttachHeader', this.$popup)
       .off('click')
-      .on('click', (event) => {
+      .on('click', event => {
         if (this.parent.modKey(event)) {
           this.toggleCheckboxes('g2tAttachments');
         }
@@ -618,7 +626,7 @@ class PopupView {
 
     $('#g2tImagesHeader', this.$popup)
       .off('click')
-      .on('click', (event) => {
+      .on('click', event => {
         if (this.parent.modKey(event)) {
           this.toggleCheckboxes('g2tImages');
         }
@@ -636,7 +644,7 @@ class PopupView {
   showPopup() {
     if (this.$g2tButton && this.$popup) {
       $(document)
-        .on('keydown' + this.EVENT_LISTENER, (event) => {
+        .on('keydown' + this.EVENT_LISTENER, event => {
           const visible_k = this.popupVisible();
           const periodASCII_k = 46;
           const periodNumPad_k = 110;
@@ -646,7 +654,8 @@ class PopupView {
           const isPeriodASCII_k = event.which === periodASCII_k;
           const isPeriodNumPad_k = event.which === periodNumPad_k;
           const isPeriodKeyCode_k = event.which === periodKeyCode_k;
-          const isPeriod_k = isPeriodASCII_k || isPeriodNumPad_k || isPeriodKeyCode_k;
+          const isPeriod_k =
+            isPeriodASCII_k || isPeriodNumPad_k || isPeriodKeyCode_k;
           const isCtrlCmd_k = event.ctrlKey || event.metaKey;
           const isCtrlCmdPeriod_k = isCtrlCmd_k && isPeriod_k;
           const isCtrlCmdEnter_k = isCtrlCmd_k && isEnter_k;
@@ -659,7 +668,7 @@ class PopupView {
             }
           }
         })
-        .on('mouseup' + this.EVENT_LISTENER, (event) => {
+        .on('mouseup' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead.
           if (
             $(event.target).closest('#g2tButton').length == 0 &&
@@ -672,7 +681,7 @@ class PopupView {
             this.hidePopup();
           }
         })
-        .on('mousedown' + this.EVENT_LISTENER, (event) => {
+        .on('mousedown' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead
           if (
             $(event.target).closest('#g2tButton').length == 0 &&
@@ -681,7 +690,7 @@ class PopupView {
             this.mouseDownTracker[event.target] = 1;
           }
         })
-        .on('focusin' + this.EVENT_LISTENER, (event) => {
+        .on('focusin' + this.EVENT_LISTENER, event => {
           if (
             $(event.target).closest('#g2tButton').length == 0 &&
             $(event.target).closest('#g2tPopup').length == 0
@@ -753,21 +762,18 @@ class PopupView {
 
     if (version_new > '0') {
       try {
-        chrome.storage.sync.get(version_storage_k, (response) => {
+        chrome.storage.sync.get(version_storage_k, response => {
           const version_old = response?.[version_storage_k] || '0';
           if (version_old > '0') {
             if (version_old !== version_new) {
-              $.get(
-                chrome.runtime.getURL('views/versionUpdate.html'),
-                (data) => {
-                  const dict = {
-                    version_old,
-                    version_new,
-                  };
-                  data = this.parent.replacer(data, dict);
-                  this.showMessage(this, data);
-                }
-              );
+              $.get(chrome.runtime.getURL('views/versionUpdate.html'), data => {
+                const dict = {
+                  version_old,
+                  version_new,
+                };
+                data = this.parent.replacer(data, dict);
+                this.showMessage(this, data);
+              });
             }
           } else {
             this.forceSetVersion();
@@ -793,14 +799,14 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    $.get(chrome.runtime.getURL('views/signOut.html'), (data_in) => {
+    $.get(chrome.runtime.getURL('views/signOut.html'), data_in => {
       this.showMessage(this, data_in);
     });
   }
 
   bindData(data) {
     $('.header a').each(() => {
-      $(document).on('keyup', $(this), (evt) => {
+      $(document).on('keyup', $(this), evt => {
         if (evt.which == 13 || evt.which == 32) {
           $(evt.target).trigger('click');
         }
@@ -811,7 +817,7 @@ class PopupView {
     });
 
     try {
-      chrome.storage.sync.get('dueShortcuts', (response) => {
+      chrome.storage.sync.get('dueShortcuts', response => {
         // Borrowed from options file until this gets persisted everywhere:
         const dueShortcuts_k = JSON.stringify({
           today: {
@@ -940,12 +946,12 @@ class PopupView {
       $('#chkCC', this.$popup).prop('checked', data.settings.addCC);
     }
 
-    $(document).on('keyup', '.g2t-checkbox', (evt) => {
+    $(document).on('keyup', '.g2t-checkbox', evt => {
       if (evt.which == 13 || evt.which == 32) {
         $(evt.target).trigger('click');
       }
     });
-    $(document).on('keydown', '.g2t-checkbox', (evt) => {
+    $(document).on('keydown', '.g2t-checkbox', evt => {
       if (evt.which == 13 || evt.which == 32) {
         $(evt.target).trigger('mousedown');
       }
@@ -983,7 +989,10 @@ class PopupView {
         lastError_k + JSON.stringify(newCard) + '\n' + g2t_log()
       );
       $('#g2tTitle', this.$popup).val(
-        'Error report card: ' + [fullname_k, username_k].join(' @') + ' ' + date_k
+        'Error report card: ' +
+          [fullname_k, username_k].join(' @') +
+          ' ' +
+          date_k
       );
       this.validateData();
     });
@@ -1027,7 +1036,7 @@ class PopupView {
       }
 
       let x = 0;
-      g2t_each(data[tag], (item) => {
+      g2t_each(data[tag], item => {
         const dict = {
           url: item.url,
           name: item.name,
@@ -1185,7 +1194,7 @@ class PopupView {
 
     let newArray = {};
 
-    g2t_each(array_k, (item) => {
+    g2t_each(array_k, item => {
       const org_k = item?.organization?.displayName
         ? `!${item.organization.displayName}: `
         : '~';
@@ -1201,7 +1210,7 @@ class PopupView {
 
     $g2t.append($('<option value="">Select a board....</option>'));
 
-    g2t_each(Object.keys(newArray).sort(), (item) => {
+    g2t_each(Object.keys(newArray).sort(), item => {
       const id_k = newArray[item].id;
       const display_k = newArray[item].display.substring(1); // Ignore first char, it's used just for sorting
       const selected_k = id_k == restoreId_k;
@@ -1243,7 +1252,7 @@ class PopupView {
     const $g2t = $('#g2tList', this.$popup);
     $g2t.html('');
 
-    g2t_each(array_k, (item) => {
+    g2t_each(array_k, item => {
       const id_k = item.id;
       const display_k = item.name;
       const selected_k = id_k == restoreId_k;
@@ -1288,7 +1297,7 @@ class PopupView {
     const $g2t = $('#g2tCard', this.$popup);
     $g2t.html(new_k);
 
-    g2t_each(array_k, (item) => {
+    g2t_each(array_k, item => {
       const id_k = item.id;
       const display_k = this.parent.truncate(item.name, 80, '...');
       const selected_k = id_k == restoreId_k;
@@ -1337,11 +1346,11 @@ class PopupView {
             .css('border-color', item.color)
             // .css("background-color", bkColor)
             .append(item.name)
-            .on('mousedown mouseup', (evt) => {
+            .on('mousedown mouseup', evt => {
               const elm = $(evt.currentTarget);
               this.toggleActiveMouseDown(elm);
             })
-            .on('keypress', (evt) => {
+            .on('keypress', evt => {
               const trigger_k =
                 evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
               if (trigger_k) {
@@ -1415,12 +1424,12 @@ class PopupView {
                 .attr('height', size_k)
             )
             .append(' ' + txt)
-            .on('mousedown mouseup', (evt) => {
+            .on('mousedown mouseup', evt => {
               const elm = $(evt.currentTarget);
               this.toggleActiveMouseDown(elm);
             })
             // NOTE (Ace, 2021-02-08): crlf uses mousedown, spacebar uses click:
-            .on('keypress', (evt) => {
+            .on('keypress', evt => {
               const trigger_k =
                 evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
               if (trigger_k) {
@@ -1502,11 +1511,15 @@ class PopupView {
       .join();
     const membersCount = $('#g2tMembers button', this.$popup).length;
 
-    if (!membersCount && membersId.length < 1 && this.data?.settings?.membersId) {
+    if (
+      !membersCount &&
+      membersId.length < 1 &&
+      this.data?.settings?.membersId
+    ) {
       membersId = this.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
 
-    const mime_array = (tag) => {
+    const mime_array = tag => {
       let $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
       let array = [];
       let array1 = {};
@@ -1595,7 +1608,7 @@ class PopupView {
     // switched to a templating system, or changed to use jQuery. For now, I've used this to fix
     // vulnerabilities without having to completely rewrite the substitution part of this code.
     // TODO(vijayp): clean this up in the future
-    const jQueryToRawHtml = (jQueryObject) => {
+    const jQueryToRawHtml = jQueryObject => {
       return jQueryObject.prop('outerHTML');
     };
     this.showMessage(
@@ -1636,7 +1649,7 @@ class PopupView {
       keys: resp.keys || '?',
     };
 
-    $.get(chrome.runtime.getURL('views/error.html'), (data) => {
+    $.get(chrome.runtime.getURL('views/error.html'), data => {
       let lastErrorHtml_k = this.parent.replacer(data, dict_k);
 
       // Add reload button for 400 errors
@@ -1676,4 +1689,4 @@ class PopupView {
 }
 
 // Export the class
-Gmail2Trello.PopupView = PopupView;
+G2T.PopupView = PopupView;

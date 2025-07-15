@@ -1,3 +1,5 @@
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+
 class GmailView {
   constructor(parent) {
     this.parent = parent;
@@ -6,7 +8,7 @@ class GmailView {
     this.LAYOUT_SPLIT = 1;
     this.layoutMode = this.LAYOUT_DEFAULT;
 
-    this.event = new EventTarget();
+    this.event = new G2T.EventTarget();
     this.data = null;
 
     this.$root = null;
@@ -119,7 +121,10 @@ class GmailView {
       // We didn't have your full name in time to replace it earlier, we'll try now:
       item.name = this.me_name || 'me';
     }
-    $.extend(this.preprocess['a'], this.make_preprocess_mailto(item.name, item.email));
+    $.extend(
+      this.preprocess['a'],
+      this.make_preprocess_mailto(item.name, item.email)
+    );
     let cc_raw_md = this.email_raw_md(item.name, item.email);
     if (cc_raw_md.raw.length > 0 || cc_raw_md.md.length > 0) {
       if (!this.cc_raw.length || !this.cc_md.length) {
@@ -230,7 +235,7 @@ class GmailView {
 
     let retn = {};
 
-    g2t_each(forms, (item) => {
+    g2t_each(forms, item => {
       let item1 = this.parent.replacer(item, dict);
       retn[item1.toLowerCase()] = anchor_md;
     });
@@ -347,7 +352,9 @@ class GmailView {
     //g2t_log(y0);
     this.$visibleMail = null;
     // parse expanded emails again
-    $('.h7', this.$root).each((index, element) => this.parseData_onVisibleMailEach(index, element));
+    $('.h7', this.$root).each((index, element) =>
+      this.parseData_onVisibleMailEach(index, element)
+    );
 
     if (!this.$visibleMail) {
       return;
@@ -359,7 +366,9 @@ class GmailView {
     // Check for email body first. If we don't have this, then bail.
     const $emailBody1_k = $('.a3s.aiL', $email1_k).first();
     if (!$emailBody1_k) {
-      g2t_log('GmailView:parseData::emailBody: ' + JSON.stringify($emailBody1_k));
+      g2t_log(
+        'GmailView:parseData::emailBody: ' + JSON.stringify($emailBody1_k)
+      );
       return;
     }
 
@@ -370,7 +379,9 @@ class GmailView {
     this.me_email = '';
     this.me_name = '';
     this.emailCC = [];
-    $emailCC_k.each((index, element) => this.parseData_onEmailCCEach(index, element));
+    $emailCC_k.each((index, element) =>
+      this.parseData_onEmailCCEach(index, element)
+    );
 
     // email name
     let $emailFromNameAddress_k = $('span.gD', $email1_k);
@@ -387,7 +398,9 @@ class GmailView {
 
     // email attachments
     this.emailAttachments = [];
-    $('span.aZo', $email1_k).each((index, element) => this.parseData_onAttachmentEach(index, element));
+    $('span.aZo', $email1_k).each((index, element) =>
+      this.parseData_onAttachmentEach(index, element)
+    );
 
     data.attachments = this.emailAttachments;
 
@@ -425,7 +438,10 @@ class GmailView {
     }
 
     let from_raw_md = this.email_raw_md(emailFromName, emailFromAddress);
-    const from_raw = `From: ${this.parent.addSpace(from_raw_md.raw, data.time)}`;
+    const from_raw = `From: ${this.parent.addSpace(
+      from_raw_md.raw,
+      data.time
+    )}`;
     const from_md = `From: ${this.parent.addSpace(from_raw_md.md, data.time)}`;
 
     // subject
@@ -497,7 +513,9 @@ class GmailView {
     this.cc_raw = '';
     this.cc_md = '';
 
-    $.each(this.emailCC, (iter, item) => this.parseData_onEmailCCIterate(iter, item));
+    $.each(this.emailCC, (iter, item) =>
+      this.parseData_onEmailCCIterate(iter, item)
+    );
 
     if (this.cc_raw.length > 0) {
       this.cc_raw += '\n';
@@ -512,15 +530,19 @@ class GmailView {
     data.ccAsMd = this.cc_md;
 
     data.bodyAsRaw = `${from_raw}:\n\n${
-      selectedText || this.parent.markdownify($emailBody1_k, false, this.preprocess)
+      selectedText ||
+      this.parent.markdownify($emailBody1_k, false, this.preprocess)
     }`;
     data.bodyAsMd = `${from_md}:\n\n${
-      selectedText || this.parent.markdownify($emailBody1_k, true, this.preprocess)
+      selectedText ||
+      this.parent.markdownify($emailBody1_k, true, this.preprocess)
     }`;
 
     this.emailImages = {};
 
-    $('img', $emailBody1_k).each((index, element) => this.parseData_onImageEach(index, element));
+    $('img', $emailBody1_k).each((index, element) =>
+      this.parseData_onImageEach(index, element)
+    );
 
     data.images = Object.values(this.emailImages);
 
@@ -539,3 +561,8 @@ if (typeof module !== 'undefined' && module.exports) {
   // For browser usage, attach to global namespace
   window.GmailView = GmailView;
 }
+
+// Assign class to namespace
+G2T.GmailView = GmailView;
+
+// End, class_gmailview.js
