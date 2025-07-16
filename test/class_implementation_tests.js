@@ -144,6 +144,9 @@ ClassImplementationTestSuite.addTest('Class App - Instantiation', () => {
   if (!app.model || !(app.model instanceof G2T.Model)) {
     throw new Error('App model not initialized correctly');
   }
+
+  // Initialize the app
+  app.init();
 });
 
 // Test: Class App initialization
@@ -219,9 +222,22 @@ ClassImplementationTestSuite.addTest(
     const gmailView = new G2T.GmailView(model);
     const popupView = new G2T.PopupView(model);
 
+    // Initialize components for testing
+    model.init();
+    gmailView.init();
+    popupView.init();
+
     // Check for common methods that should exist
     const expectedMethods = {
-      Model: ['getState', 'setState', 'getUser'],
+      Model: [
+        'getState',
+        'setState',
+        'getUser',
+        'loadTrelloLabels',
+        'loadTrelloMembers',
+        'loadTrelloCards',
+        'loadTrelloLists',
+      ],
       App: ['init', 'getModel'],
       GmailView: ['init', 'render'],
       PopupView: ['init', 'render'],
@@ -253,6 +269,11 @@ ClassImplementationTestSuite.addTest(
     const model = new G2T.Model();
     const gmailView = new G2T.GmailView(model);
     const popupView = new G2T.PopupView(model);
+
+    // Initialize components for testing
+    model.init();
+    gmailView.init();
+    popupView.init();
 
     let modelEventFired = false;
     let viewEventFired = false;

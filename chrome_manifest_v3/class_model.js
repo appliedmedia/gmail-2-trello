@@ -24,8 +24,16 @@ class Model {
 
     this.isInitialized = true;
 
+    // Bind internal events (if any)
+    this.bindEvents();
+
     // init Trello
     this.initTrello();
+  }
+
+  bindEvents() {
+    // Model-specific event bindings (if any)
+    // Most models don't need to bind to their own events
   }
 
   // Callback methods for checkTrelloAuthorized
@@ -206,7 +214,7 @@ class Model {
   loadTrelloCards_success(data) {
     this.trello.cards = data;
     // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-    this.event.fire('onLoadTrelloCardSuccess');
+    this.event.fire('onLoadTrelloCardsSuccess');
   }
 
   loadTrelloCards_failure(data) {
@@ -246,6 +254,29 @@ class Model {
       { fields: 'fullName,username,avatarUrl' },
       this.loadTrelloMembers_success.bind(this),
       this.loadTrelloMembers_failure.bind(this)
+    );
+  }
+
+  loadTrelloLabels_success(data) {
+    this.trello.labels = data;
+    // g2t_log('loadTrelloLabels: labels:' + JSON.stringify(this.trello.labels));
+    this.event.fire('onLoadTrelloLabelsSuccess');
+  }
+
+  loadTrelloLabels_failure(data) {
+    this.event.fire('onAPIFailure', { data: data });
+  }
+
+  loadTrelloLabels(boardId) {
+    // g2t_log('loadTrelloLabels');
+
+    this.trello.labels = null;
+
+    Trello.get(
+      `boards/${boardId}/labels`,
+      { fields: 'color,name' },
+      this.loadTrelloLabels_success.bind(this),
+      this.loadTrelloLabels_failure.bind(this)
     );
   }
 
@@ -320,7 +351,7 @@ class Model {
   }
 
   submit_onSuccess(data) {
-    this.event.fire('onSubmitComplete', { data: data });
+    this.event.fire('onCardSubmitComplete', { data: data });
     g2t_log(data);
     //setTimeout(() => {this.popupNode.hide();}, 10000);
   }

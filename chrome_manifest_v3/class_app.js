@@ -11,7 +11,15 @@ class App {
     this.model = new G2T.Model(this);
     this.gmailView = new G2T.GmailView(this);
     this.popupView = new G2T.PopupView(this);
+  }
 
+  init() {
+    // Initialize all components
+    this.model.init();
+    this.gmailView.init();
+    this.popupView.init();
+
+    // Bind cross-component events
     this.bindEvents();
   }
 

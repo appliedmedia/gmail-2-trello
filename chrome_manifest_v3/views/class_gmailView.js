@@ -45,6 +45,19 @@ class GmailView {
     };
   }
 
+  init() {
+    // Bind internal events (if any)
+    this.bindEvents();
+
+    // Start detection
+    this.detect();
+  }
+
+  bindEvents() {
+    // GmailView-specific event bindings (if any)
+    // Usually minimal since it mostly fires events
+  }
+
   // Callback methods for detectToolbar
   detectToolbar_onTimeout() {
     this.runaway++;
