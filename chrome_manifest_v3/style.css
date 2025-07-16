@@ -216,6 +216,7 @@
     max-height: 480px;
     /* width: auto; */
     display: block;
+    background-color: silver;
 }
 
 /* Error styles */

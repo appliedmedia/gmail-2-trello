@@ -897,10 +897,7 @@ class PopupView {
                 src: $img.attr('src'),
                 alt: $img.attr('alt'),
               };
-              return self.app.utils.replacer(
-                '<div style="background-color: #f0f0f0; padding: 5px; border-radius: 3px;"><img src="%src%">%alt%</div>',
-                dict
-              );
+              return self.app.utils.replacer('<img src="%src%">%alt%', dict);
             },
           });
       });
