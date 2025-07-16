@@ -19,8 +19,6 @@ class App {
     // g2t_log('App:initialize');
 
     this.events.init();
-
-    // Initialize all components first
     this.model.init();
     this.gmailView.init();
     this.popupView.init();
@@ -61,7 +59,6 @@ class App {
       }
     }
     if (popup) {
-      popup.init_popup();
       this.updateData();
     }
   }
