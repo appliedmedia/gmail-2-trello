@@ -89,6 +89,16 @@
     padding: 5px 10px 15px;
     margin: 33px 4px 4px 4px; /* was: 4px for all */
     /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
+    -webkit-user-select: auto;
+    user-select: auto;
+    pointer-events: auto;
+}
+
+#g2tPopup .popupMsg a {
+    -webkit-user-select: auto;
+    user-select: auto;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 #g2tPopup #resize-icon {

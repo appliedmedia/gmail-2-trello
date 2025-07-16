@@ -88,6 +88,55 @@ class GmailView {
     });
   }
 
+  // Helper methods for parseData
+  url_with_filename(url_in = '', var_in = '') {
+    return this.app.utils.url_add_var(
+      url_in,
+      `${this.app.UNIQUE_URI_VAR}=/${var_in}`
+    );
+  }
+
+  displayNameAndEmail(name = '', email = '') {
+    return this.app.utils.addSpace(name, email.length > 0 ? `<${email}>` : '');
+  }
+
+  email_raw_md(name = '', email = '') {
+    let raw = '',
+      md = '';
+    if (!name.length && !email.length) {
+      return {
+        raw,
+        md,
+      };
+    }
+
+    // introduce a local variable instead of reassigning the `name` parameter
+    let displayName = name;
+    if (!name.length) {
+      displayName = this.app.utils.splitEmailDomain(email)?.name || '';
+    } else if (name.toUpperCase() === email.toUpperCase()) {
+      // split out @domain when name and email match exactly
+      displayName = this.app.utils.splitEmailDomain(name)?.name || name;
+    }
+
+    raw = this.displayNameAndEmail(displayName, email);
+
+    if (displayName.length > 0) {
+      if (email.length > 0) {
+        md = `[${displayName}](${email})`;
+      } else {
+        md = displayName;
+      }
+    } else if (email.length > 0) {
+      md = email;
+    }
+
+    return {
+      raw,
+      md,
+    };
+  }
+
   // Callback methods for parseData
   parseData_onVisibleMailEach(index, element) {
     const $this = $(element);
@@ -187,55 +236,6 @@ class GmailView {
         checked: 'false',
       };
     }
-  }
-
-  // Helper methods for parseData
-  url_with_filename(url_in = '', var_in = '') {
-    return this.app.utils.url_add_var(
-      url_in,
-      `${this.app.UNIQUE_URI_VAR}=/${var_in}`
-    );
-  }
-
-  displayNameAndEmail(name = '', email = '') {
-    return this.app.utils.addSpace(name, email.length > 0 ? `<${email}>` : '');
-  }
-
-  email_raw_md(name = '', email = '') {
-    let raw = '',
-      md = '';
-    if (!name.length && !email.length) {
-      return {
-        raw,
-        md,
-      };
-    }
-
-    // introduce a local variable instead of reassigning the `name` parameter
-    let displayName = name;
-    if (!name.length) {
-      displayName = this.app.utils.splitEmailDomain(email)?.name || '';
-    } else if (name.toUpperCase() === email.toUpperCase()) {
-      // split out @domain when name and email match exactly
-      displayName = this.app.utils.splitEmailDomain(name)?.name || name;
-    }
-
-    raw = this.displayNameAndEmail(displayName, email);
-
-    if (displayName.length > 0) {
-      if (email.length > 0) {
-        md = `[${displayName}](${email})`;
-      } else {
-        md = displayName;
-      }
-    } else if (email.length > 0) {
-      md = email;
-    }
-
-    return {
-      raw,
-      md,
-    };
   }
 
   make_preprocess_mailto(name, email) {

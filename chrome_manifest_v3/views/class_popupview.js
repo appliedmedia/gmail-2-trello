@@ -279,6 +279,7 @@ class PopupView {
     this.$popup.draggable({
       disabled: false,
       containment: 'window',
+      cancel: 'a, button, input, select, textarea, .ui-autocomplete, .hideMsg',
     });
 
     this.$popup.resizable({
@@ -487,6 +488,7 @@ class PopupView {
             }
           }
         })
+        /* Temporarily disabled to test link clicks
         .on('mouseup' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead.
           if (
@@ -497,9 +499,17 @@ class PopupView {
             $(event.target).closest('.ui-autocomplete').length == 0
           ) {
             this.mouseDownTracker[event.target] = 0;
-            this.hidePopup();
+            // Add small delay to allow link clicks to process first
+            setTimeout(() => {
+              this.hidePopup();
+            }, 10);
+          }
+          // Clear mouseDownTracker for any click
+          if (g2t_has(this.mouseDownTracker, event.target)) {
+            this.mouseDownTracker[event.target] = 0;
           }
         })
+        */
         .on('mousedown' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead
           if (
@@ -856,12 +866,17 @@ class PopupView {
 
       let x = 0;
       g2t_each(data[tag], item => {
+        if (!item || !item.url || !item.name) {
+          return; // Skip items without required properties
+        }
+
+        const id = `${item.name}:${x}`;
+
         const dict = {
           url: item.url,
           name: item.name,
           mimeType: item.mimeType,
-          img,
-          id: `${item.name}:${x}`,
+          id,
         };
 
         if (tag == 'attachments') {
@@ -870,9 +885,10 @@ class PopupView {
             dict
           );
         } else if (tag == 'images') {
+          const processedImg = this.app.utils.replacer(img, dict);
           html += this.app.utils.replacer(
             '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
-            dict
+            { ...dict, img: processedImg }
           );
         }
         x++;
@@ -886,7 +902,7 @@ class PopupView {
           const $img = $(this);
           $img
             .on('error', function () {
-              $img.attr(
+              $(this).attr(
                 'src',
                 chrome.runtime.getURL('images/doc-question-mark-512.png')
               );
@@ -899,7 +915,7 @@ class PopupView {
                   alt: $img.attr('alt') || '',
                 };
                 const result = self.app.utils.replacer(
-                  '<img src="%src%">%alt%',
+                  'Image: %alt%<br>URL: %src%',
                   dict
                 );
                 return result;
@@ -955,9 +971,10 @@ class PopupView {
       parent.hideMessage();
     });
 
-    $(':button', this.$popupMessage).click(() => {
-      const $status = $(`span#${this.id}`, this.$popupMessage) || '';
-      switch (this.id) {
+    const self = this;
+    $(':button', this.$popupMessage).click(event => {
+      const $status = $(`span#${event.target.id}`, this.$popupMessage) || '';
+      switch (event.target.id) {
         case 'signout':
           $status.html('Done');
           this.app.events.fire('onRequestDeauthorizeTrello');
@@ -985,7 +1002,7 @@ class PopupView {
         case 'showsignout':
           this.showSignOutOptions();
         default:
-          g2t_log(`showMessage: ERROR unhandled case "${this.id}"`);
+          g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
       }
       if ($status.length > 0) {
         setTimeout(() => {
@@ -1320,6 +1337,7 @@ class PopupView {
     const markdown = $('#chkMarkdown', this.$popup).is(':checked');
     const timeStamp = $('.gH .gK .g3:first', this.$visibleMail).attr('title');
     const popupWidth = this.$popup.css('width');
+    const self = this;
     let labelsId = $('#g2tLabels button.active', this.$popup)
       .map(function (iter, item) {
         const val = $(item).attr('trelloId-label');
@@ -1327,27 +1345,27 @@ class PopupView {
       })
       .get()
       .join();
-    const labelsCount = $('#g2tLabels button', this.$popup).length;
+    const labelsCount = $('#g2tLabels button', self.$popup).length;
 
-    if (!labelsCount && labelsId.length < 1 && this.data?.settings?.labelsId) {
-      labelsId = this.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
+    if (!labelsCount && labelsId.length < 1 && self.data?.settings?.labelsId) {
+      labelsId = self.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
     }
 
-    let membersId = $('#g2tMembers button.active', this.$popup)
+    let membersId = $('#g2tMembers button.active', self.$popup)
       .map(function (iter, item) {
         const val = $(item).attr('trelloId-member');
         return val;
       })
       .get()
       .join();
-    const membersCount = $('#g2tMembers button', this.$popup).length;
+    const membersCount = $('#g2tMembers button', self.$popup).length;
 
     if (
       !membersCount &&
       membersId.length < 1 &&
-      this.data?.settings?.membersId
+      self.data?.settings?.membersId
     ) {
-      membersId = this.data.settings.membersId; // We're not yet showing members so override membersId with settings
+      membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
 
     const mime_array = tag => {
@@ -1356,6 +1374,7 @@ class PopupView {
       let array1 = {};
       let checked_total = 0;
 
+      const self = this;
       $jTags.each(function () {
         const checked = $(this).is(':checked');
         if (checked) {
@@ -1431,8 +1450,10 @@ class PopupView {
     this.$popupContent.show();
   }
 
-  displaySubmitCompleteForm() {
-    const data = this.data.newCard;
+  displaySubmitCompleteForm(params) {
+    const trelloData = params?.data || {};
+    const cardUrl = trelloData.url || trelloData.shortUrl || '';
+    const cardTitle = trelloData.name || this.data.newCard?.title || 'Card';
 
     // NB: this is a terrible hack. The existing showMessage displays HTML by directly substituting text strings.
     // This is very dangerous (very succeptible to XSS attacks) and generally bad practice.  It should be either
@@ -1442,20 +1463,29 @@ class PopupView {
     const jQueryToRawHtml = jQueryObject => {
       return jQueryObject.prop('outerHTML');
     };
+
+    const trelloLink = $('<a>')
+      .attr('href', '#')
+      .attr(
+        'onclick',
+        'alert("Trello URL: ' +
+          cardUrl +
+          '"); chrome.tabs.create({url: "' +
+          cardUrl +
+          '"}); return false;'
+      )
+      .append(cardTitle);
+
     this.showMessage(
       this,
-      '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
-        jQueryToRawHtml(
-          $('<a>')
-            .attr('href', data.url)
-            .attr('target', '_blank')
-            .append(data.title)
-        )
+      `<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated:  <a href="https://cov.in/">cov.in</a>...<a href="${cardUrl}">${cardTitle}</a>...` +
+        jQueryToRawHtml(trelloLink)
     );
+
     this.$popupContent.hide();
 
     // Fire event to notify that form display is complete
-    this.app.events.fire('submittedFormShownComplete', { data });
+    this.app.events.fire('submittedFormShownComplete', { data: trelloData });
   }
 
   displayAPIFailedForm(response) {
@@ -1629,7 +1659,7 @@ class PopupView {
   }
 
   handleCardSubmitComplete(target, params) {
-    this.displaySubmitCompleteForm();
+    this.displaySubmitCompleteForm(params);
   }
 
   handleRuntimeMessage(request, sender, sendResponse) {
