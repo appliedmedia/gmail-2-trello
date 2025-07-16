@@ -584,7 +584,7 @@ class GmailView {
   // Event handler methods moved from App
   handleGmailDetected() {
     this.parent.popupView.$toolBar = this.$toolBar;
-    this.parent.popupView.init();
+    // this.parent.popupView.init(); // Redundant - App.init() already calls this
   }
 
   handleDetectButton() {

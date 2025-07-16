@@ -114,47 +114,6 @@ function extensionInvalidConfirmReload() {
 }
 
 /**
- * Handle request from background.js
- * @param  request      Request object, contain parameters
- * @param  sender
- * @param  sendResponse Callback function
- */
-function requestHandler(request, sender, sendResponse) {
-  if (request?.message === 'g2t_initialize') {
-    // g2t_log('GlobalInit: '+globalInit.toString());
-    globalInit = true;
-    // enough delay for gmail finishes rendering
-    // g2t_log('tabs.onUpdated - complete');
-    jQuery(document).ready(function () {
-      g2t_log('document.ready');
-      getGmailObject();
-      app.init();
-    });
-    // Was:
-    // setTimeout(function() {
-    //     jQuery(document).ready(function() {
-    //         g2t_log('document.ready');
-    //         getGmailObject();
-    //         app.initialize();
-    //     });
-    // }, 1000); // But now we're more resiliant with no data, so pop on immediately.
-  }
-}
-
-// Register Handler
-try {
-  chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
-} catch (error) {
-  g2t_log(
-    `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
-  );
-  extensionInvalidConfirmReload();
-}
-
-var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
-var app = new G2T.App();
-
-/**
  * Inject code: for accessing Gmail's GLOBALS object
  * reference: http://stackoverflow.com/questions/9602022/chrome-extension-retrieving-gmails-original-message
  * and: https://github.com/KartikTalwar/gmail.js/blob/master/src/gmail.js
@@ -183,3 +142,46 @@ function getGmailObject() {
     }
   }
 }
+
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+var app = new G2T.App();
+
+/**
+ * Handle request from background.js
+ * @param  request      Request object, contain parameters
+ * @param  sender
+ * @param  sendResponse Callback function
+ */
+function requestHandler(request, sender, sendResponse) {
+  if (request?.message === 'g2t_initialize') {
+    // g2t_log('GlobalInit: '+globalInit.toString());
+    globalInit = true;
+    // enough delay for gmail finishes rendering
+    // g2t_log('tabs.onUpdated - complete');
+    jQuery(document).ready(function () {
+      g2t_log('document.ready');
+      app.init();
+      getGmailObject();
+    });
+    // Was:
+    // setTimeout(function() {
+    //     jQuery(document).ready(function() {
+    //         g2t_log('document.ready');
+    //         getGmailObject();
+    //         app.initialize();
+    //     });
+    // }, 1000); // But now we're more resiliant with no data, so pop on immediately.
+  }
+}
+
+// Register Handler
+try {
+  chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
+} catch (error) {
+  g2t_log(
+    `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
+  );
+  extensionInvalidConfirmReload();
+}
+
+// end, content-script.js

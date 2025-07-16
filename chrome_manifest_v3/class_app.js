@@ -112,8 +112,4 @@ class App {
 // Assign class to namespace
 G2T.App = App;
 
-// Create global app instance and expose events
-G2T.app = new G2T.App();
-G2T.app.init();
-
 // End, class_app.js

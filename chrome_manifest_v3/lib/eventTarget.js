@@ -52,3 +52,7 @@ class EventTarget {
 
 // Assign to namespace
 G2T.EventTarget = EventTarget;
+
+// Create global event system for all classes to use
+G2T.app = G2T.app || {};
+G2T.app.events = EventTarget;

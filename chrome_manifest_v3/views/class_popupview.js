@@ -3,7 +3,6 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class PopupView {
   constructor(parent) {
     this.parent = parent;
-    this.event = new G2T.EventTarget();
     this.isInitialized = false;
 
     this.data = { settings: {} };
@@ -63,6 +62,9 @@ class PopupView {
   init() {
     // g2t_log('PopupView:init');
 
+    // Bind internal events
+    this.bindEvents();
+
     // inject a button & a popup
     this.confirmPopup();
 
@@ -71,7 +73,7 @@ class PopupView {
     }
 
     this.intervalId = setInterval(() => {
-      this.event.fire('detectButton');
+      G2T.app.events.fire('detectButton');
     }, 2000);
   }
 
@@ -190,7 +192,7 @@ class PopupView {
       } else {
         needInit = false;
         $.get(chrome.runtime.getURL('views/popupView.html'), data => {
-          // data = this.parent.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
+          // data = this.parent.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
           this.html['popup'] = data;
           g2t_log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(data);
@@ -264,7 +266,7 @@ class PopupView {
     this.$popupContent = $('.content', this.$popup);
 
     this.centerPopup();
-    this.bindEvents();
+    // bindEvents() is now called in init(), so no need to call it here
 
     this.isInitialized = true;
   }
@@ -345,7 +347,7 @@ class PopupView {
         : data.linkAsRaw
       : '';
     const cc_k = addCC_k ? (markdown_k ? data.ccAsMd : data.ccAsRaw) : '';
-    const desc_k = this.parent.truncate(
+    const desc_k = this.parent.utils.truncate(
       body_k,
       this.MAX_BODY_SIZE - (link_k.length + cc_k.length),
       '...'
@@ -373,13 +375,13 @@ class PopupView {
     this.$g2tButton
       .off('mousedown') // was: ("click")
       .on('mousedown' /* was: "click" */, event => {
-        if (this.parent.modKey(event)) {
+        if (this.parent.utils.modKey(event)) {
           // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
         } else {
           if (this.popupVisible()) {
             this.hidePopup();
           } else {
-            // const selectedText_k = this.parent.getSelectedText(); // grab selected text before click?
+            // const selectedText_k = this.parent.utils.getSelectedText(); // grab selected text before click?
             this.showPopup();
           }
         }
@@ -429,7 +431,7 @@ class PopupView {
         $labels.hide(); // hiding when loading is being showed.
       }
 
-      this.event.fire('onBoardChanged', { boardId: boardId });
+      G2T.app.events.fire('onBoardChanged', { boardId });
 
       if (this.comboBox) this.comboBox('updateValue');
       this.validateData();
@@ -438,7 +440,7 @@ class PopupView {
     const $list = $('#g2tList', this.$popup);
     $list.off('change').on('change', () => {
       const listId = $list.val();
-      this.event.fire('onListChanged', { listId });
+      G2T.app.events.fire('onListChanged', { listId });
       if (this.comboBox) this.comboBox('updateValue');
       this.validateData();
     });
@@ -558,86 +560,121 @@ class PopupView {
           );
         }
 
-        $('#g2tDue_Date', this.$popup).val(new_date || '');
-        $('#g2tDue_Time', this.$popup).val(new_time || '');
-
-        if (this.comboBox) {
-          this.comboBox('updateValue');
+        const $dueDate = $('#g2tDue_Date', this.$popup);
+        const $dueTime = $('#g2tDue_Time', this.$popup);
+        if (new_date.length > 0) {
+          $dueDate.val(new_date);
         }
-
-        if (due_date === 'd=0') {
-          // Reset to hidden item if we're first "--" item (allows us to select "--" to clear any time):
-          $(this).val('none');
+        if (new_time.length > 0) {
+          $dueTime.val(new_time);
         }
         this.validateData();
       });
 
-    $('#g2tTitle', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.validateData();
-      });
-
-    $('#g2tDesc', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.validateData();
-      });
-
-    $('#chkMarkdown, #chkBackLink, #chkCC', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.updateBody();
-      });
-
-    $('#addToTrello', this.$popup)
+    $('#g2tSubmit', this.$popup)
       .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.displayAPIFailedForm();
-        } else {
-          this.submit();
-        }
+      .on('click', () => {
+        this.submit();
       });
 
-    $('#g2tLabelsHeader', this.$popup)
+    $('#g2tSignOut', this.$popup)
       .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.clearLabels();
-        }
+      .on('click', () => {
+        G2T.app.events.fire('onRequestDeauthorizeTrello');
       });
 
-    $('#g2tMembersHeader', this.$popup)
+    $('#g2tAuthorize', this.$popup)
       .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.clearMembers();
-        }
+      .on('click', () => {
+        G2T.app.events.fire('checkTrelloAuthorized');
       });
 
-    $('#g2tAttachHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.toggleCheckboxes('g2tAttachments');
-        }
-      });
+    // Bind internal PopupView events
+    G2T.app.events.addListener(
+      'onPopupVisible',
+      this.handlePopupVisible.bind(this)
+    );
+    G2T.app.events.addListener(
+      'periodicChecks',
+      this.handlePeriodicChecks.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onBoardChanged',
+      this.handleBoardChanged.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onListChanged',
+      this.handleListChanged.bind(this)
+    );
+    G2T.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    G2T.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
+    G2T.app.events.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onCardSubmitComplete',
+      this.handleCardSubmitComplete.bind(this)
+    );
 
-    $('#g2tImagesHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.toggleCheckboxes('g2tImages');
-        }
-      });
+    // Bind events moved from App (pure PopupView operations)
+    G2T.app.events.addListener(
+      'onBeforeAuthorize',
+      this.handleBeforeAuthorize.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onAuthorizeFail',
+      this.handleAuthorizeFail.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onAuthorized',
+      this.handleAuthorized.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onBeforeLoadTrello',
+      this.handleBeforeLoadTrello.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onTrelloDataReady',
+      this.handleTrelloDataReady.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onLoadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onLoadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onLoadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onLoadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    G2T.app.events.addListener(
+      'onAPIFailure',
+      this.handleAPIFailure.bind(this)
+    );
+
+    // Bind chrome.runtime.onMessage for popup-specific messages
+    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
   }
 
   submit() {
     if (this.validateData()) {
       this.$popupContent.hide();
       this.showMessage(this, 'Submitting to Trello...');
-      this.event.fire('onSubmit');
+      G2T.app.events.fire('onSubmit');
     }
   }
 
@@ -709,7 +746,7 @@ class PopupView {
       this.$popup.show();
       this.validateData();
 
-      this.event.fire('onPopupVisible');
+      G2T.app.events.fire('onPopupVisible');
     }
   }
 
@@ -771,7 +808,7 @@ class PopupView {
                   version_old,
                   version_new,
                 };
-                data = this.parent.replacer(data, dict);
+                data = this.parent.utils.replacer(data, dict);
                 this.showMessage(this, data);
               });
             }
@@ -904,7 +941,7 @@ class PopupView {
     const me = data?.trello?.user || {}; // First member is always this user
 
     const avatarUrl = me.avatarUrl || '';
-    const avatarSrc = this.parent.model.makeAvatarUrl({ avatarUrl });
+    const avatarSrc = this.parent.utils.makeAvatarUrl({ avatarUrl });
     let avatarText = '';
     let initials = '?';
 
@@ -1046,12 +1083,12 @@ class PopupView {
         };
 
         if (tag == 'attachments') {
-          html += this.parent.replacer(
+          html += this.parent.utils.replacer(
             '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
             dict
           );
         } else if (tag == 'images') {
-          html += this.parent.replacer(
+          html += this.parent.utils.replacer(
             '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
             dict
           );
@@ -1078,7 +1115,10 @@ class PopupView {
                   src: $img.attr('src'),
                   alt: $img.attr('alt'),
                 };
-                return this.parent.replacer('<img src="%src%">%alt%', dict);
+                return this.parent.utils.replacer(
+                  '<img src="%src%">%alt%',
+                  dict
+                );
               },
             });
         });
@@ -1092,7 +1132,7 @@ class PopupView {
     mime_html('images', true /* isImage */);
 
     const emailId = data.emailId || 0;
-    const mapAvailable_k = this.parent.model.emailBoardListCardMapLookup({
+    const mapAvailable_k = this.parent.utils.emailBoardListCardMapLookup({
       emailId,
     });
 
@@ -1128,7 +1168,7 @@ class PopupView {
       switch (this.id) {
         case 'signout':
           $status.html('Done');
-          this.event.fire('onRequestDeauthorizeTrello');
+          G2T.app.events.fire('onRequestDeauthorizeTrello');
           break;
         case 'reload':
           this.forceSetVersion(); // Sets value for version if needing update
@@ -1299,7 +1339,7 @@ class PopupView {
 
     g2t_each(array_k, item => {
       const id_k = item.id;
-      const display_k = this.parent.truncate(item.name, 80, '...');
+      const display_k = this.parent.utils.truncate(item.name, 80, '...');
       const selected_k = id_k == restoreId_k;
       $g2t.append(
         $('<option>')
@@ -1339,7 +1379,7 @@ class PopupView {
       const item = labels[i];
       if (item.name?.length > 0) {
         const $color = $("<div id='g2t_temp'>").css('color', item.color);
-        const bkColor = this.parent.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
+        const bkColor = this.parent.utils.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
         $g2t.append(
           $('<button>')
             .attr('trelloId-label', item.id)
@@ -1407,7 +1447,7 @@ class PopupView {
       if (item && item.id) {
         const txt = item.initials || item.username || '?';
         const avatar =
-          this.parent.model.makeAvatarUrl({
+          this.parent.utils.makeAvatarUrl({
             avatarUrl: item.avatarUrl || '',
           }) ||
           chrome.runtime.getURL('images/avatar_generic_profile_gry_30x30.png'); // Default generic profile
@@ -1622,6 +1662,9 @@ class PopupView {
         )
     );
     this.$popupContent.hide();
+
+    // Fire event to notify that form display is complete
+    G2T.app.events.fire('submittedFormShownComplete', { data });
   }
 
   displayAPIFailedForm(response) {
@@ -1650,7 +1693,7 @@ class PopupView {
     };
 
     $.get(chrome.runtime.getURL('views/error.html'), data => {
-      let lastErrorHtml_k = this.parent.replacer(data, dict_k);
+      let lastErrorHtml_k = this.parent.utils.replacer(data, dict_k);
 
       // Add reload button for 400 errors
       if (resp?.status == 400) {
@@ -1673,7 +1716,7 @@ class PopupView {
 
       if (resp?.status == 401) {
         // Invalid token, so deauthorize Trello
-        this.event.fire('onRequestDeauthorizeTrello');
+        G2T.app.events.fire('onRequestDeauthorizeTrello');
       }
     });
   }
@@ -1686,7 +1729,132 @@ class PopupView {
 
     this.showMessage(this, message);
   }
+
+  // Event handler methods moved from App
+  handlePopupVisible() {
+    if (!this.parent.model.isInitialized) {
+      this.showMessage(this.parent, 'Initializing...');
+      this.$popupContent.hide();
+      // this.parent.model.init(); // Redundant - App.init() already calls this
+    } else {
+      this.reset();
+    }
+
+    const trelloUser_k = this?.parent?.model?.trello?.user || {};
+    const fullName = trelloUser_k?.fullName || '';
+
+    this.parent.gmailView.parsingData = false;
+    this.parent.model.gmail = this.parent.gmailView.parseData({ fullName });
+    this.bindGmailData(this.parent.model.gmail);
+    G2T.app.events.fire('periodicChecks');
+  }
+
+  handlePeriodicChecks() {
+    setTimeout(() => {
+      this.periodicChecks();
+    }, 3000);
+  }
+
+  handleBoardChanged(target, params) {
+    const boardId = params.boardId;
+    if (boardId !== '_' && boardId !== '' && boardId !== null) {
+      this.parent.model.loadTrelloLists(boardId);
+      this.parent.model.loadTrelloLabels(boardId);
+      this.parent.model.loadTrelloMembers(boardId);
+    }
+  }
+
+  handleListChanged(target, params) {
+    const listId = params.listId;
+    this.parent.model.loadTrelloCards(listId);
+  }
+
+  handleSubmit() {
+    this.parent.model.submit();
+  }
+
+  handleCheckTrelloAuthorized() {
+    this.showMessage(this.parent, 'Authorizing...');
+    this.parent.model.checkTrelloAuthorized();
+  }
+
+  handleRequestDeauthorizeTrello() {
+    g2t_log('onRequestDeauthorizeTrello');
+    this.parent.model.deauthorizeTrello();
+    this.clearBoard();
+  }
+
+  handleDetectButton() {
+    if (this.parent.gmailView.preDetect()) {
+      this.$toolBar = this.parent.gmailView.$toolBar;
+      this.confirmPopup();
+    }
+  }
+
+  // Event handlers moved from App (pure PopupView operations)
+  handleBeforeAuthorize() {
+    this.bindData(''); // Intentionally blank
+    this.showMessage(this.parent, 'Authorizing...');
+  }
+
+  handleAuthorizeFail() {
+    this.showMessage(
+      this.parent,
+      'Trello authorization failed <button id="showsignout">Sign out and try again</button>'
+    );
+  }
+
+  handleAuthorized() {
+    this.$popupContent.show();
+    this.hideMessage();
+  }
+
+  handleBeforeLoadTrello() {
+    this.showMessage(this.parent, 'Loading Trello data...');
+  }
+
+  handleTrelloDataReady() {
+    this.$popupContent.show();
+    this.hideMessage();
+    this.bindData(this.parent.model);
+  }
+
+  handleLoadTrelloListSuccess() {
+    this.updateLists();
+    this.validateData();
+  }
+
+  handleLoadTrelloCardsSuccess() {
+    this.updateCards();
+    this.validateData();
+  }
+
+  handleLoadTrelloLabelsSuccess() {
+    this.updateLabels();
+    this.validateData();
+  }
+
+  handleLoadTrelloMembersSuccess() {
+    this.updateMembers();
+    this.validateData();
+  }
+
+  handleAPIFailure(target, params) {
+    this.displayAPIFailedForm(params);
+  }
+
+  handleCardSubmitComplete(target, params) {
+    this.displaySubmitCompleteForm();
+  }
+
+  handleRuntimeMessage(request, sender, sendResponse) {
+    if (request?.message === 'g2t_keyboard_shortcut') {
+      this.showPopup();
+    }
+  }
 }
 
 // Export the class
 G2T.PopupView = PopupView;
+
+// end, class_popupView.js
