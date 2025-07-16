@@ -24,146 +24,15 @@ class App {
   }
 
   bindEvents() {
-    /*** Data's events binding ***/
-    this.model.event.addListener(
-      'onBeforeAuthorize',
-      this.handleBeforeAuthorize.bind(this)
-    );
-    this.model.event.addListener(
-      'onAuthorizeFail',
-      this.handleAuthorizeFail.bind(this)
-    );
-    this.model.event.addListener(
-      'onAuthorized',
-      this.handleAuthorized.bind(this)
-    );
-    this.model.event.addListener(
-      'onBeforeLoadTrello',
-      this.handleBeforeLoadTrello.bind(this)
-    );
-    this.model.event.addListener(
-      'onTrelloDataReady',
-      this.handleTrelloDataReady.bind(this)
-    );
-    this.model.event.addListener(
-      'onLoadTrelloListSuccess',
-      this.handleLoadTrelloListSuccess.bind(this)
-    );
-    this.model.event.addListener(
-      'onLoadTrelloCardsSuccess',
-      this.handleLoadTrelloCardsSuccess.bind(this)
-    );
-    this.model.event.addListener(
-      'onLoadTrelloLabelsSuccess',
-      this.handleLoadTrelloLabelsSuccess.bind(this)
-    );
-    this.model.event.addListener(
-      'onLoadTrelloMembersSuccess',
-      this.handleLoadTrelloMembersSuccess.bind(this)
-    );
-    this.model.event.addListener(
-      'onCardSubmitComplete',
-      this.handleCardSubmitComplete.bind(this)
-    );
-    this.model.event.addListener(
-      'onAPIFailure',
-      this.handleAPIFailure.bind(this)
-    );
-
-    /*** PopupView's events binding ***/
-    this.popupView.event.addListener(
-      'onPopupVisible',
-      this.handlePopupVisible.bind(this)
-    );
-    this.popupView.event.addListener(
-      'periodicChecks',
-      this.handlePeriodicChecks.bind(this)
-    );
-    this.popupView.event.addListener(
-      'onBoardChanged',
-      this.handleBoardChanged.bind(this)
-    );
-    this.popupView.event.addListener(
-      'onListChanged',
-      this.handleListChanged.bind(this)
-    );
-    this.popupView.event.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.popupView.event.addListener(
-      'checkTrelloAuthorized',
-      this.handleCheckTrelloAuthorized.bind(this)
-    );
-    this.popupView.event.addListener(
-      'onRequestDeauthorizeTrello',
-      this.handleRequestDeauthorizeTrello.bind(this)
-    );
-    this.popupView.event.addListener(
-      'detectButton',
-      this.handleDetectButton.bind(this)
-    );
-
-    // GMailView's events:
-    this.gmailView.event.addListener(
-      'onDetected',
-      this.handleGmailDetected.bind(this)
-    );
-    this.gmailView.event.addListener(
-      'detectButton',
-      this.handleDetectButton.bind(this)
-    );
-
-    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
-  }
-
-  // Event handler methods
-  handleBeforeAuthorize() {
-    this.popupView.bindData(''); // Intentionally blank
-    this.popupView.showMessage(this, 'Authorizing...');
-  }
-
-  handleAuthorizeFail() {
-    this.popupView.showMessage(
-      this,
-      'Trello authorization failed <button id="showsignout">Sign out and try again</button>'
+    /*** Cross-component events binding ***/
+    G2T.app.events.addListener(
+      'submittedFormShownComplete',
+      this.handleSubmittedFormShownComplete.bind(this)
     );
   }
 
-  handleAuthorized() {
-    this.popupView.$popupContent.show();
-    this.popupView.hideMessage();
-  }
-
-  handleBeforeLoadTrello() {
-    this.popupView.showMessage(this, 'Loading Trello data...');
-  }
-
-  handleTrelloDataReady() {
-    this.popupView.$popupContent.show();
-    this.popupView.hideMessage();
-    this.popupView.bindData(this.model);
-  }
-
-  handleLoadTrelloListSuccess() {
-    this.popupView.updateLists();
-    this.popupView.validateData();
-  }
-
-  handleLoadTrelloCardsSuccess() {
-    this.popupView.updateCards();
-    this.popupView.validateData();
-  }
-
-  handleLoadTrelloLabelsSuccess() {
-    this.popupView.updateLabels();
-    this.popupView.validateData();
-  }
-
-  handleLoadTrelloMembersSuccess() {
-    this.popupView.updateMembers();
-    this.popupView.validateData();
-  }
-
-  handleCardSubmitComplete(target, params) {
-    this.popupView.displaySubmitCompleteForm();
+  // Cross-component event handler
+  handleSubmittedFormShownComplete(target, params) {
     // If card lists or labels have been updated, reload:
     const data_k = params?.data || {};
     const emailId = data_k?.emailId || 0;
@@ -195,91 +64,6 @@ class App {
     if (listId) {
       this.model.loadTrelloCards(listId);
     }
-  }
-
-  handleAPIFailure(target, params) {
-    this.popupView.displayAPIFailedForm(params);
-  }
-
-  handlePopupVisible() {
-    if (!this.model.isInitialized) {
-      this.popupView.showMessage(this, 'Initializing...');
-      this.popupView.$popupContent.hide();
-      this.model.init();
-    } else {
-      this.popupView.reset();
-    }
-
-    const trelloUser_k = this?.model?.trello?.user || {};
-    const fullName = trelloUser_k?.fullName || '';
-
-    this.gmailView.parsingData = false;
-    this.model.gmail = this.gmailView.parseData({ fullName });
-    this.popupView.bindGmailData(this.model.gmail);
-    this.popupView.event.fire('periodicChecks');
-  }
-
-  handlePeriodicChecks() {
-    setTimeout(() => {
-      this.popupView.periodicChecks();
-    }, 3000);
-  }
-
-  handleBoardChanged(target, params) {
-    const boardId = params.boardId;
-    if (boardId !== '_' && boardId !== '' && boardId !== null) {
-      this.model.loadTrelloLists(boardId);
-      this.model.loadTrelloLabels(boardId);
-      this.model.loadTrelloMembers(boardId);
-    }
-  }
-
-  handleListChanged(target, params) {
-    const listId = params.listId;
-    this.model.loadTrelloCards(listId);
-  }
-
-  handleSubmit() {
-    this.model.submit();
-  }
-
-  handleCheckTrelloAuthorized() {
-    this.popupView.showMessage(this, 'Authorizing...');
-    this.model.checkTrelloAuthorized();
-  }
-
-  handleRequestDeauthorizeTrello() {
-    g2t_log('onRequestDeauthorizeTrello');
-    this.model.deauthorizeTrello();
-    this.popupView.clearBoard();
-  }
-
-  handleDetectButton() {
-    if (this.gmailView.preDetect()) {
-      this.popupView.$toolBar = this.gmailView.$toolBar;
-      this.popupView.confirmPopup();
-    }
-  }
-
-  handleGmailDetected() {
-    this.popupView.$toolBar = this.gmailView.$toolBar;
-    this.popupView.init();
-  }
-
-  handleRuntimeMessage(request, sender, sendResponse) {
-    if (request?.message === 'g2t_keyboard_shortcut') {
-      this.popupView.showPopup();
-    }
-  }
-
-  updateData() {
-    const fullName = this?.model?.trello?.user?.fullName || '';
-
-    this.popupView.bindData(this.model);
-
-    this.gmailView.parsingData = false;
-    this.model.gmail = this.gmailView.parseData({ fullName });
-    this.popupView.bindGmailData(this.model.gmail);
   }
 
   init() {
@@ -746,6 +530,16 @@ class App {
     return retn;
   }
 
+  updateData() {
+    const fullName = this?.model?.trello?.user?.fullName || '';
+
+    this.popupView.bindData(this.model);
+
+    this.gmailView.parsingData = false;
+    this.model.gmail = this.gmailView.parseData({ fullName });
+    this.popupView.bindGmailData(this.model.gmail);
+  }
+
   // Callback methods for loadSettings
   loadSettings_onSuccess(popup, response) {
     const setID = this.CHROME_SETTINGS_ID;
@@ -939,7 +733,7 @@ class App {
   ) {
     const text = ($(this).text() || '').trim();
     if (text && text.length > min_text_length_k) {
-      const replace = this.replacer(replaceText, { text: text });
+      const replace = this.replacer(replaceText, { text });
       toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
     }
   }
@@ -972,5 +766,9 @@ class App {
 
 // Assign class to namespace
 G2T.App = App;
+
+// Create global app instance and expose events
+G2T.app = new G2T.App();
+G2T.app.init();
 
 // End, class_app.js

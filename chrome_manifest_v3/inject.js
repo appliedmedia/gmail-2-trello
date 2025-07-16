@@ -13,7 +13,7 @@ setTimeout(function () {
     userEmail = window.opener.GLOBALS[10];
   }
   const G2T_event = new CustomEvent('g2t_connect_extension', {
-    detail: { userEmail: userEmail },
+    detail: { userEmail },
   });
   document.dispatchEvent(G2T_event);
 }, 0);

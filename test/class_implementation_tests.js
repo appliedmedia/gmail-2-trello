@@ -100,8 +100,8 @@ ClassImplementationTestSuite.addTest('Class Model - Instantiation', () => {
     throw new Error('Model instance not created correctly');
   }
 
-  if (!model.event || typeof model.event.addListener !== 'function') {
-    throw new Error('Model event system not initialized');
+  if (!G2T.app.events || typeof G2T.app.events.addListener !== 'function') {
+    throw new Error('Global event system not initialized');
   }
 });
 
@@ -116,8 +116,8 @@ ClassImplementationTestSuite.addTest('Class Model - Event System', () => {
     eventData = data;
   };
 
-  model.event.addListener('test', listener);
-  model.event.fire('test', { message: 'hello' });
+  G2T.app.events.addListener('test', listener);
+  G2T.app.events.fire('test', { message: 'hello' });
 
   if (!eventFired) {
     throw new Error('Event listener not triggered');
@@ -127,7 +127,7 @@ ClassImplementationTestSuite.addTest('Class Model - Event System', () => {
     throw new Error('Event data not passed correctly');
   }
 
-  model.event.removeListener('test', listener);
+  G2T.app.events.removeListener('test', listener);
 });
 
 // Test: Class App instantiation
@@ -174,19 +174,15 @@ ClassImplementationTestSuite.addTest('Class GmailView - Instantiation', () => {
     throw new Error('G2T.GmailView class not available');
   }
 
-  const model = new G2T.Model();
-  const gmailView = new G2T.GmailView(model);
+  const app = new G2T.App();
+  const gmailView = new G2T.GmailView(app);
 
   if (!(gmailView instanceof G2T.GmailView)) {
     throw new Error('GmailView instance not created correctly');
   }
 
-  if (gmailView.model !== model) {
-    throw new Error('GmailView model not set correctly');
-  }
-
-  if (!gmailView.event || typeof gmailView.event.addListener !== 'function') {
-    throw new Error('GmailView event system not initialized');
+  if (gmailView.parent !== app) {
+    throw new Error('GmailView parent not set correctly');
   }
 });
 
@@ -196,19 +192,15 @@ ClassImplementationTestSuite.addTest('Class PopupView - Instantiation', () => {
     throw new Error('G2T.PopupView class not available');
   }
 
-  const model = new G2T.Model();
-  const popupView = new G2T.PopupView(model);
+  const app = new G2T.App();
+  const popupView = new G2T.PopupView(app);
 
   if (!(popupView instanceof G2T.PopupView)) {
     throw new Error('PopupView instance not created correctly');
   }
 
-  if (popupView.model !== model) {
-    throw new Error('PopupView model not set correctly');
-  }
-
-  if (!popupView.event || typeof popupView.event.addListener !== 'function') {
-    throw new Error('PopupView event system not initialized');
+  if (popupView.parent !== app) {
+    throw new Error('PopupView parent not set correctly');
   }
 });
 
@@ -217,10 +209,10 @@ ClassImplementationTestSuite.addTest(
   'Class Implementation - Inheritance',
   () => {
     // Test that classes have expected methods
-    const model = new G2T.Model();
     const app = new G2T.App();
-    const gmailView = new G2T.GmailView(model);
-    const popupView = new G2T.PopupView(model);
+    const model = app.model;
+    const gmailView = app.gmailView;
+    const popupView = app.popupView;
 
     // Initialize components for testing
     model.init();
@@ -266,9 +258,10 @@ ClassImplementationTestSuite.addTest(
 ClassImplementationTestSuite.addTest(
   'Class Implementation - Event Integration',
   () => {
-    const model = new G2T.Model();
-    const gmailView = new G2T.GmailView(model);
-    const popupView = new G2T.PopupView(model);
+    const app = new G2T.App();
+    const model = app.model;
+    const gmailView = app.gmailView;
+    const popupView = app.popupView;
 
     // Initialize components for testing
     model.init();
@@ -279,18 +272,18 @@ ClassImplementationTestSuite.addTest(
     let viewEventFired = false;
 
     // Test model events
-    model.event.addListener('stateChanged', () => {
+    G2T.app.events.addListener('onTrelloDataReady', () => {
       modelEventFired = true;
     });
 
     // Test view events
-    gmailView.event.addListener('rendered', () => {
+    G2T.app.events.addListener('onDetected', () => {
       viewEventFired = true;
     });
 
     // Fire events
-    model.event.fire('stateChanged', { newState: 'test' });
-    gmailView.event.fire('rendered', { element: 'test' });
+    G2T.app.events.fire('onTrelloDataReady', { data: 'test' });
+    G2T.app.events.fire('onDetected', { element: 'test' });
 
     if (!modelEventFired) {
       throw new Error('Model event not fired');
@@ -306,11 +299,9 @@ ClassImplementationTestSuite.addTest(
 ClassImplementationTestSuite.addTest(
   'Class Implementation - Error Handling',
   () => {
-    const model = new G2T.Model();
-
     // Test that invalid event types are handled gracefully
     try {
-      model.event.fire('', {});
+      G2T.app.events.fire('', {});
       // Should not throw for empty event type in current implementation
     } catch (error) {
       if (!error.message.includes("Event object missing 'type' property")) {
@@ -320,11 +311,11 @@ ClassImplementationTestSuite.addTest(
 
     // Test that removing non-existent listeners doesn't break
     const nonExistentListener = () => {};
-    model.event.removeListener('nonexistent', nonExistentListener);
+    G2T.app.events.removeListener('nonexistent', nonExistentListener);
 
     // Test that adding null listeners is handled
     try {
-      model.event.addListener('test', null);
+      G2T.app.events.addListener('test', null);
       throw new Error('Should have thrown error for null listener');
     } catch (error) {
       // Expected behavior - should handle null listeners
@@ -336,19 +327,18 @@ ClassImplementationTestSuite.addTest(
 ClassImplementationTestSuite.addTest(
   'Class Implementation - Memory Management',
   () => {
-    const model = new G2T.Model();
     const listeners = [];
 
     // Add multiple listeners
     for (let i = 0; i < 10; i++) {
       const listener = (event, data) => console.log(`Listener ${i}:`, data);
       listeners.push(listener);
-      model.event.addListener('test', listener);
+      G2T.app.events.addListener('test', listener);
     }
 
     // Remove all listeners
     for (const listener of listeners) {
-      model.event.removeListener('test', listener);
+      G2T.app.events.removeListener('test', listener);
     }
 
     // Fire event - should not trigger any listeners
@@ -356,9 +346,9 @@ ClassImplementationTestSuite.addTest(
     const testListener = () => {
       eventFired = true;
     };
-    model.event.addListener('test', testListener);
-    model.event.fire('test', {});
-    model.event.removeListener('test', testListener);
+    G2T.app.events.addListener('test', testListener);
+    G2T.app.events.fire('test', {});
+    G2T.app.events.removeListener('test', testListener);
 
     if (!eventFired) {
       throw new Error('Listener not working after mass removal');
@@ -370,7 +360,6 @@ ClassImplementationTestSuite.addTest(
 ClassImplementationTestSuite.addTest(
   'Class Implementation - Performance',
   () => {
-    const model = new G2T.Model();
     const startTime = performance.now();
 
     // Add many listeners
@@ -378,17 +367,17 @@ ClassImplementationTestSuite.addTest(
     for (let i = 0; i < 100; i++) {
       const listener = (event, data) => {};
       listeners.push(listener);
-      model.event.addListener('test', listener);
+      G2T.app.events.addListener('test', listener);
     }
 
     // Fire many events
     for (let i = 0; i < 1000; i++) {
-      model.event.fire('test', { iteration: i });
+      G2T.app.events.fire('test', { iteration: i });
     }
 
     // Remove listeners
     for (const listener of listeners) {
-      model.event.removeListener('test', listener);
+      G2T.app.events.removeListener('test', listener);
     }
 
     const endTime = performance.now();
@@ -402,6 +391,91 @@ ClassImplementationTestSuite.addTest(
     }
 
     console.log(`Performance test completed in ${duration.toFixed(2)}ms`);
+  }
+);
+
+// Test: Event binding architecture (App vs individual classes)
+ClassImplementationTestSuite.addTest(
+  'Class Implementation - Event Binding Architecture',
+  () => {
+    const app = new G2T.App();
+
+    // Test that App uses global event system
+    const appBindEvents = app.bindEvents.toString();
+
+    // App should bind to global event system
+    if (!appBindEvents.includes('G2T.app.events.addListener')) {
+      throw new Error('App should bind to global event system');
+    }
+
+    if (!appBindEvents.includes('chrome.runtime.onMessage.addListener')) {
+      throw new Error('App should bind chrome runtime events');
+    }
+
+    // Test that components use global event system
+    const popupView = new G2T.PopupView(app);
+    const popupBindEvents = popupView.bindEvents.toString();
+
+    if (!popupBindEvents.includes('G2T.app.events.addListener')) {
+      throw new Error('PopupView should bind to global event system');
+    }
+
+    // Test that GmailView uses global event system
+    const gmailView = new G2T.GmailView(app);
+    const gmailBindEvents = gmailView.bindEvents.toString();
+
+    if (!gmailBindEvents.includes('G2T.app.events.addListener')) {
+      throw new Error('GmailView should bind to global event system');
+    }
+
+    // Test that Model uses global event system
+    const model = new G2T.Model(app);
+    const modelMethods = model.constructor.toString();
+
+    if (!modelMethods.includes('G2T.app.events.fire')) {
+      throw new Error('Model should fire global events');
+    }
+  }
+);
+
+// Test: Card submit complete event flow
+ClassImplementationTestSuite.addTest(
+  'Class Implementation - Card Submit Complete Event Flow',
+  () => {
+    const app = new G2T.App();
+    const model = app.model;
+    const popupView = app.popupView;
+
+    // Initialize components
+    model.init();
+    popupView.init();
+
+    let cardSubmitCompleteHandled = false;
+    let submittedFormShownCompleteHandled = false;
+
+    // Test the new event flow
+    G2T.app.events.addListener('onCardSubmitComplete', () => {
+      cardSubmitCompleteHandled = true;
+    });
+
+    G2T.app.events.addListener('submittedFormShownComplete', () => {
+      submittedFormShownCompleteHandled = true;
+    });
+
+    // Simulate card submit complete
+    G2T.app.events.fire('onCardSubmitComplete', {
+      data: { title: 'Test Card' },
+    });
+
+    if (!cardSubmitCompleteHandled) {
+      throw new Error('onCardSubmitComplete event not handled by PopupView');
+    }
+
+    if (!submittedFormShownCompleteHandled) {
+      throw new Error(
+        'submittedFormShownComplete event not fired by PopupView'
+      );
+    }
   }
 );
 

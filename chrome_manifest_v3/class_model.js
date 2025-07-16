@@ -10,7 +10,6 @@ class Model {
     this.parent = parent;
     this.settings = {};
     this.isInitialized = false;
-    this.event = new G2T.EventTarget();
     this.newCard = null;
     this.userEmail = null; // Set this when user data loads
   }
@@ -38,14 +37,14 @@ class Model {
 
   // Callback methods for checkTrelloAuthorized
   checkTrelloAuthorized_onSuccess(data) {
-    this.event.fire('onAuthorized');
+    G2T.app.events.fire('onAuthorized');
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_onError(data) {
     if (!Trello.authorized()) {
       // Assure token is invalid
-      this.event.fire('onBeforeAuthorize');
+      G2T.app.events.fire('onBeforeAuthorize');
       Trello.authorize({
         type: 'popup',
         name: 'Gmail-2-Trello',
@@ -69,12 +68,12 @@ class Model {
   checkTrelloAuthorized_popup_onSuccess(data) {
     g2t_log('checkTrelloAuthorized: Trello authorization successful');
     // g2t_log(data);
-    this.event.fire('onAuthorized');
+    G2T.app.events.fire('onAuthorized');
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_popup_onError(data) {
-    this.event.fire('onAuthorizeFail');
+    G2T.app.events.fire('onAuthorizeFail');
   }
 
   initTrello() {
@@ -159,13 +158,13 @@ class Model {
   }
 
   loadTrelloData_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    G2T.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloData() {
     // g2t_log('loadTrelloData');
 
-    this.event.fire('onBeforeLoadTrello');
+    G2T.app.events.fire('onBeforeLoadTrello');
     this.trello.user = null;
 
     // get user's info
@@ -183,7 +182,7 @@ class Model {
       // yeah! the data is ready
       //g2t_log('checkTrelloDataReady: YES');
       //g2t_log(this);
-      this.event.fire('onTrelloDataReady');
+      G2T.app.events.fire('onTrelloDataReady');
     }
     //else g2t_log('checkTrelloDataReady: NO');
   }
@@ -191,11 +190,11 @@ class Model {
   loadTrelloLists_success(data) {
     this.trello.lists = data.lists;
     // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
-    this.event.fire('onLoadTrelloListSuccess');
+    G2T.app.events.fire('onLoadTrelloListSuccess');
   }
 
   loadTrelloLists_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    G2T.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloLists(boardId) {
@@ -214,11 +213,11 @@ class Model {
   loadTrelloCards_success(data) {
     this.trello.cards = data;
     // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-    this.event.fire('onLoadTrelloCardsSuccess');
+    G2T.app.events.fire('onLoadTrelloCardsSuccess');
   }
 
   loadTrelloCards_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    G2T.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloCards(listId) {
@@ -237,11 +236,11 @@ class Model {
   loadTrelloMembers_success(data) {
     this.trello.members = data;
     // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
-    this.event.fire('onLoadTrelloMemberSuccess');
+    G2T.app.events.fire('onLoadTrelloMemberSuccess');
   }
 
   loadTrelloMembers_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    G2T.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloMembers(boardId) {
@@ -260,11 +259,11 @@ class Model {
   loadTrelloLabels_success(data) {
     this.trello.labels = data;
     // g2t_log('loadTrelloLabels: labels:' + JSON.stringify(this.trello.labels));
-    this.event.fire('onLoadTrelloLabelsSuccess');
+    G2T.app.events.fire('onLoadTrelloLabelsSuccess');
   }
 
   loadTrelloLabels_failure(data) {
-    this.event.fire('onAPIFailure', { data: data });
+    G2T.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloLabels(boardId) {
@@ -351,7 +350,7 @@ class Model {
   }
 
   submit_onSuccess(data) {
-    this.event.fire('onCardSubmitComplete', { data: data });
+    G2T.app.events.fire('onCardSubmitComplete', { data });
     g2t_log(data);
     //setTimeout(() => {this.popupNode.hide();}, 10000);
   }
