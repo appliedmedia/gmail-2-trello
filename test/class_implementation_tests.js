@@ -204,6 +204,92 @@ ClassImplementationTestSuite.addTest('Class PopupView - Instantiation', () => {
   }
 });
 
+// Test: Class Utils instantiation
+ClassImplementationTestSuite.addTest('Class Utils - Instantiation', () => {
+  if (typeof G2T === 'undefined' || !G2T.Utils) {
+    throw new Error('G2T.Utils class not available');
+  }
+
+  const app = new G2T.App();
+  const utils = new G2T.Utils(app);
+
+  if (!(utils instanceof G2T.Utils)) {
+    throw new Error('Utils instance not created correctly');
+  }
+
+  if (utils.parent !== app) {
+    throw new Error('Utils parent not set correctly');
+  }
+});
+
+// Test: Class Utils utility methods
+ClassImplementationTestSuite.addTest('Class Utils - Utility Methods', () => {
+  const app = new G2T.App();
+  const utils = app.utils;
+
+  // Test escapeRegExp
+  const escaped = utils.escapeRegExp('test.string');
+  if (escaped !== 'test\\.string') {
+    throw new Error('escapeRegExp not working correctly');
+  }
+
+  // Test replacer
+  const replaced = utils.replacer('Hello %name%', { name: 'World' });
+  if (replaced !== 'Hello World') {
+    throw new Error('replacer not working correctly');
+  }
+
+  // Test splitEmailDomain
+  const emailParts = utils.splitEmailDomain('test@example.com');
+  if (emailParts.name !== 'test' || emailParts.domain !== 'example.com') {
+    throw new Error('splitEmailDomain not working correctly');
+  }
+
+  // Test truncate
+  const truncated = utils.truncate('Hello World', 8, '...');
+  if (truncated !== 'Hello...') {
+    throw new Error('truncate not working correctly');
+  }
+});
+
+// Test: App utils integration
+ClassImplementationTestSuite.addTest('Class App - Utils Integration', () => {
+  const app = new G2T.App();
+
+  if (!app.utils || !(app.utils instanceof G2T.Utils)) {
+    throw new Error('App utils not initialized correctly');
+  }
+
+  // Test that App can access utils methods
+  const escaped = app.utils.escapeRegExp('test.string');
+  if (escaped !== 'test\\.string') {
+    throw new Error('App utils integration not working');
+  }
+});
+
+// Test: Component utils access
+ClassImplementationTestSuite.addTest('Class Components - Utils Access', () => {
+  const app = new G2T.App();
+
+  // Test that components can access utils through parent
+  const popupView = app.popupView;
+  const gmailView = app.gmailView;
+
+  if (
+    !popupView.parent.utils ||
+    !(popupView.parent.utils instanceof G2T.Utils)
+  ) {
+    throw new Error('PopupView cannot access utils through parent');
+  }
+
+  if (
+    !gmailView.parent.utils ||
+    !(gmailView.parent.utils instanceof G2T.Utils)
+  ) {
+    throw new Error('GmailView cannot access utils through parent');
+  }
+});
+
 // Test: Class inheritance and methods
 ClassImplementationTestSuite.addTest(
   'Class Implementation - Inheritance',
@@ -475,6 +561,34 @@ ClassImplementationTestSuite.addTest(
       throw new Error(
         'submittedFormShownComplete event not fired by PopupView'
       );
+    }
+  }
+);
+
+// Test: Model event handling
+ClassImplementationTestSuite.addTest(
+  'Class Implementation - Model Event Handling',
+  () => {
+    const app = new G2T.App();
+    const model = app.model;
+
+    // Initialize model
+    model.init();
+
+    let submittedFormShownCompleteHandled = false;
+
+    // Test that Model handles submittedFormShownComplete
+    G2T.app.events.addListener('submittedFormShownComplete', () => {
+      submittedFormShownCompleteHandled = true;
+    });
+
+    // Simulate submittedFormShownComplete event
+    G2T.app.events.fire('submittedFormShownComplete', {
+      data: { title: 'Test Card' },
+    });
+
+    if (!submittedFormShownCompleteHandled) {
+      throw new Error('Model not handling submittedFormShownComplete event');
     }
   }
 );

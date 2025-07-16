@@ -33,6 +33,45 @@ class Model {
   bindEvents() {
     // Model-specific event bindings (if any)
     // Most models don't need to bind to their own events
+    G2T.app.events.addListener(
+      'submittedFormShownComplete',
+      this.handleSubmittedFormShownComplete.bind(this)
+    );
+  }
+
+  // Cross-component event handler
+  handleSubmittedFormShownComplete(target, params) {
+    // If card lists or labels have been updated, reload:
+    const data_k = params?.data || {};
+    const emailId = data_k?.emailId || 0;
+    const boardId_k = data_k?.data?.board?.id || 0;
+    const listId_k = data_k?.data?.list?.id || 0;
+    const cardId_k = data_k?.data?.card?.id || 0;
+    const idBoard_k = data_k?.idBoard || 0;
+    const idList_k = data_k?.idList || 0;
+    const idCard_k = data_k?.idCard || 0;
+    const boardId = boardId_k || idBoard_k || 0;
+    const listId = listId_k || idList_k || 0;
+    const cardId = cardId_k || idCard_k || 0;
+    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
+    // we'll remember that new card ID and then keep defaulting to it for
+    // subsequent updates to that email. That means we'll have to get the return
+    // value/url from Trello and dissect that, potentially doing this update
+    // in that routine:
+    this.emailBoardListCardMapUpdate({
+      emailId,
+      boardId,
+      listId,
+      cardId,
+    });
+
+    if (boardId) {
+      this.loadTrelloLabels(boardId);
+      this.loadTrelloMembers(boardId);
+    }
+    if (listId) {
+      this.loadTrelloCards(listId);
+    }
   }
 
   // Callback methods for checkTrelloAuthorized
@@ -102,14 +141,6 @@ class Model {
 
     Trello.deauthorize();
     this.isInitialized = false;
-  }
-
-  // NOTE (Ace@2020-04-03): 403s: "https://trello-avatars.s3.amazonaws.com/" + avatarHash + "/30.png";
-  // Gravatar requires md5 hash of lowercase email address [see "https://www.gravatar.com/site/implement/images/"]:
-  // "https://www.gravatar.com/avatar/" + gravatarHash + ".jpg?s=30";
-  // avatarUrl return format is "https://trello-members.s3.amazonaws.com/{member-id}/{member-avatar-hash}/30.png"
-  makeAvatarUrl(args) {
-    return args?.avatarUrl ? `${args.avatarUrl}/30.png` : '';
   }
 
   loadTrelloData_success_user(data) {
