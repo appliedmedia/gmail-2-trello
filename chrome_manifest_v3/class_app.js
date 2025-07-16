@@ -727,7 +727,7 @@ class App {
    * Middle-truncate a string
    */
   midTruncate(text, max, add) {
-    const retn = text || '';
+    let retn = text || '';
     const add_k = this.decodeEntities(add || '');
     const max_k = Math.abs((max || 0) - add_k.length);
     const mid_k = (max_k + 0.01) / 2;
