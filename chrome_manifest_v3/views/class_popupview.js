@@ -1870,6 +1870,12 @@ class PopupView {
       .on('click', () => {
         this.app.events.fire('checkTrelloAuthorized');
       });
+
+    $('#addToTrello', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.submit();
+      });
   }
 }
 
