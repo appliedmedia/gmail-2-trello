@@ -15,29 +15,13 @@ class App {
   }
 
   init() {
-    // Initialize all components
+    // g2t_log('App:initialize');
+
+    // Initialize all components first
     this.model.init();
     this.gmailView.init();
     this.popupView.init();
     this.utils.init();
-  }
-
-  updateData() {
-    const fullName = this?.model?.trello?.user?.fullName || '';
-
-    this.popupView.bindData(this.model);
-
-    this.gmailView.parsingData = false;
-    this.model.gmail = this.gmailView.parseData({ fullName });
-    this.popupView.bindGmailData(this.model.gmail);
-  }
-
-  init() {
-    this.model.isInitialized = false;
-
-    // g2t_log('App:initialize');
-
-    this.gmailView.detect();
 
     // Declare before use to avoid undeclared globals
     let service, tracker;
@@ -49,6 +33,16 @@ class App {
     // Record an "appView" each time the user launches your app or goes to a new
     // screen within the app.
     tracker.sendAppView('PopupView');
+  }
+
+  updateData() {
+    const fullName = this?.model?.trello?.user?.fullName || '';
+
+    this.popupView.bindData(this.model);
+
+    this.gmailView.parsingData = false;
+    this.model.gmail = this.gmailView.parseData({ fullName });
+    this.popupView.bindGmailData(this.model.gmail);
   }
 
   // Callback methods for loadSettings
