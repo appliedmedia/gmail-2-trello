@@ -23,28 +23,25 @@ class Utils {
     if (!text || text.length < 1) {
       // g2t_log('Require text!');
       return '';
-    } else if (!dict || dict.length < 2) {
+    } else if (!dict || Object.keys(dict).length < 1) {
       g2t_log('replacer: Require dictionary!');
       return text;
     }
 
-    let re, new_text;
+    let result = text;
     const replacify = () => {
-      g2t_each(dict, this.replacer_onEach.bind(this, text, re, new_text));
+      g2t_each(dict, (value, key) => {
+        const re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
+        result = result.replace(re, value);
+      });
     };
 
     let runaway_max = 3;
-    while (text.indexOf('%') !== -1 && runaway_max-- > 0) {
+    while (result.indexOf('%') !== -1 && runaway_max-- > 0) {
       replacify();
     }
 
-    return text;
-  }
-
-  replacer_onEach(text, re, new_text, value, key) {
-    re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
-    new_text = text.replace(re, value);
-    text = new_text;
+    return result;
   }
 
   /**
@@ -385,7 +382,7 @@ class Utils {
    * Truncate a string
    */
   truncate(text, max, add) {
-    const retn = text || '';
+    let retn = text || '';
     const add_k = this.decodeEntities(add || '');
     const max_k = max - add_k.length;
 
@@ -455,7 +452,7 @@ class Utils {
    * Check for ctrl/alt/shift down:
    */
   modKey(event) {
-    const retn = '';
+    let retn = '';
 
     if (event.ctrlKey) {
       retn = 'ctrl-';

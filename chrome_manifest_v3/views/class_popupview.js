@@ -62,6 +62,9 @@ class PopupView {
   init() {
     // g2t_log('PopupView:init');
 
+    // Create MenuControl instance
+    this.menuCtrl = new G2T.MenuControl({ app: this.app });
+
     // Bind internal events
     this.bindEvents();
 
@@ -352,14 +355,14 @@ class PopupView {
   }
 
   bindEvents() {
-    // bind events
-
-    // Listen for popupLoaded event
+    // Only bind the popupLoaded event here - everything else waits for DOM
     this.app.events.addListener(
       'popupLoaded',
       this.handlePopupLoaded.bind(this)
     );
+  }
 
+  bindPopupEvents() {
     // Bind internal PopupView events
     this.app.events.addListener(
       'onPopupVisible',
@@ -439,11 +442,19 @@ class PopupView {
 
     // Bind chrome.runtime.onMessage for popup-specific messages
     chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
+
+    // Bind MenuControl events
+    this.app.events.addListener(
+      'onMenuClick',
+      this.handleOnMenuClick.bind(this)
+    );
   }
 
   submit() {
     if (this.validateData()) {
-      this.$popupContent.hide();
+      if (this.$popupContent) {
+        this.$popupContent.hide();
+      }
       this.showMessage(this, 'Submitting to Trello...');
       this.app.events.fire('onSubmit');
     }
@@ -870,6 +881,7 @@ class PopupView {
       $domTag.html(html);
 
       if (isImage && isImage === true) {
+        const self = this;
         $('img', $domTag).each(function () {
           const $img = $(this);
           $img
@@ -883,10 +895,14 @@ class PopupView {
               track: true,
               content: function () {
                 const dict = {
-                  src: $img.attr('src'),
-                  alt: $img.attr('alt'),
+                  src: $img.attr('src') || '',
+                  alt: $img.attr('alt') || '',
                 };
-                return this.app.utils.replacer('<img src="%src%">%alt%', dict);
+                const result = self.app.utils.replacer(
+                  '<img src="%src%">%alt%',
+                  dict
+                );
+                return result;
               },
             });
         });
@@ -900,7 +916,7 @@ class PopupView {
     mime_html('images', true /* isImage */);
 
     const emailId = data.emailId || 0;
-    const mapAvailable_k = this.app.utils.emailBoardListCardMapLookup({
+    const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
       emailId,
     });
 
@@ -924,6 +940,14 @@ class PopupView {
   }
 
   showMessage(parent, text) {
+    // Guard against calling before DOM elements are initialized
+    if (!this.$popupMessage) {
+      g2t_log('PopupView:showMessage: DOM not ready, deferring message');
+      // Store message to show later when DOM is ready
+      this.pendingMessage = { parent, text };
+      return;
+    }
+
     this.$popupMessage.html(text);
 
     // Attach hideMessage function to hideMsg class if in text:
@@ -974,6 +998,11 @@ class PopupView {
   }
 
   hideMessage() {
+    // Guard against calling before DOM elements are initialized
+    if (!this.$popupMessage || !this.$popupContent) {
+      return;
+    }
+
     if (this.$popupContent.is(':hidden')) {
       // Rest of box is hidden so close it all:
       this.$popup.hide(); // Parent is popup, so hide the whole thing
@@ -1171,12 +1200,9 @@ class PopupView {
 
     $('#g2tLabelsMsg', this.$popup).hide();
 
-    const control = new MenuControl({
+    this.menuCtrl.reset({
       selectors: '#g2tLabels button',
       nonexclusive: true,
-    });
-    control.event.addListener('onMenuClick', (e, params) => {
-      this.validateData();
     });
 
     const settings = this.data.settings;
@@ -1250,12 +1276,9 @@ class PopupView {
 
     $('#g2tMembersMsg', this.$popup).hide();
 
-    const control = new MenuControl({
+    this.menuCtrl.reset({
       selectors: '#g2tMembers button',
       nonexclusive: true,
-    });
-    control.event.addListener('onMenuClick', (e, params) => {
-      this.validateData();
     });
 
     const settings = this.data.settings;
@@ -1615,6 +1638,10 @@ class PopupView {
     }
   }
 
+  handleOnMenuClick(target, params) {
+    this.validateData();
+  }
+
   handlePopupLoaded() {
     // This is the DOM-dependent code that used to be at the end of init() (from init_popup)
     this.$g2tButton = $('#g2tButton');
@@ -1623,6 +1650,15 @@ class PopupView {
     this.$popupContent = $('.content', this.$popup);
     this.centerPopup();
     this.isInitialized = true;
+
+    // Show any pending message that was queued before DOM was ready
+    if (this.pendingMessage) {
+      this.showMessage(this.pendingMessage.parent, this.pendingMessage.text);
+      this.pendingMessage = null;
+    }
+
+    // Bind all events now that DOM is ready
+    this.bindPopupEvents();
 
     // DOM event bindings moved from bindEvents()
     this.resetDragResize();

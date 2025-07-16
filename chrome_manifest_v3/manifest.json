@@ -33,7 +33,9 @@
         "images/new_icon.gif",
         "images/ui-icons_444444_256x240.png",
         "images/ui-icons_555555_256x240.png",
+        "images/ui-icons_777620_256x240.png",
         "images/ui-icons_777777_256x240.png",
+        "images/ui-icons_cc0000_256x240.png",
         "images/ui-icons_ffffff_256x240.png",
         "inject.js",
         "lib/jquery-3.7.1.min.map",
@@ -56,13 +58,13 @@
       ],
       "js": [
         "lib/jquery-3.7.1.min.js",
-        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.js",
+        "lib/jquery-ui-1.14.1.min.js",
         "lib/trello.min.js",
         "lib/combo.js",
         "lib/google-analytics-bundle.min.js",
-        "lib/menuControl.js",
+        "class_menuControl.js",
         "lib/waitCounter.js",
-        "class_eventtarget.js",
+        "class_eventTarget.js",
         "views/class_gmailView.js",
         "views/class_popupView.js",
         "class_model.js",
@@ -71,7 +73,7 @@
         "content-script.js"
       ],
       "css": [
-        "lib/jqueryui-1.14.1/jquery-ui-1.14.1.min.css",
+        "lib/jquery-ui-1.14.1.min.css",
         "style.css"
       ]
     }
