@@ -1,8 +1,8 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class Utils {
-  constructor(parent) {
-    this.parent = parent;
+  constructor(args) {
+    this.app = args.app;
   }
 
   init() {

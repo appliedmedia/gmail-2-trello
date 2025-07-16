@@ -8,14 +8,17 @@ class App {
     this.CHROME_SETTINGS_ID = 'g2t_user_settings';
     this.UNIQUE_URI_VAR = 'g2t_filename';
 
-    this.model = new G2T.Model(this);
-    this.gmailView = new G2T.GmailView(this);
-    this.popupView = new G2T.PopupView(this);
-    this.utils = new G2T.Utils(this);
+    this.events = new G2T.EventTarget({ app: this });
+    this.model = new G2T.Model({ app: this });
+    this.gmailView = new G2T.GmailView({ app: this });
+    this.popupView = new G2T.PopupView({ app: this });
+    this.utils = new G2T.Utils({ app: this });
   }
 
   init() {
     // g2t_log('App:initialize');
+
+    this.events.init();
 
     // Initialize all components first
     this.model.init();
@@ -24,11 +27,10 @@ class App {
     this.utils.init();
 
     // Declare before use to avoid undeclared globals
-    let service, tracker;
-    service = analytics.getService('gmail-2-trello');
+    const service = analytics.getService('gmail-2-trello');
 
     // Get a Tracker using your Google Analytics app Tracking ID.
-    tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
+    const tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
 
     // Record an "appView" each time the user launches your app or goes to a new
     // screen within the app.

@@ -1,8 +1,8 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class GmailView {
-  constructor(parent) {
-    this.parent = parent;
+  constructor(args) {
+    this.app = args.app;
 
     this.LAYOUT_DEFAULT = 0;
     this.LAYOUT_SPLIT = 1;
@@ -57,11 +57,11 @@ class GmailView {
     // Usually minimal since it mostly fires events
 
     // Bind internal GmailView events
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onDetected',
       this.handleGmailDetected.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
     );
@@ -74,7 +74,7 @@ class GmailView {
       this.runaway = 0;
       g2t_log('GmailView:detectToolbar RUNAWAY FIRED!');
     } else {
-      G2T.app.events.fire('detectButton');
+      this.app.events.fire('detectButton');
     }
   }
 
@@ -125,8 +125,8 @@ class GmailView {
     if (item_k?.length > 0) {
       const attachment = item_k.match(/^([^:]+)\s*:\s*([^:]+)\s*:\s*(.+)$/);
       if (attachment && attachment.length > 3) {
-        const name_k = this.parent.utils.decodeEntities(attachment[2]); // was: decodeURIComponent
-        const url_k = attachment[3]; // Was: this.parent.utils.midTruncate(attachment[3], 50, '...');
+        const name_k = this.app.utils.decodeEntities(attachment[2]); // was: decodeURIComponent
+        const url_k = attachment[3]; // Was: this.app.utils.midTruncate(attachment[3], 50, '...');
         this.emailAttachments.push({
           mimeType: attachment[1],
           name: name_k,
@@ -172,10 +172,10 @@ class GmailView {
     const aria_name_k = aria_split_k[aria_split_k.length - 1] || '';
     const name_k =
       (alt_k.length > aria_name_k.length ? alt_k : aria_name_k) ||
-      this.parent.utils.uriForDisplay(href_k) ||
+      this.app.utils.uriForDisplay(href_k) ||
       '';
-    const display_k = this.parent.utils.decodeEntities(
-      this.parent.utils.midTruncate(name_k.trim(), 50, '...')
+    const display_k = this.app.utils.decodeEntities(
+      this.app.utils.midTruncate(name_k.trim(), 50, '...')
     );
     const type_k = ($(element).prop('type') || 'text/link').trim(); // Was attr
     if (href_k.length > 0 && display_k.length > 0) {
@@ -191,17 +191,14 @@ class GmailView {
 
   // Helper methods for parseData
   url_with_filename(url_in = '', var_in = '') {
-    return this.parent.utils.url_add_var(
+    return this.app.utils.url_add_var(
       url_in,
-      `${this.parent.UNIQUE_URI_VAR}=/${var_in}`
+      `${this.app.UNIQUE_URI_VAR}=/${var_in}`
     );
   }
 
   displayNameAndEmail(name = '', email = '') {
-    return this.parent.utils.addSpace(
-      name,
-      email.length > 0 ? `<${email}>` : ''
-    );
+    return this.app.utils.addSpace(name, email.length > 0 ? `<${email}>` : '');
   }
 
   email_raw_md(name = '', email = '') {
@@ -217,10 +214,10 @@ class GmailView {
     // introduce a local variable instead of reassigning the `name` parameter
     let displayName = name;
     if (!name.length) {
-      displayName = this.parent.utils.splitEmailDomain(email)?.name || '';
+      displayName = this.app.utils.splitEmailDomain(email)?.name || '';
     } else if (name.toUpperCase() === email.toUpperCase()) {
       // split out @domain when name and email match exactly
-      displayName = this.parent.utils.splitEmailDomain(name)?.name || name;
+      displayName = this.app.utils.splitEmailDomain(name)?.name || name;
     }
 
     raw = this.displayNameAndEmail(displayName, email);
@@ -256,12 +253,12 @@ class GmailView {
       email,
     };
 
-    let anchor_md = this.parent.utils.anchorMarkdownify(name, email); // Don't need to add 'mailto:'
+    let anchor_md = this.app.utils.anchorMarkdownify(name, email); // Don't need to add 'mailto:'
 
     let retn = {};
 
     g2t_each(forms, item => {
-      let item1 = this.parent.utils.replacer(item, dict);
+      let item1 = this.app.utils.replacer(item, dict);
       retn[item1.toLowerCase()] = anchor_md;
     });
 
@@ -294,7 +291,7 @@ class GmailView {
     const pre_k = this.preDetect();
 
     if (pre_k) {
-      G2T.app.events.fire('onDetected');
+      this.app.events.fire('onDetected');
     } else {
       this.detectEmailOpeningMode();
     }
@@ -351,7 +348,7 @@ class GmailView {
           ' items'
       );
 
-      G2T.app.events.fire('onDetected');
+      this.app.events.fire('onDetected');
     }
     return result;
   }
@@ -438,7 +435,7 @@ class GmailView {
     ).trim();
 
     /* Used to do this to convert to a true dateTime object, but there is too much hassle in doing so:
-      const timeCorrected_k = this.parent.parseInternationalDateTime(timeAttr_k);
+      const timeCorrected_k = this.app.parseInternationalDateTime(timeAttr_k);
       const timeAsDate_k = (timeCorrected_k !== '' ? new Date (timeCorrected_k) : '');
       const timeAsDateInvalid_k = timeAsDate_k ? isNaN (timeAsDate_k.getTime()) : true;
 
@@ -463,11 +460,11 @@ class GmailView {
     }
 
     let from_raw_md = this.email_raw_md(emailFromName, emailFromAddress);
-    const from_raw = `From: ${this.parent.utils.addSpace(
+    const from_raw = `From: ${this.app.utils.addSpace(
       from_raw_md.raw,
       data.time
     )}`;
-    const from_md = `From: ${this.parent.utils.addSpace(
+    const from_md = `From: ${this.app.utils.addSpace(
       from_raw_md.md,
       data.time
     )}`;
@@ -527,9 +524,9 @@ class GmailView {
     const txtSearch = `https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch}`;
 
     data.linkAsRaw = `[<${txtDirect}> | <${txtSearch}>]\n`;
-    data.linkAsMd = `[${this.parent.utils
+    data.linkAsMd = `[${this.app.utils
       .anchorMarkdownify(txtAnchor, txtDirect, txtDirectComment)
-      .trim()} | ${this.parent.utils
+      .trim()} | ${this.app.utils
       .anchorMarkdownify('time', txtSearch, 'Search by subject + time')
       .trim()}]\n`;
 
@@ -552,18 +549,18 @@ class GmailView {
       this.cc_md += '\n';
     }
 
-    let selectedText = this.parent.utils.getSelectedText();
+    let selectedText = this.app.utils.getSelectedText();
 
     data.ccAsRaw = this.cc_raw;
     data.ccAsMd = this.cc_md;
 
     data.bodyAsRaw = `${from_raw}:\n\n${
       selectedText ||
-      this.parent.utils.markdownify($emailBody1_k, false, this.preprocess)
+      this.app.utils.markdownify($emailBody1_k, false, this.preprocess)
     }`;
     data.bodyAsMd = `${from_md}:\n\n${
       selectedText ||
-      this.parent.utils.markdownify($emailBody1_k, true, this.preprocess)
+      this.app.utils.markdownify($emailBody1_k, true, this.preprocess)
     }`;
 
     this.emailImages = {};
@@ -583,14 +580,14 @@ class GmailView {
 
   // Event handler methods moved from App
   handleGmailDetected() {
-    this.parent.popupView.$toolBar = this.$toolBar;
-    // this.parent.popupView.init(); // Redundant - App.init() already calls this
+    this.app.popupView.$toolBar = this.$toolBar;
+    // this.app.popupView.init(); // Redundant - App.init() already calls this
   }
 
   handleDetectButton() {
     if (this.preDetect()) {
-      this.parent.popupView.$toolBar = this.$toolBar;
-      this.parent.popupView.confirmPopup();
+      this.app.popupView.$toolBar = this.$toolBar;
+      this.app.popupView.confirmPopup();
     }
   }
 }

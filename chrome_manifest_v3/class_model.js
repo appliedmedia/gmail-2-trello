@@ -1,13 +1,13 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class Model {
-  constructor(parent) {
+  constructor(args) {
     this.trello = {
       apiKey: '21b411b1b5b549c54bd32f0e90738b41', // Was: "c50413b23ee49ca49a5c75ccf32d0459"
       user: null,
       boards: null,
     };
-    this.parent = parent;
+    this.app = args.app;
     this.settings = {};
     this.isInitialized = false;
     this.newCard = null;
@@ -33,7 +33,7 @@ class Model {
   bindEvents() {
     // Model-specific event bindings (if any)
     // Most models don't need to bind to their own events
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'submittedFormShownComplete',
       this.handleSubmittedFormShownComplete.bind(this)
     );
@@ -76,14 +76,14 @@ class Model {
 
   // Callback methods for checkTrelloAuthorized
   checkTrelloAuthorized_onSuccess(data) {
-    G2T.app.events.fire('onAuthorized');
+    this.app.events.fire('onAuthorized');
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_onError(data) {
     if (!Trello.authorized()) {
       // Assure token is invalid
-      G2T.app.events.fire('onBeforeAuthorize');
+      this.app.events.fire('onBeforeAuthorize');
       Trello.authorize({
         type: 'popup',
         name: 'Gmail-2-Trello',
@@ -107,12 +107,12 @@ class Model {
   checkTrelloAuthorized_popup_onSuccess(data) {
     g2t_log('checkTrelloAuthorized: Trello authorization successful');
     // g2t_log(data);
-    G2T.app.events.fire('onAuthorized');
+    this.app.events.fire('onAuthorized');
     this.loadTrelloData();
   }
 
   checkTrelloAuthorized_popup_onError(data) {
-    G2T.app.events.fire('onAuthorizeFail');
+    this.app.events.fire('onAuthorizeFail');
   }
 
   initTrello() {
@@ -189,13 +189,13 @@ class Model {
   }
 
   loadTrelloData_failure(data) {
-    G2T.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloData() {
     // g2t_log('loadTrelloData');
 
-    G2T.app.events.fire('onBeforeLoadTrello');
+    this.app.events.fire('onBeforeLoadTrello');
     this.trello.user = null;
 
     // get user's info
@@ -213,7 +213,7 @@ class Model {
       // yeah! the data is ready
       //g2t_log('checkTrelloDataReady: YES');
       //g2t_log(this);
-      G2T.app.events.fire('onTrelloDataReady');
+      this.app.events.fire('onTrelloDataReady');
     }
     //else g2t_log('checkTrelloDataReady: NO');
   }

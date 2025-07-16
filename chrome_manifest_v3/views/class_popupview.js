@@ -73,7 +73,7 @@ class PopupView {
     }
 
     this.intervalId = setInterval(() => {
-      G2T.app.events.fire('detectButton');
+      this.app.events.fire('detectButton');
     }, 2000);
   }
 
@@ -431,7 +431,7 @@ class PopupView {
         $labels.hide(); // hiding when loading is being showed.
       }
 
-      G2T.app.events.fire('onBoardChanged', { boardId });
+      this.app.events.fire('onBoardChanged', { boardId });
 
       if (this.comboBox) this.comboBox('updateValue');
       this.validateData();
@@ -440,7 +440,7 @@ class PopupView {
     const $list = $('#g2tList', this.$popup);
     $list.off('change').on('change', () => {
       const listId = $list.val();
-      G2T.app.events.fire('onListChanged', { listId });
+      this.app.events.fire('onListChanged', { listId });
       if (this.comboBox) this.comboBox('updateValue');
       this.validateData();
     });
@@ -580,88 +580,88 @@ class PopupView {
     $('#g2tSignOut', this.$popup)
       .off('click')
       .on('click', () => {
-        G2T.app.events.fire('onRequestDeauthorizeTrello');
+        this.app.events.fire('onRequestDeauthorizeTrello');
       });
 
     $('#g2tAuthorize', this.$popup)
       .off('click')
       .on('click', () => {
-        G2T.app.events.fire('checkTrelloAuthorized');
+        this.app.events.fire('checkTrelloAuthorized');
       });
 
     // Bind internal PopupView events
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onPopupVisible',
       this.handlePopupVisible.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'periodicChecks',
       this.handlePeriodicChecks.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onBoardChanged',
       this.handleBoardChanged.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onListChanged',
       this.handleListChanged.bind(this)
     );
-    G2T.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    G2T.app.events.addListener(
+    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
       'checkTrelloAuthorized',
       this.handleCheckTrelloAuthorized.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onRequestDeauthorizeTrello',
       this.handleRequestDeauthorizeTrello.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onCardSubmitComplete',
       this.handleCardSubmitComplete.bind(this)
     );
 
     // Bind events moved from App (pure PopupView operations)
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onBeforeAuthorize',
       this.handleBeforeAuthorize.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onAuthorizeFail',
       this.handleAuthorizeFail.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onAuthorized',
       this.handleAuthorized.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onBeforeLoadTrello',
       this.handleBeforeLoadTrello.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onTrelloDataReady',
       this.handleTrelloDataReady.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onLoadTrelloListSuccess',
       this.handleLoadTrelloListSuccess.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onLoadTrelloCardsSuccess',
       this.handleLoadTrelloCardsSuccess.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onLoadTrelloLabelsSuccess',
       this.handleLoadTrelloLabelsSuccess.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onLoadTrelloMembersSuccess',
       this.handleLoadTrelloMembersSuccess.bind(this)
     );
-    G2T.app.events.addListener(
+    this.app.events.addListener(
       'onAPIFailure',
       this.handleAPIFailure.bind(this)
     );
@@ -674,7 +674,7 @@ class PopupView {
     if (this.validateData()) {
       this.$popupContent.hide();
       this.showMessage(this, 'Submitting to Trello...');
-      G2T.app.events.fire('onSubmit');
+      this.app.events.fire('onSubmit');
     }
   }
 
@@ -746,7 +746,7 @@ class PopupView {
       this.$popup.show();
       this.validateData();
 
-      G2T.app.events.fire('onPopupVisible');
+      this.app.events.fire('onPopupVisible');
     }
   }
 
@@ -1168,7 +1168,7 @@ class PopupView {
       switch (this.id) {
         case 'signout':
           $status.html('Done');
-          G2T.app.events.fire('onRequestDeauthorizeTrello');
+          this.app.events.fire('onRequestDeauthorizeTrello');
           break;
         case 'reload':
           this.forceSetVersion(); // Sets value for version if needing update
@@ -1664,7 +1664,7 @@ class PopupView {
     this.$popupContent.hide();
 
     // Fire event to notify that form display is complete
-    G2T.app.events.fire('submittedFormShownComplete', { data });
+    this.app.events.fire('submittedFormShownComplete', { data });
   }
 
   displayAPIFailedForm(response) {
@@ -1716,7 +1716,7 @@ class PopupView {
 
       if (resp?.status == 401) {
         // Invalid token, so deauthorize Trello
-        G2T.app.events.fire('onRequestDeauthorizeTrello');
+        this.app.events.fire('onRequestDeauthorizeTrello');
       }
     });
   }
@@ -1746,7 +1746,7 @@ class PopupView {
     this.parent.gmailView.parsingData = false;
     this.parent.model.gmail = this.parent.gmailView.parseData({ fullName });
     this.bindGmailData(this.parent.model.gmail);
-    G2T.app.events.fire('periodicChecks');
+    this.app.events.fire('periodicChecks');
   }
 
   handlePeriodicChecks() {

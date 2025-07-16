@@ -4,7 +4,8 @@
 var G2T = G2T || {}; // Namespace initialization
 
 class EventTarget {
-  constructor() {
+  constructor(args) {
+    this.app = args.app;
     this._listeners = {};
   }
 
@@ -53,6 +54,4 @@ class EventTarget {
 // Assign to namespace
 G2T.EventTarget = EventTarget;
 
-// Create global event system for all classes to use
-G2T.app = G2T.app || {};
-G2T.app.events = EventTarget;
+// end, eventTarget.js
