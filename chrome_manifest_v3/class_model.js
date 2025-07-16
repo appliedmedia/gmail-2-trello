@@ -221,11 +221,11 @@ class Model {
   loadTrelloLists_success(data) {
     this.trello.lists = data.lists;
     // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
-    G2T.app.events.fire('onLoadTrelloListSuccess');
+    this.app.events.fire('onLoadTrelloListSuccess');
   }
 
   loadTrelloLists_failure(data) {
-    G2T.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloLists(boardId) {
@@ -244,11 +244,11 @@ class Model {
   loadTrelloCards_success(data) {
     this.trello.cards = data;
     // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-    G2T.app.events.fire('onLoadTrelloCardsSuccess');
+    this.app.events.fire('onLoadTrelloCardsSuccess');
   }
 
   loadTrelloCards_failure(data) {
-    G2T.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloCards(listId) {
@@ -267,11 +267,11 @@ class Model {
   loadTrelloMembers_success(data) {
     this.trello.members = data;
     // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
-    G2T.app.events.fire('onLoadTrelloMemberSuccess');
+    this.app.events.fire('onLoadTrelloMemberSuccess');
   }
 
   loadTrelloMembers_failure(data) {
-    G2T.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloMembers(boardId) {
@@ -290,11 +290,11 @@ class Model {
   loadTrelloLabels_success(data) {
     this.trello.labels = data;
     // g2t_log('loadTrelloLabels: labels:' + JSON.stringify(this.trello.labels));
-    G2T.app.events.fire('onLoadTrelloLabelsSuccess');
+    this.app.events.fire('onLoadTrelloLabelsSuccess');
   }
 
   loadTrelloLabels_failure(data) {
-    G2T.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('onAPIFailure', { data });
   }
 
   loadTrelloLabels(boardId) {
@@ -381,7 +381,7 @@ class Model {
   }
 
   submit_onSuccess(data) {
-    G2T.app.events.fire('onCardSubmitComplete', { data });
+    this.app.events.fire('onCardSubmitComplete', { data });
     g2t_log(data);
     //setTimeout(() => {this.popupNode.hide();}, 10000);
   }
