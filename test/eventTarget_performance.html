@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventTarget Performance Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 EventTarget Performance Test</h1>
+        <p>This test compares the performance of the current custom EventTarget implementation vs a native ES6 EventTarget wrapper.</p>
+        
+        <div style="text-align: center;">
+            <button id="runTest" onclick="runPerformanceTest()">Run Performance Test</button>
+            <button id="runCompatibilityTest" onclick="runCompatibilityTest()">Run Compatibility Test</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script src="eventTarget_performance.js"></script>
+    <script>
+        function runPerformanceTest() {
+            const button = document.getElementById('runTest');
+            const results = document.getElementById('results');
+            
+            button.disabled = true;
+            button.textContent = 'Running...';
+            results.innerHTML = '<div class="loading">Running performance test...</div>';
+            
+            // Capture console output
+            const originalLog = console.log;
+            let output = '';
+            console.log = function(...args) {
+                output += args.join(' ') + '\n';
+                originalLog.apply(console, args);
+            };
+            
+            setTimeout(() => {
+                try {
+                    PerformanceTest.runComparison();
+                    results.textContent = output;
+                } catch (error) {
+                    results.textContent = 'Error: ' + error.message;
+                } finally {
+                    console.log = originalLog;
+                    button.disabled = false;
+                    button.textContent = 'Run Performance Test';
+                }
+            }, 100);
+        }
+        
+        function runCompatibilityTest() {
+            const button = document.getElementById('runCompatibilityTest');
+            const results = document.getElementById('results');
+            
+            button.disabled = true;
+            button.textContent = 'Running...';
+            results.innerHTML = '<div class="loading">Running compatibility test...</div>';
+            
+            setTimeout(() => {
+                try {
+                    const output = runCompatibilityTests();
+                    results.textContent = output;
+                } catch (error) {
+                    results.textContent = 'Error: ' + error.message;
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Run Compatibility Test';
+                }
+            }, 100);
+        }
+        
+        function runCompatibilityTests() {
+            let output = '🧪 EventTarget Compatibility Test\n\n';
+            
+            // Test 1: Basic functionality
+            output += 'Test 1: Basic addListener/fire/removeListener\n';
+            const eventTarget = new CustomEventTarget();
+            let testResult = '';
+            
+            const listener = (event, params) => {
+                testResult = `Event: ${event.type}, Params: ${JSON.stringify(params)}`;
+            };
+            
+            eventTarget.addListener('test', listener);
+            eventTarget.fire('test', { message: 'hello' });
+            
+            if (testResult === 'Event: test, Params: {"message":"hello"}') {
+                output += '✅ PASS: Basic functionality works\n';
+            } else {
+                output += `❌ FAIL: Expected different result. Got: ${testResult}\n`;
+            }
+            
+            eventTarget.removeListener('test', listener);
+            testResult = '';
+            eventTarget.fire('test', { message: 'should not fire' });
+            
+            if (testResult === '') {
+                output += '✅ PASS: Listener removal works\n';
+            } else {
+                output += `❌ FAIL: Listener not removed. Got: ${testResult}\n`;
+            }
+            
+            // Test 2: Multiple listeners
+            output += '\nTest 2: Multiple listeners\n';
+            const eventTarget2 = new CustomEventTarget();
+            let results = [];
+            
+            const listener1 = (event, params) => results.push('1');
+            const listener2 = (event, params) => results.push('2');
+            
+            eventTarget2.addListener('multi', listener1);
+            eventTarget2.addListener('multi', listener2);
+            eventTarget2.fire('multi', {});
+            
+            if (results.join('') === '12') {
+                output += '✅ PASS: Multiple listeners work\n';
+            } else {
+                output += `❌ FAIL: Multiple listeners failed. Got: ${results.join('')}\n`;
+            }
+            
+            // Test 3: String vs object events
+            output += '\nTest 3: String vs object events\n';
+            const eventTarget3 = new CustomEventTarget();
+            let stringResult = '';
+            let objectResult = '';
+            
+            const stringListener = (event, params) => {
+                stringResult = `Type: ${event.type}, Target: ${event.target === eventTarget3}`;
+            };
+            
+            const objectListener = (event, params) => {
+                objectResult = `Type: ${event.type}, Target: ${event.target === eventTarget3}`;
+            };
+            
+            eventTarget3.addListener('string', stringListener);
+            eventTarget3.addListener('object', objectListener);
+            
+            eventTarget3.fire('string', {});
+            eventTarget3.fire({ type: 'object' }, {});
+            
+            if (stringResult === 'Type: string, Target: true' && objectResult === 'Type: object, Target: true') {
+                output += '✅ PASS: String and object events work\n';
+            } else {
+                output += `❌ FAIL: String/object events failed. String: ${stringResult}, Object: ${objectResult}\n`;
+            }
+            
+            output += '\n🎉 Compatibility test completed!\n';
+            return output;
+        }
+    </script>
+</body>
+</html>
