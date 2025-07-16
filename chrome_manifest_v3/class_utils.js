@@ -16,11 +16,18 @@ class Utils {
     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
   }
 
+  // Callback methods for replacer
+  replacer_onEach(text, value, key) {
+    const regex = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
+    const replaced = text.replace(regex, value);
+    return replaced;
+  }
+
   /**
    * Utility routine to replace variables
    */
-  replacer(text, dict) {
-    if (!text || text.length < 1) {
+  replacer(text = '', dict = {}) {
+    if (text?.length < 1) {
       // g2t_log('Require text!');
       return '';
     } else if (!dict || Object.keys(dict).length < 1) {
@@ -29,16 +36,11 @@ class Utils {
     }
 
     let result = text;
-    const replacify = () => {
-      g2t_each(dict, (value, key) => {
-        const re = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
-        result = result.replace(re, value);
-      });
-    };
-
     let runaway_max = 3;
     while (result.indexOf('%') !== -1 && runaway_max-- > 0) {
-      replacify();
+      g2t_each(dict, (value, key) => {
+        result = this.replacer_onEach(result, value, key);
+      });
     }
 
     return result;
@@ -507,13 +509,6 @@ class Utils {
    */
   makeAvatarUrl(args) {
     return args?.avatarUrl ? `${args.avatarUrl}/30.png` : '';
-  }
-
-  // Callback methods for replacer
-  replacer_onEach(text, re, new_text, value, key) {
-    const regex = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
-    const replaced = text.replace(regex, value);
-    return replaced;
   }
 
   // Callback methods for markdownify

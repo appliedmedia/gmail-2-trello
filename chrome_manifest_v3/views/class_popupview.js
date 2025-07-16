@@ -835,6 +835,81 @@ class PopupView {
     this.comboBox();
   }
 
+  mime_html(tag, isImage, data) {
+    const self = this;
+    let html = '';
+    let img = '';
+    let img_big = '';
+    const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
+      .slice(1)
+      .toLowerCase()}`;
+    const $domTag = $(domTag_k, this.$popup);
+
+    const domTagContainer = domTag_k + 'Container';
+    const $domTagContainer = $(domTagContainer, this.$popup);
+    $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
+
+    if (isImage && isImage === true) {
+      img =
+        '<div class="img-container"><img src="%url%" alt="%name%" /></div> ';
+    }
+
+    let x = 0;
+    g2t_each(data[tag], item => {
+      const dict = {
+        url: item.url,
+        name: item.name,
+        mimeType: item.mimeType,
+        img,
+        id: `${item.name}:${x}`,
+      };
+
+      if (tag == 'attachments') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
+          dict
+        );
+      } else if (tag == 'images') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+          dict
+        );
+      }
+      x++;
+    });
+
+    $domTag.html(html);
+
+    if (isImage && isImage === true) {
+      $('img', $domTag).each(function () {
+        const $img = $(this);
+        $img
+          .on('error', function () {
+            $img.attr(
+              'src',
+              chrome.runtime.getURL('images/doc-question-mark-512.png')
+            );
+          })
+          .tooltip({
+            track: true,
+            content: function () {
+              const dict = {
+                src: $img.attr('src'),
+                alt: $img.attr('alt'),
+              };
+              return self.app.utils.replacer(
+                '<div style="background-color: #f0f0f0; padding: 5px; border-radius: 3px;"><img src="%src%">%alt%</div>',
+                dict
+              );
+            },
+          });
+      });
+      $('.textOnlyPopup').tooltip({
+        track: true,
+      });
+    }
+  }
+
   bindGmailData(data = {}) {
     if ($.isEmptyObject(data)) {
       return;
@@ -846,90 +921,8 @@ class PopupView {
 
     $('#g2tTitle', this.$popup).val(data.subject);
 
-    const mime_html = (tag, isImage) => {
-      let html = '';
-      let img = '';
-      let img_big = '';
-      const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
-        .slice(1)
-        .toLowerCase()}`;
-      const $domTag = $(domTag_k, this.$popup);
-
-      const domTagContainer = domTag_k + 'Container';
-      const $domTagContainer = $(domTagContainer, this.$popup);
-      $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
-
-      if (isImage && isImage === true) {
-        img =
-          '<div class="img-container"><img src="%url%" alt="%name%" /></div> '; // See style.css for #g2tImage img style REMOVED: height="32" width="32"
-      }
-
-      let x = 0;
-      g2t_each(data[tag], item => {
-        if (!item || !item.url || !item.name) {
-          return; // Skip items without required properties
-        }
-
-        const id = `${item.name}:${x}`;
-
-        const dict = {
-          url: item.url,
-          name: item.name,
-          mimeType: item.mimeType,
-          id,
-        };
-
-        if (tag == 'attachments') {
-          html += this.app.utils.replacer(
-            '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
-            dict
-          );
-        } else if (tag == 'images') {
-          const processedImg = this.app.utils.replacer(img, dict);
-          html += this.app.utils.replacer(
-            '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
-            { ...dict, img: processedImg }
-          );
-        }
-        x++;
-      });
-
-      $domTag.html(html);
-
-      if (isImage && isImage === true) {
-        const self = this;
-        $('img', $domTag).each(function () {
-          const $img = $(this);
-          $img
-            .on('error', function () {
-              $(this).attr(
-                'src',
-                chrome.runtime.getURL('images/doc-question-mark-512.png')
-              );
-            })
-            .tooltip({
-              track: true,
-              content: function () {
-                const dict = {
-                  src: $img.attr('src') || '',
-                  alt: $img.attr('alt') || '',
-                };
-                const result = self.app.utils.replacer(
-                  'Image: %alt%<br>URL: %src%',
-                  dict
-                );
-                return result;
-              },
-            });
-        });
-        $('.textOnlyPopup').tooltip({
-          track: true,
-        });
-      }
-    };
-
-    mime_html('attachments');
-    mime_html('images', true /* isImage */);
+    this.mime_html('attachments', false, data);
+    this.mime_html('images', true, data);
 
     const emailId = data.emailId || 0;
     const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
@@ -939,16 +932,12 @@ class PopupView {
     if (
       ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
     ) {
-      // If we're restoring we must be adding to an existing card:
       $('#g2tPosition', this.$popup).val('to');
-
-      this.updateBoards(mapAvailable_k.boardId); // Causes a cascade of updates if it's changed
-
-      // We have a small pending queue for updates to grab these changes and show them, if possible:
+      this.updateBoards(mapAvailable_k.boardId);
       const listId = mapAvailable_k.listId;
       const cardId = mapAvailable_k.cardId;
-      this.updatesPending.push({ listId }); // instead of: this.updateLists(listId);
-      this.updatesPending.push({ cardId }); // instead of: this.updateCards(cardId);
+      this.updatesPending.push({ listId });
+      this.updatesPending.push({ cardId });
     }
 
     this.dataDirty = false;
@@ -1317,7 +1306,33 @@ class PopupView {
     $g2t.show();
   }
 
+  mime_array(tag) {
+    const self = this;
+    const tag_formatted = `#${tag} input[type="checkbox"]`;
+    const $jTags = $(tag_formatted, self.$popup);
+    let array = [];
+    let item = {};
+    let checked_total = 0;
+
+    $jTags.each(function () {
+      const checked = $(this).is(':checked');
+      if (checked) {
+        checked_total++;
+      }
+      item = {
+        url: $(this).attr('url'),
+        name: $(this).attr('name'),
+        mimeType: $(this).attr('mimeType'),
+        checked,
+      };
+      array.push(item);
+    });
+
+    return { array, checked_total };
+  }
+
   validateData() {
+    const self = this;
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
     const listId = $('#g2tList', this.$popup).val();
@@ -1337,7 +1352,6 @@ class PopupView {
     const markdown = $('#chkMarkdown', this.$popup).is(':checked');
     const timeStamp = $('.gH .gK .g3:first', this.$visibleMail).attr('title');
     const popupWidth = this.$popup.css('width');
-    const self = this;
     let labelsId = $('#g2tLabels button.active', this.$popup)
       .map(function (iter, item) {
         const val = $(item).attr('trelloId-label');
@@ -1368,35 +1382,11 @@ class PopupView {
       membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
 
-    const mime_array = tag => {
-      let $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
-      let array = [];
-      let array1 = {};
-      let checked_total = 0;
-
-      const self = this;
-      $jTags.each(function () {
-        const checked = $(this).is(':checked');
-        if (checked) {
-          checked_total++;
-        }
-        array1 = {
-          url: $(this).attr('url'),
-          name: $(this).attr('name'),
-          mimeType: $(this).attr('mimeType'),
-          checked,
-        };
-        array.push(array1);
-      });
-
-      return { array, checked_total };
-    };
-
-    const attach_k = mime_array('g2tAttachments');
+    const attach_k = this.mime_array('g2tAttachments');
     let attachments = attach_k.array;
     let attachments_checked = attach_k.checked_total;
 
-    const images_k = mime_array('g2tImages');
+    const images_k = this.mime_array('g2tImages');
     let images = images_k.array;
     let images_checked = images_k.checked_total;
 
@@ -1465,22 +1455,15 @@ class PopupView {
     };
 
     const trelloLink = $('<a>')
-      .attr('href', '#')
-      .attr(
-        'onclick',
-        'alert("Trello URL: ' +
-          cardUrl +
-          '"); chrome.tabs.create({url: "' +
-          cardUrl +
-          '"}); return false;'
-      )
+      .attr('href', cardUrl)
+      .attr('target', '_blank')
       .append(cardTitle);
 
-    this.showMessage(
-      this,
-      `<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated:  <a href="https://cov.in/">cov.in</a>...<a href="${cardUrl}">${cardTitle}</a>...` +
-        jQueryToRawHtml(trelloLink)
-    );
+    const message =
+      '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
+      jQueryToRawHtml(trelloLink);
+
+    this.showMessage(this, message);
 
     this.$popupContent.hide();
 
