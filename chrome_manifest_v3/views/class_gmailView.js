@@ -21,7 +21,6 @@ class GmailView {
     this.LAYOUT_DEFAULT = 0;
     this.LAYOUT_SPLIT = 1;
     this.state = { layoutMode: this.LAYOUT_DEFAULT };
-    this.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = null;
     this.parsingData = false;
     this.runaway = 0;
@@ -71,11 +70,14 @@ class GmailView {
   }
 
   loadState() {
-    this.app.utils.loadFromChromeStorage(this.id, 'classGmailViewStateLoaded');
+    this.app.utils.loadFromChromeStorage(
+      this.ck.id,
+      'classGmailViewStateLoaded'
+    );
   }
 
   saveState() {
-    this.app.utils.saveToChromeStorage(this.id, this.state);
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   // Callback methods for detectToolbar
@@ -285,11 +287,11 @@ class GmailView {
       if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
           // g2t_log('detect: Detected SplitLayout');
 
-          this.layoutMode = this.LAYOUT_SPLIT;
+          this.state.layoutMode = this.LAYOUT_SPLIT;
           this.$root = $activeGroup;
       } else {
   */
-    this.layoutMode = this.LAYOUT_DEFAULT;
+    this.state.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = $('body');
     //  }
 

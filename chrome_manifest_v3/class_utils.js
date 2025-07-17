@@ -29,11 +29,11 @@ class Utils {
 
   loadState() {
     const fire_on_done = 'classUtilsStateLoaded';
-    this.loadFromChromeStorage(this.id, fire_on_done);
+    this.loadFromChromeStorage(this.ck.id, fire_on_done);
   }
 
   saveState() {
-    this.saveToChromeStorage(this.id, this.state);
+    this.saveToChromeStorage(this.ck.id, this.state);
   }
 
   /**

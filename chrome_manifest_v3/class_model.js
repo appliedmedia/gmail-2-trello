@@ -185,13 +185,13 @@ class EmailBoardListCardMap {
 
   loadState() {
     this.app.utils.loadFromChromeStorage(
-      this.id,
+      this.ck.id,
       'classEmailBoardListCardMapStateLoaded'
     );
   }
 
   saveState() {
-    this.app.utils.saveToChromeStorage(this.id, this.state);
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   add(args = {}) {
@@ -303,11 +303,11 @@ class Model {
   }
 
   loadState() {
-    this.app.utils.loadFromChromeStorage(this.id, 'classModelStateLoaded');
+    this.app.utils.loadFromChromeStorage(this.ck.id, 'classModelStateLoaded');
   }
 
   saveState() {
-    this.app.utils.saveToChromeStorage(this.id, this.state);
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   init() {

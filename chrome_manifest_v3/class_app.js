@@ -29,11 +29,11 @@ class App {
 
   loadState() {
     const fire_on_done = 'classAppStateLoaded';
-    this.utils.loadFromChromeStorage(this.id, fire_on_done);
+    this.utils.loadFromChromeStorage(this.ck.id, fire_on_done);
   }
 
   saveState() {
-    this.utils.saveToChromeStorage(this.id, this.state);
+    this.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   updateData() {
