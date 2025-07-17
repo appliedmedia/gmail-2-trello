@@ -590,7 +590,7 @@ class GmailView {
   }
 
   handleClassGmailViewStateLoaded(event, params) {
-    this.state = params?.state || {};
+    this.state = params || {};
   }
 
   bindEvents() {

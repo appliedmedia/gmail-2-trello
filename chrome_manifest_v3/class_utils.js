@@ -4,6 +4,7 @@ class Utils {
   constructor(args) {
     this.app = args.app;
     this._state = {};
+    this.storageHashes = {};
   }
 
   static get id() {
@@ -34,12 +35,19 @@ class Utils {
   /**
    * Load data from chrome storage
    */
-  loadFromChromeStorage(keyId, fire_on_done = null) {
+  loadFromChromeStorage(keyId, fire_on_done = '') {
     try {
       chrome.storage.sync.get(keyId, response => {
-        const result = response?.[keyId] ? JSON.parse(response[keyId]) : null;
+        const jsonData = response?.[keyId];
+        const result = jsonData ? JSON.parse(jsonData) : '';
+
+        // Store hash of loaded data for future comparison
+        if (jsonData) {
+          this.storageHashes[keyId] = this.djb2Hash(jsonData);
+        }
+
         if (fire_on_done) {
-          this.app.events.fire(fire_on_done, { data: result });
+          this.app.events.fire(fire_on_done, result);
         }
       });
     } catch (error) {
@@ -48,13 +56,24 @@ class Utils {
   }
 
   /**
-   * Save data to chrome storage
+   * Save data to chrome storage with hash-based throttling
    */
   saveToChromeStorage(keyId, data) {
     try {
-      const hash = {};
-      hash[keyId] = JSON.stringify(data);
-      chrome.storage.sync.set(hash);
+      // Stringify once and reuse
+      const jsonData = JSON.stringify(data);
+      const dataHash = this.djb2Hash(jsonData);
+
+      // Check if we have a stored hash for this key
+      const storedHash = this.storageHashes[keyId];
+      if (storedHash === dataHash) {
+        return; // No changes, don't save
+      }
+
+      // Update stored hash and save data
+      this.storageHashes[keyId] = dataHash;
+
+      chrome.storage.sync.set({ [keyId]: jsonData });
     } catch (error) {
       g2t_log(`Utils:saveToChromeStorage ERROR: ${error.message}`);
     }
@@ -123,6 +142,34 @@ class Utils {
       }
     }
     return uri_display;
+  }
+
+  /**
+   * Simple djb2 hash function
+   */
+  djb2Hash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) + hash + str.charCodeAt(i);
+    }
+    return hash >>> 0; // unsigned 32-bit
+  }
+
+  /**
+   * Remove specified fields from object and return clean copy
+   */
+  excludeFields(obj, fieldsToExclude) {
+    const clean = {};
+    const excludeSet = new Set(fieldsToExclude);
+
+    // Copy only fields that aren't excluded
+    Object.keys(obj).forEach(key => {
+      if (!excludeSet.has(key)) {
+        clean[key] = obj[key];
+      }
+    });
+
+    return clean;
   }
 
   /**
@@ -632,7 +679,7 @@ class Utils {
 
   // Event handlers
   handleClassUtilsStateLoaded(event, params) {
-    this.state = params?.state || {};
+    this.state = params || {};
   }
 
   // Event binding

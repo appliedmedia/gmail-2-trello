@@ -623,7 +623,7 @@ class Model {
   }
 
   handleClassModelStateLoaded(event, params) {
-    this.state = { ...this.state, ...(params?.state || {}) };
+    this.state = { ...this.state, ...(params || {}) };
   }
 
   handleSubmittedFormShownComplete(target, params) {

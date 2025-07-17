@@ -40,7 +40,7 @@ class App {
 
   // Event handlers
   handleClassAppStateLoaded(event, params) {
-    this.state = params?.state || {};
+    this.state = params || {};
   }
 
   // Event binding

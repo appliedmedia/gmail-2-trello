@@ -34,17 +34,14 @@ function save_options() {
   var debugMode = document.getElementById('debugmode').checked;
   var dueShortcuts = document.getElementById('dueshortcuts').value;
 
-  chrome.storage.sync.set(
-    { debugMode: debugMode, dueShortcuts: dueShortcuts },
-    function () {
-      // Update status to let user know options were saved.
-      var status = document.getElementById('status');
-      status.innerHTML = 'Options Saved.';
-      setTimeout(function () {
-        status.innerHTML = '&nbsp;';
-      }, 2500);
-    }
-  );
+  chrome.storage.sync.set({ debugMode, dueShortcuts }, function () {
+    // Update status to let user know options were saved.
+    var status = document.getElementById('status');
+    status.innerHTML = 'Options Saved.';
+    setTimeout(function () {
+      status.innerHTML = '&nbsp;';
+    }, 2500);
+  });
 }
 
 // Returns dueshortcuts to default:
