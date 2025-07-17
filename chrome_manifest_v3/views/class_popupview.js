@@ -395,8 +395,8 @@ class PopupView {
       this.handleDetectButton.bind(this)
     );
     this.app.events.addListener(
-      'onCardSubmitComplete',
-      this.handleCardSubmitComplete.bind(this)
+      'newCardUploadsComplete',
+      this.handleNewCardUploadsComplete.bind(this)
     );
 
     // Bind events moved from App (pure PopupView operations)
@@ -452,13 +452,11 @@ class PopupView {
   }
 
   submit() {
-    if (this.validateData()) {
-      if (this.$popupContent) {
-        this.$popupContent.hide();
-      }
-      this.showMessage(this, 'Submitting to Trello...');
-      this.app.events.fire('onSubmit');
+    if (this.$popupContent) {
+      this.$popupContent.hide();
     }
+    this.showMessage(this, 'Submitting to Trello...');
+    this.app.events.fire('onSubmit');
   }
 
   showPopup() {
@@ -804,25 +802,23 @@ class PopupView {
 
       const lastError_k = (this.lastError || '') + (this.lastError ? '\n' : '');
 
-      const data_k = this?.data || {};
-      const newCard_k = data_k?.newCard || {};
-      let newCard = Object.assign({}, newCard_k);
-      //// delete newCard.title;
-      newCard.description = undefined;
-      const user_k = data_k?.trello?.user || {};
+      const user_k = this?.data?.trello?.user || {};
       const username_k = user_k?.username || '';
       const fullname_k = user_k?.fullName || '';
       const date_k = new Date().toISOString().substring(0, 10);
-      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
-      $('#g2tDesc', this.$popup).val(
-        lastError_k + JSON.stringify(newCard) + '\n' + g2t_log()
-      );
-      $('#g2tTitle', this.$popup).val(
+
+      // Modify this.data directly for error reporting
+      this.data.description =
+        lastError_k + JSON.stringify(this.data) + '\n' + g2t_log();
+      this.data.title =
         'Error report card: ' +
-          [fullname_k, username_k].join(' @') +
-          ' ' +
-          date_k
-      );
+        [fullname_k, username_k].join(' @') +
+        ' ' +
+        date_k;
+
+      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
+      $('#g2tDesc', this.$popup).val(this.data.description);
+      $('#g2tTitle', this.$popup).val(this.data.title);
       this.validateData();
     });
 
@@ -1333,6 +1329,10 @@ class PopupView {
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
     const listId = $('#g2tList', this.$popup).val();
+    const emailId = $('#g2tDesc', this.$popup).attr(G2T.App.EMAIL_ID_ATTR) || 0;
+    g2t_log(
+      `validateData: boardId="${boardId}", listId="${listId}", emailId="${emailId}"`
+    );
     const position = $('#g2tPosition', this.$popup).val();
     const $card = $('#g2tCard', this.$popup).find(':selected').first();
     const cardId = $card.val() || '';
@@ -1343,7 +1343,6 @@ class PopupView {
     const dueTime = $('#g2tDue_Time', this.$popup).val();
     const title = $('#g2tTitle', this.$popup).val();
     const description = $('#g2tDesc', this.$popup).val();
-    const emailId = $('#g2tDesc', this.$popup).attr('gmail_emailId') || 0;
     const useBackLink = $('#chkBackLink', this.$popup).is(':checked');
     const addCC = $('#chkCC', this.$popup).is(':checked');
     const markdown = $('#chkMarkdown', this.$popup).is(':checked');
@@ -1395,7 +1394,7 @@ class PopupView {
         : false; // Labels are not required
 
     if (validateStatus) {
-      newCard = {
+      this.data = {
         emailId,
         boardId,
         listId,
@@ -1418,7 +1417,7 @@ class PopupView {
         position,
         timeStamp,
       };
-      Object.assign(this.data, { newCard, settings: newCard }); // intentional copy in both places
+      this.data.settings = this.data; // Keep settings reference
 
       this.app.saveSettings();
     }
@@ -1440,13 +1439,8 @@ class PopupView {
   displaySubmitCompleteForm(params) {
     const trelloData = params?.data || {};
     const cardUrl = trelloData.url || trelloData.shortUrl || '';
-    const cardTitle = trelloData.name || this.data.newCard?.title || 'Card';
+    const cardTitle = trelloData.name || this.data?.title || 'Card';
 
-    // NB: this is a terrible hack. The existing showMessage displays HTML by directly substituting text strings.
-    // This is very dangerous (very succeptible to XSS attacks) and generally bad practice.  It should be either
-    // switched to a templating system, or changed to use jQuery. For now, I've used this to fix
-    // vulnerabilities without having to completely rewrite the substitution part of this code.
-    // TODO(vijayp): clean this up in the future
     const jQueryToRawHtml = jQueryObject => {
       return jQueryObject.prop('outerHTML');
     };
@@ -1480,8 +1474,8 @@ class PopupView {
         'Board/List data may be stale. You can try reloading your Trello boards.';
     }
 
-    if (this.data && this.data.newCard) {
-      resp.title = this.data.newCard.title; // Put a temp copy of this over where we'll get the other data
+    if (this.data && this.data.title) {
+      resp.title = this.data.title; // Put a temp copy of this over where we'll get the other data
     }
 
     const dict_k = {
@@ -1565,7 +1559,7 @@ class PopupView {
   }
 
   handleSubmit() {
-    this.app.model.submit();
+    this.app.model.submit(this.data);
   }
 
   handleCheckTrelloAuthorized() {
@@ -1638,8 +1632,12 @@ class PopupView {
     this.displayAPIFailedForm(params);
   }
 
-  handleCardSubmitComplete(target, params) {
+  handleNewCardUploadsComplete(target, params) {
     this.displaySubmitCompleteForm(params);
+    // Fire final event for data manipulations
+    this.app.events.fire('postCardCreateUploadDisplayDone', {
+      data: params.data,
+    });
   }
 
   handleRuntimeMessage(request, sender, sendResponse) {

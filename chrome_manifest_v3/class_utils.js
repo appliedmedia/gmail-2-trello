@@ -3,10 +3,80 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class Utils {
   constructor(args) {
     this.app = args.app;
+    this._state = {};
+  }
+
+  static get id() {
+    return 'g2t_utils';
+  }
+
+  get id() {
+    return Utils.id;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    const fire_on_done = 'classUtilsStateLoaded';
+    this.loadFromChromeStorage(this.id, fire_on_done);
+  }
+
+  saveState() {
+    this.saveToChromeStorage(this.id, this.state);
   }
 
   init() {
     // Utils initialization if needed
+    this.bindEvents();
+    this.loadState('classUtilsLoadStateDone');
+  }
+
+  bindEvents() {
+    this.app.events.addListener(
+      'classUtilsLoadStateDone',
+      this.handleClassUtilsLoadStateDone.bind(this)
+    );
+  }
+
+  handleClassUtilsLoadStateDone(event, params) {
+    if (params?.data) {
+      this.state = params.data;
+    }
+  }
+
+  /**
+   * Load data from chrome storage
+   */
+  loadFromChromeStorage(keyId, fire_on_done = null) {
+    try {
+      chrome.storage.sync.get(keyId, response => {
+        const result = response?.[keyId] ? JSON.parse(response[keyId]) : null;
+        if (fire_on_done) {
+          this.app.events.fire(fire_on_done, { data: result });
+        }
+      });
+    } catch (error) {
+      g2t_log(`Utils:loadFromChromeStorage ERROR: ${error.message}`);
+    }
+  }
+
+  /**
+   * Save data to chrome storage
+   */
+  saveToChromeStorage(keyId, data) {
+    try {
+      const hash = {};
+      hash[keyId] = JSON.stringify(data);
+      chrome.storage.sync.set(hash);
+    } catch (error) {
+      g2t_log(`Utils:saveToChromeStorage ERROR: ${error.message}`);
+    }
   }
 
   /**

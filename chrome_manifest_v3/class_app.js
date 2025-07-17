@@ -7,6 +7,9 @@ class App {
   static CHROME_SETTINGS_ID = 'g2t_user_settings';
   static UNIQUE_URI_VAR = 'g2t_filename';
   static EMAIL_ID_ATTR = 'g2t-attr-emailId';
+  static get id() {
+    return 'g2t_app';
+  }
 
   constructor() {
     this.events = new G2T.EventTarget({ app: this });
@@ -16,14 +19,26 @@ class App {
     this.utils = new G2T.Utils({ app: this });
   }
 
+  bindEvents() {
+    this.events.addListener(
+      'classAppInitDone',
+      this.handleClassAppInitDone.bind(this)
+    );
+    this.events.addListener(
+      'classAppLoadStateDone',
+      this.handleClassAppLoadStateDone.bind(this)
+    );
+  }
+
   init() {
     // g2t_log('App:initialize');
-
+    this.bindEvents();
     this.events.init();
     this.model.init();
     this.gmailView.init();
     this.popupView.init();
     this.utils.init();
+    this.loadState('classAppLoadStateDone');
 
     // Declare before use to avoid undeclared globals
     const service = analytics.getService('gmail-2-trello');
@@ -36,6 +51,14 @@ class App {
     tracker.sendAppView('PopupView');
   }
 
+  loadState() {
+    const fire_on_done = 'classAppStateLoaded';
+    this.utils.loadFromChromeStorage(this.id, fire_on_done);
+  }
+  async saveState() {
+    this.utils.saveToChromeStorage(this.id, this.state);
+  }
+
   updateData() {
     const fullName = this?.model?.trello?.user?.fullName || '';
 
@@ -46,13 +69,23 @@ class App {
     this.popupView.bindGmailData(this.model.gmail);
   }
 
+  handleClassAppInitDone() {
+    this.loadState();
+  }
+
+  handleClassAppLoadStateDone(event, params) {
+    if (params?.data) {
+      this.state = params.data;
+    }
+  }
+
   // Callback methods for loadSettings
   loadSettings_onSuccess(popup, response) {
     const setID = G2T.App.CHROME_SETTINGS_ID;
     if (response?.[setID]) {
       // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
       try {
-        this.popupView.data.settings = JSON.parse(response[setID]);
+        this.popupView.state = JSON.parse(response[setID]);
       } catch (err) {
         g2t_log(
           'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
@@ -81,7 +114,7 @@ class App {
   saveSettings() {
     const setID = G2T.App.CHROME_SETTINGS_ID;
     const { description, title, attachments, images, ...settings } =
-      this.popupView.data.settings;
+      this.popupView.state;
     void (description || title || attachments || images); // silence linter unused var warnings
 
     const settings_string_k = JSON.stringify(settings);

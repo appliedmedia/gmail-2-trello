@@ -157,17 +157,33 @@ class Uploader {
 class EmailBoardListCardMap {
   constructor(args) {
     this.parent = args.parent;
-    this.data = [];
+    this._state = [];
     this.maxSize = 100;
     this.chrome_storage_key = 'gmail2trello_eblc_map';
   }
 
   static get id() {
-    return 'emailBoardListCardMap';
+    return 'g2t_emailboardlistcardmap';
   }
 
   get id() {
     return EmailBoardListCardMap.id;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    this.parent.app.utils.loadFromChromeStorage(this.id);
+  }
+
+  saveState() {
+    this.parent.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
   add(args = {}) {
@@ -185,7 +201,7 @@ class EmailBoardListCardMap {
 
   chrome_restore_onSuccess(result) {
     if (result[this.chrome_storage_key]) {
-      this.data = result[this.chrome_storage_key];
+      this.state = result[this.chrome_storage_key];
       g2t_log('EmailBoardListCardMap: restored from chrome storage');
     }
   }
@@ -203,13 +219,13 @@ class EmailBoardListCardMap {
 
   chrome_save() {
     chrome.storage.local.set(
-      { [this.chrome_storage_key]: this.data },
+      { [this.chrome_storage_key]: this.state },
       this.chrome_save_onSuccess.bind(this)
     );
   }
 
   find(key_value = {}) {
-    return this.data.find(entry => {
+    return this.state.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
     });
   }
@@ -220,11 +236,11 @@ class EmailBoardListCardMap {
   }
 
   makeRoom(index = -1) {
-    if (this.data.length >= this.maxSize) {
+    if (this.state.length >= this.maxSize) {
       if (index === -1) {
-        this.data.shift(); // Remove oldest
+        this.state.shift(); // Remove oldest
       } else {
-        this.data.splice(index, 1); // Remove specific index
+        this.state.splice(index, 1); // Remove specific index
       }
     }
   }
@@ -234,19 +250,19 @@ class EmailBoardListCardMap {
   }
 
   maxxed() {
-    return this.data.length >= this.maxSize;
+    return this.state.length >= this.maxSize;
   }
 
   oldest() {
-    if (this.data.length === 0) return null;
+    if (this.state.length === 0) return null;
 
-    let oldestEntry = this.data[0];
+    let oldestEntry = this.state[0];
     let oldestTime = oldestEntry.timestamp;
 
-    for (let i = 1; i < this.data.length; i++) {
-      if (this.data[i].timestamp < oldestTime) {
-        oldestTime = this.data[i].timestamp;
-        oldestEntry = this.data[i];
+    for (let i = 1; i < this.state.length; i++) {
+      if (this.state[i].timestamp < oldestTime) {
+        oldestTime = this.state[i].timestamp;
+        oldestEntry = this.state[i];
       }
     }
 
@@ -255,15 +271,15 @@ class EmailBoardListCardMap {
 
   push(entry = {}) {
     this.makeRoom();
-    this.data.push(entry);
+    this.state.push(entry);
     this.chrome_save();
   }
 
   remove(index = -1) {
     if (index === -1) {
-      this.data.pop();
+      this.state.pop();
     } else {
-      this.data.splice(index, 1);
+      this.state.splice(index, 1);
     }
     this.chrome_save();
   }
@@ -277,12 +293,40 @@ class Model {
       boards: null,
     };
     this.app = args.app;
-    this.settings = {};
-    this.isInitialized = false;
-    this.userEmail = null; // Set this when user data loads
+    this._state = {
+      settings: {},
+      userEmail: null, // Set this when user data loads
+      isInitialized: false,
+    };
+  }
+
+  static get id() {
+    return 'g2t_model';
+  }
+
+  get id() {
+    return Model.id;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    const fire_on_done = 'classModelStateLoaded';
+    this.app.utils.loadFromChromeStorage(this.id, fire_on_done);
+  }
+
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
   init() {
+    this.bindEvents();
     const eblcMapID = G2T.Model.EmailBoardListCardMap.id;
 
     this[eblcMapID] = new G2T.Model.EmailBoardListCardMap({
@@ -296,13 +340,17 @@ class Model {
     });
     this.uploader.init();
 
-    this.isInitialized = true;
-
-    // Bind internal events (if any)
-    this.bindEvents();
+    this.state.isInitialized = true;
 
     // init Trello
     this.initTrello();
+    this.loadState('classModelLoadStateDone');
+  }
+
+  handleClassModelLoadStateDone(event, params) {
+    if (params?.data) {
+      this.state = params.data;
+    }
   }
 
   uploadAttachments(data = {}) {
@@ -757,6 +805,14 @@ class Model {
     this.app.events.addListener(
       'postCardCreateUploadDisplayDone',
       this.handlePostCardCreateUploadDisplayDone.bind(this)
+    );
+    this.app.events.addListener(
+      'classModelInitDone',
+      this.handleClassModelInitDone.bind(this)
+    );
+    this.app.events.addListener(
+      'classModelLoadStateDone',
+      this.handleClassModelLoadStateDone.bind(this)
     );
   }
 

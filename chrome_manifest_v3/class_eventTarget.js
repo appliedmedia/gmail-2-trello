@@ -6,10 +6,40 @@ var G2T = G2T || {}; // Namespace initialization
 class EventTarget {
   constructor(args) {
     this.app = args.app;
+    this._state = {
+      listeners: {},
+    };
   }
 
-  init() {
-    this._listeners = {};
+  static get id() {
+    return 'g2t_eventtarget';
+  }
+
+  get id() {
+    return EventTarget.id;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    this.app.utils.loadFromChromeStorage(this.id);
+  }
+
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.id, this.state);
+  }
+
+  async init() {
+    // Load state first
+    await this.loadState();
+
+    this._listeners = this.state.listeners;
   }
 
   addListener(type, listener) {
