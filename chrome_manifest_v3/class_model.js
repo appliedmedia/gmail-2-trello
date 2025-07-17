@@ -1,5 +1,274 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
+// Uploader class for handling attachment uploads
+class Uploader {
+  constructor(args) {
+    if (!args?.parent || !args?.app) {
+      return;
+    }
+
+    Object.assign(this, args);
+    this.itemsForUpload = [];
+  }
+
+  init() {
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    // Uploader-specific event bindings (if any)
+  }
+
+  get attachments() {
+    return 'attachments';
+  }
+
+  add(args) {
+    if (
+      args &&
+      Object.keys(args).every(key => {
+        const val = args[key];
+        return (
+          val != null &&
+          (typeof val === 'number' ||
+            typeof val === 'boolean' ||
+            val.length > 0)
+        );
+      })
+    ) {
+      // Add attachment to upload queue
+      args.property = `cards/${this.cardId}/${args.property}`;
+      this.itemsForUpload.push(args);
+    }
+    return this;
+  }
+
+  attach(method, property, upload1, success, failure) {
+    const self = this;
+
+    if (
+      !property ||
+      property.length < 6 ||
+      !upload1 ||
+      !upload1.value ||
+      upload1.value.length < 6
+    )
+      return;
+
+    const UPLOAD_ATTACH = 'g2t_upload_attach';
+    const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
+    const trello_url_k = 'https://api.trello.com/1/';
+    const param_k = upload1.value;
+
+    // NOTE (Ace, 2020-02-15): We have a funny problem with embedded images so breaking this up:
+    // Was: const filename_k = (param_k.split('/').pop().split('#')[0].split('?')[0]) || upload1.name || param_k || 'unknown_filename'; // Removes # or ? after filename
+    // Remove # or ? afer filename. Could do this as a regex, but this is a bit faster and more resiliant:
+    const slash_split_k = param_k.split('/'); // First split by directory slashes
+    const end_slash_split_k = slash_split_k[slash_split_k.length - 1]; // Take last slash section
+    const hash_split_k = end_slash_split_k.split('#'); // Split by hash so we can split it off
+    const begin_hash_split_k = hash_split_k[0]; // Take first hash
+    const question_split_k = begin_hash_split_k.split('?'); // Now split by question mark to remove variables
+    const begin_question_split_k = question_split_k[0]; // Take content ahead of question mark
+    const filename_k =
+      begin_question_split_k || upload1.name || param_k || 'unknown_filename'; // Use found string or reasonable fallbacks
+
+    const callback = function (args) {
+      if (args?.[UPLOAD_ATTACH_RESULTS] === 'success') {
+        success(args);
+      } else {
+        failure(args);
+      }
+    };
+
+    let dict = {};
+    dict[UPLOAD_ATTACH] = {
+      url_asset: upload1.value,
+      filename: filename_k,
+      trello_key: Trello.key(),
+      trello_token: Trello.token(),
+      url_upload: `${trello_url_k}${property}`,
+    };
+
+    try {
+      chrome.runtime.sendMessage(dict, callback);
+    } catch (error) {
+      g2t_log(
+        `sendMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
+      );
+      self?.parent?.popupView?.displayExtensionInvalidReload();
+    }
+  }
+
+  upload(data) {
+    const self = this;
+    const generateKeysAndValues = function (object) {
+      let keysAndValues = [];
+      g2t_each(object, function (value, key) {
+        keysAndValues.push(
+          `${key}=${value || ''} (${(value || '').toString().length})`
+        );
+      });
+      return keysAndValues.sort().join(' ');
+    };
+    let upload1 = self.itemsForUpload.shift();
+    if (!upload1) {
+      // All attachment uploads complete
+      self.app.events.fire('newCardUploadsComplete', { data });
+    } else {
+      const dict_k = { cardId: this.cardId || '' };
+
+      let method = upload1.method || 'post';
+      let property = this.app.utils.replacer(upload1.property, dict_k);
+      upload1.method = undefined;
+      upload1.property = undefined;
+
+      const fn_k = property.endsWith(self.attachments)
+        ? self.attach
+        : Trello.rest;
+
+      fn_k(
+        method,
+        property,
+        upload1,
+        function success(data) {
+          Object.assign(data, {
+            method: `${method} ${property}`,
+            keys: generateKeysAndValues(upload1),
+            emailId: self.emailId,
+          });
+          if (self.itemsForUpload?.length > 0) {
+            self.upload();
+          }
+        },
+        function failure(data) {
+          Object.assign(data, {
+            method: `${method} ${property}`,
+            keys: generateKeysAndValues(upload1),
+            emailId: self.emailId,
+          });
+          self.app.events.fire('onAPIFailure', { data });
+        }
+      );
+    }
+  }
+}
+
+// EmailBoardListCardMap class
+class EmailBoardListCardMap {
+  constructor(args) {
+    this.parent = args.parent;
+    this.data = [];
+    this.maxSize = 100;
+    this.chrome_storage_key = 'gmail2trello_eblc_map';
+  }
+
+  static get id() {
+    return 'emailBoardListCardMap';
+  }
+
+  get id() {
+    return EmailBoardListCardMap.id;
+  }
+
+  add(args = {}) {
+    const entry = {
+      email: args.email || '',
+      boardId: args.boardId || '',
+      listId: args.listId || '',
+      cardId: args.cardId || '',
+      timestamp: Date.now(),
+    };
+
+    this.push(entry);
+    return entry;
+  }
+
+  chrome_restore_onSuccess(result) {
+    if (result[this.chrome_storage_key]) {
+      this.data = result[this.chrome_storage_key];
+      g2t_log('EmailBoardListCardMap: restored from chrome storage');
+    }
+  }
+
+  chrome_save_onSuccess() {
+    g2t_log('EmailBoardListCardMap: saved to chrome storage');
+  }
+
+  chrome_restore() {
+    chrome.storage.local.get(
+      [this.chrome_storage_key],
+      this.chrome_restore_onSuccess.bind(this)
+    );
+  }
+
+  chrome_save() {
+    chrome.storage.local.set(
+      { [this.chrome_storage_key]: this.data },
+      this.chrome_save_onSuccess.bind(this)
+    );
+  }
+
+  find(key_value = {}) {
+    return this.data.find(entry => {
+      return Object.keys(key_value).every(key => entry[key] === key_value[key]);
+    });
+  }
+
+  lookup(key_value = {}) {
+    const entry = this.find(key_value);
+    return entry || null;
+  }
+
+  makeRoom(index = -1) {
+    if (this.data.length >= this.maxSize) {
+      if (index === -1) {
+        this.data.shift(); // Remove oldest
+      } else {
+        this.data.splice(index, 1); // Remove specific index
+      }
+    }
+  }
+
+  max() {
+    return this.maxSize;
+  }
+
+  maxxed() {
+    return this.data.length >= this.maxSize;
+  }
+
+  oldest() {
+    if (this.data.length === 0) return null;
+
+    let oldestEntry = this.data[0];
+    let oldestTime = oldestEntry.timestamp;
+
+    for (let i = 1; i < this.data.length; i++) {
+      if (this.data[i].timestamp < oldestTime) {
+        oldestTime = this.data[i].timestamp;
+        oldestEntry = this.data[i];
+      }
+    }
+
+    return oldestEntry;
+  }
+
+  push(entry = {}) {
+    this.makeRoom();
+    this.data.push(entry);
+    this.chrome_save();
+  }
+
+  remove(index = -1) {
+    if (index === -1) {
+      this.data.pop();
+    } else {
+      this.data.splice(index, 1);
+    }
+    this.chrome_save();
+  }
+}
+
 class Model {
   constructor(args) {
     this.trello = {
@@ -21,6 +290,13 @@ class Model {
       parent: this,
     });
 
+    // Initialize Uploader
+    this.uploader = new Uploader({
+      parent: this,
+      app: this.app,
+    });
+    this.uploader.init();
+
     this.isInitialized = true;
 
     // Bind internal events (if any)
@@ -30,48 +306,39 @@ class Model {
     this.initTrello();
   }
 
-  bindEvents() {
-    // Model-specific event bindings (if any)
-    // Most models don't need to bind to their own events
-    this.app.events.addListener(
-      'submittedFormShownComplete',
-      this.handleSubmittedFormShownComplete.bind(this)
+  uploadAttachments(data = {}) {
+    // Extract attachments from data
+    const cardId = data.cardId || 0;
+    const itemsToUpload = (data.images || [])
+      .concat(data.attachments || [])
+      .filter(item => item?.checked && item.url?.length > 5);
+
+    if (!itemsToUpload.length || !cardId) {
+      // No attachments to upload, fire uploads complete immediately
+      this.app.events.fire('newCardUploadsComplete', { data });
+      return;
+    }
+
+    // Configure uploader for this attachment session
+    this.uploader.cardId = cardId;
+    this.uploader.position = 'at'; // Add to existing card
+    this.uploader.cardPos = 0;
+    this.uploader.emailId = data.emailId || 0;
+    this.uploader.itemsForUpload = []; // Clear previous data
+
+    // Add each attachment
+    g2t_each(
+      itemsToUpload,
+      function (item) {
+        this.uploader.add({
+          property: this.uploader.attachments,
+          value: item.url,
+          name: item.name,
+        });
+      }.bind(this)
     );
-  }
 
-  // Cross-component event handler
-  handleSubmittedFormShownComplete(target, params) {
-    // If card lists or labels have been updated, reload:
-    const data_k = params?.data || {};
-    const emailId = data_k?.emailId || 0;
-    const boardId_k = data_k?.data?.board?.id || 0;
-    const listId_k = data_k?.data?.list?.id || 0;
-    const cardId_k = data_k?.data?.card?.id || 0;
-    const idBoard_k = data_k?.idBoard || 0;
-    const idList_k = data_k?.idList || 0;
-    const idCard_k = data_k?.idCard || 0;
-    const boardId = boardId_k || idBoard_k || 0;
-    const listId = listId_k || idList_k || 0;
-    const cardId = cardId_k || idCard_k || 0;
-    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
-    // we'll remember that new card ID and then keep defaulting to it for
-    // subsequent updates to that email. That means we'll have to get the return
-    // value/url from Trello and dissect that, potentially doing this update
-    // in that routine:
-    this.emailBoardListCardMapUpdate({
-      emailId,
-      boardId,
-      listId,
-      cardId,
-    });
-
-    if (boardId) {
-      this.loadTrelloLabels(boardId);
-      this.loadTrelloMembers(boardId);
-    }
-    if (listId) {
-      this.loadTrelloCards(listId);
-    }
+    this.uploader.upload(data);
   }
 
   // Callback methods for checkTrelloAuthorized
@@ -310,12 +577,11 @@ class Model {
     );
   }
 
-  submit() {
-    if (this.newCard === null) {
+  submit(data) {
+    if (!data) {
       g2t_log('Submit data is empty');
       return false;
     }
-    const data = this.newCard;
 
     if (data.useBacklink) {
       const email = this.userEmail.replace('@', '\\@');
@@ -364,26 +630,107 @@ class Model {
       boardId: data.boardId,
       listId: data.listId,
       useBacklink: data.useBacklink,
-      selfAssign: data.selfAssign,
     });
 
-    const idMembers = data.selfAssign ? this.trello.user.id : null;
-
-    //submit data
-    const card = {
-      name: data.title,
-      desc: data.description,
-      idList: data.listId,
-      idMembers: idMembers,
-    };
-    if (data.due) card.due = data.due;
-    Trello.post('cards', card, this.submit_onSuccess.bind(this));
+    // Create card first (without attachments)
+    this.createCard(data);
   }
 
-  submit_onSuccess(data) {
-    this.app.events.fire('onCardSubmitComplete', { data });
-    g2t_log(data);
-    //setTimeout(() => {this.popupNode.hide();}, 10000);
+  createCard(data) {
+    let text = data.title || '';
+    if (text.length > 0) {
+      if (data.markdown) {
+        text = `**${text}**\n\n`;
+      }
+    }
+    text += data.description;
+
+    text = this.app.utils.truncate(
+      text,
+      this.app.popupView.MAX_BODY_SIZE,
+      '...'
+    );
+
+    let desc = this.app.utils.truncate(
+      data.description,
+      this.app.popupView.MAX_BODY_SIZE,
+      '...'
+    );
+
+    let due_text = '';
+
+    if (data.dueDate?.length > 1) {
+      // Will 400 if not valid date:
+      /* Workaround for quirk in Date object,
+       * See: http://stackoverflow.com/questions/28234572/html5-datetime-local-chrome-how-to-input-datetime-in-current-time-zone
+       * Was: dueDate.replace('T', ' ').replace('-','/')
+       */
+      let due = data.dueDate.replace('-', '/');
+
+      if (data.dueTime?.length > 1) {
+        due += ` ${data.dueTime}`;
+      } else {
+        due += ' 00:00'; // Must provide time
+      }
+      due_text = new Date(due).toISOString();
+      /* (NOTE (Ace, 27-Feb-2017): When we used datetime-local object, this was:
+            trelloPostableData.due = (new Date(data.dueDate.replace('T', ' ').replace('-','/'))).toISOString();
+            */
+    }
+
+    // Build card data for Trello API
+    let cardData = {
+      name: data.title,
+      desc: desc,
+      idList: data.listId,
+    };
+
+    // Add optional fields
+    if (due_text) {
+      cardData.due = due_text;
+    }
+
+    if (data.membersId) {
+      let members = data.membersId
+        .split(',')
+        .filter(id => !data.cardMembers || data.cardMembers.indexOf(id) === -1);
+      if (members.length > 0) {
+        cardData.idMembers = members.join(',');
+      }
+    }
+
+    if (data.labelsId) {
+      let labels = data.labelsId
+        .split(',')
+        .filter(id => !data.cardLabels || data.cardLabels.indexOf(id) === -1);
+      if (labels.length > 0) {
+        cardData.idLabels = labels.join(',');
+      }
+    }
+
+    // Create card using Trello API directly
+    Trello.post(
+      'cards',
+      cardData,
+      response => {
+        // Card creation successful
+        if (response?.id) {
+          // Extract card ID and shortLink from Trello response
+          data.cardId = response.id;
+          data.shortLink = response.shortLink;
+          this.app.events.fire('trelloCardCreateSuccess', { data });
+        } else {
+          // Card couldn't be created - no ID returned
+          this.app.events.fire('onAPIFailure', {
+            data: { error: 'Card creation failed - no ID returned' },
+          });
+        }
+      },
+      error => {
+        // Card creation failed
+        this.app.events.fire('onAPIFailure', { data: error });
+      }
+    );
   }
 
   retrieveSettings() {
@@ -409,121 +756,93 @@ class Model {
     const mapInstance = this[G2T.Model.EmailBoardListCardMap.id];
     return mapInstance ? mapInstance.add(key_value) : null;
   }
-}
 
-// EmailBoardListCardMap class
-class EmailBoardListCardMap {
-  constructor(args) {
-    this.parent = args.parent;
-    this.data = [];
-    this.maxSize = 100;
-    this.chrome_storage_key = 'gmail2trello_eblc_map';
-  }
-
-  static get id() {
-    return 'emailBoardListCardMap';
-  }
-
-  get id() {
-    return EmailBoardListCardMap.id;
-  }
-
-  add(args = {}) {
-    const entry = {
-      email: args.email || '',
-      boardId: args.boardId || '',
-      listId: args.listId || '',
-      cardId: args.cardId || '',
-      timestamp: Date.now(),
-    };
-
-    this.push(entry);
-    return entry;
-  }
-
-  chrome_restore_onSuccess(result) {
-    if (result[this.chrome_storage_key]) {
-      this.data = result[this.chrome_storage_key];
-      g2t_log('EmailBoardListCardMap: restored from chrome storage');
-    }
-  }
-
-  chrome_save_onSuccess() {
-    g2t_log('EmailBoardListCardMap: saved to chrome storage');
-  }
-
-  chrome_restore() {
-    chrome.storage.local.get(
-      [this.chrome_storage_key],
-      this.chrome_restore_onSuccess.bind(this)
+  bindEvents() {
+    // Model-specific event bindings (if any)
+    // Most models don't need to bind to their own events
+    this.app.events.addListener(
+      'submittedFormShownComplete',
+      this.handleSubmittedFormShownComplete.bind(this)
+    );
+    this.app.events.addListener(
+      'trelloCardCreateSuccess',
+      this.handleTrelloCardCreateSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'postCardCreateUploadDisplayDone',
+      this.handlePostCardCreateUploadDisplayDone.bind(this)
     );
   }
 
-  chrome_save() {
-    chrome.storage.local.set(
-      { [this.chrome_storage_key]: this.data },
-      this.chrome_save_onSuccess.bind(this)
-    );
-  }
+  // Cross-component event handler
+  handleSubmittedFormShownComplete(target, params) {
+    // If card lists or labels have been updated, reload:
+    const data_k = params?.data || {};
+    const emailId = data_k.emailId || 0;
+    const boardId = data_k.boardId || 0;
+    const listId = data_k.listId || 0;
+    const cardId = data_k.cardId || 0;
 
-  find(key_value = {}) {
-    return this.data.find(entry => {
-      return Object.keys(key_value).every(key => entry[key] === key_value[key]);
+    // Extract card ID from the response data
+    const responseCardId = data_k.cardId || cardId;
+
+    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
+    // we'll remember that new card ID and then keep defaulting to it for
+    // subsequent updates to that email. That means we'll have to get the return
+    // value/url from Trello and dissect that, potentially doing this update
+    // in that routine:
+    this.emailBoardListCardMapUpdate({
+      emailId,
+      boardId,
+      listId,
+      cardId: responseCardId,
     });
-  }
 
-  lookup(key_value = {}) {
-    const entry = this.find(key_value);
-    return entry || null;
-  }
-
-  makeRoom(index = -1) {
-    if (this.data.length >= this.maxSize) {
-      if (index === -1) {
-        this.data.shift(); // Remove oldest
-      } else {
-        this.data.splice(index, 1); // Remove specific index
-      }
+    if (boardId) {
+      this.loadTrelloLabels(boardId);
+      this.loadTrelloMembers(boardId);
+    }
+    if (listId) {
+      this.loadTrelloCards(listId);
     }
   }
 
-  max() {
-    return this.maxSize;
+  handleTrelloCardCreateSuccess(target, params) {
+    // Card creation completed successfully - upload attachments
+    let data = params?.data || {};
+    this.uploadAttachments(data);
   }
 
-  maxxed() {
-    return this.data.length >= this.maxSize;
-  }
+  handlePostCardCreateUploadDisplayDone(target, params) {
+    // Final data manipulations after card creation, uploads, and display
+    const data_k = params?.data || {};
+    const emailId = data_k.emailId || 0;
+    const boardId = data_k.boardId || 0;
+    const listId = data_k.listId || 0;
+    const cardId = data_k.cardId || 0;
 
-  oldest() {
-    if (this.data.length === 0) return null;
+    // Extract card ID from the response data
+    const responseCardId = data_k.cardId || cardId;
 
-    let oldestEntry = this.data[0];
-    let oldestTime = oldestEntry.timestamp;
+    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
+    // we'll remember that new card ID and then keep defaulting to it for
+    // subsequent updates to that email. That means we'll have to get the return
+    // value/url from Trello and dissect that, potentially doing this update
+    // in that routine:
+    this.emailBoardListCardMapUpdate({
+      emailId,
+      boardId,
+      listId,
+      cardId: responseCardId,
+    });
 
-    for (let i = 1; i < this.data.length; i++) {
-      if (this.data[i].timestamp < oldestTime) {
-        oldestTime = this.data[i].timestamp;
-        oldestEntry = this.data[i];
-      }
+    if (boardId) {
+      this.loadTrelloLabels(boardId);
+      this.loadTrelloMembers(boardId);
     }
-
-    return oldestEntry;
-  }
-
-  push(entry = {}) {
-    this.makeRoom();
-    this.data.push(entry);
-    this.chrome_save();
-  }
-
-  remove(index = -1) {
-    if (index === -1) {
-      this.data.pop();
-    } else {
-      this.data.splice(index, 1);
+    if (listId) {
+      this.loadTrelloCards(listId);
     }
-    this.chrome_save();
   }
 }
 

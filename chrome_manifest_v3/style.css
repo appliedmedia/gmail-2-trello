@@ -12,6 +12,7 @@
     min-width: 720px;
     max-width: 100%;
     -webkit-user-select: none;
+    user-select: none;
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
     background: #fefefe;
@@ -629,6 +630,7 @@
 #g2tPopup .g2tFormControl select {
     padding: 2px 6px;
     -webkit-appearance: none;
+    appearance: none;
     padding-right: 20px;
     background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png")
         no-repeat calc(100% - 5px) 50%;
@@ -637,6 +639,7 @@
 #g2tPopup #g2tDue_Shortcuts {
     padding: 0 10px 2px 11px;
     -webkit-appearance: none;
+    appearance: none;
     width: 1em;
 }
 #g2tPopup .align-top {
