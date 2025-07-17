@@ -31,14 +31,15 @@ const dueShortcuts_k = JSON.stringify({
 
 // Saves options to localStorage.
 function save_options() {
+  // Reads options from the form and stores them in chrome.storage.
   var debugMode = document.getElementById('debugmode').checked;
   var dueShortcuts = document.getElementById('dueshortcuts').value;
 
-  chrome.storage.sync.set({ debugMode, dueShortcuts }, function () {
+  chrome.storage.sync.set({ debugMode, dueShortcuts }, () => {
     // Update status to let user know options were saved.
-    var status = document.getElementById('status');
+    const status = document.getElementById('status');
     status.innerHTML = 'Options Saved.';
-    setTimeout(function () {
+    setTimeout(() => {
       status.innerHTML = '&nbsp;';
     }, 2500);
   });

@@ -7,12 +7,16 @@ class Utils {
     this.storageHashes = {};
   }
 
-  static get id() {
-    return 'g2t_utils';
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_utils',
+    };
+    return cks;
   }
 
-  get id() {
-    return Utils.id;
+  get ck() {
+    return Utils.ck;
   }
 
   get state() {

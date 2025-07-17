@@ -10,12 +10,16 @@ class MenuControl {
     this.app = args.app;
   }
 
-  static get id() {
-    return 'g2t_menuControl';
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_menuControl',
+    };
+    return cks;
   }
 
-  get id() {
-    return MenuControl.id;
+  get ck() {
+    return MenuControl.ck;
   }
 
   reset(args = {}) {

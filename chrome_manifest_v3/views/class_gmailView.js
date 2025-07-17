@@ -1,6 +1,19 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class GmailView {
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_gmailView',
+      uniqueUriVar: 'g2t_filename',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return GmailView.ck;
+  }
+
   constructor(args) {
     this.app = args.app;
 
@@ -91,7 +104,7 @@ class GmailView {
   url_with_filename(url_in = '', var_in = '') {
     return this.app.utils.url_add_var(
       url_in,
-      `${this.app.UNIQUE_URI_VAR}=/${var_in}`
+      `${this.ck.uniqueUriVar}=/${var_in}`
     );
   }
 
@@ -585,7 +598,7 @@ class GmailView {
   handleDetectButton() {
     if (this.preDetect()) {
       this.app.popupView.$toolBar = this.$toolBar;
-      this.app.popupView.confirmPopup();
+      this.app.popupView.finalCreatePopup();
     }
   }
 

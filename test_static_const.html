@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Static Const</title>
+</head>
+<body>
+    <script>
+        class TestApp {
+            static id = 'g2t_app';
+            
+            get id() {
+                return TestApp.id;
+            }
+        }
+        
+        class TestGmailView {
+            static id = 'g2t_gmailView';
+            static UNIQUE_URI_VAR = 'g2t_filename';
+            
+            get id() {
+                return TestGmailView.id;
+            }
+            
+            get UNIQUE_URI_VAR() {
+                return TestGmailView.UNIQUE_URI_VAR;
+            }
+        }
+        
+        const app = new TestApp();
+        const gmailView = new TestGmailView();
+        
+        console.log('Static access:');
+        console.log('TestApp.id:', TestApp.id);
+        console.log('TestGmailView.id:', TestGmailView.id);
+        console.log('TestGmailView.UNIQUE_URI_VAR:', TestGmailView.UNIQUE_URI_VAR);
+        
+        console.log('\nInstance access:');
+        console.log('app.id:', app.id);
+        console.log('gmailView.id:', gmailView.id);
+        console.log('gmailView.UNIQUE_URI_VAR:', gmailView.UNIQUE_URI_VAR);
+    </script>
+</body>
+</html> 

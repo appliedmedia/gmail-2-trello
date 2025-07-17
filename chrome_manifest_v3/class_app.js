@@ -4,19 +4,27 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class App {
-  static CHROME_SETTINGS_ID = 'g2t_user_settings';
-  static UNIQUE_URI_VAR = 'g2t_filename';
-  static EMAIL_ID_ATTR = 'g2t-attr-emailId';
-  static get id() {
-    return 'g2t_app';
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_app',
+      emailIdAttr: 'g2t-attr-emailId',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return App.ck;
   }
 
   constructor() {
+    this.trelloApiKey = '21b411b1b5b549c54bd32f0e90738b41'; // Was: "c50413b23ee49ca49a5c75ccf32d0459"
     this.events = new G2T.EventTarget({ app: this });
     this.model = new G2T.Model({ app: this });
     this.gmailView = new G2T.GmailView({ app: this });
     this.popupView = new G2T.PopupView({ app: this });
     this.utils = new G2T.Utils({ app: this });
+    this.state = {};
   }
 
   loadState() {
