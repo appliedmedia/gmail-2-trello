@@ -1,9 +1,8 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class PopupView {
-  constructor(parent) {
-    this.parent = parent;
-    this.event = new G2T.EventTarget();
+  constructor(args) {
+    this.app = args.app;
     this.isInitialized = false;
 
     this.data = { settings: {} };
@@ -63,6 +62,12 @@ class PopupView {
   init() {
     // g2t_log('PopupView:init');
 
+    // Create MenuControl instance
+    this.menuCtrl = new G2T.MenuControl({ app: this.app });
+
+    // Bind internal events
+    this.bindEvents();
+
     // inject a button & a popup
     this.confirmPopup();
 
@@ -71,8 +76,10 @@ class PopupView {
     }
 
     this.intervalId = setInterval(() => {
-      this.event.fire('detectButton');
+      this.app.events.fire('detectButton');
     }, 2000);
+
+    // Remove DOM-dependent code from here (was from init_popup)
   }
 
   comboBox(update) {
@@ -186,21 +193,25 @@ class PopupView {
       if (this.html && this.html['popup'] && this.html['popup'].length > 0) {
         // g2t_log('PopupView:confirmPopup: adding popup');
         this.$toolBar.append(this.html['popup']);
+        // Fire popupLoaded event
+        this.app.events.fire('popupLoaded');
         needInit = true;
       } else {
         needInit = false;
         $.get(chrome.runtime.getURL('views/popupView.html'), data => {
-          // data = this.parent.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
+          // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
           this.html['popup'] = data;
           g2t_log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(data);
-          this.parent.loadSettings(this); // Calls init_popup
+          // Fire popupLoaded event after DOM is ready
+          this.app.events.fire('popupLoaded');
+          this.app.loadSettings(this); // Calls updateData
         });
       }
     }
 
     if (needInit) {
-      this.parent.loadSettings(this); // Calls init_popup
+      this.app.loadSettings(this); // Calls updateData
     }
   }
 
@@ -256,19 +267,6 @@ class PopupView {
     this.posDirty = !this.validateData();
   }
 
-  init_popup() {
-    this.$g2tButton = $('#g2tButton');
-    this.$popup = $('#g2tPopup');
-
-    this.$popupMessage = $('.popupMsg', this.$popup);
-    this.$popupContent = $('.content', this.$popup);
-
-    this.centerPopup();
-    this.bindEvents();
-
-    this.isInitialized = true;
-  }
-
   // NOTE (Ace, 15-Jan-2017): This resizes all the text areas to match the width of the popup:
   onResize() {
     this.validateData(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
@@ -281,6 +279,7 @@ class PopupView {
     this.$popup.draggable({
       disabled: false,
       containment: 'window',
+      cancel: 'a, button, input, select, textarea, .ui-autocomplete, .hideMsg',
     });
 
     this.$popup.resizable({
@@ -345,7 +344,7 @@ class PopupView {
         : data.linkAsRaw
       : '';
     const cc_k = addCC_k ? (markdown_k ? data.ccAsMd : data.ccAsRaw) : '';
-    const desc_k = this.parent.truncate(
+    const desc_k = this.app.utils.truncate(
       body_k,
       this.MAX_BODY_SIZE - (link_k.length + cc_k.length),
       '...'
@@ -357,287 +356,108 @@ class PopupView {
   }
 
   bindEvents() {
-    // bind events
+    // Only bind the popupLoaded event here - everything else waits for DOM
+    this.app.events.addListener(
+      'popupLoaded',
+      this.handlePopupLoaded.bind(this)
+    );
+  }
 
-    /** Popup's behavior **/
-    this.resetDragResize();
+  bindPopupEvents() {
+    // Bind internal PopupView events
+    this.app.events.addListener(
+      'onPopupVisible',
+      this.handlePopupVisible.bind(this)
+    );
+    this.app.events.addListener(
+      'periodicChecks',
+      this.handlePeriodicChecks.bind(this)
+    );
+    this.app.events.addListener(
+      'onBoardChanged',
+      this.handleBoardChanged.bind(this)
+    );
+    this.app.events.addListener(
+      'onListChanged',
+      this.handleListChanged.bind(this)
+    );
+    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
+    this.app.events.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
+    this.app.events.addListener(
+      'onCardSubmitComplete',
+      this.handleCardSubmitComplete.bind(this)
+    );
 
-    $('#close-button', this.$popup)
-      .off('click')
-      .on('click', () => {
-        this.hidePopup();
-      });
+    // Bind events moved from App (pure PopupView operations)
+    this.app.events.addListener(
+      'onBeforeAuthorize',
+      this.handleBeforeAuthorize.bind(this)
+    );
+    this.app.events.addListener(
+      'onAuthorizeFail',
+      this.handleAuthorizeFail.bind(this)
+    );
+    this.app.events.addListener(
+      'onAuthorized',
+      this.handleAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'onBeforeLoadTrello',
+      this.handleBeforeLoadTrello.bind(this)
+    );
+    this.app.events.addListener(
+      'onTrelloDataReady',
+      this.handleTrelloDataReady.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onAPIFailure',
+      this.handleAPIFailure.bind(this)
+    );
 
-    /** Add Card Panel's behavior **/
+    // Bind chrome.runtime.onMessage for popup-specific messages
+    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
 
-    this.$g2tButton
-      .off('mousedown') // was: ("click")
-      .on('mousedown' /* was: "click" */, event => {
-        if (this.parent.modKey(event)) {
-          // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
-        } else {
-          if (this.popupVisible()) {
-            this.hidePopup();
-          } else {
-            // const selectedText_k = this.parent.getSelectedText(); // grab selected text before click?
-            this.showPopup();
-          }
-        }
-      })
-      .hover(
-        function () {
-          // This is a google class that on hover highlights the button and arrow, darkens the background:
-          $(this).addClass('T-I-JW');
-        },
-        function () {
-          $(this).removeClass('T-I-JW');
-        }
-      );
-
-    const $board = $('#g2tBoard', this.$popup);
-    $board.off('change').on('change', () => {
-      const boardId = $board.val();
-
-      const $list = $('#g2tList', this.$popup);
-      const $card = $('#g2tCard', this.$popup);
-      const $labels = $('#g2tLabels', this.$popup);
-      const $members = $('#g2tMembers', this.$popup);
-      const $labelsMsg = $('#g2tLabelsMsg', this.$popup);
-      const $membersMsg = $('#g2tMembersMsg', this.$popup);
-      if (boardId === '_') {
-        $board.val('');
-      }
-
-      if (
-        boardId === '_' ||
-        boardId === '' ||
-        boardId !== this.data.settings.boardId
-      ) {
-        $members.html('').hide(); // clear it out
-        $labels.html('').hide(); // clear it out
-        $list
-          .html($('<option value="">...please pick a board...</option>'))
-          .val('');
-        $card
-          .html($('<option value="">...please pick a list...</option>'))
-          .val('');
-        this.data.settings.labelsId = '';
-        this.data.settings.listId = '';
-        this.data.settings.cardId = '';
-      } else {
-        $members.hide(); // clear it out
-        $labels.hide(); // hiding when loading is being showed.
-      }
-
-      this.event.fire('onBoardChanged', { boardId: boardId });
-
-      if (this.comboBox) this.comboBox('updateValue');
-      this.validateData();
-    });
-
-    const $list = $('#g2tList', this.$popup);
-    $list.off('change').on('change', () => {
-      const listId = $list.val();
-      this.event.fire('onListChanged', { listId });
-      if (this.comboBox) this.comboBox('updateValue');
-      this.validateData();
-    });
-
-    $('#g2tPosition', this.$popup)
-      .off('change')
-      .on('change', event => {
-        // Focusing the next element in select.
-        $('#' + $(event.target).attr('next-select'))
-          .find('input')
-          .focus();
-      })
-      .off('keyup')
-      .on('keyup', event => {
-        // Focusing the next element on enter key up.
-        if (event.which == 13) {
-          $('#' + $(event.target).attr('next-select'))
-            .find('input')
-            .focus();
-        }
-      });
-
-    $('#g2tCard', this.$popup)
-      .off('change')
-      .on('change', () => {
-        if (this.comboBox) this.comboBox('updateValue');
-        this.validateData();
-      });
-
-    $('#g2tDue_Shortcuts', this.$popup)
-      .off('change')
-      .on('change', event => {
-        const dayOfWeek_k = {
-          sun: 0,
-          sunday: 0,
-          mon: 1,
-          monday: 1,
-          tue: 2,
-          tuesday: 2,
-          wed: 3,
-          wednesday: 3,
-          thu: 4,
-          thursday: 4,
-          fri: 5,
-          friday: 5,
-          sat: 6,
-          saturday: 6,
-        };
-        const pad0 = (str = '', n = 2) => {
-          return ('0'.repeat(n) + str).slice(-n);
-        };
-        const dom_date_format = (d = new Date()) => {
-          // yyyy-MM-dd
-          return `${d.getFullYear()}-${pad0(d.getMonth() + 1)}-${pad0(
-            d.getDate()
-          )}`;
-        };
-        const dom_time_format = (d = new Date()) => {
-          // HH:mm
-          return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
-        };
-
-        const due_k = ($(event.target).val() || '').split(' '); // Examples: d=monday am=2 | d+0 pm=3:00
-
-        let d = new Date();
-
-        const [due_date, due_time] = due_k || [];
-
-        let new_date = '';
-        let new_time = '';
-
-        if (due_date.substr(1, 1) === '+') {
-          d.setDate(d.getDate() + Number.parseInt(due_date.substr(2), 10));
-          new_date = dom_date_format(d);
-        } else if (due_date.substr(1, 1) === '=') {
-          d.setDate(d.getDate() + 1); // advance to tomorrow, don't return today for "next x"
-          const weekday_k = due_date.substr(2).toLowerCase();
-          if (weekday_k === '0') {
-            new_date = '';
-          } else {
-            const weekday_num_k = dayOfWeek_k[weekday_k];
-            while (d.getDay() !== weekday_num_k) {
-              d.setDate(d.getDate() + 1);
-            }
-            new_date = dom_date_format(d);
-          }
-        } else {
-          g2t_log(
-            `due_Shortcuts:change: Unknown due date shortcut: "${due_date}"`
-          );
-        }
-
-        if (due_time.substr(2, 1) === '+') {
-          d.setTime(d.getTime() + Number.parseInt(due_time.substr(3), 10));
-          new_time = dom_time_format(d);
-        } else if (due_time.substr(2, 1) === '=') {
-          if (due_time.substr(3) === '0') {
-            new_time = '';
-          } else {
-            const am_k = due_time.substr(0, 1).toLowerCase() === 'a';
-            const hhmm_k = due_time.substr(3).split(':');
-            let hours = Number.parseInt(hhmm_k[0], 10);
-            if (hours === 12) {
-              hours = 0;
-            }
-            if (!am_k) {
-              hours += 12;
-            }
-            new_time =
-              ('0' + hours.toString()).substr(-2) +
-              ':' +
-              ('0' + (hhmm_k[1] || 0).toString()).substr(-2);
-          }
-        } else {
-          g2t_log(
-            `due_Shortcuts:change: Unknown due time shortcut: "${due_time}"`
-          );
-        }
-
-        $('#g2tDue_Date', this.$popup).val(new_date || '');
-        $('#g2tDue_Time', this.$popup).val(new_time || '');
-
-        if (this.comboBox) {
-          this.comboBox('updateValue');
-        }
-
-        if (due_date === 'd=0') {
-          // Reset to hidden item if we're first "--" item (allows us to select "--" to clear any time):
-          $(this).val('none');
-        }
-        this.validateData();
-      });
-
-    $('#g2tTitle', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.validateData();
-      });
-
-    $('#g2tDesc', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.validateData();
-      });
-
-    $('#chkMarkdown, #chkBackLink, #chkCC', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.updateBody();
-      });
-
-    $('#addToTrello', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.displayAPIFailedForm();
-        } else {
-          this.submit();
-        }
-      });
-
-    $('#g2tLabelsHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.clearLabels();
-        }
-      });
-
-    $('#g2tMembersHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.clearMembers();
-        }
-      });
-
-    $('#g2tAttachHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.toggleCheckboxes('g2tAttachments');
-        }
-      });
-
-    $('#g2tImagesHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.parent.modKey(event)) {
-          this.toggleCheckboxes('g2tImages');
-        }
-      });
+    // Bind MenuControl events
+    this.app.events.addListener(
+      'onMenuClick',
+      this.handleOnMenuClick.bind(this)
+    );
   }
 
   submit() {
     if (this.validateData()) {
-      this.$popupContent.hide();
+      if (this.$popupContent) {
+        this.$popupContent.hide();
+      }
       this.showMessage(this, 'Submitting to Trello...');
-      this.event.fire('onSubmit');
+      this.app.events.fire('onSubmit');
     }
   }
 
@@ -668,6 +488,7 @@ class PopupView {
             }
           }
         })
+        /* Temporarily disabled to test link clicks
         .on('mouseup' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead.
           if (
@@ -678,9 +499,17 @@ class PopupView {
             $(event.target).closest('.ui-autocomplete').length == 0
           ) {
             this.mouseDownTracker[event.target] = 0;
-            this.hidePopup();
+            // Add small delay to allow link clicks to process first
+            setTimeout(() => {
+              this.hidePopup();
+            }, 10);
+          }
+          // Clear mouseDownTracker for any click
+          if (g2t_has(this.mouseDownTracker, event.target)) {
+            this.mouseDownTracker[event.target] = 0;
           }
         })
+        */
         .on('mousedown' + this.EVENT_LISTENER, event => {
           // Click isn't always propagated on Mailbox bar, so using mouseup instead
           if (
@@ -709,7 +538,7 @@ class PopupView {
       this.$popup.show();
       this.validateData();
 
-      this.event.fire('onPopupVisible');
+      this.app.events.fire('onPopupVisible');
     }
   }
 
@@ -771,7 +600,7 @@ class PopupView {
                   version_old,
                   version_new,
                 };
-                data = this.parent.replacer(data, dict);
+                data = this.app.utils.replacer(data, dict);
                 this.showMessage(this, data);
               });
             }
@@ -904,7 +733,7 @@ class PopupView {
     const me = data?.trello?.user || {}; // First member is always this user
 
     const avatarUrl = me.avatarUrl || '';
-    const avatarSrc = this.parent.model.makeAvatarUrl({ avatarUrl });
+    const avatarSrc = this.app.utils.makeAvatarUrl({ avatarUrl });
     let avatarText = '';
     let initials = '?';
 
@@ -1006,6 +835,78 @@ class PopupView {
     this.comboBox();
   }
 
+  mime_html(tag, isImage, data) {
+    const self = this;
+    let html = '';
+    let img = '';
+    let img_big = '';
+    const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
+      .slice(1)
+      .toLowerCase()}`;
+    const $domTag = $(domTag_k, this.$popup);
+
+    const domTagContainer = domTag_k + 'Container';
+    const $domTagContainer = $(domTagContainer, this.$popup);
+    $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
+
+    if (isImage && isImage === true) {
+      img =
+        '<div class="img-container"><img src="%url%" alt="%name%" /></div> ';
+    }
+
+    let x = 0;
+    g2t_each(data[tag], item => {
+      const dict = {
+        url: item.url,
+        name: item.name,
+        mimeType: item.mimeType,
+        img,
+        id: `${item.name}:${x}`,
+      };
+
+      if (tag == 'attachments') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
+          dict
+        );
+      } else if (tag == 'images') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+          dict
+        );
+      }
+      x++;
+    });
+
+    $domTag.html(html);
+
+    if (isImage && isImage === true) {
+      $('img', $domTag).each(function () {
+        const $img = $(this);
+        $img
+          .on('error', function () {
+            $img.attr(
+              'src',
+              chrome.runtime.getURL('images/doc-question-mark-512.png')
+            );
+          })
+          .tooltip({
+            track: true,
+            content: function () {
+              const dict = {
+                src: $img.attr('src'),
+                alt: $img.attr('alt'),
+              };
+              return self.app.utils.replacer('<img src="%src%">%alt%', dict);
+            },
+          });
+      });
+      $('.textOnlyPopup').tooltip({
+        track: true,
+      });
+    }
+  }
+
   bindGmailData(data = {}) {
     if ($.isEmptyObject(data)) {
       return;
@@ -1017,98 +918,23 @@ class PopupView {
 
     $('#g2tTitle', this.$popup).val(data.subject);
 
-    const mime_html = (tag, isImage) => {
-      let html = '';
-      let img = '';
-      let img_big = '';
-      const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
-        .slice(1)
-        .toLowerCase()}`;
-      const $domTag = $(domTag_k, this.$popup);
-
-      const domTagContainer = domTag_k + 'Container';
-      const $domTagContainer = $(domTagContainer, this.$popup);
-      $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
-
-      if (isImage && isImage === true) {
-        img =
-          '<div class="img-container"><img src="%url%" alt="%name%" /></div> '; // See style.css for #g2tImage img style REMOVED: height="32" width="32"
-      }
-
-      let x = 0;
-      g2t_each(data[tag], item => {
-        const dict = {
-          url: item.url,
-          name: item.name,
-          mimeType: item.mimeType,
-          img,
-          id: `${item.name}:${x}`,
-        };
-
-        if (tag == 'attachments') {
-          html += this.parent.replacer(
-            '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
-            dict
-          );
-        } else if (tag == 'images') {
-          html += this.parent.replacer(
-            '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
-            dict
-          );
-        }
-        x++;
-      });
-
-      $domTag.html(html);
-
-      if (isImage && isImage === true) {
-        $('img', $domTag).each(function () {
-          const $img = $(this);
-          $img
-            .on('error', function () {
-              $img.attr(
-                'src',
-                chrome.runtime.getURL('images/doc-question-mark-512.png')
-              );
-            })
-            .tooltip({
-              track: true,
-              content: function () {
-                const dict = {
-                  src: $img.attr('src'),
-                  alt: $img.attr('alt'),
-                };
-                return this.parent.replacer('<img src="%src%">%alt%', dict);
-              },
-            });
-        });
-        $('.textOnlyPopup').tooltip({
-          track: true,
-        });
-      }
-    };
-
-    mime_html('attachments');
-    mime_html('images', true /* isImage */);
+    this.mime_html('attachments', false, data);
+    this.mime_html('images', true, data);
 
     const emailId = data.emailId || 0;
-    const mapAvailable_k = this.parent.model.emailBoardListCardMapLookup({
+    const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
       emailId,
     });
 
     if (
       ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
     ) {
-      // If we're restoring we must be adding to an existing card:
       $('#g2tPosition', this.$popup).val('to');
-
-      this.updateBoards(mapAvailable_k.boardId); // Causes a cascade of updates if it's changed
-
-      // We have a small pending queue for updates to grab these changes and show them, if possible:
+      this.updateBoards(mapAvailable_k.boardId);
       const listId = mapAvailable_k.listId;
       const cardId = mapAvailable_k.cardId;
-      this.updatesPending.push({ listId }); // instead of: this.updateLists(listId);
-      this.updatesPending.push({ cardId }); // instead of: this.updateCards(cardId);
+      this.updatesPending.push({ listId });
+      this.updatesPending.push({ cardId });
     }
 
     this.dataDirty = false;
@@ -1116,6 +942,14 @@ class PopupView {
   }
 
   showMessage(parent, text) {
+    // Guard against calling before DOM elements are initialized
+    if (!this.$popupMessage) {
+      g2t_log('PopupView:showMessage: DOM not ready, deferring message');
+      // Store message to show later when DOM is ready
+      this.pendingMessage = { parent, text };
+      return;
+    }
+
     this.$popupMessage.html(text);
 
     // Attach hideMessage function to hideMsg class if in text:
@@ -1123,12 +957,13 @@ class PopupView {
       parent.hideMessage();
     });
 
-    $(':button', this.$popupMessage).click(() => {
-      const $status = $(`span#${this.id}`, this.$popupMessage) || '';
-      switch (this.id) {
+    const self = this;
+    $(':button', this.$popupMessage).click(event => {
+      const $status = $(`span#${event.target.id}`, this.$popupMessage) || '';
+      switch (event.target.id) {
         case 'signout':
           $status.html('Done');
-          this.event.fire('onRequestDeauthorizeTrello');
+          this.app.events.fire('onRequestDeauthorizeTrello');
           break;
         case 'reload':
           this.forceSetVersion(); // Sets value for version if needing update
@@ -1153,7 +988,7 @@ class PopupView {
         case 'showsignout':
           this.showSignOutOptions();
         default:
-          g2t_log(`showMessage: ERROR unhandled case "${this.id}"`);
+          g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
       }
       if ($status.length > 0) {
         setTimeout(() => {
@@ -1166,6 +1001,11 @@ class PopupView {
   }
 
   hideMessage() {
+    // Guard against calling before DOM elements are initialized
+    if (!this.$popupMessage || !this.$popupContent) {
+      return;
+    }
+
     if (this.$popupContent.is(':hidden')) {
       // Rest of box is hidden so close it all:
       this.$popup.hide(); // Parent is popup, so hide the whole thing
@@ -1299,7 +1139,7 @@ class PopupView {
 
     g2t_each(array_k, item => {
       const id_k = item.id;
-      const display_k = this.parent.truncate(item.name, 80, '...');
+      const display_k = this.app.utils.truncate(item.name, 80, '...');
       const selected_k = id_k == restoreId_k;
       $g2t.append(
         $('<option>')
@@ -1339,7 +1179,7 @@ class PopupView {
       const item = labels[i];
       if (item.name?.length > 0) {
         const $color = $("<div id='g2t_temp'>").css('color', item.color);
-        const bkColor = this.parent.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
+        const bkColor = this.app.utils.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
         $g2t.append(
           $('<button>')
             .attr('trelloId-label', item.id)
@@ -1363,12 +1203,9 @@ class PopupView {
 
     $('#g2tLabelsMsg', this.$popup).hide();
 
-    const control = new MenuControl({
+    this.menuCtrl.reset({
       selectors: '#g2tLabels button',
       nonexclusive: true,
-    });
-    control.event.addListener('onMenuClick', (e, params) => {
-      this.validateData();
     });
 
     const settings = this.data.settings;
@@ -1407,7 +1244,7 @@ class PopupView {
       if (item && item.id) {
         const txt = item.initials || item.username || '?';
         const avatar =
-          this.parent.model.makeAvatarUrl({
+          this.app.utils.makeAvatarUrl({
             avatarUrl: item.avatarUrl || '',
           }) ||
           chrome.runtime.getURL('images/avatar_generic_profile_gry_30x30.png'); // Default generic profile
@@ -1442,12 +1279,9 @@ class PopupView {
 
     $('#g2tMembersMsg', this.$popup).hide();
 
-    const control = new MenuControl({
+    this.menuCtrl.reset({
       selectors: '#g2tMembers button',
       nonexclusive: true,
-    });
-    control.event.addListener('onMenuClick', (e, params) => {
-      this.validateData();
     });
 
     const settings = this.data.settings;
@@ -1469,7 +1303,33 @@ class PopupView {
     $g2t.show();
   }
 
+  mime_array(tag) {
+    const self = this;
+    const tag_formatted = `#${tag} input[type="checkbox"]`;
+    const $jTags = $(tag_formatted, self.$popup);
+    let array = [];
+    let item = {};
+    let checked_total = 0;
+
+    $jTags.each(function () {
+      const checked = $(this).is(':checked');
+      if (checked) {
+        checked_total++;
+      }
+      item = {
+        url: $(this).attr('url'),
+        name: $(this).attr('name'),
+        mimeType: $(this).attr('mimeType'),
+        checked,
+      };
+      array.push(item);
+    });
+
+    return { array, checked_total };
+  }
+
   validateData() {
+    const self = this;
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
     const listId = $('#g2tList', this.$popup).val();
@@ -1496,57 +1356,34 @@ class PopupView {
       })
       .get()
       .join();
-    const labelsCount = $('#g2tLabels button', this.$popup).length;
+    const labelsCount = $('#g2tLabels button', self.$popup).length;
 
-    if (!labelsCount && labelsId.length < 1 && this.data?.settings?.labelsId) {
-      labelsId = this.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
+    if (!labelsCount && labelsId.length < 1 && self.data?.settings?.labelsId) {
+      labelsId = self.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
     }
 
-    let membersId = $('#g2tMembers button.active', this.$popup)
+    let membersId = $('#g2tMembers button.active', self.$popup)
       .map(function (iter, item) {
         const val = $(item).attr('trelloId-member');
         return val;
       })
       .get()
       .join();
-    const membersCount = $('#g2tMembers button', this.$popup).length;
+    const membersCount = $('#g2tMembers button', self.$popup).length;
 
     if (
       !membersCount &&
       membersId.length < 1 &&
-      this.data?.settings?.membersId
+      self.data?.settings?.membersId
     ) {
-      membersId = this.data.settings.membersId; // We're not yet showing members so override membersId with settings
+      membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
     }
 
-    const mime_array = tag => {
-      let $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
-      let array = [];
-      let array1 = {};
-      let checked_total = 0;
-
-      $jTags.each(function () {
-        const checked = $(this).is(':checked');
-        if (checked) {
-          checked_total++;
-        }
-        array1 = {
-          url: $(this).attr('url'),
-          name: $(this).attr('name'),
-          mimeType: $(this).attr('mimeType'),
-          checked,
-        };
-        array.push(array1);
-      });
-
-      return { array, checked_total };
-    };
-
-    const attach_k = mime_array('g2tAttachments');
+    const attach_k = this.mime_array('g2tAttachments');
     let attachments = attach_k.array;
     let attachments_checked = attach_k.checked_total;
 
-    const images_k = mime_array('g2tImages');
+    const images_k = this.mime_array('g2tImages');
     let images = images_k.array;
     let images_checked = images_k.checked_total;
 
@@ -1583,7 +1420,7 @@ class PopupView {
       };
       Object.assign(this.data, { newCard, settings: newCard }); // intentional copy in both places
 
-      this.parent.saveSettings();
+      this.app.saveSettings();
     }
 
     const setDisabledAttrToFalseWhenValid = validateStatus ? false : 'disabled';
@@ -1600,8 +1437,10 @@ class PopupView {
     this.$popupContent.show();
   }
 
-  displaySubmitCompleteForm() {
-    const data = this.data.newCard;
+  displaySubmitCompleteForm(params) {
+    const trelloData = params?.data || {};
+    const cardUrl = trelloData.url || trelloData.shortUrl || '';
+    const cardTitle = trelloData.name || this.data.newCard?.title || 'Card';
 
     // NB: this is a terrible hack. The existing showMessage displays HTML by directly substituting text strings.
     // This is very dangerous (very succeptible to XSS attacks) and generally bad practice.  It should be either
@@ -1611,17 +1450,22 @@ class PopupView {
     const jQueryToRawHtml = jQueryObject => {
       return jQueryObject.prop('outerHTML');
     };
-    this.showMessage(
-      this,
+
+    const trelloLink = $('<a>')
+      .attr('href', cardUrl)
+      .attr('target', '_blank')
+      .append(cardTitle);
+
+    const message =
       '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
-        jQueryToRawHtml(
-          $('<a>')
-            .attr('href', data.url)
-            .attr('target', '_blank')
-            .append(data.title)
-        )
-    );
+      jQueryToRawHtml(trelloLink);
+
+    this.showMessage(this, message);
+
     this.$popupContent.hide();
+
+    // Fire event to notify that form display is complete
+    this.app.events.fire('submittedFormShownComplete', { data: trelloData });
   }
 
   displayAPIFailedForm(response) {
@@ -1650,7 +1494,7 @@ class PopupView {
     };
 
     $.get(chrome.runtime.getURL('views/error.html'), data => {
-      let lastErrorHtml_k = this.parent.replacer(data, dict_k);
+      let lastErrorHtml_k = this.app.utils.replacer(data, dict_k);
 
       // Add reload button for 400 errors
       if (resp?.status == 400) {
@@ -1666,14 +1510,14 @@ class PopupView {
       if (resp?.status == 400) {
         $('#reloadTrelloBoards').on('click', () => {
           g2t_log('User clicked reload Trello boards button');
-          this.parent.model.loadTrelloData();
+          this.app.model.loadTrelloData();
           this.reset(); // Hide error message and show popup content
         });
       }
 
       if (resp?.status == 401) {
         // Invalid token, so deauthorize Trello
-        this.event.fire('onRequestDeauthorizeTrello');
+        this.app.events.fire('onRequestDeauthorizeTrello');
       }
     });
   }
@@ -1686,7 +1530,366 @@ class PopupView {
 
     this.showMessage(this, message);
   }
+
+  // Event handler methods moved from App
+  handlePopupVisible() {
+    this.reset();
+
+    const trelloUser_k = this?.app?.model?.trello?.user || {};
+    const fullName = trelloUser_k?.fullName || '';
+
+    this.app.gmailView.parsingData = false;
+    this.app.model.gmail = this.app.gmailView.parseData({ fullName });
+    this.bindGmailData(this.app.model.gmail);
+    this.app.events.fire('periodicChecks');
+  }
+
+  handlePeriodicChecks() {
+    setTimeout(() => {
+      this.periodicChecks();
+    }, 3000);
+  }
+
+  handleBoardChanged(target, params) {
+    const boardId = params.boardId;
+    if (boardId !== '_' && boardId !== '' && boardId !== null) {
+      this.app.model.loadTrelloLists(boardId);
+      this.app.model.loadTrelloLabels(boardId);
+      this.app.model.loadTrelloMembers(boardId);
+    }
+  }
+
+  handleListChanged(target, params) {
+    const listId = params.listId;
+    this.app.model.loadTrelloCards(listId);
+  }
+
+  handleSubmit() {
+    this.app.model.submit();
+  }
+
+  handleCheckTrelloAuthorized() {
+    this.showMessage(this.app, 'Authorizing...');
+    this.app.model.checkTrelloAuthorized();
+  }
+
+  handleRequestDeauthorizeTrello() {
+    g2t_log('onRequestDeauthorizeTrello');
+    this.app.model.deauthorizeTrello();
+    this.clearBoard();
+  }
+
+  handleDetectButton() {
+    if (this.app.gmailView.preDetect()) {
+      this.$toolBar = this.app.gmailView.$toolBar;
+      this.confirmPopup();
+    }
+  }
+
+  // Event handlers moved from App (pure PopupView operations)
+  handleBeforeAuthorize() {
+    this.bindData(''); // Intentionally blank
+    this.showMessage(this.app, 'Authorizing...');
+  }
+
+  handleAuthorizeFail() {
+    this.showMessage(
+      this.app,
+      'Trello authorization failed <button id="showsignout">Sign out and try again</button>'
+    );
+  }
+
+  handleAuthorized() {
+    this.$popupContent.show();
+    this.hideMessage();
+  }
+
+  handleBeforeLoadTrello() {
+    this.showMessage(this.app, 'Loading Trello data...');
+  }
+
+  handleTrelloDataReady() {
+    this.$popupContent.show();
+    this.hideMessage();
+    this.bindData(this.app.model);
+  }
+
+  handleLoadTrelloListSuccess() {
+    this.updateLists();
+    this.validateData();
+  }
+
+  handleLoadTrelloCardsSuccess() {
+    this.updateCards();
+    this.validateData();
+  }
+
+  handleLoadTrelloLabelsSuccess() {
+    this.updateLabels();
+    this.validateData();
+  }
+
+  handleLoadTrelloMembersSuccess() {
+    this.updateMembers();
+    this.validateData();
+  }
+
+  handleAPIFailure(target, params) {
+    this.displayAPIFailedForm(params);
+  }
+
+  handleCardSubmitComplete(target, params) {
+    this.displaySubmitCompleteForm(params);
+  }
+
+  handleRuntimeMessage(request, sender, sendResponse) {
+    if (request?.message === 'g2t_keyboard_shortcut') {
+      this.showPopup();
+    }
+  }
+
+  handleOnMenuClick(target, params) {
+    this.validateData();
+  }
+
+  handlePopupLoaded() {
+    // This is the DOM-dependent code that used to be at the end of init() (from init_popup)
+    this.$g2tButton = $('#g2tButton');
+    this.$popup = $('#g2tPopup');
+    this.$popupMessage = $('.popupMsg', this.$popup);
+    this.$popupContent = $('.content', this.$popup);
+    this.centerPopup();
+    this.isInitialized = true;
+
+    // Show any pending message that was queued before DOM was ready
+    if (this.pendingMessage) {
+      this.showMessage(this.pendingMessage.parent, this.pendingMessage.text);
+      this.pendingMessage = null;
+    }
+
+    // Bind all events now that DOM is ready
+    this.bindPopupEvents();
+
+    // DOM event bindings moved from bindEvents()
+    this.resetDragResize();
+
+    $('#close-button', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.hidePopup();
+      });
+
+    this.$g2tButton
+      .off('mousedown')
+      .on('mousedown', event => {
+        if (this.app.utils.modKey(event)) {
+          // TODO (Ace, 28-Mar-2017): Figure out how to reset layout here!
+        } else {
+          if (this.popupVisible()) {
+            this.hidePopup();
+          } else {
+            this.showPopup();
+          }
+        }
+      })
+      .hover(
+        function () {
+          $(this).addClass('T-I-JW');
+        },
+        function () {
+          $(this).removeClass('T-I-JW');
+        }
+      );
+
+    const $board = $('#g2tBoard', this.$popup);
+    $board.off('change').on('change', () => {
+      const boardId = $board.val();
+      const $list = $('#g2tList', this.$popup);
+      const $card = $('#g2tCard', this.$popup);
+      const $labels = $('#g2tLabels', this.$popup);
+      const $members = $('#g2tMembers', this.$popup);
+      if (boardId === '_') {
+        $board.val('');
+      }
+      if (
+        boardId === '_' ||
+        boardId === '' ||
+        boardId !== this.data.settings.boardId
+      ) {
+        $members.html('').hide();
+        $labels.html('').hide();
+        $list
+          .html($('<option value="">...please pick a board...</option>'))
+          .val('');
+        $card
+          .html($('<option value="">...please pick a list...</option>'))
+          .val('');
+        this.data.settings.labelsId = '';
+        this.data.settings.listId = '';
+        this.data.settings.cardId = '';
+      } else {
+        $members.hide();
+        $labels.hide();
+      }
+      this.app.events.fire('onBoardChanged', { boardId });
+      if (this.comboBox) this.comboBox('updateValue');
+      this.validateData();
+    });
+
+    const $list = $('#g2tList', this.$popup);
+    $list.off('change').on('change', () => {
+      const listId = $list.val();
+      this.app.events.fire('onListChanged', { listId });
+      if (this.comboBox) this.comboBox('updateValue');
+      this.validateData();
+    });
+
+    $('#g2tPosition', this.$popup)
+      .off('change')
+      .on('change', event => {
+        $('#' + $(event.target).attr('next-select'))
+          .find('input')
+          .focus();
+      })
+      .off('keyup')
+      .on('keyup', event => {
+        if (event.which == 13) {
+          $('#' + $(event.target).attr('next-select'))
+            .find('input')
+            .focus();
+        }
+      });
+
+    $('#g2tCard', this.$popup)
+      .off('change')
+      .on('change', () => {
+        if (this.comboBox) this.comboBox('updateValue');
+        this.validateData();
+      });
+
+    $('#g2tDue_Shortcuts', this.$popup)
+      .off('change')
+      .on('change', event => {
+        const dayOfWeek_k = {
+          sun: 0,
+          sunday: 0,
+          mon: 1,
+          monday: 1,
+          tue: 2,
+          tuesday: 2,
+          wed: 3,
+          wednesday: 3,
+          thu: 4,
+          thursday: 4,
+          fri: 5,
+          friday: 5,
+          sat: 6,
+          saturday: 6,
+        };
+        const pad0 = (str = '', n = 2) => {
+          return ('0'.repeat(n) + str).slice(-n);
+        };
+        const dom_date_format = (d = new Date()) => {
+          return `${d.getFullYear()}-${pad0(d.getMonth() + 1)}-${pad0(
+            d.getDate()
+          )}`;
+        };
+        const dom_time_format = (d = new Date()) => {
+          return `${pad0(d.getHours())}:${pad0(d.getMinutes())}`;
+        };
+
+        const due_k = ($(event.target).val() || '').split(' ');
+        let d = new Date();
+        const [due_date, due_time] = due_k || [];
+        let new_date = '';
+        let new_time = '';
+
+        if (due_date.substr(1, 1) === '+') {
+          d.setDate(d.getDate() + Number.parseInt(due_date.substr(2), 10));
+          new_date = dom_date_format(d);
+        } else if (due_date.substr(1, 1) === '=') {
+          d.setDate(d.getDate() + 1);
+          const weekday_k = due_date.substr(2).toLowerCase();
+          if (weekday_k === '0') {
+            new_date = '';
+          } else {
+            const weekday_num_k = dayOfWeek_k[weekday_k];
+            while (d.getDay() !== weekday_num_k) {
+              d.setDate(d.getDate() + 1);
+            }
+            new_date = dom_date_format(d);
+          }
+        } else {
+          g2t_log(
+            `due_Shortcuts:change: Unknown due date shortcut: "${due_date}"`
+          );
+        }
+
+        if (due_time.substr(2, 1) === '+') {
+          d.setTime(d.getTime() + Number.parseInt(due_time.substr(3), 10));
+          new_time = dom_time_format(d);
+        } else if (due_time.substr(2, 1) === '=') {
+          if (due_time.substr(3) === '0') {
+            new_time = '';
+          } else {
+            const am_k = due_time.substr(0, 1).toLowerCase() === 'a';
+            const hhmm_k = due_time.substr(3).split(':');
+            let hours = Number.parseInt(hhmm_k[0], 10);
+            if (hours === 12) {
+              hours = 0;
+            }
+            if (!am_k) {
+              hours += 12;
+            }
+            new_time =
+              ('0' + hours.toString()).substr(-2) +
+              ':' +
+              ('0' + (hhmm_k[1] || 0).toString()).substr(-2);
+          }
+        } else {
+          g2t_log(
+            `due_Shortcuts:change: Unknown due time shortcut: "${due_time}"`
+          );
+        }
+
+        const $dueDate = $('#g2tDue_Date', this.$popup);
+        const $dueTime = $('#g2tDue_Time', this.$popup);
+        if (new_date.length > 0) {
+          $dueDate.val(new_date);
+        }
+        if (new_time.length > 0) {
+          $dueTime.val(new_time);
+        }
+        this.validateData();
+      });
+
+    $('#g2tSubmit', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.submit();
+      });
+
+    $('#g2tSignOut', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.app.events.fire('onRequestDeauthorizeTrello');
+      });
+
+    $('#g2tAuthorize', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.app.events.fire('checkTrelloAuthorized');
+      });
+
+    $('#addToTrello', this.$popup)
+      .off('click')
+      .on('click', () => {
+        this.submit();
+      });
+  }
 }
 
 // Export the class
 G2T.PopupView = PopupView;
+
+// end, class_popupView.js

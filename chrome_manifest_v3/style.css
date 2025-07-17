@@ -12,6 +12,7 @@
     min-width: 720px;
     max-width: 100%;
     -webkit-user-select: none;
+    user-select: none;
     border-top: 2px solid #ccc;
     border-bottom: 2px solid #ccc;
     background: #fefefe;
@@ -89,6 +90,16 @@
     padding: 5px 10px 15px;
     margin: 33px 4px 4px 4px; /* was: 4px for all */
     /* where 33px is the combination of header's height(30px) and the .content's padding (3px) */
+    -webkit-user-select: auto;
+    user-select: auto;
+    pointer-events: auto;
+}
+
+#g2tPopup .popupMsg a {
+    -webkit-user-select: auto;
+    user-select: auto;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 #g2tPopup #resize-icon {
@@ -206,6 +217,7 @@
     max-height: 480px;
     /* width: auto; */
     display: block;
+    background-color: silver;
 }
 
 /* Error styles */
@@ -618,6 +630,7 @@
 #g2tPopup .g2tFormControl select {
     padding: 2px 6px;
     -webkit-appearance: none;
+    appearance: none;
     padding-right: 20px;
     background: url("chrome-extension://__MSG_@@extension_id__/images/chevron-down.png")
         no-repeat calc(100% - 5px) 50%;
@@ -626,6 +639,7 @@
 #g2tPopup #g2tDue_Shortcuts {
     padding: 0 10px 2px 11px;
     -webkit-appearance: none;
+    appearance: none;
     width: 1em;
 }
 #g2tPopup .align-top {
