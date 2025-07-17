@@ -16,13 +16,12 @@ class GmailView {
 
   constructor(args) {
     this.app = args.app;
+    this._state = {};
 
     this.LAYOUT_DEFAULT = 0;
     this.LAYOUT_SPLIT = 1;
-    this._state = {};
-
+    this.state = { layoutMode: this.LAYOUT_DEFAULT };
     this.layoutMode = this.LAYOUT_DEFAULT;
-    this.state = null;
     this.$root = null;
     this.parsingData = false;
     this.runaway = 0;
@@ -286,7 +285,7 @@ class GmailView {
       if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
           // g2t_log('detect: Detected SplitLayout');
 
-          this.state.layoutMode = this.LAYOUT_SPLIT;
+          this.layoutMode = this.LAYOUT_SPLIT;
           this.$root = $activeGroup;
       } else {
   */
