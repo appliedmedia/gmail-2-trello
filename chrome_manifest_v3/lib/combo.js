@@ -15,8 +15,8 @@
       if (this.input) this.input.val(val);
     },
     _createAutocomplete: function () {
-      var selected = this.element.children(':selected'),
-        value = selected.val() ? selected.text() : '';
+      let selected = this.element.children(':selected');
+      let value = selected.val() ? selected.text() : '';
       this.input = $('<input>')
         .appendTo(this.wrapper)
         .val(value)
