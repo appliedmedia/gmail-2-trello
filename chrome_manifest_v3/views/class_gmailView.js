@@ -1,19 +1,28 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class GmailView {
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_gmailView',
+      uniqueUriVar: 'g2t_filename',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return GmailView.ck;
+  }
+
   constructor(args) {
     this.app = args.app;
+    this._state = {};
 
     this.LAYOUT_DEFAULT = 0;
     this.LAYOUT_SPLIT = 1;
-    this.layoutMode = this.LAYOUT_DEFAULT;
-
-    this.data = null;
-
+    this.state = { layoutMode: this.LAYOUT_DEFAULT };
     this.$root = null;
-
     this.parsingData = false;
-
     this.runaway = 0;
 
     this.selectors = {
@@ -44,27 +53,31 @@ class GmailView {
     };
   }
 
-  init() {
-    // Bind internal events (if any)
-    this.bindEvents();
-
-    // Start detection
-    this.detect();
+  static get id() {
+    return 'g2t_gmailView';
   }
 
-  bindEvents() {
-    // GmailView-specific event bindings (if any)
-    // Usually minimal since it mostly fires events
+  get id() {
+    return GmailView.id;
+  }
 
-    // Bind internal GmailView events
-    this.app.events.addListener(
-      'onDetected',
-      this.handleGmailDetected.bind(this)
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    this.app.utils.loadFromChromeStorage(
+      this.ck.id,
+      'classGmailViewStateLoaded'
     );
-    this.app.events.addListener(
-      'detectButton',
-      this.handleDetectButton.bind(this)
-    );
+  }
+
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   // Callback methods for detectToolbar
@@ -92,7 +105,7 @@ class GmailView {
   url_with_filename(url_in = '', var_in = '') {
     return this.app.utils.url_add_var(
       url_in,
-      `${this.app.UNIQUE_URI_VAR}=/${var_in}`
+      `${this.ck.uniqueUriVar}=/${var_in}`
     );
   }
 
@@ -274,11 +287,11 @@ class GmailView {
       if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
           // g2t_log('detect: Detected SplitLayout');
 
-          this.layoutMode = this.LAYOUT_SPLIT;
+          this.state.layoutMode = this.LAYOUT_SPLIT;
           this.$root = $activeGroup;
       } else {
   */
-    this.layoutMode = this.LAYOUT_DEFAULT;
+    this.state.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = $('body');
     //  }
 
@@ -578,7 +591,6 @@ class GmailView {
     return data;
   }
 
-  // Event handler methods moved from App
   handleGmailDetected() {
     this.app.popupView.$toolBar = this.$toolBar;
     // this.app.popupView.init(); // Redundant - App.init() already calls this
@@ -587,8 +599,34 @@ class GmailView {
   handleDetectButton() {
     if (this.preDetect()) {
       this.app.popupView.$toolBar = this.$toolBar;
-      this.app.popupView.confirmPopup();
+      this.app.popupView.finalCreatePopup();
     }
+  }
+
+  handleClassGmailViewStateLoaded(event, params) {
+    this.state = params || {};
+  }
+
+  bindEvents() {
+    this.app.events.addListener(
+      'onDetected',
+      this.handleGmailDetected.bind(this)
+    );
+    this.app.events.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
+    this.app.events.addListener(
+      'classGmailViewStateLoaded',
+      this.handleClassGmailViewStateLoaded.bind(this)
+    );
+  }
+
+  init() {
+    this.bindEvents();
+    // Start detection
+    this.detect();
+    this.loadState();
   }
 }
 

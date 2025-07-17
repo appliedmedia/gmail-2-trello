@@ -155,61 +155,59 @@ class Uploader {
 
 // EmailBoardListCardMap class
 class EmailBoardListCardMap {
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_emailboardlistcardmap',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return EmailBoardListCardMap.ck;
+  }
+
   constructor(args) {
     this.parent = args.parent;
-    this.data = [];
+    this.app = args.app;
+    this._state = [];
     this.maxSize = 100;
     this.chrome_storage_key = 'gmail2trello_eblc_map';
   }
 
-  static get id() {
-    return 'emailBoardListCardMap';
+  get state() {
+    return this._state;
   }
 
-  get id() {
-    return EmailBoardListCardMap.id;
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    this.app.utils.loadFromChromeStorage(
+      this.ck.id,
+      'classEmailBoardListCardMapStateLoaded'
+    );
+  }
+
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   add(args = {}) {
     const entry = {
       email: args.email || '',
-      boardId: args.boardId || '',
-      listId: args.listId || '',
-      cardId: args.cardId || '',
+      boardId: args.boardId || 0,
+      listId: args.listId || 0,
+      cardId: args.cardId || 0,
       timestamp: Date.now(),
     };
 
     this.push(entry);
-    return entry;
-  }
-
-  chrome_restore_onSuccess(result) {
-    if (result[this.chrome_storage_key]) {
-      this.data = result[this.chrome_storage_key];
-      g2t_log('EmailBoardListCardMap: restored from chrome storage');
-    }
-  }
-
-  chrome_save_onSuccess() {
-    g2t_log('EmailBoardListCardMap: saved to chrome storage');
-  }
-
-  chrome_restore() {
-    chrome.storage.local.get(
-      [this.chrome_storage_key],
-      this.chrome_restore_onSuccess.bind(this)
-    );
-  }
-
-  chrome_save() {
-    chrome.storage.local.set(
-      { [this.chrome_storage_key]: this.data },
-      this.chrome_save_onSuccess.bind(this)
-    );
   }
 
   find(key_value = {}) {
-    return this.data.find(entry => {
+    return this.state.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
     });
   }
@@ -220,11 +218,11 @@ class EmailBoardListCardMap {
   }
 
   makeRoom(index = -1) {
-    if (this.data.length >= this.maxSize) {
+    if (this.state.length >= this.maxSize) {
       if (index === -1) {
-        this.data.shift(); // Remove oldest
+        this.state.shift(); // Remove oldest
       } else {
-        this.data.splice(index, 1); // Remove specific index
+        this.state.splice(index, 1); // Remove specific index
       }
     }
   }
@@ -234,19 +232,19 @@ class EmailBoardListCardMap {
   }
 
   maxxed() {
-    return this.data.length >= this.maxSize;
+    return this.state.length >= this.maxSize;
   }
 
   oldest() {
-    if (this.data.length === 0) return null;
+    if (this.state.length === 0) return null;
 
-    let oldestEntry = this.data[0];
+    let oldestEntry = this.state[0];
     let oldestTime = oldestEntry.timestamp;
 
-    for (let i = 1; i < this.data.length; i++) {
-      if (this.data[i].timestamp < oldestTime) {
-        oldestTime = this.data[i].timestamp;
-        oldestEntry = this.data[i];
+    for (let i = 1; i < this.state.length; i++) {
+      if (this.state[i].timestamp < oldestTime) {
+        oldestTime = this.state[i].timestamp;
+        oldestEntry = this.state[i];
       }
     }
 
@@ -255,497 +253,404 @@ class EmailBoardListCardMap {
 
   push(entry = {}) {
     this.makeRoom();
-    this.data.push(entry);
-    this.chrome_save();
+    this.state.push(entry);
+    this.saveState();
   }
 
   remove(index = -1) {
     if (index === -1) {
-      this.data.pop();
+      this.state.pop();
     } else {
-      this.data.splice(index, 1);
+      this.state.splice(index, 1);
     }
-    this.chrome_save();
+    this.saveState();
   }
 }
 
 class Model {
-  constructor(args) {
-    this.trello = {
-      apiKey: '21b411b1b5b549c54bd32f0e90738b41', // Was: "c50413b23ee49ca49a5c75ccf32d0459"
-      user: null,
-      boards: null,
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_model',
     };
+    return cks;
+  }
+
+  get ck() {
+    return Model.ck;
+  }
+
+  constructor(args) {
+    this.parent = args.parent;
     this.app = args.app;
-    this.settings = {};
-    this.isInitialized = false;
-    this.userEmail = null; // Set this when user data loads
+    this._state = {
+      trelloAuthorized: false,
+      trelloData: {},
+      settings: {},
+      emailBoardListCardMap: new EmailBoardListCardMap({
+        parent: this,
+        app: this.app,
+      }),
+    };
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    this.app.utils.loadFromChromeStorage(this.ck.id, 'classModelStateLoaded');
+  }
+
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
   }
 
   init() {
-    const eblcMapID = G2T.Model.EmailBoardListCardMap.id;
-
-    this[eblcMapID] = new G2T.Model.EmailBoardListCardMap({
-      parent: this,
-    });
-
-    // Initialize Uploader
-    this.uploader = new Uploader({
-      parent: this,
-      app: this.app,
-    });
-    this.uploader.init();
-
-    this.isInitialized = true;
-
-    // Bind internal events (if any)
+    this.loadState();
     this.bindEvents();
-
-    // init Trello
     this.initTrello();
   }
 
   uploadAttachments(data = {}) {
-    // Extract attachments from data
-    const cardId = data.cardId || 0;
-    const itemsToUpload = (data.images || [])
-      .concat(data.attachments || [])
-      .filter(item => item?.checked && item.url?.length > 5);
-
-    if (!itemsToUpload.length || !cardId) {
-      // No attachments to upload, fire uploads complete immediately
+    if (!data.attachments || data.attachments.length === 0) {
       this.app.events.fire('newCardUploadsComplete', { data });
       return;
     }
 
-    // Configure uploader for this attachment session
-    this.uploader.cardId = cardId;
-    this.uploader.position = 'at'; // Add to existing card
-    this.uploader.cardPos = 0;
-    this.uploader.emailId = data.emailId || 0;
-    this.uploader.itemsForUpload = []; // Clear previous data
+    const uploader = new Uploader({
+      parent: this,
+      app: this.app,
+      cardId: data.cardId,
+      emailId: data.emailId,
+    });
 
-    // Add each attachment
-    g2t_each(
-      itemsToUpload,
-      function (item) {
-        this.uploader.add({
-          property: this.uploader.attachments,
-          value: item.url,
-          name: item.name,
-        });
-      }.bind(this)
-    );
+    uploader.init();
 
-    this.uploader.upload(data);
+    data.attachments.forEach(attachment => {
+      uploader.add({
+        method: 'post',
+        property: 'attachments',
+        value: attachment.url,
+        name: attachment.name,
+      });
+    });
+
+    uploader.upload(data);
   }
 
-  // Callback methods for checkTrelloAuthorized
   checkTrelloAuthorized_onSuccess(data) {
-    this.app.events.fire('onAuthorized');
-    this.loadTrelloData();
+    this.state.trelloAuthorized = true;
+    this.app.events.fire('trelloAuthorized', { data });
   }
 
   checkTrelloAuthorized_onError(data) {
-    if (!Trello.authorized()) {
-      // Assure token is invalid
-      this.app.events.fire('onBeforeAuthorize');
-      Trello.authorize({
-        type: 'popup',
-        name: 'Gmail-2-Trello',
-        interactive: true,
-        persit: true,
-        scope: { read: true, write: true },
-        expiration: 'never',
-        success: this.checkTrelloAuthorized_popup_onSuccess.bind(this),
-        error: this.checkTrelloAuthorized_popup_onError.bind(this),
-      });
-    } else {
-      g2t_log('Model:checkTrelloAuthorized: failed');
-      // We have a valid token, so...how did we get here?
-      // this.event.dispatchEvent(new CustomEvent('onAuthorized'));
-      // this.loadTrelloData();
-      // g2t_log(Trello);
-      // g2t_log(Trello.token());
-    }
+    this.state.trelloAuthorized = false;
+    this.app.events.fire('trelloUnauthorized', { data });
   }
 
   checkTrelloAuthorized_popup_onSuccess(data) {
-    g2t_log('checkTrelloAuthorized: Trello authorization successful');
-    // g2t_log(data);
-    this.app.events.fire('onAuthorized');
-    this.loadTrelloData();
+    this.state.trelloAuthorized = true;
+    this.app.events.fire('trelloAuthorizedPopup', { data });
   }
 
   checkTrelloAuthorized_popup_onError(data) {
-    this.app.events.fire('onAuthorizeFail');
+    this.state.trelloAuthorized = false;
+    this.app.events.fire('trelloUnauthorizedPopup', { data });
   }
 
   initTrello() {
-    // g2t_log("Model:initTrello");
-
-    this.trello.user = null;
-    this.trello.boards = null;
-
-    Trello.setKey(this.trello.apiKey);
+    Trello.setKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
   }
 
   checkTrelloAuthorized() {
-    // g2t_log("checkTrelloAuthorized");
-
-    // Assures there's a token or not:
-    Trello.authorize({
-      interactive: false,
-      success: this.checkTrelloAuthorized_onSuccess.bind(this),
-      error: this.checkTrelloAuthorized_onError.bind(this),
-    });
+    Trello.rest(
+      'get',
+      'members/me',
+      {},
+      this.checkTrelloAuthorized_onSuccess.bind(this),
+      this.checkTrelloAuthorized_onError.bind(this)
+    );
   }
 
   deauthorizeTrello() {
-    g2t_log('deauthorizeTrello');
-
-    Trello.deauthorize();
-    this.isInitialized = false;
+    this.state.trelloAuthorized = false;
+    this.state.trelloData = {};
+    this.app.events.fire('trelloDeauthorized', {});
   }
 
   loadTrelloData_success_user(data) {
-    if (!data?.id) {
-      return false;
-    }
-
-    this.trello.user = data;
-    this.userEmail = data.email || '';
-
-    // g2t_log('loadTrelloData: User boards');
-    this.trello.boards = null;
-    Trello.get(
-      'members/me/boards',
-      {
-        organization: 'true',
-        organization_fields: 'displayName',
-        filter: 'open',
-        fields: 'name' /* "name,closed" */,
-      },
-      this.loadTrelloData_success_boards.bind(this),
-      this.loadTrelloData_failure.bind(this)
-    );
-    this.checkTrelloDataReady();
+    this.state.trelloData.user = data;
+    this.loadTrelloData_success_boards();
   }
 
   loadTrelloData_success_boards(data) {
-    let validData = Array();
-    for (let i = 0; i < data.length; i++) {
-      // if (data[i].idOrganization === null)
-      //   data[i].idOrganization = '-1';
-
-      // Only accept opening boards
-      if (i == 0) {
-        // g2t_log(JSON.stringify(data[i]));
-      }
-      if (data[i].closed != true) {
-        validData.push(data[i]);
-      }
+    if (data) {
+      this.state.trelloData.boards = data;
     }
-    // g2t_log('loadTrelloData: Boards data');
-    // g2t_log(JSON.stringify(data));
-    // g2t_log(JSON.stringify(validData));
-    this.trello.boards = validData;
-    this.checkTrelloDataReady();
+    this.app.events.fire('trelloDataLoaded', { data: this.state.trelloData });
   }
 
   loadTrelloData_failure(data) {
-    this.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('trelloDataLoadFailed', { data });
   }
 
   loadTrelloData() {
-    // g2t_log('loadTrelloData');
+    if (!this.state.trelloAuthorized) {
+      return;
+    }
 
-    this.app.events.fire('onBeforeLoadTrello');
-    this.trello.user = null;
-
-    // get user's info
-    // g2t_log('loadTrelloData: User info');
-    Trello.get(
+    Trello.rest(
+      'get',
       'members/me',
       {},
       this.loadTrelloData_success_user.bind(this),
       this.loadTrelloData_failure.bind(this)
     );
+
+    Trello.rest(
+      'get',
+      'members/me/boards',
+      {},
+      this.loadTrelloData_success_boards.bind(this),
+      this.loadTrelloData_failure.bind(this)
+    );
   }
 
   checkTrelloDataReady() {
-    if (this.trello.user !== null && this.trello.boards !== null) {
-      // yeah! the data is ready
-      //g2t_log('checkTrelloDataReady: YES');
-      //g2t_log(this);
-      this.app.events.fire('onTrelloDataReady');
-    }
-    //else g2t_log('checkTrelloDataReady: NO');
+    return (
+      this.state.trelloAuthorized &&
+      this.state.trelloData.user &&
+      this.state.trelloData.boards
+    );
   }
 
   loadTrelloLists_success(data) {
-    this.trello.lists = data.lists;
-    // g2t_log('loadTrelloLists: lists:' + JSON.stringify(this.trello.lists));
-    this.app.events.fire('onLoadTrelloListSuccess');
+    this.state.trelloData.lists = data;
+    this.app.events.fire('trelloListsLoaded', { data });
   }
 
   loadTrelloLists_failure(data) {
-    this.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('trelloListsLoadFailed', { data });
   }
 
   loadTrelloLists(boardId) {
-    // g2t_log('loadTrelloLists');
+    if (!this.state.trelloAuthorized) {
+      return;
+    }
 
-    this.trello.lists = null;
-
-    Trello.get(
-      `boards/${boardId}`,
-      { lists: 'open', list_fields: 'name' },
+    Trello.rest(
+      'get',
+      `boards/${boardId}/lists`,
+      {},
       this.loadTrelloLists_success.bind(this),
       this.loadTrelloLists_failure.bind(this)
     );
   }
 
   loadTrelloCards_success(data) {
-    this.trello.cards = data;
-    // g2t_log('loadTrelloCards: cards:' + JSON.stringify(this.trello.cards));
-    this.app.events.fire('onLoadTrelloCardsSuccess');
+    this.state.trelloData.cards = data;
+    this.app.events.fire('trelloCardsLoaded', { data });
   }
 
   loadTrelloCards_failure(data) {
-    this.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('trelloCardsLoadFailed', { data });
   }
 
   loadTrelloCards(listId) {
-    // g2t_log('loadTrelloCards');
+    if (!this.state.trelloAuthorized) {
+      return;
+    }
 
-    this.trello.cards = null;
-
-    Trello.get(
+    Trello.rest(
+      'get',
       `lists/${listId}/cards`,
-      { fields: 'name,desc,due,idMembers' },
+      {},
       this.loadTrelloCards_success.bind(this),
       this.loadTrelloCards_failure.bind(this)
     );
   }
 
   loadTrelloMembers_success(data) {
-    this.trello.members = data;
-    // g2t_log('loadTrelloMembers: members:' + JSON.stringify(this.trello.members));
-    this.app.events.fire('onLoadTrelloMemberSuccess');
+    this.state.trelloData.members = data;
+    this.app.events.fire('trelloMembersLoaded', { data });
   }
 
   loadTrelloMembers_failure(data) {
-    this.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('trelloMembersLoadFailed', { data });
   }
 
   loadTrelloMembers(boardId) {
-    // g2t_log('loadTrelloMembers');
+    if (!this.state.trelloAuthorized) {
+      return;
+    }
 
-    this.trello.members = null;
-
-    Trello.get(
+    Trello.rest(
+      'get',
       `boards/${boardId}/members`,
-      { fields: 'fullName,username,avatarUrl' },
+      {},
       this.loadTrelloMembers_success.bind(this),
       this.loadTrelloMembers_failure.bind(this)
     );
   }
 
   loadTrelloLabels_success(data) {
-    this.trello.labels = data;
-    // g2t_log('loadTrelloLabels: labels:' + JSON.stringify(this.trello.labels));
-    this.app.events.fire('onLoadTrelloLabelsSuccess');
+    this.state.trelloData.labels = data;
+    this.app.events.fire('trelloLabelsLoaded', { data });
   }
 
   loadTrelloLabels_failure(data) {
-    this.app.events.fire('onAPIFailure', { data });
+    this.app.events.fire('trelloLabelsLoadFailed', { data });
   }
 
   loadTrelloLabels(boardId) {
-    // g2t_log('loadTrelloLabels');
+    if (!this.state.trelloAuthorized) {
+      return;
+    }
 
-    this.trello.labels = null;
-
-    Trello.get(
+    Trello.rest(
+      'get',
       `boards/${boardId}/labels`,
-      { fields: 'color,name' },
+      {},
       this.loadTrelloLabels_success.bind(this),
       this.loadTrelloLabels_failure.bind(this)
     );
   }
 
   submit(data) {
-    if (!data) {
-      g2t_log('Submit data is empty');
-      return false;
+    if (!this.state.trelloAuthorized) {
+      this.app.events.fire('trelloUnauthorized', {});
+      return;
     }
 
-    if (data.useBacklink) {
-      const email = this.userEmail.replace('@', '\\@');
-      const txtDirect = `[${email}](${document.location.href} "Direct link to creator's email, not accessible from anyone else")`;
-
-      const subject = encodeURIComponent(data.title);
-
-      //parse date
-      g2t_log('parsing time');
-      g2t_log(data.timeStamp);
-      let dateSearch = data.timeStamp
-        ? data.timeStamp.replace('at', '').trim()
-        : null;
-      dateSearch = dateSearch ? Date.parse(dateSearch) : null;
-      dateSearch = dateSearch ? dateSearch.toString('MMM d, yyyy') : null;
-      g2t_log(dateSearch);
-
-      let txtSearch = '';
-      if (dateSearch) {
-        data.date = dateSearch;
-        dateSearch = encodeURIComponent(dateSearch);
-        txtSearch += `[Search](https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch} "Advance search by email subject and time")`;
-      } else
-        txtSearch += `[Search](https://mail.google.com/mail/#search/${subject} "Search by email subject")`;
-
-      data.description +=
-        '\n\n---\nImported from Gmail: ' + txtDirect + ' | ' + txtSearch;
+    if (!data || !data.boardId || !data.listId) {
+      this.app.events.fire('invalidFormData', { data });
+      return;
     }
 
-    //save settings
-    localStorage['userSettings'] = JSON.stringify({
-      orgId: data.orgId,
-      boardId: data.boardId,
-      listId: data.listId,
-      useBacklink: data.useBacklink,
-    });
-
-    // Create card first (without attachments)
     this.createCard(data);
   }
 
   createCard(data) {
-    let text = data.title || '';
-    if (text.length > 0) {
-      if (data.markdown) {
-        text = `**${text}**\n\n`;
-      }
-    }
-    text += data.description;
-
-    text = this.app.utils.truncate(
-      text,
-      this.app.popupView.MAX_BODY_SIZE,
-      '...'
-    );
-
-    let desc = this.app.utils.truncate(
-      data.description,
-      this.app.popupView.MAX_BODY_SIZE,
-      '...'
-    );
-
-    let due_text = '';
-
-    if (data.dueDate?.length > 1) {
-      // Will 400 if not valid date:
-      /* Workaround for quirk in Date object,
-       * See: http://stackoverflow.com/questions/28234572/html5-datetime-local-chrome-how-to-input-datetime-in-current-time-zone
-       * Was: dueDate.replace('T', ' ').replace('-','/')
-       */
-      let due = data.dueDate.replace('-', '/');
-
-      if (data.dueTime?.length > 1) {
-        due += ` ${data.dueTime}`;
-      } else {
-        due += ' 00:00'; // Must provide time
-      }
-      due_text = new Date(due).toISOString();
-      /* (NOTE (Ace, 27-Feb-2017): When we used datetime-local object, this was:
-            trelloPostableData.due = (new Date(data.dueDate.replace('T', ' ').replace('-','/'))).toISOString();
-            */
-    }
-
-    // Build card data for Trello API
-    let cardData = {
-      name: data.title,
-      desc: desc,
+    const cardData = {
+      name: data.subject || 'No Subject',
+      desc: data.body || '',
       idList: data.listId,
+      idBoard: data.boardId,
+      pos: 'top',
     };
 
-    // Add optional fields
-    if (due_text) {
-      cardData.due = due_text;
+    if (data.labels && data.labels.length > 0) {
+      cardData.idLabels = data.labels;
     }
 
-    if (data.membersId) {
-      let members = data.membersId
-        .split(',')
-        .filter(id => !data.cardMembers || data.cardMembers.indexOf(id) === -1);
-      if (members.length > 0) {
-        cardData.idMembers = members.join(',');
-      }
+    if (data.members && data.members.length > 0) {
+      cardData.idMembers = data.members;
     }
 
-    if (data.labelsId) {
-      let labels = data.labelsId
-        .split(',')
-        .filter(id => !data.cardLabels || data.cardLabels.indexOf(id) === -1);
-      if (labels.length > 0) {
-        cardData.idLabels = labels.join(',');
-      }
+    if (data.dueDate) {
+      cardData.due = data.dueDate;
     }
 
-    // Create card using Trello API directly
-    Trello.post(
+    Trello.rest(
+      'post',
       'cards',
       cardData,
       response => {
-        // Card creation successful
-        if (response?.id) {
-          // Extract card ID and shortLink from Trello response
-          data.cardId = response.id;
-          data.shortLink = response.shortLink;
-          this.app.events.fire('trelloCardCreateSuccess', { data });
+        const cardId = response.id;
+
+        // Add attachments if any
+        if (data.attachments && data.attachments.length > 0) {
+          data.cardId = cardId;
+          this.uploadAttachments(data);
         } else {
-          // Card couldn't be created - no ID returned
-          this.app.events.fire('onAPIFailure', {
-            data: { error: 'Card creation failed - no ID returned' },
+          this.app.events.fire('trelloCardCreated', {
+            data: { ...data, cardId },
           });
         }
       },
       error => {
-        // Card creation failed
-        this.app.events.fire('onAPIFailure', { data: error });
+        this.app.events.fire('trelloCardCreateFailed', { data: error });
       }
     );
   }
 
   retrieveSettings() {
-    const settingsJson = localStorage['userSettings'];
-
-    if (!settingsJson) {
-      return {};
-    }
-
-    return JSON.parse(settingsJson);
+    return this.state.settings;
   }
 
   saveSettings(settings) {
-    localStorage['userSettings'] = JSON.stringify(settings);
+    this.state.settings = { ...this.state.settings, ...settings };
+    this.saveState();
   }
 
   emailBoardListCardMapLookup(key_value = {}) {
-    const mapInstance = this[G2T.Model.EmailBoardListCardMap.id];
-    return mapInstance ? mapInstance.lookup(key_value) : null;
+    return this.state.emailBoardListCardMap?.lookup(key_value) || null;
   }
 
   emailBoardListCardMapUpdate(key_value = {}) {
-    const mapInstance = this[G2T.Model.EmailBoardListCardMap.id];
-    return mapInstance ? mapInstance.add(key_value) : null;
+    return this.state.emailBoardListCardMap?.add(key_value) || null;
+  }
+
+  handleClassModelStateLoaded(event, params) {
+    if (params) {
+      // Only update specific state properties that were loaded
+      if (params.trelloAuthorized !== undefined) {
+        this.state.trelloAuthorized = params.trelloAuthorized;
+      }
+      if (params.trelloData) {
+        this.state.trelloData = params.trelloData;
+      }
+      if (params.settings) {
+        this.state.settings = params.settings;
+      }
+      if (params.emailBoardListCardMap) {
+        this.state.emailBoardListCardMap = params.emailBoardListCardMap;
+      }
+    }
+  }
+
+  handleSubmittedFormShownComplete(target, params) {
+    const data = params.data;
+
+    if (!data) {
+      this.app.events.fire('invalidFormData', { data });
+      return;
+    }
+
+    this.submit(data);
+  }
+
+  handleTrelloCardCreateSuccess(target, params) {
+    const { data } = params;
+
+    // Update the email-board-list-card mapping
+    if (data.emailId && data.boardId && data.listId && data.cardId) {
+      this.state.emailBoardListCardMap.add({
+        email: data.emailId,
+        boardId: data.boardId,
+        listId: data.listId,
+        cardId: data.cardId,
+      });
+    }
+
+    this.app.events.fire('cardCreationComplete', { data });
+  }
+
+  handlePostCardCreateUploadDisplayDone(target, params) {
+    this.app.events.fire('cardCreationComplete', { data: params.data });
   }
 
   bindEvents() {
-    // Model-specific event bindings (if any)
-    // Most models don't need to bind to their own events
+    this.app.events.addListener(
+      'classModelStateLoaded',
+      this.handleClassModelStateLoaded.bind(this)
+    );
     this.app.events.addListener(
       'submittedFormShownComplete',
       this.handleSubmittedFormShownComplete.bind(this)
@@ -758,77 +663,6 @@ class Model {
       'postCardCreateUploadDisplayDone',
       this.handlePostCardCreateUploadDisplayDone.bind(this)
     );
-  }
-
-  // Cross-component event handler
-  handleSubmittedFormShownComplete(target, params) {
-    // If card lists or labels have been updated, reload:
-    const data_k = params?.data || {};
-    const emailId = data_k.emailId || 0;
-    const boardId = data_k.boardId || 0;
-    const listId = data_k.listId || 0;
-    const cardId = data_k.cardId || 0;
-
-    // Extract card ID from the response data
-    const responseCardId = data_k.cardId || cardId;
-
-    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
-    // we'll remember that new card ID and then keep defaulting to it for
-    // subsequent updates to that email. That means we'll have to get the return
-    // value/url from Trello and dissect that, potentially doing this update
-    // in that routine:
-    this.emailBoardListCardMapUpdate({
-      emailId,
-      boardId,
-      listId,
-      cardId: responseCardId,
-    });
-
-    if (boardId) {
-      this.loadTrelloLabels(boardId);
-      this.loadTrelloMembers(boardId);
-    }
-    if (listId) {
-      this.loadTrelloCards(listId);
-    }
-  }
-
-  handleTrelloCardCreateSuccess(target, params) {
-    // Card creation completed successfully - upload attachments
-    let data = params?.data || {};
-    this.uploadAttachments(data);
-  }
-
-  handlePostCardCreateUploadDisplayDone(target, params) {
-    // Final data manipulations after card creation, uploads, and display
-    const data_k = params?.data || {};
-    const emailId = data_k.emailId || 0;
-    const boardId = data_k.boardId || 0;
-    const listId = data_k.listId || 0;
-    const cardId = data_k.cardId || 0;
-
-    // Extract card ID from the response data
-    const responseCardId = data_k.cardId || cardId;
-
-    // NOTE (acoven@2020-05-23): Users expect when creating a brand new card,
-    // we'll remember that new card ID and then keep defaulting to it for
-    // subsequent updates to that email. That means we'll have to get the return
-    // value/url from Trello and dissect that, potentially doing this update
-    // in that routine:
-    this.emailBoardListCardMapUpdate({
-      emailId,
-      boardId,
-      listId,
-      cardId: responseCardId,
-    });
-
-    if (boardId) {
-      this.loadTrelloLabels(boardId);
-      this.loadTrelloMembers(boardId);
-    }
-    if (listId) {
-      this.loadTrelloCards(listId);
-    }
   }
 }
 

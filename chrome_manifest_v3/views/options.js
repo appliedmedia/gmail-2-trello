@@ -31,20 +31,18 @@ const dueShortcuts_k = JSON.stringify({
 
 // Saves options to localStorage.
 function save_options() {
+  // Reads options from the form and stores them in chrome.storage.
   var debugMode = document.getElementById('debugmode').checked;
   var dueShortcuts = document.getElementById('dueshortcuts').value;
 
-  chrome.storage.sync.set(
-    { debugMode: debugMode, dueShortcuts: dueShortcuts },
-    function () {
-      // Update status to let user know options were saved.
-      var status = document.getElementById('status');
-      status.innerHTML = 'Options Saved.';
-      setTimeout(function () {
-        status.innerHTML = '&nbsp;';
-      }, 2500);
-    }
-  );
+  chrome.storage.sync.set({ debugMode, dueShortcuts }, () => {
+    // Update status to let user know options were saved.
+    const status = document.getElementById('status');
+    status.innerHTML = 'Options Saved.';
+    setTimeout(() => {
+      status.innerHTML = '&nbsp;';
+    }, 2500);
+  });
 }
 
 // Returns dueshortcuts to default:

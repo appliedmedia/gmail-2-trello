@@ -4,11 +4,20 @@
 var G2T = G2T || {}; // Namespace initialization
 
 class EventTarget {
-  constructor(args) {
-    this.app = args.app;
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_eventtarget',
+    };
+    return cks;
   }
 
-  init() {
+  get ck() {
+    return EventTarget.ck;
+  }
+
+  constructor(args) {
+    this.app = args.app;
     this._listeners = {};
   }
 

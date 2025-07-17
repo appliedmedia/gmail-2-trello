@@ -1,11 +1,19 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class PopupView {
+  static get id() {
+    return 'g2t_popupview';
+  }
+
+  get id() {
+    return PopupView.id;
+  }
+
   constructor(args) {
     this.app = args.app;
     this.isInitialized = false;
 
-    this.data = { settings: {} };
+    this._state = {};
 
     this.size_k = {
       width: {
@@ -59,27 +67,22 @@ class PopupView {
     this.comboInitialized = false;
   }
 
-  init() {
-    // g2t_log('PopupView:init');
+  // Getter for state
+  get state() {
+    return this._state;
+  }
 
-    // Create MenuControl instance
-    this.menuCtrl = new G2T.MenuControl({ app: this.app });
+  // Setter for state
+  set state(newState) {
+    this._state = newState;
+  }
 
-    // Bind internal events
-    this.bindEvents();
+  loadState() {
+    this.app.utils.loadFromChromeStorage(this.id, 'classPopupViewStateLoaded');
+  }
 
-    // inject a button & a popup
-    this.confirmPopup();
-
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-
-    this.intervalId = setInterval(() => {
-      this.app.events.fire('detectButton');
-    }, 2000);
-
-    // Remove DOM-dependent code from here (was from init_popup)
+  saveState() {
+    this.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
   comboBox(update) {
@@ -127,7 +130,7 @@ class PopupView {
     }
   }
 
-  confirmPopup() {
+  finalCreatePopup() {
     if (!this.$toolBar) {
       return; // button not available yet
     }
@@ -237,9 +240,9 @@ class PopupView {
       newPopupWidth = useWidth; // May snap to min if necessary
       g2tCenter = this.$popup.position().left;
       g2tCenter += this.$popup.width() / 2;
-    } else if (this.data?.settings?.popupWidth?.length > 0) {
+    } else if (this.state?.popupWidth?.length > 0) {
       newPopupWidth = Number.parseFloat(
-        this.data.settings.popupWidth,
+        this.state.popupWidth,
         10 /* base 10 */
       );
     } else {
@@ -302,12 +305,10 @@ class PopupView {
     const attribute_storage_k = this.ATTRIBUTE_STORAGE;
 
     const markdown_k =
-      data.settings?.markdown ?? $('#chkMarkdown', this.$popup).is(':checked');
+      data?.markdown ?? $('#chkMarkdown', this.$popup).is(':checked');
     const useBackLink_k =
-      data.settings?.useBackLink ??
-      $('#chkBackLink', this.$popup).is(':checked');
-    const addCC_k =
-      data.settings?.addCC ?? $('#chkCC', this.$popup).is(':checked');
+      data?.useBackLink ?? $('#chkBackLink', this.$popup).is(':checked');
+    const addCC_k = data?.addCC ?? $('#chkCC', this.$popup).is(':checked');
     const $g2tDesc = $('#g2tDesc', this.$popup);
 
     const fields = [
@@ -361,6 +362,12 @@ class PopupView {
       'popupLoaded',
       this.handlePopupLoaded.bind(this)
     );
+
+    // Bind init done event
+    this.app.events.addListener(
+      'classPopupViewInitDone',
+      this.handlePopupViewInitDone.bind(this)
+    );
   }
 
   bindPopupEvents() {
@@ -395,8 +402,8 @@ class PopupView {
       this.handleDetectButton.bind(this)
     );
     this.app.events.addListener(
-      'onCardSubmitComplete',
-      this.handleCardSubmitComplete.bind(this)
+      'newCardUploadsComplete',
+      this.handleNewCardUploadsComplete.bind(this)
     );
 
     // Bind events moved from App (pure PopupView operations)
@@ -452,13 +459,11 @@ class PopupView {
   }
 
   submit() {
-    if (this.validateData()) {
-      if (this.$popupContent) {
-        this.$popupContent.hide();
-      }
-      this.showMessage(this, 'Submitting to Trello...');
-      this.app.events.fire('onSubmit');
+    if (this.$popupContent) {
+      this.$popupContent.hide();
     }
+    this.showMessage(this, 'Submitting to Trello...');
+    this.app.events.fire('onSubmit');
   }
 
   showPopup() {
@@ -715,18 +720,20 @@ class PopupView {
       return;
     }
 
-    const settings_existing_k = this?.data?.settings || {};
-    const settings_existing_boardId_valid_k = !!settings_existing_k?.boardId;
+    const state_existing_k = this?.state || {};
+    const state_existing_boardId_valid_k = !!state_existing_k?.boardId;
 
-    const settings_incoming_k = data?.settings || {};
-    const settings_incoming_boardId_valid_k = !!settings_incoming_k?.boardId;
+    const state_incoming_k = data || {};
+    const state_incoming_boardId_valid_k = !!state_incoming_k?.boardId;
 
-    this.data = data;
-
-    if (settings_incoming_k && settings_incoming_boardId_valid_k) {
-      // leave settings that came in, they look valid
-    } else if (settings_existing_k && settings_existing_boardId_valid_k) {
-      data.settings = settings_existing_k;
+    if (state_incoming_k && state_incoming_boardId_valid_k) {
+      // leave state that came in, they look valid
+      this.state = data;
+    } else if (state_existing_k && state_existing_boardId_valid_k) {
+      // use existing state
+      this.state = { ...state_existing_k, ...data };
+    } else {
+      this.state = data;
     }
 
     // bind trello data
@@ -767,12 +774,12 @@ class PopupView {
       .attr('href', me.url)
       .text(me.username || '?');
 
-    if (data.settings?.useBackLink !== undefined) {
-      $('#chkBackLink', this.$popup).prop('checked', data.settings.useBackLink);
+    if (data?.useBackLink !== undefined) {
+      $('#chkBackLink', this.$popup).prop('checked', data.useBackLink);
     }
 
-    if (data.settings?.addCC !== undefined) {
-      $('#chkCC', this.$popup).prop('checked', data.settings.addCC);
+    if (data?.addCC !== undefined) {
+      $('#chkCC', this.$popup).prop('checked', data.addCC);
     }
 
     $(document).on('keyup', '.g2t-checkbox', evt => {
@@ -786,16 +793,16 @@ class PopupView {
       }
     });
 
-    if (data.settings?.markdown !== undefined) {
-      $('#chkMarkdown', this.$popup).prop('checked', data.settings.markdown);
+    if (data?.markdown !== undefined) {
+      $('#chkMarkdown', this.$popup).prop('checked', data.markdown);
     }
 
-    if (data.settings?.due_Date !== undefined) {
-      $('#g2tDue_Date', this.$popup).val(data.settings.dueDate);
+    if (data?.dueDate !== undefined) {
+      $('#g2tDue_Date', this.$popup).val(data.dueDate);
     }
 
-    if (data.settings?.due_Time !== undefined) {
-      $('#g2tDue_Time', this.$popup).val(data.settings.dueTime);
+    if (data?.dueTime !== undefined) {
+      $('#g2tDue_Time', this.$popup).val(data.dueTime);
     }
 
     // Attach reportError function to report id if in text:
@@ -804,25 +811,23 @@ class PopupView {
 
       const lastError_k = (this.lastError || '') + (this.lastError ? '\n' : '');
 
-      const data_k = this?.data || {};
-      const newCard_k = data_k?.newCard || {};
-      let newCard = Object.assign({}, newCard_k);
-      //// delete newCard.title;
-      newCard.description = undefined;
-      const user_k = data_k?.trello?.user || {};
+      const user_k = this?.state?.trello?.user || {};
       const username_k = user_k?.username || '';
       const fullname_k = user_k?.fullName || '';
       const date_k = new Date().toISOString().substring(0, 10);
-      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
-      $('#g2tDesc', this.$popup).val(
-        lastError_k + JSON.stringify(newCard) + '\n' + g2t_log()
-      );
-      $('#g2tTitle', this.$popup).val(
+
+      // Modify this.data directly for error reporting
+      this.state.description =
+        lastError_k + JSON.stringify(this.state) + '\n' + g2t_log();
+      this.state.title =
         'Error report card: ' +
-          [fullname_k, username_k].join(' @') +
-          ' ' +
-          date_k
-      );
+        [fullname_k, username_k].join(' @') +
+        ' ' +
+        date_k;
+
+      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
+      $('#g2tDesc', this.$popup).val(this.state.description);
+      $('#g2tTitle', this.$popup).val(this.state.title);
       this.validateData();
     });
 
@@ -912,8 +917,8 @@ class PopupView {
       return;
     }
 
-    // data.settings = {};
-    Object.assign(data, { settings: this.data?.settings }); // Add local data if we have it
+    // Merge with existing state
+    Object.assign(data, this.state || {});
     this.updateBody(data);
 
     $('#g2tTitle', this.$popup).val(data.subject);
@@ -1024,13 +1029,13 @@ class PopupView {
   }
 
   updateBoards(tempId = 0) {
-    const array_k = this?.data?.trello?.boards || [];
+    const array_k = this?.state?.trello?.boards || [];
 
     if (!array_k) {
       return;
     }
 
-    const restoreId_k = tempId || this?.data?.settings?.boardId || 0;
+    const restoreId_k = tempId || this?.state?.boardId || 0;
 
     let newArray = {};
 
@@ -1065,13 +1070,13 @@ class PopupView {
   }
 
   updateLists(tempId = 0) {
-    const array_k = this?.data?.trello?.lists || [];
+    const array_k = this?.state?.trello?.lists || [];
 
     if (!array_k) {
       return;
     }
 
-    const settings_k = this?.data?.settings || {};
+    const settings_k = this?.state?.settings || {};
 
     const boardId_k = $('#g2tBoard', this.$popup).val();
 
@@ -1110,13 +1115,13 @@ class PopupView {
   updateCards(tempId = 0) {
     const new_k = '<option value="-1">(new card at top)</option>';
 
-    const array_k = this?.data?.trello?.cards || [];
+    const array_k = this?.state?.trello?.cards || [];
 
     if (!array_k) {
       return;
     }
 
-    const settings_k = this?.data?.settings || {};
+    const settings_k = this?.state?.settings || {};
 
     const listId_k = $('#g2tList', this.$popup).val();
 
@@ -1165,13 +1170,13 @@ class PopupView {
   }
 
   clearLabels() {
-    this.data.settings.labelsId = '';
+    this.state.labelsId = '';
     this.updateLabels();
     this.validateData();
   }
 
   updateLabels() {
-    const labels = this.data.trello.labels;
+    const labels = this.state.trello.labels;
     const $g2t = $('#g2tLabels', this.$popup);
     $g2t.html(''); // Clear out
 
@@ -1208,10 +1213,10 @@ class PopupView {
       nonexclusive: true,
     });
 
-    const settings = this.data.settings;
+    const state = this.state;
     const boardId = $('#g2tBoard', this.$popup).val();
-    if (settings.boardId && settings.boardId === boardId && settings.labelsId) {
-      const settingId = settings.labelsId;
+    if (state.boardId && state.boardId === boardId && state.labelsId) {
+      const settingId = state.labelsId;
       for (let i = 0; i < labels.length; i++) {
         const item = labels[i];
         if (settingId.indexOf(item.id) !== -1) {
@@ -1222,20 +1227,20 @@ class PopupView {
         }
       }
     } else {
-      settings.labelsId = ''; // Labels do not have to be set, so no default.
+      this.state.labelsId = ''; // Labels do not have to be set, so no default.
     }
 
     $g2t.show();
   }
 
   clearMembers() {
-    this.data.settings.membersId = '';
+    this.state.membersId = '';
     this.updateMembers();
     this.validateData();
   }
 
   updateMembers() {
-    const members = this.data.trello.members;
+    const members = this.state.trello.members;
     const $g2t = $('#g2tMembers', this.$popup);
     $g2t.html(''); // Clear out
 
@@ -1284,9 +1289,9 @@ class PopupView {
       nonexclusive: true,
     });
 
-    const settings = this.data.settings;
-    if (settings.membersId?.length > 0) {
-      const settingId = settings.membersId;
+    const state = this.state;
+    if (state.membersId?.length > 0) {
+      const settingId = state.membersId;
       for (let i = 0; i < members.length; i++) {
         const item = members[i];
         if (settingId.indexOf(item.id) !== -1) {
@@ -1297,7 +1302,7 @@ class PopupView {
         }
       }
     } else {
-      settings.membersId = '';
+      this.state.membersId = '';
     }
 
     $g2t.show();
@@ -1333,6 +1338,10 @@ class PopupView {
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
     const listId = $('#g2tList', this.$popup).val();
+    const emailId = $('#g2tDesc', this.$popup).attr(this.ck.emailIdAttr) || 0;
+    g2t_log(
+      `validateData: boardId="${boardId}", listId="${listId}", emailId="${emailId}"`
+    );
     const position = $('#g2tPosition', this.$popup).val();
     const $card = $('#g2tCard', this.$popup).find(':selected').first();
     const cardId = $card.val() || '';
@@ -1343,7 +1352,6 @@ class PopupView {
     const dueTime = $('#g2tDue_Time', this.$popup).val();
     const title = $('#g2tTitle', this.$popup).val();
     const description = $('#g2tDesc', this.$popup).val();
-    const emailId = $('#g2tDesc', this.$popup).attr('gmail_emailId') || 0;
     const useBackLink = $('#chkBackLink', this.$popup).is(':checked');
     const addCC = $('#chkCC', this.$popup).is(':checked');
     const markdown = $('#chkMarkdown', this.$popup).is(':checked');
@@ -1358,8 +1366,8 @@ class PopupView {
       .join();
     const labelsCount = $('#g2tLabels button', self.$popup).length;
 
-    if (!labelsCount && labelsId.length < 1 && self.data?.settings?.labelsId) {
-      labelsId = self.data.settings.labelsId; // We're not yet showing labels so override labelsId with settings
+    if (!labelsCount && labelsId.length < 1 && self.state?.labelsId) {
+      labelsId = self.state.labelsId; // We're not yet showing labels so override labelsId with state
     }
 
     let membersId = $('#g2tMembers button.active', self.$popup)
@@ -1371,12 +1379,8 @@ class PopupView {
       .join();
     const membersCount = $('#g2tMembers button', self.$popup).length;
 
-    if (
-      !membersCount &&
-      membersId.length < 1 &&
-      self.data?.settings?.membersId
-    ) {
-      membersId = self.data.settings.membersId; // We're not yet showing members so override membersId with settings
+    if (!membersCount && membersId.length < 1 && self.state?.membersId) {
+      membersId = self.state.membersId; // We're not yet showing members so override membersId with state
     }
 
     const attach_k = this.mime_array('g2tAttachments');
@@ -1395,7 +1399,7 @@ class PopupView {
         : false; // Labels are not required
 
     if (validateStatus) {
-      newCard = {
+      this.state = {
         emailId,
         boardId,
         listId,
@@ -1418,9 +1422,8 @@ class PopupView {
         position,
         timeStamp,
       };
-      Object.assign(this.data, { newCard, settings: newCard }); // intentional copy in both places
-
-      this.app.saveSettings();
+      // State is already updated, just save it
+      this.saveState();
     }
 
     const setDisabledAttrToFalseWhenValid = validateStatus ? false : 'disabled';
@@ -1440,13 +1443,8 @@ class PopupView {
   displaySubmitCompleteForm(params) {
     const trelloData = params?.data || {};
     const cardUrl = trelloData.url || trelloData.shortUrl || '';
-    const cardTitle = trelloData.name || this.data.newCard?.title || 'Card';
+    const cardTitle = trelloData.name || this.state?.title || 'Card';
 
-    // NB: this is a terrible hack. The existing showMessage displays HTML by directly substituting text strings.
-    // This is very dangerous (very succeptible to XSS attacks) and generally bad practice.  It should be either
-    // switched to a templating system, or changed to use jQuery. For now, I've used this to fix
-    // vulnerabilities without having to completely rewrite the substitution part of this code.
-    // TODO(vijayp): clean this up in the future
     const jQueryToRawHtml = jQueryObject => {
       return jQueryObject.prop('outerHTML');
     };
@@ -1480,8 +1478,8 @@ class PopupView {
         'Board/List data may be stale. You can try reloading your Trello boards.';
     }
 
-    if (this.data && this.data.newCard) {
-      resp.title = this.data.newCard.title; // Put a temp copy of this over where we'll get the other data
+    if (this.state && this.state.title) {
+      resp.title = this.state.title; // Put a temp copy of this over where we'll get the other data
     }
 
     const dict_k = {
@@ -1531,7 +1529,6 @@ class PopupView {
     this.showMessage(this, message);
   }
 
-  // Event handler methods moved from App
   handlePopupVisible() {
     this.reset();
 
@@ -1565,7 +1562,7 @@ class PopupView {
   }
 
   handleSubmit() {
-    this.app.model.submit();
+    this.app.model.submit(this.state);
   }
 
   handleCheckTrelloAuthorized() {
@@ -1582,11 +1579,10 @@ class PopupView {
   handleDetectButton() {
     if (this.app.gmailView.preDetect()) {
       this.$toolBar = this.app.gmailView.$toolBar;
-      this.confirmPopup();
+      this.finalCreatePopup(); // Moved from init() to here
     }
   }
 
-  // Event handlers moved from App (pure PopupView operations)
   handleBeforeAuthorize() {
     this.bindData(''); // Intentionally blank
     this.showMessage(this.app, 'Authorizing...');
@@ -1638,8 +1634,12 @@ class PopupView {
     this.displayAPIFailedForm(params);
   }
 
-  handleCardSubmitComplete(target, params) {
+  handleNewCardUploadsComplete(target, params) {
     this.displaySubmitCompleteForm(params);
+    // Fire final event for data manipulations
+    this.app.events.fire('postCardCreateUploadDisplayDone', {
+      data: params.data,
+    });
   }
 
   handleRuntimeMessage(request, sender, sendResponse) {
@@ -1650,6 +1650,10 @@ class PopupView {
 
   handleOnMenuClick(target, params) {
     this.validateData();
+  }
+
+  handlePopupViewInitDone() {
+    this.loadState();
   }
 
   handlePopupLoaded() {
@@ -1711,11 +1715,7 @@ class PopupView {
       if (boardId === '_') {
         $board.val('');
       }
-      if (
-        boardId === '_' ||
-        boardId === '' ||
-        boardId !== this.data.settings.boardId
-      ) {
+      if (boardId === '_' || boardId === '' || boardId !== this.state.boardId) {
         $members.html('').hide();
         $labels.html('').hide();
         $list
@@ -1724,9 +1724,9 @@ class PopupView {
         $card
           .html($('<option value="">...please pick a list...</option>'))
           .val('');
-        this.data.settings.labelsId = '';
-        this.data.settings.listId = '';
-        this.data.settings.cardId = '';
+        this.state.labelsId = '';
+        this.state.listId = '';
+        this.state.cardId = '';
       } else {
         $members.hide();
         $labels.hide();
@@ -1886,6 +1886,32 @@ class PopupView {
       .on('click', () => {
         this.submit();
       });
+  }
+
+  init() {
+    // g2t_log('PopupView:init');
+
+    // Create MenuControl instance
+    this.menuCtrl = new G2T.MenuControl({ app: this.app });
+
+    // Bind internal events
+    this.bindEvents();
+
+    // inject a button & a popup
+    // this.finalCreatePopup(); // Moved to handleDetectButton for now
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+
+    this.intervalId = setInterval(() => {
+      this.app.events.fire('detectButton');
+    }, 2000);
+
+    // Remove DOM-dependent code from here (was from init_popup)
+
+    // Fire init done event
+    this.app.events.fire('classPopupViewInitDone');
   }
 }
 

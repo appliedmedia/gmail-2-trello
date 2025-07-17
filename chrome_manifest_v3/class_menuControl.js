@@ -8,12 +8,18 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class MenuControl {
   constructor(args) {
     this.app = args.app;
-    this.items = null;
-    this.nonexclusive = false;
   }
 
-  init() {
-    this.reset();
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_menuControl',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return MenuControl.ck;
   }
 
   reset(args = {}) {

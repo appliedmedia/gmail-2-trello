@@ -3,10 +3,84 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class Utils {
   constructor(args) {
     this.app = args.app;
+    this._state = {};
+    this.storageHashes = {};
   }
 
-  init() {
-    // Utils initialization if needed
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const cks = {
+      id: 'g2t_utils',
+    };
+    return cks;
+  }
+
+  get ck() {
+    return Utils.ck;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+  }
+
+  loadState() {
+    const fire_on_done = 'classUtilsStateLoaded';
+    this.loadFromChromeStorage(this.ck.id, fire_on_done);
+  }
+
+  saveState() {
+    this.saveToChromeStorage(this.ck.id, this.state);
+  }
+
+  /**
+   * Load data from chrome storage
+   */
+  loadFromChromeStorage(keyId, fire_on_done = '') {
+    try {
+      chrome.storage.sync.get(keyId, response => {
+        const jsonData = response?.[keyId];
+        const result = jsonData ? JSON.parse(jsonData) : '';
+
+        // Store hash of loaded data for future comparison
+        if (jsonData) {
+          this.storageHashes[keyId] = this.djb2Hash(jsonData);
+        }
+
+        if (fire_on_done) {
+          this.app.events.fire(fire_on_done, result);
+        }
+      });
+    } catch (error) {
+      g2t_log(`Utils:loadFromChromeStorage ERROR: ${error.message}`);
+    }
+  }
+
+  /**
+   * Save data to chrome storage with hash-based throttling
+   */
+  saveToChromeStorage(keyId, data) {
+    try {
+      // Stringify once and reuse
+      const jsonData = JSON.stringify(data);
+      const dataHash = this.djb2Hash(jsonData);
+
+      // Check if we have a stored hash for this key
+      const storedHash = this.storageHashes[keyId];
+      if (storedHash === dataHash) {
+        return; // No changes, don't save
+      }
+
+      // Update stored hash and save data
+      this.storageHashes[keyId] = dataHash;
+
+      chrome.storage.sync.set({ [keyId]: jsonData });
+    } catch (error) {
+      g2t_log(`Utils:saveToChromeStorage ERROR: ${error.message}`);
+    }
   }
 
   /**
@@ -72,6 +146,34 @@ class Utils {
       }
     }
     return uri_display;
+  }
+
+  /**
+   * Simple djb2 hash function
+   */
+  djb2Hash(str) {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) + hash + str.charCodeAt(i);
+    }
+    return hash >>> 0; // unsigned 32-bit
+  }
+
+  /**
+   * Remove specified fields from object and return clean copy
+   */
+  excludeFields(obj, fieldsToExclude) {
+    const clean = {};
+    const excludeSet = new Set(fieldsToExclude);
+
+    // Copy only fields that aren't excluded
+    Object.keys(obj).forEach(key => {
+      if (!excludeSet.has(key)) {
+        clean[key] = obj[key];
+      }
+    });
+
+    return clean;
   }
 
   /**
@@ -577,6 +679,25 @@ class Utils {
     if (href && text && text.length >= min_text_length_k) {
       toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
     }
+  }
+
+  // Event handlers
+  handleClassUtilsStateLoaded(event, params) {
+    this.state = params || {};
+  }
+
+  // Event binding
+  bindEvents() {
+    this.app.events.addListener(
+      'classUtilsStateLoaded',
+      this.handleClassUtilsStateLoaded.bind(this)
+    );
+  }
+
+  init() {
+    // Utils initialization if needed
+    this.bindEvents();
+    this.loadState();
   }
 }
 
