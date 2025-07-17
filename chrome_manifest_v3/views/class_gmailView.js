@@ -594,13 +594,15 @@ class GmailView {
   }
 
   bindEvents() {
-    // GmailView-specific event bindings (if any)
-    // Usually minimal since it mostly fires events
-
-    // Bind internal GmailView events
-    this.app.events.on('onDetected', this.handleGmailDetected.bind(this));
-    this.app.events.on('detectButton', this.handleDetectButton.bind(this));
-    this.app.events.on(
+    this.app.events.addListener(
+      'onDetected',
+      this.handleGmailDetected.bind(this)
+    );
+    this.app.events.addListener(
+      'detectButton',
+      this.handleDetectButton.bind(this)
+    );
+    this.app.events.addListener(
       'classGmailViewStateLoaded',
       this.handleClassGmailViewStateLoaded.bind(this)
     );

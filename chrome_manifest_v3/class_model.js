@@ -157,6 +157,7 @@ class Uploader {
 class EmailBoardListCardMap {
   constructor(args) {
     this.parent = args.parent;
+    this.app = args.app;
     this._state = [];
     this.maxSize = 100;
     this.chrome_storage_key = 'gmail2trello_eblc_map';
@@ -179,14 +180,14 @@ class EmailBoardListCardMap {
   }
 
   loadState() {
-    this.parent.app.utils.loadFromChromeStorage(
+    this.app.utils.loadFromChromeStorage(
       this.id,
       'classEmailBoardListCardMapStateLoaded'
     );
   }
 
   saveState() {
-    this.parent.app.utils.saveToChromeStorage(this.id, this.state);
+    this.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
   add(args = {}) {
@@ -317,14 +318,11 @@ class Model {
   }
 
   loadState() {
-    this.parent.app.utils.loadFromChromeStorage(
-      this.id,
-      'classModelStateLoaded'
-    );
+    this.app.utils.loadFromChromeStorage(this.id, 'classModelStateLoaded');
   }
 
   saveState() {
-    this.parent.app.utils.saveToChromeStorage(this.id, this.state);
+    this.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
   init() {
@@ -669,19 +667,19 @@ class Model {
   }
 
   bindEvents() {
-    this.parent.app.events.on(
+    this.app.events.addListener(
       'classModelStateLoaded',
       this.handleClassModelStateLoaded.bind(this)
     );
-    this.parent.app.events.on(
+    this.app.events.addListener(
       'submittedFormShownComplete',
       this.handleSubmittedFormShownComplete.bind(this)
     );
-    this.parent.app.events.on(
+    this.app.events.addListener(
       'trelloCardCreateSuccess',
       this.handleTrelloCardCreateSuccess.bind(this)
     );
-    this.parent.app.events.on(
+    this.app.events.addListener(
       'postCardCreateUploadDisplayDone',
       this.handlePostCardCreateUploadDisplayDone.bind(this)
     );
