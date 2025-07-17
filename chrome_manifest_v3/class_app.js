@@ -4,10 +4,11 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class App {
-  constructor() {
-    this.CHROME_SETTINGS_ID = 'g2t_user_settings';
-    this.UNIQUE_URI_VAR = 'g2t_filename';
+  static CHROME_SETTINGS_ID = 'g2t_user_settings';
+  static UNIQUE_URI_VAR = 'g2t_filename';
+  static EMAIL_ID_ATTR = 'g2t-attr-emailId';
 
+  constructor() {
     this.events = new G2T.EventTarget({ app: this });
     this.model = new G2T.Model({ app: this });
     this.gmailView = new G2T.GmailView({ app: this });
@@ -47,7 +48,7 @@ class App {
 
   // Callback methods for loadSettings
   loadSettings_onSuccess(popup, response) {
-    const setID = this.CHROME_SETTINGS_ID;
+    const setID = G2T.App.CHROME_SETTINGS_ID;
     if (response?.[setID]) {
       // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
       try {
@@ -67,7 +68,7 @@ class App {
    * Load settings
    */
   loadSettings(popup) {
-    const setID = this.CHROME_SETTINGS_ID;
+    const setID = G2T.App.CHROME_SETTINGS_ID;
     chrome.storage.sync.get(
       setID,
       this.loadSettings_onSuccess.bind(this, popup)
@@ -78,7 +79,7 @@ class App {
    * Save settings
    */
   saveSettings() {
-    const setID = this.CHROME_SETTINGS_ID;
+    const setID = G2T.App.CHROME_SETTINGS_ID;
     const { description, title, attachments, images, ...settings } =
       this.popupView.data.settings;
     void (description || title || attachments || images); // silence linter unused var warnings

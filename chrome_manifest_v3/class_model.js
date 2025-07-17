@@ -279,7 +279,6 @@ class Model {
     this.app = args.app;
     this.settings = {};
     this.isInitialized = false;
-    this.newCard = null;
     this.userEmail = null; // Set this when user data loads
   }
 
@@ -585,12 +584,7 @@ class Model {
 
     if (data.useBacklink) {
       const email = this.userEmail.replace('@', '\\@');
-      const txtDirect =
-        '[' +
-        email +
-        '](' +
-        document.location.href +
-        ' "Direct link to creator\'s email, not accessible from anyone else")';
+      const txtDirect = `[${email}](${document.location.href} "Direct link to creator's email, not accessible from anyone else")`;
 
       const subject = encodeURIComponent(data.title);
 
@@ -608,17 +602,9 @@ class Model {
       if (dateSearch) {
         data.date = dateSearch;
         dateSearch = encodeURIComponent(dateSearch);
-        txtSearch +=
-          '[Search](https://mail.google.com/mail/#advanced-search/subset=all&has=' +
-          subject +
-          '&within=1d&date=' +
-          dateSearch +
-          ' "Advance search by email subject and time")';
+        txtSearch += `[Search](https://mail.google.com/mail/#advanced-search/subset=all&has=${subject}&within=1d&date=${dateSearch} "Advance search by email subject and time")`;
       } else
-        txtSearch +=
-          '[Search](https://mail.google.com/mail/#search/' +
-          subject +
-          ' "Search by email subject")';
+        txtSearch += `[Search](https://mail.google.com/mail/#search/${subject} "Search by email subject")`;
 
       data.description +=
         '\n\n---\nImported from Gmail: ' + txtDirect + ' | ' + txtSearch;
