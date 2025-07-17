@@ -1,3 +1,12 @@
+=== 3.1.0.000@2025-01-27 ===
+
+- Major code refactoring: Converted entire codebase to class-based architecture with class_* naming convention
+- Simplified namespace from Gmail2Trello to G2T for cleaner code organization
+- Enhanced error handling with periodic checks and version tracking throughout extension
+- Updated Node.js requirement to v18 and upgraded all dependencies including ESLint and Prettier
+- Fixed multiple linter warnings and improved variable declarations with cleaner object destructuring
+- Removed problematic submodules and deleted unused Python scripts for better maintenance
+
 === 3.0.0.001@2025-07-10 ===
 
 - Update for minor security patch for jQuery, reduced dependency
