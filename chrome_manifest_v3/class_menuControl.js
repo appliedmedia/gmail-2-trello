@@ -8,7 +8,6 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class MenuControl {
   constructor(args) {
     this.app = args.app;
-    this._state = {};
   }
 
   static get id() {
@@ -17,35 +16,6 @@ class MenuControl {
 
   get id() {
     return MenuControl.id;
-  }
-
-  get state() {
-    return this._state;
-  }
-
-  set state(newState) {
-    this._state = newState;
-  }
-
-  loadState() {
-    const fire_on_done = 'classMenuControlStateLoaded';
-    this.app.utils.loadFromChromeStorage(this.id, fire_on_done);
-  }
-
-  saveState() {
-    this.app.utils.saveToChromeStorage(this.id, this.state);
-  }
-
-  init() {
-    this.bindEvents();
-    this.reset();
-    this.loadState();
-  }
-
-  handleClassMenuControlLoadStateDone(event, params) {
-    if (params?.data) {
-      this.state = params.data;
-    }
   }
 
   reset(args = {}) {
@@ -85,10 +55,6 @@ class MenuControl {
         index: newIndex,
       });
     });
-    this.app.events.addListener(
-      'classMenuControlLoadStateDone',
-      this.handleClassMenuControlLoadStateDone.bind(this)
-    );
   }
 }
 

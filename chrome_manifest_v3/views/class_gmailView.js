@@ -59,38 +59,11 @@ class GmailView {
   }
 
   loadState() {
-    const fire_on_done = 'classGmailViewStateLoaded';
-    this.app.utils.loadFromChromeStorage(this.id, fire_on_done);
+    this.app.utils.loadFromChromeStorage(this.id, 'classGmailViewStateLoaded');
   }
 
   saveState() {
     this.app.utils.saveToChromeStorage(this.id, this.state);
-  }
-
-  init() {
-    this.bindEvents();
-    // Start detection
-    this.detect();
-    this.loadState();
-  }
-
-  bindEvents() {
-    // GmailView-specific event bindings (if any)
-    // Usually minimal since it mostly fires events
-
-    // Bind internal GmailView events
-    this.app.events.addListener(
-      'onDetected',
-      this.handleGmailDetected.bind(this)
-    );
-    this.app.events.addListener(
-      'detectButton',
-      this.handleDetectButton.bind(this)
-    );
-    this.app.events.addListener(
-      'classGmailViewLoadStateDone',
-      this.handleClassGmailViewLoadStateDone.bind(this)
-    );
   }
 
   // Callback methods for detectToolbar
@@ -604,7 +577,6 @@ class GmailView {
     return data;
   }
 
-  // Event handler methods moved from App
   handleGmailDetected() {
     this.app.popupView.$toolBar = this.$toolBar;
     // this.app.popupView.init(); // Redundant - App.init() already calls this
@@ -617,10 +589,28 @@ class GmailView {
     }
   }
 
-  handleClassGmailViewLoadStateDone(event, params) {
-    if (params?.data) {
-      this.state = params.data;
-    }
+  handleClassGmailViewStateLoaded(event, params) {
+    this.state = params?.state || {};
+  }
+
+  bindEvents() {
+    // GmailView-specific event bindings (if any)
+    // Usually minimal since it mostly fires events
+
+    // Bind internal GmailView events
+    this.app.events.on('onDetected', this.handleGmailDetected.bind(this));
+    this.app.events.on('detectButton', this.handleDetectButton.bind(this));
+    this.app.events.on(
+      'classGmailViewStateLoaded',
+      this.handleClassGmailViewStateLoaded.bind(this)
+    );
+  }
+
+  init() {
+    this.bindEvents();
+    // Start detection
+    this.detect();
+    this.loadState();
   }
 }
 

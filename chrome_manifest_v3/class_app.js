@@ -19,43 +19,12 @@ class App {
     this.utils = new G2T.Utils({ app: this });
   }
 
-  bindEvents() {
-    this.events.addListener(
-      'classAppInitDone',
-      this.handleClassAppInitDone.bind(this)
-    );
-    this.events.addListener(
-      'classAppLoadStateDone',
-      this.handleClassAppLoadStateDone.bind(this)
-    );
-  }
-
-  init() {
-    // g2t_log('App:initialize');
-    this.bindEvents();
-    this.events.init();
-    this.model.init();
-    this.gmailView.init();
-    this.popupView.init();
-    this.utils.init();
-    this.loadState('classAppLoadStateDone');
-
-    // Declare before use to avoid undeclared globals
-    const service = analytics.getService('gmail-2-trello');
-
-    // Get a Tracker using your Google Analytics app Tracking ID.
-    const tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
-
-    // Record an "appView" each time the user launches your app or goes to a new
-    // screen within the app.
-    tracker.sendAppView('PopupView');
-  }
-
   loadState() {
     const fire_on_done = 'classAppStateLoaded';
     this.utils.loadFromChromeStorage(this.id, fire_on_done);
   }
-  async saveState() {
+
+  saveState() {
     this.utils.saveToChromeStorage(this.id, this.state);
   }
 
@@ -69,70 +38,37 @@ class App {
     this.popupView.bindGmailData(this.model.gmail);
   }
 
-  handleClassAppInitDone() {
-    this.loadState();
+  // Event handlers
+  handleClassAppStateLoaded(event, params) {
+    this.state = params?.state || {};
   }
 
-  handleClassAppLoadStateDone(event, params) {
-    if (params?.data) {
-      this.state = params.data;
-    }
-  }
-
-  // Callback methods for loadSettings
-  loadSettings_onSuccess(popup, response) {
-    const setID = G2T.App.CHROME_SETTINGS_ID;
-    if (response?.[setID]) {
-      // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object:
-      try {
-        this.popupView.state = JSON.parse(response[setID]);
-      } catch (err) {
-        g2t_log(
-          'loadSettings: JSON parse failed! Error: ' + JSON.stringify(err)
-        );
-      }
-    }
-    if (popup) {
-      this.updateData();
-    }
-  }
-
-  /**
-   * Load settings
-   */
-  loadSettings(popup) {
-    const setID = G2T.App.CHROME_SETTINGS_ID;
-    chrome.storage.sync.get(
-      setID,
-      this.loadSettings_onSuccess.bind(this, popup)
+  // Event binding
+  bindEvents() {
+    this.events.addListener(
+      'classAppStateLoaded',
+      this.handleClassAppStateLoaded.bind(this)
     );
   }
 
-  /**
-   * Save settings
-   */
-  saveSettings() {
-    const setID = G2T.App.CHROME_SETTINGS_ID;
-    const { description, title, attachments, images, ...settings } =
-      this.popupView.state;
-    void (description || title || attachments || images); // silence linter unused var warnings
+  init() {
+    // g2t_log('App:initialize');
+    this.bindEvents();
+    this.model.init();
+    this.gmailView.init();
+    this.popupView.init();
+    this.utils.init();
+    this.loadState();
 
-    const settings_string_k = JSON.stringify(settings);
+    // Declare before use to avoid undeclared globals
+    const service = analytics.getService('gmail-2-trello');
 
-    let hash = {};
-    hash[setID] = settings_string_k;
+    // Get a Tracker using your Google Analytics app Tracking ID.
+    const tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
 
-    if (this.lastSettingsSave !== settings_string_k) {
-      try {
-        chrome.storage.sync.set(hash); // NOTE (Ace, 7-Feb-2017): Might need to store these off the app object
-        this.lastSettingsSave = settings_string_k;
-      } catch (error) {
-        g2t_log(
-          `saveSettings ERROR: extension context invalidated - failed "chrome.storage.sync.set"`
-        );
-        this?.popupView?.displayExtensionInvalidReload();
-      }
-    }
+    // Record an "appView" each time the user launches your app or goes to a new
+    // screen within the app.
+    tracker.sendAppView('PopupView');
   }
 }
 

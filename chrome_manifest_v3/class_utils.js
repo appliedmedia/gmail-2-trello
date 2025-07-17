@@ -31,25 +31,6 @@ class Utils {
     this.saveToChromeStorage(this.id, this.state);
   }
 
-  init() {
-    // Utils initialization if needed
-    this.bindEvents();
-    this.loadState('classUtilsLoadStateDone');
-  }
-
-  bindEvents() {
-    this.app.events.addListener(
-      'classUtilsLoadStateDone',
-      this.handleClassUtilsLoadStateDone.bind(this)
-    );
-  }
-
-  handleClassUtilsLoadStateDone(event, params) {
-    if (params?.data) {
-      this.state = params.data;
-    }
-  }
-
   /**
    * Load data from chrome storage
    */
@@ -647,6 +628,25 @@ class Utils {
     if (href && text && text.length >= min_text_length_k) {
       toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
     }
+  }
+
+  // Event handlers
+  handleClassUtilsStateLoaded(event, params) {
+    this.state = params?.state || {};
+  }
+
+  // Event binding
+  bindEvents() {
+    this.app.events.addListener(
+      'classUtilsStateLoaded',
+      this.handleClassUtilsStateLoaded.bind(this)
+    );
+  }
+
+  init() {
+    // Utils initialization if needed
+    this.bindEvents();
+    this.loadState();
   }
 }
 
