@@ -1338,7 +1338,7 @@ class PopupView {
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
     const listId = $('#g2tList', this.$popup).val();
-    const emailId = $('#g2tDesc', this.$popup).attr(G2T.App.EMAIL_ID_ATTR) || 0;
+    const emailId = $('#g2tDesc', this.$popup).attr(this.ck.emailIdAttr) || 0;
     g2t_log(
       `validateData: boardId="${boardId}", listId="${listId}", emailId="${emailId}"`
     );
