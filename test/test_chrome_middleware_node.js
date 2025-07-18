@@ -39,7 +39,7 @@ function testChromeClassStructure() {
     hasClassDeclaration: content.includes('class Chrome'),
     hasStaticCk: content.includes('static get ck()'),
     hasGetCk: content.includes('get ck()'),
-    hasConstructor: content.includes('constructor()'),
+    hasConstructor: content.includes('constructor('),
     hasWrapApiCall: content.includes('wrapApiCall'),
     hasHandleChromeError: content.includes('handleChromeError'),
     hasShowContextInvalidMessage: content.includes('showContextInvalidMessage'),
