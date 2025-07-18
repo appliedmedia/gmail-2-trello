@@ -120,6 +120,13 @@ Split `PopupView` into two classes:
 - `PopupViewForm` gets `this.popupView` reference for DOM access
 - `PopupViewForm` fires events that `PopupView` listens to
 
+## Event Binding Rules
+
+- Event listeners should only register handlers that are in their own class
+- If a handler is earmarked for the other class, the `addListener` should happen in that other class's `bindEvents()` method
+- PopupView event listeners → PopupView handlers
+- PopupViewForm event listeners → PopupViewForm handlers
+
 ## Implementation Order
 
 1. Create `PopupViewForm` class with form methods
