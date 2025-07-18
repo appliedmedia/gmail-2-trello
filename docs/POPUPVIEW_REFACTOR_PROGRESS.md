@@ -22,6 +22,10 @@
 - ✅ `clearLabels()` → `clearLabels_deprecated()` → delegates to `this.form.clearLabels()`
 - ✅ `clearMembers()` → `clearMembers_deprecated()` → delegates to `this.form.clearMembers()`
 - ✅ `updateLabels()` → `updateLabels_deprecated()` → calls form method + original complex logic
+- ✅ `updateLists()` → `updateLists_deprecated()` → calls form method + original complex logic
+- ✅ `updateCards()` → `updateCards_deprecated()` → calls form method + original complex logic
+- ✅ `updateMembers()` → `updateMembers_deprecated()` → calls form method + original complex logic
+- ✅ `validateData()` → `validateData_deprecated()` → calls form method + original complex logic
 
 ### 4. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -32,7 +36,7 @@
 
 ### 1. Continue Deprecating Methods
 Methods to deprecate next:
-- `validateData()` - complex method, needs careful migration
+- ✅ `validateData()` - complex method, needs careful migration
 - `bindData()` - form data binding
 - `bindGmailData()` - Gmail-specific data binding
 - `updateBody()` - body content updates
@@ -44,9 +48,9 @@ Methods to deprecate next:
 - `displayAPIFailedForm()` - error display
 
 ### 2. Update Event Handlers
-- Move form-related event handlers to PopupViewForm
-- Update event bindings to use form methods
-- Ensure proper event delegation between classes
+- ✅ Moved form-related event handlers to PopupViewForm
+- ✅ Updated event bindings to use form methods
+- ✅ Ensure proper event delegation between classes
 
 ### 3. Complex DOM Methods
 Some methods have complex DOM manipulation that should stay in PopupView for now:
