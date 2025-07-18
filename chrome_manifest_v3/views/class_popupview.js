@@ -1877,6 +1877,23 @@ class PopupView {
       .on('click', () => {
         this.form.submit();
       });
+
+    // Attachment and image header click handlers for toggling checkboxes
+    $('#g2tAttachHeader', this.$popup)
+      .off('click')
+      .on('click', event => {
+        if (this.app.utils.modKey(event)) {
+          this.form.toggleCheckboxes('g2tAttachments');
+        }
+      });
+
+    $('#g2tImagesHeader', this.$popup)
+      .off('click')
+      .on('click', event => {
+        if (this.app.utils.modKey(event)) {
+          this.form.toggleCheckboxes('g2tImages');
+        }
+      });
   }
 
   init() {

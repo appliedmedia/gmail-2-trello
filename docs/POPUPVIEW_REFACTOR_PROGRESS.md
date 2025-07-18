@@ -67,6 +67,7 @@
 - ✅ `displaySubmitCompleteForm()` copied to forms, callers updated, original renamed `displaySubmitCompleteForm_deprecated`
 - ✅ `displayAPIFailedForm()` copied to forms, callers updated, original renamed `displayAPIFailedForm_deprecated`
 - ✅ `toggleCheckboxes()` copied to forms, callers updated, original renamed `toggleCheckboxes_deprecated`
+- ✅ **RESTORED MISSING FUNCTIONALITY**: Added event handlers for `#g2tAttachHeader` and `#g2tImagesHeader` to toggle checkboxes with modifier key
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
