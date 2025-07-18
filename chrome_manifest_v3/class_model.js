@@ -157,10 +157,10 @@ class Uploader {
 class EmailBoardListCardMap {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_emailboardlistcardmap',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {
@@ -270,10 +270,10 @@ class EmailBoardListCardMap {
 class Model {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_model',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {
