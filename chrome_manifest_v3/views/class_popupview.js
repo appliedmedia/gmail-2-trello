@@ -465,7 +465,11 @@ class PopupView {
   }
 
   submit_deprecated() {
-    return this.form.submit();
+    if (this.$popupContent) {
+      this.$popupContent.hide();
+    }
+    this.showMessage(this, 'Submitting to Trello...');
+    this.app.events.fire('onSubmit');
   }
 
   showPopup() {
@@ -1022,7 +1026,12 @@ class PopupView {
   }
 
   clearBoard_deprecated() {
-    return this.form.clearBoard();
+    const $g2t = $('#g2tBoard', this.$popup);
+    $g2t.html(''); // Clear it.
+
+    $g2t.append($('<option value="">Select a board....</option>'));
+
+    $g2t.change();
   }
 
   updateBoards(tempId = 0) {
@@ -1167,7 +1176,9 @@ class PopupView {
   }
 
   clearLabels_deprecated() {
-    return this.form.clearLabels();
+    this.state.labelsId = '';
+    this.updateLabels();
+    this.validateData();
   }
 
   updateLabels_deprecated() {
@@ -1229,7 +1240,9 @@ class PopupView {
   }
 
   clearMembers_deprecated() {
-    return this.form.clearMembers();
+    this.state.membersId = '';
+    this.updateMembers();
+    this.validateData();
   }
 
   updateMembers_deprecated() {
@@ -1429,7 +1442,8 @@ class PopupView {
   }
 
   reset_deprecated() {
-    return this.form.reset();
+    this.$popupMessage.hide();
+    this.$popupContent.show();
   }
 
   displaySubmitCompleteForm(params) {
