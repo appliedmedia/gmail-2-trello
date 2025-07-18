@@ -16,18 +16,7 @@
 - ✅ Added form.init() call in PopupView.init()
 - ✅ Form class properly exported to G2T namespace
 
-### 3. Deprecated Methods in PopupView
-- ✅ `reset()` copied to forms, callers updated, original renamed `reset_deprecated`
-- ✅ `clearBoard()` copied to forms, callers updated, original renamed `clearBoard_deprecated`
-- ✅ `clearLabels()` copied to forms, callers updated, original renamed `clearLabels_deprecated`
-- ✅ `clearMembers()` copied to forms, callers updated, original renamed `clearMembers_deprecated`
-- ✅ `updateLabels()` copied to forms, callers updated, original renamed `updateLabels_deprecated`
-- ✅ `updateLists()` copied to forms, callers updated, original renamed `updateLists_deprecated`
-- ✅ `updateCards()` copied to forms, callers updated, original renamed `updateCards_deprecated`
-- ✅ `updateMembers()` copied to forms, callers updated, original renamed `updateMembers_deprecated`
-- ✅ `validateData()` copied to forms, callers updated, original renamed `validateData_deprecated`
-
-### 4. Deprecation Process
+### 3. Deprecation Process
 **CRITICAL: Deprecated methods must keep original logic intact**
 
 1. **Rename method**: `methodName()` → `methodName_deprecated()`
@@ -60,6 +49,17 @@ validateData() {
 - Allows gradual migration
 - Prevents breaking changes
 - Enables rollback if needed
+
+### 4. Deprecated Methods in PopupView
+- ✅ `reset()` copied to forms, callers updated, original renamed `reset_deprecated`
+- ✅ `clearBoard()` copied to forms, callers updated, original renamed `clearBoard_deprecated`
+- ✅ `clearLabels()` copied to forms, callers updated, original renamed `clearLabels_deprecated`
+- ✅ `clearMembers()` copied to forms, callers updated, original renamed `clearMembers_deprecated`
+- ✅ `updateLabels()` copied to forms, callers updated, original renamed `updateLabels_deprecated`
+- ✅ `updateLists()` copied to forms, callers updated, original renamed `updateLists_deprecated`
+- ✅ `updateCards()` copied to forms, callers updated, original renamed `updateCards_deprecated`
+- ✅ `updateMembers()` copied to forms, callers updated, original renamed `updateMembers_deprecated`
+- ✅ `validateData()` copied to forms, callers updated, original renamed `validateData_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
