@@ -69,7 +69,13 @@ class ChromeWebStoreDeployer {
     console.log('📦 Building extension...');
 
     // Read manifest to get version
-    const manifest = JSON.parse(fs.readFileSync(this.manifestPath, 'utf8'));
+    let manifestContent;
+    try {
+      manifestContent = fs.readFileSync(this.manifestPath, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to read manifest file: ${error.message}`);
+    }
+    const manifest = JSON.parse(manifestContent);
     const version = manifest.version;
     const extensionName = manifest.name.replace(/\s+/g, '-').toLowerCase();
 

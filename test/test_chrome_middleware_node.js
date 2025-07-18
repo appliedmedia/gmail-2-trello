@@ -3,8 +3,8 @@
 // Node.js test script for Chrome middleware
 // Tests the structure and logic of the Chrome class
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 console.log('🧪 Testing Chrome Middleware (Node.js)...\n');
 
@@ -33,7 +33,14 @@ function testChromeClassStructure() {
     __dirname,
     '../chrome_manifest_v3/class_chrome.js'
   );
-  const content = fs.readFileSync(chromeFile, 'utf8');
+  
+  let content;
+  try {
+    content = fs.readFileSync(chromeFile, 'utf8');
+  } catch (error) {
+    console.log('❌ Failed to read Chrome class file');
+    return false;
+  }
 
   const checks = {
     hasClassDeclaration: content.includes('class Chrome'),
@@ -77,7 +84,14 @@ function testManifestIncludesChrome() {
     __dirname,
     '../chrome_manifest_v3/manifest.json'
   );
-  const content = fs.readFileSync(manifestFile, 'utf8');
+  
+  let content;
+  try {
+    content = fs.readFileSync(manifestFile, 'utf8');
+  } catch (error) {
+    console.log('❌ Failed to read manifest file');
+    return false;
+  }
 
   if (content.includes('class_chrome.js')) {
     console.log('✅ class_chrome.js included in manifest');
@@ -93,7 +107,14 @@ function testAppIncludesChrome() {
   console.log('📋 Test 4: App class includes Chrome instance');
 
   const appFile = path.join(__dirname, '../chrome_manifest_v3/class_app.js');
-  const content = fs.readFileSync(appFile, 'utf8');
+  
+  let content;
+  try {
+    content = fs.readFileSync(appFile, 'utf8');
+  } catch (error) {
+    console.log('❌ Failed to read App class file');
+    return false;
+  }
 
   const checks = {
     hasChromeInstance: content.includes('this.chrome = new G2T.Chrome'),
@@ -125,7 +146,14 @@ function testErrorHandlingPatterns() {
     __dirname,
     '../chrome_manifest_v3/class_chrome.js'
   );
-  const content = fs.readFileSync(chromeFile, 'utf8');
+  
+  let content;
+  try {
+    content = fs.readFileSync(chromeFile, 'utf8');
+  } catch (error) {
+    console.log('❌ Failed to read Chrome class file');
+    return false;
+  }
 
   const checks = {
     hasTryCatch:
@@ -162,7 +190,14 @@ function testCallbackBasedWrappers() {
     __dirname,
     '../chrome_manifest_v3/class_chrome.js'
   );
-  const content = fs.readFileSync(chromeFile, 'utf8');
+  
+  let content;
+  try {
+    content = fs.readFileSync(chromeFile, 'utf8');
+  } catch (error) {
+    console.log('❌ Failed to read Chrome class file');
+    return false;
+  }
 
   const checks = {
     noAsyncStorage: !content.includes('async storageSyncGet'),
