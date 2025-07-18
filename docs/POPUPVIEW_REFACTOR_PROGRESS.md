@@ -37,11 +37,6 @@ validateData_deprecated() {
     }
     // ... rest of original validation logic
 }
-
-// New method (delegates to form)
-validateData() {
-    return this.form.validateData();
-}
 ```
 
 **Why this approach:**
