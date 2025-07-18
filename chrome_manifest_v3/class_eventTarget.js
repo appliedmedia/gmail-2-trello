@@ -6,10 +6,10 @@ var G2T = G2T || {}; // Namespace initialization
 class EventTarget {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_eventtarget',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {

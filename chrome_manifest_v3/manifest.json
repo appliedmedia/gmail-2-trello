@@ -65,6 +65,7 @@
         "class_menuControl.js",
         "lib/waitCounter.js",
         "class_eventTarget.js",
+        "class_chrome.js",
         "views/class_gmailView.js",
         "views/class_popupView.js",
         "class_model.js",

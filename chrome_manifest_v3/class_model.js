@@ -89,14 +89,7 @@ class Uploader {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    try {
-      chrome.runtime.sendMessage(dict, callback);
-    } catch (error) {
-      g2t_log(
-        `sendMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
-      );
-      self?.parent?.popupView?.displayExtensionInvalidReload();
-    }
+    this.app.chrome.runtimeSendMessage(dict, callback);
   }
 
   upload(data) {
@@ -157,10 +150,10 @@ class Uploader {
 class EmailBoardListCardMap {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_emailboardlistcardmap',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {
@@ -270,10 +263,10 @@ class EmailBoardListCardMap {
 class Model {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_model',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {

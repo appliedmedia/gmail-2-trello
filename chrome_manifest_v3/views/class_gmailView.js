@@ -3,11 +3,11 @@ var G2T = G2T || {}; // Namespace initialization - must be var to guarantee corr
 class GmailView {
   static get ck() {
     // class keys here to assure they're treated like consts
-    const cks = {
+    const ck = {
       id: 'g2t_gmailView',
       uniqueUriVar: 'g2t_filename',
     };
-    return cks;
+    return ck;
   }
 
   get ck() {
