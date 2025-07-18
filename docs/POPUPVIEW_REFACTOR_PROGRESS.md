@@ -27,14 +27,48 @@
 - ✅ `updateMembers()` → `updateMembers_deprecated()` → calls form method + original complex logic
 - ✅ `validateData()` → `validateData_deprecated()` → calls form method + original complex logic
 
-### 4. Testing
+### 4. Deprecation Process
+**CRITICAL: Deprecated methods must keep original logic intact**
+
+1. **Rename method**: `methodName()` → `methodName_deprecated()`
+2. **Keep original logic**: Copy entire original method body to deprecated version
+3. **Update callers**: Change all calls from `methodName()` to `methodName_deprecated()`
+4. **Create new method**: Add `methodName()` that delegates to `this.form.methodName()`
+5. **Verify behavior**: Ensure deprecated method works exactly like original
+
+**Example:**
+```javascript
+// Original method (now deprecated)
+validateData_deprecated() {
+    // ALL ORIGINAL LOGIC STAYS HERE
+    const data = this.getFormData();
+    if (!data.title) {
+        this.showError('Title is required');
+        return false;
+    }
+    // ... rest of original validation logic
+}
+
+// New method (delegates to form)
+validateData() {
+    return this.form.validateData();
+}
+```
+
+**Why this approach:**
+- Preserves original behavior during transition
+- Allows gradual migration
+- Prevents breaking changes
+- Enables rollback if needed
+
+### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
 - ✅ Tests cover constructor, initialization, data binding, validation, UI updates, form submission
 - ✅ All tests passing
 
 ## Remaining Work
 
-### 1. Continue Deprecating Methods
+### 1. Continue Deprecating Methods (Following Deprecation Process)
 Methods to deprecate next:
 - ✅ `validateData()` - complex method, needs careful migration
 - `bindData()` - form data binding
