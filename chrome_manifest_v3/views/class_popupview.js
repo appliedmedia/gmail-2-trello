@@ -808,7 +808,7 @@ class PopupView {
         ' ' +
         date_k;
 
-      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
+      this.form.updateBoards('52e1397addf85d4751f99319'); // GtT board
       $('#g2tDesc', this.$popup).val(this.state.description);
       $('#g2tTitle', this.$popup).val(this.state.title);
       this.validateData_deprecated();
@@ -817,7 +817,7 @@ class PopupView {
     this.$popupMessage.hide();
     this.$popupContent.show();
 
-    this.updateBoards();
+    this.form.updateBoards();
 
     // Setting up comboboxes after loading data.
     this.form.comboBox();
@@ -918,7 +918,7 @@ class PopupView {
       ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
     ) {
       $('#g2tPosition', this.$popup).val('to');
-      this.updateBoards(mapAvailable_k.boardId);
+      this.form.updateBoards(mapAvailable_k.boardId);
       const listId = mapAvailable_k.listId;
       const cardId = mapAvailable_k.cardId;
       this.updatesPending.push({ listId });
@@ -1011,7 +1011,7 @@ class PopupView {
     $g2t.change();
   }
 
-  updateBoards(tempId = 0) {
+  updateBoards_deprecated(tempId = 0) {
     const array_k = this?.state?.trello?.boards || [];
 
     if (!array_k) {
