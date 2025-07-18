@@ -145,6 +145,7 @@ function getGmailObject() {
 
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 var app = new G2T.App();
+window.g2t_app = app;
 
 /**
  * Handle request from background.js

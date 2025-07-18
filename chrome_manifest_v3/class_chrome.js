@@ -13,8 +13,8 @@ class Chrome {
     return Chrome.ck;
   }
 
-  constructor() {
-    // No work needed here currently
+  constructor({ app } = {}) {
+    this.app = app;
   }
 
   /**
