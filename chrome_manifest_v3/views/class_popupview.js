@@ -14,6 +14,12 @@ class PopupView {
     this.isInitialized = false;
 
     this._state = {};
+    
+    // Initialize form component
+    this.form = new PopupViewForm({
+      parent: this,
+      app: this.app
+    });
 
     this.size_k = {
       width: {
@@ -1019,13 +1025,8 @@ class PopupView {
     }
   }
 
-  clearBoard() {
-    const $g2t = $('#g2tBoard', this.$popup);
-    $g2t.html(''); // Clear it.
-
-    $g2t.append($('<option value="">Select a board....</option>'));
-
-    $g2t.change();
+  clearBoard_deprecated() {
+    return this.form.clearBoard();
   }
 
   updateBoards(tempId = 0) {
@@ -1169,13 +1170,16 @@ class PopupView {
     this.validateData();
   }
 
-  clearLabels() {
-    this.state.labelsId = '';
-    this.updateLabels();
-    this.validateData();
+  clearLabels_deprecated() {
+    return this.form.clearLabels();
   }
 
-  updateLabels() {
+  updateLabels_deprecated() {
+    // For now, keep the complex DOM manipulation in PopupView
+    // but delegate basic functionality to form
+    this.form.updateLabels();
+    
+    // Call the original complex logic
     const labels = this.state.trello.labels;
     const $g2t = $('#g2tLabels', this.$popup);
     $g2t.html(''); // Clear out
@@ -1233,10 +1237,8 @@ class PopupView {
     $g2t.show();
   }
 
-  clearMembers() {
-    this.state.membersId = '';
-    this.updateMembers();
-    this.validateData();
+  clearMembers_deprecated() {
+    return this.form.clearMembers();
   }
 
   updateMembers() {
@@ -1435,9 +1437,8 @@ class PopupView {
     return validateStatus;
   }
 
-  reset() {
-    this.$popupMessage.hide();
-    this.$popupContent.show();
+  reset_deprecated() {
+    return this.form.reset();
   }
 
   displaySubmitCompleteForm(params) {
@@ -1893,6 +1894,9 @@ class PopupView {
 
     // Create MenuControl instance
     this.menuCtrl = new G2T.MenuControl({ app: this.app });
+
+    // Initialize form component
+    this.form.init();
 
     // Bind internal events
     this.bindEvents();
