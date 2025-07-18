@@ -265,16 +265,37 @@ class PopupViewForm {
   }
 
   bindGmailData(data = {}) {
-    if (!data) return;
+    if ($.isEmptyObject(data)) {
+      return;
+    }
 
-    // Extract Gmail data and bind to form
-    const gmailData = {
-      cardName: data.subject || '',
-      cardDesc: data.body || '',
-      // Add other Gmail-specific data as needed
-    };
+    // Merge with existing state
+    Object.assign(data, this.parent.state || {});
+    this.parent.updateBody(data);
 
-    this.bindData(gmailData);
+    $('#g2tTitle', this.parent.$popup).val(data.subject);
+
+    this.mime_html('attachments', false, data);
+    this.mime_html('images', true, data);
+
+    const emailId = data.emailId || 0;
+    const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
+      emailId,
+    });
+
+    if (
+      ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
+    ) {
+      $('#g2tPosition', this.parent.$popup).val('to');
+      this.updateBoards(mapAvailable_k.boardId);
+      const listId = mapAvailable_k.listId;
+      const cardId = mapAvailable_k.cardId;
+      this.parent.updatesPending.push({ listId });
+      this.parent.updatesPending.push({ cardId });
+    }
+
+    this.parent.dataDirty = false;
+    this.validateData();
   }
 
   updateBody(data = {}) {

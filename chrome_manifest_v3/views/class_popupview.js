@@ -895,7 +895,7 @@ class PopupView {
     }
   }
 
-  bindGmailData(data = {}) {
+  bindGmailData_deprecated(data = {}) {
     if ($.isEmptyObject(data)) {
       return;
     }
@@ -1520,7 +1520,7 @@ class PopupView {
 
     this.app.gmailView.parsingData = false;
     this.app.model.gmail = this.app.gmailView.parseData({ fullName });
-    this.bindGmailData(this.app.model.gmail);
+    this.form.bindGmailData(this.app.model.gmail);
     this.app.events.fire('periodicChecks');
   }
 

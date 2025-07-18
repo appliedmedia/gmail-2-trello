@@ -58,6 +58,7 @@
 - ✅ `handleLoadTrelloLabelsSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloLabelsSuccess_deprecated`
 - ✅ `handleLoadTrelloMembersSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloMembersSuccess_deprecated`
 - ✅ `bindData()` copied to forms, callers updated, original renamed `bindData_deprecated`
+- ✅ `bindGmailData()` copied to forms, callers updated, original renamed `bindGmailData_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -70,7 +71,7 @@
 Methods to move next:
 - ✅ `validateData()` - complex method, needs careful migration
 - ✅ `bindData()` - form data binding
-- `bindGmailData()` - Gmail-specific data binding
+- ✅ `bindGmailData()` - Gmail-specific data binding
 - `updateBody()` - body content updates
 - `mime_array()` - attachment handling
 - `mime_html()` - attachment HTML generation
