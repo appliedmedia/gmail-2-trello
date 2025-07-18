@@ -61,6 +61,11 @@
 - ✅ `bindGmailData()` copied to forms, callers updated, original renamed `bindGmailData_deprecated`
 - ✅ `updateBody()` copied to forms, callers updated, original renamed `updateBody_deprecated`
 - ✅ `mime_array()` copied to forms, callers updated, original renamed `mime_array_deprecated`
+- ✅ `mime_html()` copied to forms, callers updated, original renamed `mime_html_deprecated`
+- ✅ `comboBox()` copied to forms, callers updated, original renamed `comboBox_deprecated`
+- ✅ `submit()` copied to forms, callers updated, original renamed `submit_deprecated`
+- ✅ `displaySubmitCompleteForm()` copied to forms, callers updated, original renamed `displaySubmitCompleteForm_deprecated`
+- ✅ `displayAPIFailedForm()` copied to forms, callers updated, original renamed `displayAPIFailedForm_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -76,11 +81,11 @@ Methods to move next:
 - ✅ `bindGmailData()` - Gmail-specific data binding
 - ✅ `updateBody()` - body content updates
 - ✅ `mime_array()` - attachment handling
-- `mime_html()` - attachment HTML generation
-- `comboBox()` - autocomplete functionality
-- `submit()` - form submission
-- `displaySubmitCompleteForm()` - success display
-- `displayAPIFailedForm()` - error display
+- ✅ `mime_html()` - attachment HTML generation
+- ✅ `comboBox()` - autocomplete functionality
+- ✅ `submit()` - form submission
+- ✅ `displaySubmitCompleteForm()` - success display
+- ✅ `displayAPIFailedForm()` - error display
 
 ### 2. Update Event Handlers
 - ✅ Moved form-related event handlers to PopupViewForm

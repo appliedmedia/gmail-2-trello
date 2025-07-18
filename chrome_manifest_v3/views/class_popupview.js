@@ -91,7 +91,7 @@ class PopupView {
     this.app.utils.saveToChromeStorage(this.id, this.state);
   }
 
-  comboBox(update) {
+  comboBox_deprecated(update) {
     const $jVals = { Board: '', Card: '', List: '' };
     const setJQueryVals = () => {
       g2t_each($jVals, (value, key) => {
@@ -820,10 +820,10 @@ class PopupView {
     this.updateBoards();
 
     // Setting up comboboxes after loading data.
-    this.comboBox();
+    this.form.comboBox();
   }
 
-  mime_html(tag, isImage, data) {
+  mime_html_deprecated(tag, isImage, data) {
     const self = this;
     let html = '';
     let img = '';
@@ -906,8 +906,8 @@ class PopupView {
 
     $('#g2tTitle', this.$popup).val(data.subject);
 
-    this.mime_html('attachments', false, data);
-    this.mime_html('images', true, data);
+    this.form.mime_html('attachments', false, data);
+    this.form.mime_html('images', true, data);
 
     const emailId = data.emailId || 0;
     const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
@@ -1423,7 +1423,7 @@ class PopupView {
     this.$popupContent.show();
   }
 
-  displaySubmitCompleteForm(params) {
+  displaySubmitCompleteForm_deprecated(params) {
     const trelloData = params?.data || {};
     const cardUrl = trelloData.url || trelloData.shortUrl || '';
     const cardTitle = trelloData.name || this.state?.title || 'Card';
@@ -1449,7 +1449,7 @@ class PopupView {
     this.app.events.fire('submittedFormShownComplete', { data: trelloData });
   }
 
-  displayAPIFailedForm(response) {
+  displayAPIFailedForm_deprecated(response) {
     let resp = {};
     if (response && response.data) {
       resp = response.data;
@@ -1622,11 +1622,11 @@ class PopupView {
   }
 
   handleAPIFailure(target, params) {
-    this.displayAPIFailedForm(params);
+    this.form.displayAPIFailedForm(params);
   }
 
   handleNewCardUploadsComplete(target, params) {
-    this.displaySubmitCompleteForm(params);
+    this.form.displaySubmitCompleteForm(params);
     // Fire final event for data manipulations
     this.app.events.fire('postCardCreateUploadDisplayDone', {
       data: params.data,
@@ -1723,7 +1723,7 @@ class PopupView {
         $labels.hide();
       }
       this.app.events.fire('onBoardChanged', { boardId });
-      if (this.comboBox) this.comboBox('updateValue');
+      if (this.form.comboBox) this.form.comboBox('updateValue');
       this.validateData_deprecated();
     });
 
@@ -1731,7 +1731,7 @@ class PopupView {
     $list.off('change').on('change', () => {
       const listId = $list.val();
       this.app.events.fire('onListChanged', { listId });
-      if (this.comboBox) this.comboBox('updateValue');
+      if (this.form.comboBox) this.form.comboBox('updateValue');
       this.validateData_deprecated();
     });
 
@@ -1754,7 +1754,7 @@ class PopupView {
     $('#g2tCard', this.$popup)
       .off('change')
       .on('change', () => {
-        if (this.comboBox) this.comboBox('updateValue');
+        if (this.form.comboBox) this.form.comboBox('updateValue');
         this.validateData_deprecated();
       });
 

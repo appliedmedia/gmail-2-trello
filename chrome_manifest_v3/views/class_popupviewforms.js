@@ -743,16 +743,75 @@ class PopupViewForm {
   }
 
   mime_html(tag, isImage, data) {
-    if (!data || !data.name) return '';
+    const self = this;
+    let html = '';
+    let img = '';
+    let img_big = '';
+    const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
+      .slice(1)
+      .toLowerCase()}`;
+    const $domTag = $(domTag_k, this.parent.$popup);
 
-    const attachmentHtml = `
-      <div class="g2t-attachment" data-name="${data.name}" data-type="${data.type}" data-size="${data.size}" data-content="${data.content}">
-        <span class="attachment-name">${data.name}</span>
-        <span class="attachment-size">${this.formatFileSize(data.size)}</span>
-      </div>
-    `;
+    const domTagContainer = domTag_k + 'Container';
+    const $domTagContainer = $(domTagContainer, this.parent.$popup);
+    $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
 
-    return attachmentHtml;
+    if (isImage && isImage === true) {
+      img =
+        '<div class="img-container"><img src="%url%" alt="%name%" /></div> ';
+    }
+
+    let x = 0;
+    g2t_each(data[tag], item => {
+      const dict = {
+        url: item.url,
+        name: item.name,
+        mimeType: item.mimeType,
+        img,
+        id: `${item.name}:${x}`,
+      };
+
+      if (tag == 'attachments') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
+          dict
+        );
+      } else if (tag == 'images') {
+        html += this.app.utils.replacer(
+          '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
+          dict
+        );
+      }
+      x++;
+    });
+
+    $domTag.html(html);
+
+    if (isImage && isImage === true) {
+      $('img', $domTag).each(function () {
+        const $img = $(this);
+        $img
+          .on('error', function () {
+            $img.attr(
+              'src',
+              chrome.runtime.getURL('images/doc-question-mark-512.png')
+            );
+          })
+          .tooltip({
+            track: true,
+            content: function () {
+              const dict = {
+                src: $img.attr('src'),
+                alt: $img.attr('alt'),
+              };
+              return self.app.utils.replacer('<img src="%src%">%alt%', dict);
+            },
+          });
+      });
+      $('.textOnlyPopup').tooltip({
+        track: true,
+      });
+    }
   }
 
   formatFileSize(bytes) {
