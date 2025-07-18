@@ -428,15 +428,18 @@ class PopupViewForm {
   }
 
   handleLoadTrelloCardsSuccess() {
-    this.updateCards();
+    this.parent.updateCards_deprecated();
+    this.parent.validateData_deprecated();
   }
 
   handleLoadTrelloLabelsSuccess() {
-    this.updateLabels();
+    this.parent.updateLabels_deprecated();
+    this.parent.validateData_deprecated();
   }
 
   handleLoadTrelloMembersSuccess() {
-    this.updateMembers();
+    this.parent.updateMembers_deprecated();
+    this.parent.validateData_deprecated();
   }
 
   handleAPIFailure(target, params) {

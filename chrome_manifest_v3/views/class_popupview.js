@@ -1071,11 +1071,6 @@ class PopupView {
   }
 
   updateLists_deprecated(tempId = 0) {
-    // For now, keep the complex DOM manipulation in PopupView
-    // but delegate basic functionality to form
-    this.form.updateLists(tempId);
-    
-    // Call the original complex logic
     const array_k = this?.state?.trello?.lists || [];
 
     if (!array_k) {
@@ -1119,11 +1114,6 @@ class PopupView {
   }
 
   updateCards_deprecated(tempId = 0) {
-    // For now, keep the complex DOM manipulation in PopupView
-    // but delegate basic functionality to form
-    this.form.updateCards(tempId);
-    
-    // Call the original complex logic
     const new_k = '<option value="-1">(new card at top)</option>';
 
     const array_k = this?.state?.trello?.cards || [];
@@ -1252,11 +1242,6 @@ class PopupView {
   }
 
   updateMembers_deprecated() {
-    // For now, keep the complex DOM manipulation in PopupView
-    // but delegate basic functionality to form
-    this.form.updateMembers();
-    
-    // Call the original complex logic
     const members = this.state.trello.members;
     const $g2t = $('#g2tMembers', this.$popup);
     $g2t.html(''); // Clear out
@@ -1350,7 +1335,7 @@ class PopupView {
     return { array, checked_total };
   }
 
-  validateData() {
+  validateData_deprecated() {
     const self = this;
     let newCard = {};
     const boardId = $('#g2tBoard', this.$popup).val();
