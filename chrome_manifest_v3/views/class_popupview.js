@@ -1070,7 +1070,12 @@ class PopupView {
     $g2t.change();
   }
 
-  updateLists(tempId = 0) {
+  updateLists_deprecated(tempId = 0) {
+    // For now, keep the complex DOM manipulation in PopupView
+    // but delegate basic functionality to form
+    this.form.updateLists(tempId);
+    
+    // Call the original complex logic
     const array_k = this?.state?.trello?.lists || [];
 
     if (!array_k) {
@@ -1113,7 +1118,12 @@ class PopupView {
     $g2t.change();
   }
 
-  updateCards(tempId = 0) {
+  updateCards_deprecated(tempId = 0) {
+    // For now, keep the complex DOM manipulation in PopupView
+    // but delegate basic functionality to form
+    this.form.updateCards(tempId);
+    
+    // Call the original complex logic
     const new_k = '<option value="-1">(new card at top)</option>';
 
     const array_k = this?.state?.trello?.cards || [];
@@ -1241,7 +1251,12 @@ class PopupView {
     return this.form.clearMembers();
   }
 
-  updateMembers() {
+  updateMembers_deprecated() {
+    // For now, keep the complex DOM manipulation in PopupView
+    // but delegate basic functionality to form
+    this.form.updateMembers();
+    
+    // Call the original complex logic
     const members = this.state.trello.members;
     const $g2t = $('#g2tMembers', this.$popup);
     $g2t.html(''); // Clear out
@@ -1562,19 +1577,16 @@ class PopupView {
     this.app.model.loadTrelloCards(listId);
   }
 
-  handleSubmit() {
-    this.app.model.submit(this.state);
+  handleSubmit_deprecated() {
+    return this.form.handleSubmit();
   }
 
-  handleCheckTrelloAuthorized() {
-    this.showMessage(this.app, 'Authorizing...');
-    this.app.model.checkTrelloAuthorized();
+  handleCheckTrelloAuthorized_deprecated() {
+    return this.form.handleCheckTrelloAuthorized();
   }
 
-  handleRequestDeauthorizeTrello() {
-    g2t_log('onRequestDeauthorizeTrello');
-    this.app.model.deauthorizeTrello();
-    this.clearBoard();
+  handleRequestDeauthorizeTrello_deprecated() {
+    return this.form.handleRequestDeauthorizeTrello();
   }
 
   handleDetectButton() {
@@ -1611,24 +1623,20 @@ class PopupView {
     this.bindData(this.app.model);
   }
 
-  handleLoadTrelloListSuccess() {
-    this.updateLists();
-    this.validateData();
+  handleLoadTrelloListSuccess_deprecated() {
+    return this.form.handleLoadTrelloListSuccess();
   }
 
-  handleLoadTrelloCardsSuccess() {
-    this.updateCards();
-    this.validateData();
+  handleLoadTrelloCardsSuccess_deprecated() {
+    return this.form.handleLoadTrelloCardsSuccess();
   }
 
-  handleLoadTrelloLabelsSuccess() {
-    this.updateLabels();
-    this.validateData();
+  handleLoadTrelloLabelsSuccess_deprecated() {
+    return this.form.handleLoadTrelloLabelsSuccess();
   }
 
-  handleLoadTrelloMembersSuccess() {
-    this.updateMembers();
-    this.validateData();
+  handleLoadTrelloMembersSuccess_deprecated() {
+    return this.form.handleLoadTrelloMembersSuccess();
   }
 
   handleAPIFailure(target, params) {

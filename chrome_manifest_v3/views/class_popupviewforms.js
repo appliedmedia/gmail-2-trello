@@ -408,19 +408,23 @@ class PopupViewForm {
   }
 
   handleSubmit() {
-    return this.submit();
+    this.parent.app.model.submit(this.parent.state);
   }
 
   handleCheckTrelloAuthorized() {
-    this.app.events.fire('checkTrelloAuthorized');
+    this.parent.showMessage(this.parent.app, 'Authorizing...');
+    this.parent.app.model.checkTrelloAuthorized();
   }
 
   handleRequestDeauthorizeTrello() {
-    this.app.events.fire('requestDeauthorizeTrello');
+    g2t_log('onRequestDeauthorizeTrello');
+    this.parent.app.model.deauthorizeTrello();
+    this.clearBoard();
   }
 
   handleLoadTrelloListSuccess() {
-    this.updateLists();
+    this.parent.updateLists_deprecated();
+    this.parent.validateData_deprecated();
   }
 
   handleLoadTrelloCardsSuccess() {
