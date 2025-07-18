@@ -62,7 +62,7 @@ function g2t_log(data) {
   };
 
   try {
-    chrome.storage.sync.get('debugMode', function (response) {
+    window.g2t_app.chrome.storageSyncGet('debugMode', function (response) {
       if (response?.debugMode) {
         window.g2t_log_g.debugMode = true;
       }
@@ -129,7 +129,7 @@ function getGmailObject() {
   for (const item of scripts_to_inject) {
     try {
       const script = document.createElement('script');
-      script.src = chrome.runtime.getURL(item);
+      script.src = window.g2t_app.chrome.runtimeGetURL(item);
       (document.head || document.documentElement).appendChild(script);
       script.onload = function () {
         script.parentNode.removeChild(script);

@@ -89,14 +89,7 @@ class Uploader {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    try {
-      chrome.runtime.sendMessage(dict, callback);
-    } catch (error) {
-      g2t_log(
-        `sendMessage ERROR: extension context invalidated - failed "chrome.runtime.sendMessage"`
-      );
-      self?.parent?.popupView?.displayExtensionInvalidReload();
-    }
+    this.app.chrome.runtimeSendMessage(dict, callback);
   }
 
   upload(data) {

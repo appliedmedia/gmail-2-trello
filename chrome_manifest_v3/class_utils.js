@@ -40,47 +40,39 @@ class Utils {
    * Load data from chrome storage
    */
   loadFromChromeStorage(keyId, fire_on_done = '') {
-    try {
-      chrome.storage.sync.get(keyId, response => {
-        const jsonData = response?.[keyId];
-        const result = jsonData ? JSON.parse(jsonData) : '';
+    this.app.chrome.storageSyncGet(keyId, response => {
+      const jsonData = response?.[keyId];
+      const result = jsonData ? JSON.parse(jsonData) : '';
 
-        // Store hash of loaded data for future comparison
-        if (jsonData) {
-          this.storageHashes[keyId] = this.djb2Hash(jsonData);
-        }
+      // Store hash of loaded data for future comparison
+      if (jsonData) {
+        this.storageHashes[keyId] = this.djb2Hash(jsonData);
+      }
 
-        if (fire_on_done) {
-          this.app.events.fire(fire_on_done, result);
-        }
-      });
-    } catch (error) {
-      g2t_log(`Utils:loadFromChromeStorage ERROR: ${error.message}`);
-    }
+      if (fire_on_done) {
+        this.app.events.fire(fire_on_done, result);
+      }
+    });
   }
 
   /**
    * Save data to chrome storage with hash-based throttling
    */
   saveToChromeStorage(keyId, data) {
-    try {
-      // Stringify once and reuse
-      const jsonData = JSON.stringify(data);
-      const dataHash = this.djb2Hash(jsonData);
+    // Stringify once and reuse
+    const jsonData = JSON.stringify(data);
+    const dataHash = this.djb2Hash(jsonData);
 
-      // Check if we have a stored hash for this key
-      const storedHash = this.storageHashes[keyId];
-      if (storedHash === dataHash) {
-        return; // No changes, don't save
-      }
-
-      // Update stored hash and save data
-      this.storageHashes[keyId] = dataHash;
-
-      chrome.storage.sync.set({ [keyId]: jsonData });
-    } catch (error) {
-      g2t_log(`Utils:saveToChromeStorage ERROR: ${error.message}`);
+    // Check if we have a stored hash for this key
+    const storedHash = this.storageHashes[keyId];
+    if (storedHash === dataHash) {
+      return; // No changes, don't save
     }
+
+    // Update stored hash and save data
+    this.storageHashes[keyId] = dataHash;
+
+    this.app.chrome.storageSyncSet({ [keyId]: jsonData });
   }
 
   /**
