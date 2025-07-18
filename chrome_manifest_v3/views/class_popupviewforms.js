@@ -17,21 +17,6 @@ class PopupViewForm {
 
   init() {
     this.isInitialized = true;
-    this.bindEvents();
-  }
-
-  bindEvents() {
-    // Form event handlers - these belong in PopupViewForm
-    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.app.events.addListener('checkTrelloAuthorized', this.handleCheckTrelloAuthorized.bind(this));
-    this.app.events.addListener('onRequestDeauthorizeTrello', this.handleRequestDeauthorizeTrello.bind(this));
-    this.app.events.addListener('onLoadTrelloListSuccess', this.handleLoadTrelloListSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloCardsSuccess', this.handleLoadTrelloCardsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloLabelsSuccess', this.handleLoadTrelloLabelsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloMembersSuccess', this.handleLoadTrelloMembersSuccess.bind(this));
-    this.app.events.addListener('onAPIFailure', this.handleAPIFailure.bind(this));
-    this.app.events.addListener('newCardUploadsComplete', this.handleNewCardUploadsComplete.bind(this));
-    this.app.events.addListener('onMenuClick', this.handleOnMenuClick.bind(this));
   }
 
   // Form Data & Validation
