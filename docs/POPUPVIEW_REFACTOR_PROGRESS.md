@@ -17,15 +17,15 @@
 - ✅ Form class properly exported to G2T namespace
 
 ### 3. Deprecated Methods in PopupView
-- ✅ `reset()` → `reset_deprecated()` → delegates to `this.form.reset()`
-- ✅ `clearBoard()` → `clearBoard_deprecated()` → delegates to `this.form.clearBoard()`
-- ✅ `clearLabels()` → `clearLabels_deprecated()` → delegates to `this.form.clearLabels()`
-- ✅ `clearMembers()` → `clearMembers_deprecated()` → delegates to `this.form.clearMembers()`
-- ✅ `updateLabels()` → `updateLabels_deprecated()` → calls form method + original complex logic
-- ✅ `updateLists()` → `updateLists_deprecated()` → calls form method + original complex logic
-- ✅ `updateCards()` → `updateCards_deprecated()` → calls form method + original complex logic
-- ✅ `updateMembers()` → `updateMembers_deprecated()` → calls form method + original complex logic
-- ✅ `validateData()` → `validateData_deprecated()` → calls form method + original complex logic
+- ✅ `reset()` → `reset_deprecated()` → original logic preserved, callers updated
+- ✅ `clearBoard()` → `clearBoard_deprecated()` → original logic preserved, callers updated
+- ✅ `clearLabels()` → `clearLabels_deprecated()` → original logic preserved, callers updated
+- ✅ `clearMembers()` → `clearMembers_deprecated()` → original logic preserved, callers updated
+- ✅ `updateLabels()` → `updateLabels_deprecated()` → original logic preserved, callers updated
+- ✅ `updateLists()` → `updateLists_deprecated()` → original logic preserved, callers updated
+- ✅ `updateCards()` → `updateCards_deprecated()` → original logic preserved, callers updated
+- ✅ `updateMembers()` → `updateMembers_deprecated()` → original logic preserved, callers updated
+- ✅ `validateData()` → `validateData_deprecated()` → original logic preserved, callers updated
 
 ### 4. Deprecation Process
 **CRITICAL: Deprecated methods must keep original logic intact**
