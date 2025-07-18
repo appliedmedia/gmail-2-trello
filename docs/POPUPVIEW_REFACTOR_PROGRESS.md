@@ -50,6 +50,13 @@
 - ✅ `updateCards()` copied to forms, callers updated, original renamed `updateCards_deprecated`
 - ✅ `updateMembers()` copied to forms, callers updated, original renamed `updateMembers_deprecated`
 - ✅ `validateData()` copied to forms, callers updated, original renamed `validateData_deprecated`
+- ✅ `handleSubmit()` copied to forms, event listeners moved to form class, original renamed `handleSubmit_deprecated`
+- ✅ `handleCheckTrelloAuthorized()` copied to forms, event listeners moved to form class, original renamed `handleCheckTrelloAuthorized_deprecated`
+- ✅ `handleRequestDeauthorizeTrello()` copied to forms, event listeners moved to form class, original renamed `handleRequestDeauthorizeTrello_deprecated`
+- ✅ `handleLoadTrelloListSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloListSuccess_deprecated`
+- ✅ `handleLoadTrelloCardsSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloCardsSuccess_deprecated`
+- ✅ `handleLoadTrelloLabelsSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloLabelsSuccess_deprecated`
+- ✅ `handleLoadTrelloMembersSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloMembersSuccess_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -73,7 +80,8 @@ Methods to deprecate next:
 
 ### 2. Update Event Handlers
 - ✅ Moved form-related event handlers to PopupViewForm
-- ✅ Updated event bindings to use form methods
+- ✅ Added bindEvents() method to PopupViewForm
+- ✅ Moved event listeners to appropriate classes (form handlers → form class)
 - ✅ Ensure proper event delegation between classes
 
 ### 3. Complex DOM Methods
