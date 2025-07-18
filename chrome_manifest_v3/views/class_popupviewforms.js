@@ -407,80 +407,230 @@ class PopupViewForm {
   }
 
   updateLists(tempId = 0) {
-    const lists = this.parent.state.lists || [];
-    const $listSelect = $('#g2tList', this.parent.$popup);
-    
-    $listSelect.empty();
-    $listSelect.append('<option value="">Select a list...</option>');
-    
-    lists.forEach(list => {
-      $listSelect.append(`<option value="${list.id}">${list.name}</option>`);
+    const array_k = this.parent?.state?.trello?.lists || [];
+
+    if (!array_k) {
+      return;
+    }
+
+    const settings_k = this.parent?.state?.settings || {};
+
+    const boardId_k = $('#g2tBoard', this.parent.$popup).val();
+
+    const prev_item_k =
+      settings_k?.boardId == boardId_k && settings_k?.listId
+        ? settings_k.listId
+        : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k = this.parent.updatesPending[0]?.listId
+      ? this.parent.updatesPending.shift().listId
+      : 0;
+
+    const restoreId_k =
+      updatePending_k || tempId || prev_item_k || first_item_k || 0;
+
+    const $g2t = $('#g2tList', this.parent.$popup);
+    $g2t.html('');
+
+    g2t_each(array_k, item => {
+      const id_k = item.id;
+      const display_k = item.name;
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
     });
 
-    if (tempId > 0) {
-      $listSelect.val(tempId);
-    }
+    $g2t.change();
   }
 
   updateCards(tempId = 0) {
-    const cards = this.parent.state.cards || [];
-    const $cardSelect = $('#g2tCard', this.parent.$popup);
-    
-    $cardSelect.empty();
-    $cardSelect.append('<option value="">Select a card...</option>');
-    
-    cards.forEach(card => {
-      $cardSelect.append(`<option value="${card.id}">${card.name}</option>`);
+    const new_k = '<option value="-1">(new card at top)</option>';
+
+    const array_k = this.parent?.state?.trello?.cards || [];
+
+    if (!array_k) {
+      return;
+    }
+
+    const settings_k = this.parent?.state?.settings || {};
+
+    const listId_k = $('#g2tList', this.parent.$popup).val();
+
+    const prev_item_k =
+      settings_k?.listId == listId_k && settings_k?.cardId
+        ? settings_k.cardId
+        : 0;
+
+    const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
+
+    const updatePending_k = this.parent.updatesPending[0]?.cardId
+      ? this.parent.updatesPending.shift().cardId
+      : 0;
+
+    const restoreId_k =
+      updatePending_k || tempId || prev_item_k || first_item_k || 0;
+
+    const $g2t = $('#g2tCard', this.parent.$popup);
+    $g2t.html(new_k);
+
+    g2t_each(array_k, item => {
+      const id_k = item.id;
+      const display_k = this.app.utils.truncate(item.name, 80, '...');
+      const selected_k = id_k == restoreId_k;
+      $g2t.append(
+        $('<option>')
+          .attr('value', id_k)
+          .prop('pos', item.pos)
+          .prop('members', item.idMembers)
+          .prop('labels', item.idLabels)
+          .prop('selected', selected_k)
+          .append(display_k)
+      );
     });
 
-    if (tempId > 0) {
-      $cardSelect.val(tempId);
-    }
+    $g2t.change();
   }
 
   updateLabels() {
-    const labels = this.parent.state.labels || [];
-    const $labelContainer = $('#g2tLabels', this.parent.$popup);
-    
-    $labelContainer.empty();
-    
-    labels.forEach(label => {
-      const labelHtml = `
-        <div class="label-item">
-          <input type="checkbox" id="g2tLabel${label.id}" value="${label.id}" />
-          <label for="g2tLabel${label.id}" style="background-color: ${label.color}">
-            ${label.name}
-          </label>
-        </div>
-      `;
-      $labelContainer.append(labelHtml);
+    const labels = this.parent.state.trello.labels;
+    const $g2t = $('#g2tLabels', this.parent.$popup);
+    $g2t.html(''); // Clear out
+
+    for (let i = 0; i < labels.length; i++) {
+      const item = labels[i];
+      if (item.name?.length > 0) {
+        const $color = $("<div id='g2t_temp'>").css('color', item.color);
+        const bkColor = this.app.utils.luminance($color.css('color')); // If you'd like to determine whether to make the background light or dark
+        $g2t.append(
+          $('<button>')
+            .attr('trelloId-label', item.id)
+            .css('border-color', item.color)
+            // .css("background-color", bkColor)
+            .append(item.name)
+            .on('mousedown mouseup', evt => {
+              const elm = $(evt.currentTarget);
+              this.parent.toggleActiveMouseDown(elm);
+            })
+            .on('keypress', evt => {
+              const trigger_k =
+                evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
+              if (trigger_k) {
+                $(evt.target).trigger(trigger_k);
+              }
+            })
+        );
+      }
+    }
+
+    $('#g2tLabelsMsg', this.parent.$popup).hide();
+
+    this.parent.menuCtrl.reset({
+      selectors: '#g2tLabels button',
+      nonexclusive: true,
     });
+
+    const state = this.parent.state;
+    const boardId = $('#g2tBoard', this.parent.$popup).val();
+    if (state.boardId && state.boardId === boardId && state.labelsId) {
+      const settingId = state.labelsId;
+      for (let i = 0; i < labels.length; i++) {
+        const item = labels[i];
+        if (settingId.indexOf(item.id) !== -1) {
+          $(
+            '#g2tLabels button[trelloId-label="' + item.id + '"]',
+            this.parent.$popup
+          ).click();
+        }
+      }
+    } else {
+      this.parent.state.labelsId = ''; // Labels do not have to be set, so no default.
+    }
+
+    $g2t.show();
   }
 
   updateMembers() {
-    const members = this.parent.state.members || [];
-    const $memberContainer = $('#g2tMembers', this.parent.$popup);
-    
-    $memberContainer.empty();
-    
-    members.forEach(member => {
-      const memberHtml = `
-        <div class="member-item">
-          <input type="checkbox" id="g2tMember${member.id}" value="${member.id}" />
-          <label for="g2tMember${member.id}">
-            <img src="${member.avatarUrl}" alt="${member.fullName}" />
-            ${member.fullName}
-          </label>
-        </div>
-      `;
-      $memberContainer.append(memberHtml);
+    const members = this.parent.state.trello.members;
+    const $g2t = $('#g2tMembers', this.parent.$popup);
+    $g2t.html(''); // Clear out
+
+    for (let i = 0; i < members.length; i++) {
+      const item = members[i];
+      if (item && item.id) {
+        const txt = item.initials || item.username || '?';
+        const avatar =
+          this.app.utils.makeAvatarUrl({
+            avatarUrl: item.avatarUrl || '',
+          }) ||
+          chrome.runtime.getURL('images/avatar_generic_profile_gry_30x30.png'); // Default generic profile
+        const size_k = 20;
+        $g2t.append(
+          $('<button>')
+            .attr('trelloId-member', item.id)
+            .attr('title', item.fullName + ' @' + item.username || '?')
+            .attr('class', 'g2t-holder-button')
+            .append(
+              $('<img>')
+                .attr('src', avatar)
+                .attr('width', size_k)
+                .attr('height', size_k)
+            )
+            .append(' ' + txt)
+            .on('mousedown mouseup', evt => {
+              const elm = $(evt.currentTarget);
+              this.parent.toggleActiveMouseDown(elm);
+            })
+            // NOTE (Ace, 2021-02-08): crlf uses mousedown, spacebar uses click:
+            .on('keypress', evt => {
+              const trigger_k =
+                evt.which == 13 ? 'mousedown' : evt.which == 32 ? 'click' : '';
+              if (trigger_k) {
+                $(evt.target).trigger(trigger_k);
+              }
+            })
+        );
+      }
+    }
+
+    $('#g2tMembersMsg', this.parent.$popup).hide();
+
+    this.parent.menuCtrl.reset({
+      selectors: '#g2tMembers button',
+      nonexclusive: true,
     });
+
+    const state = this.parent.state;
+    if (state.membersId?.length > 0) {
+      const settingId = state.membersId;
+      for (let i = 0; i < members.length; i++) {
+        const item = members[i];
+        if (settingId.indexOf(item.id) !== -1) {
+          $(
+            '#g2tMembers button[trelloId-member="' + item.id + '"]',
+            this.parent.$popup
+          ).click();
+        }
+      }
+    } else {
+      this.parent.state.membersId = '';
+    }
+
+    $g2t.show();
   }
 
   clearBoard() {
-    $('#g2tBoard', this.parent.$popup).val('');
-    this.clearLists();
-    this.clearCards();
+    const $g2t = $('#g2tBoard', this.parent.$popup);
+    $g2t.html(''); // Clear it.
+
+    $g2t.append($('<option value="">Select a board....</option>'));
+
+    $g2t.change();
   }
 
   clearLabels() {
@@ -615,29 +765,11 @@ class PopupViewForm {
 
   // Form Actions
   submit() {
-    const errors = this.validateData();
-    if (errors.length > 0) {
-      this.showMessage('#g2tForm', errors.join('<br>'));
-      return false;
+    if (this.parent.$popupContent) {
+      this.parent.$popupContent.hide();
     }
-
-    // Collect form data
-    const formData = {
-      boardId: $('#g2tBoard', this.parent.$popup).val(),
-      listId: $('#g2tList', this.parent.$popup).val(),
-      cardName: $('#g2tCardName', this.parent.$popup).val(),
-      cardDesc: $('#g2tCardDesc', this.parent.$popup).val(),
-      labels: $('input[name="labels"]:checked', this.parent.$popup).map(function() {
-        return this.value;
-      }).get(),
-      members: $('input[name="members"]:checked', this.parent.$popup).map(function() {
-        return this.value;
-      }).get()
-    };
-
-    // Fire submit event
-    this.app.events.fire('formSubmit', formData);
-    return true;
+    this.parent.showMessage(this.parent, 'Submitting to Trello...');
+    this.app.events.fire('onSubmit');
   }
 
   // Form Event Handlers

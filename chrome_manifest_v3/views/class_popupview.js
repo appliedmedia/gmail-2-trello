@@ -472,7 +472,7 @@ class PopupView {
             if (isEscape_k || isCtrlCmdPeriod_k) {
               this.hidePopup();
             } else if (isCtrlCmdEnter_k) {
-              this.submit_deprecated();
+              this.form.submit();
             }
           }
         })
@@ -1857,7 +1857,7 @@ class PopupView {
     $('#g2tSubmit', this.$popup)
       .off('click')
       .on('click', () => {
-        this.submit_deprecated();
+        this.form.submit();
       });
 
     $('#g2tSignOut', this.$popup)
@@ -1875,7 +1875,7 @@ class PopupView {
     $('#addToTrello', this.$popup)
       .off('click')
       .on('click', () => {
-        this.submit_deprecated();
+        this.form.submit();
       });
   }
 

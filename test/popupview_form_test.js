@@ -76,20 +76,36 @@ const mockParent = {
     listId: '',
     cardName: '',
     cardDesc: '',
-    boards: [
-      { id: 'board1', name: 'Board 1' },
-      { id: 'board2', name: 'Board 2' }
-    ],
-    lists: [
-      { id: 'list1', name: 'List 1' },
-      { id: 'list2', name: 'List 2' }
-    ]
+    trello: {
+      boards: [
+        { id: 'board1', name: 'Board 1' },
+        { id: 'board2', name: 'Board 2' }
+      ],
+      lists: [
+        { id: 'list1', name: 'List 1' },
+        { id: 'list2', name: 'List 2' }
+      ],
+      cards: [
+        { id: 'card1', name: 'Card 1' },
+        { id: 'card2', name: 'Card 2' }
+      ],
+      labels: [
+        { id: 'label1', name: 'Label 1', color: '#ff0000' },
+        { id: 'label2', name: 'Label 2', color: '#00ff00' }
+      ],
+      members: [
+        { id: 'member1', fullName: 'Member 1', username: 'member1', initials: 'M1' },
+        { id: 'member2', fullName: 'Member 2', username: 'member2', initials: 'M2' }
+      ]
+    },
+    settings: {}
   },
   $popup: $('#g2tPopup'),
   $popupMessage: $('<div>'),
   $popupContent: $('<div>'),
   size_k: { text: { min: 111 } },
   comboInitialized: false,
+  updatesPending: [],
   handleChromeAPIError: (error, operation) => {
     console.log(`Chrome API Error in ${operation}:`, error);
   },
@@ -102,6 +118,17 @@ const mockParent = {
   },
   updateBoards: () => {
     console.log('Update boards called');
+  },
+  toggleActiveMouseDown: (elm) => {
+    console.log('Toggle active mouse down');
+  },
+  showMessage: (parent, text) => {
+    console.log('Show message:', text);
+  },
+  menuCtrl: {
+    reset: (options) => {
+      console.log('Menu control reset');
+    }
   }
 };
 
