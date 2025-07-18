@@ -1544,17 +1544,7 @@ class PopupView {
     this.app.model.loadTrelloCards(listId);
   }
 
-  handleSubmit() {
-    return this.form.handleSubmit();
-  }
 
-  handleCheckTrelloAuthorized() {
-    return this.form.handleCheckTrelloAuthorized();
-  }
-
-  handleRequestDeauthorizeTrello() {
-    return this.form.handleRequestDeauthorizeTrello();
-  }
 
   handleSubmit_deprecated() {
     if (this.$popupContent) {
@@ -1609,21 +1599,7 @@ class PopupView {
     this.bindData(this.app.model);
   }
 
-  handleLoadTrelloListSuccess() {
-    return this.form.handleLoadTrelloListSuccess();
-  }
 
-  handleLoadTrelloCardsSuccess() {
-    return this.form.handleLoadTrelloCardsSuccess();
-  }
-
-  handleLoadTrelloLabelsSuccess() {
-    return this.form.handleLoadTrelloLabelsSuccess();
-  }
-
-  handleLoadTrelloMembersSuccess() {
-    return this.form.handleLoadTrelloMembersSuccess();
-  }
 
   handleLoadTrelloListSuccess_deprecated() {
     this.updateLists_deprecated();
