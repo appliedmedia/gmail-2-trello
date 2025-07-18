@@ -307,7 +307,7 @@ class PopupView {
     });
   }
 
-  updateBody(data = {}) {
+  updateBody_deprecated(data = {}) {
     const attribute_storage_k = this.ATTRIBUTE_STORAGE;
 
     const markdown_k =
@@ -902,7 +902,7 @@ class PopupView {
 
     // Merge with existing state
     Object.assign(data, this.state || {});
-    this.updateBody(data);
+    this.form.updateBody(data);
 
     $('#g2tTitle', this.$popup).val(data.subject);
 

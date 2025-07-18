@@ -299,18 +299,58 @@ class PopupViewForm {
   }
 
   updateBody(data = {}) {
-    if (!data || !data.body) return;
+    const attribute_storage_k = this.parent.ATTRIBUTE_STORAGE;
 
-    const $body = $('#g2tCardDesc', this.parent.$popup);
-    const currentBody = $body.val();
-    
-    if (currentBody && currentBody.trim() !== '') {
-      // Append to existing body
-      $body.val(currentBody + '\n\n' + data.body);
+    const markdown_k =
+      data?.markdown ?? $('#chkMarkdown', this.parent.$popup).is(':checked');
+    const useBackLink_k =
+      data?.useBackLink ?? $('#chkBackLink', this.parent.$popup).is(':checked');
+    const addCC_k = data?.addCC ?? $('#chkCC', this.parent.$popup).is(':checked');
+    const $g2tDesc = $('#g2tDesc', this.parent.$popup);
+
+    const fields = [
+      'bodyAsRaw',
+      'bodyAsMd',
+      'linkAsRaw',
+      'linkAsMd',
+      'emailId',
+    ];
+    const valid_data_k = fields.every(field => !!data?.[field]);
+
+    fields.push('ccAsRaw', 'ccAsMd'); // These are conditional
+
+    if (valid_data_k) {
+      // Store data in description object attributes:
+      g2t_each(fields, value => {
+        const val_k = data[value] || '';
+        const name_k = attribute_storage_k + value;
+        $g2tDesc.attr(name_k, val_k);
+      });
     } else {
-      // Set new body
-      $body.val(data.body);
+      // Restore data values from description object attributes:
+      g2t_each(fields, value => {
+        const name_k = attribute_storage_k + value;
+        const val_k = $g2tDesc.attr(name_k) || '';
+        data[value] = val_k;
+      }); // WARNING (Ace, 2021-01-04): this might override data.emailId when we don't want it to
     }
+
+    const body_k = markdown_k ? data.bodyAsMd : data.bodyAsRaw;
+    const link_k = useBackLink_k
+      ? markdown_k
+        ? data.linkAsMd
+        : data.linkAsRaw
+      : '';
+    const cc_k = addCC_k ? (markdown_k ? data.ccAsMd : data.ccAsRaw) : '';
+    const desc_k = this.app.utils.truncate(
+      body_k,
+      this.parent.MAX_BODY_SIZE - (link_k.length + cc_k.length),
+      '...'
+    );
+    const val_k = link_k + cc_k + desc_k;
+
+    $g2tDesc.val(val_k);
+    $g2tDesc.change();
   }
 
   mime_array(tag) {
