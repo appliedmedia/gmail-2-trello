@@ -394,15 +394,7 @@ class PopupView {
       'onListChanged',
       this.handleListChanged.bind(this)
     );
-    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.app.events.addListener(
-      'checkTrelloAuthorized',
-      this.handleCheckTrelloAuthorized.bind(this)
-    );
-    this.app.events.addListener(
-      'onRequestDeauthorizeTrello',
-      this.handleRequestDeauthorizeTrello.bind(this)
-    );
+
     this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
@@ -433,22 +425,7 @@ class PopupView {
       'onTrelloDataReady',
       this.handleTrelloDataReady.bind(this)
     );
-    this.app.events.addListener(
-      'onLoadTrelloListSuccess',
-      this.handleLoadTrelloListSuccess.bind(this)
-    );
-    this.app.events.addListener(
-      'onLoadTrelloCardsSuccess',
-      this.handleLoadTrelloCardsSuccess.bind(this)
-    );
-    this.app.events.addListener(
-      'onLoadTrelloLabelsSuccess',
-      this.handleLoadTrelloLabelsSuccess.bind(this)
-    );
-    this.app.events.addListener(
-      'onLoadTrelloMembersSuccess',
-      this.handleLoadTrelloMembersSuccess.bind(this)
-    );
+
     this.app.events.addListener(
       'onAPIFailure',
       this.handleAPIFailure.bind(this)
