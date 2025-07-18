@@ -465,11 +465,7 @@ class PopupView {
   }
 
   submit_deprecated() {
-    if (this.$popupContent) {
-      this.$popupContent.hide();
-    }
-    this.showMessage(this, 'Submitting to Trello...');
-    this.app.events.fire('onSubmit');
+    return this.form.submit();
   }
 
   showPopup() {
@@ -1175,11 +1171,6 @@ class PopupView {
   }
 
   updateLabels_deprecated() {
-    // For now, keep the complex DOM manipulation in PopupView
-    // but delegate basic functionality to form
-    this.form.updateLabels();
-    
-    // Call the original complex logic
     const labels = this.state.trello.labels;
     const $g2t = $('#g2tLabels', this.$popup);
     $g2t.html(''); // Clear out
