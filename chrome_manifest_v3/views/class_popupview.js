@@ -1144,7 +1144,7 @@ class PopupView {
   }
 
   // Select/de-select attachments and images based on first button's state:
-  toggleCheckboxes(tag) {
+  toggleCheckboxes_deprecated(tag) {
     const $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;

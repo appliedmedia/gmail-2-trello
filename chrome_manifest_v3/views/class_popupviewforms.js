@@ -646,10 +646,11 @@ class PopupViewForm {
   }
 
   toggleCheckboxes(tag) {
-    const $checkboxes = $(tag, this.parent.$popup);
-    const allChecked = $checkboxes.length > 0 && $checkboxes.filter(':checked').length === $checkboxes.length;
-    
-    $checkboxes.prop('checked', !allChecked);
+    const $jTags = $('#' + tag + ' input[type="checkbox"]', this.parent.$popup);
+    const $jTag1 = $jTags.first();
+    const checked_k = $jTag1.prop('checked') || false;
+    $jTags.prop('checked', !checked_k);
+    this.validateData();
   }
 
   // Form Display

@@ -66,6 +66,7 @@
 - ✅ `submit()` copied to forms, callers updated, original renamed `submit_deprecated`
 - ✅ `displaySubmitCompleteForm()` copied to forms, callers updated, original renamed `displaySubmitCompleteForm_deprecated`
 - ✅ `displayAPIFailedForm()` copied to forms, callers updated, original renamed `displayAPIFailedForm_deprecated`
+- ✅ `toggleCheckboxes()` copied to forms, callers updated, original renamed `toggleCheckboxes_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
