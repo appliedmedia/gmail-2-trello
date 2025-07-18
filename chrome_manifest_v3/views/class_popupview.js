@@ -273,12 +273,12 @@ class PopupView {
 
     this.onResize();
 
-    this.posDirty = !this.validateData_deprecated();
+    this.posDirty = !this.form.validateData();
   }
 
   // NOTE (Ace, 15-Jan-2017): This resizes all the text areas to match the width of the popup:
   onResize() {
-    this.validateData_deprecated(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
+    this.form.validateData(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
   }
 
   resetDragResize() {
@@ -547,7 +547,7 @@ class PopupView {
       this.mouseDownTracker = {};
 
       this.$popup.show();
-      this.validateData_deprecated();
+      this.form.validateData();
 
       this.app.events.fire('onPopupVisible');
     }
@@ -834,7 +834,7 @@ class PopupView {
       this.updateBoards('52e1397addf85d4751f99319'); // GtT board
       $('#g2tDesc', this.$popup).val(this.state.description);
       $('#g2tTitle', this.$popup).val(this.state.title);
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     this.$popupMessage.hide();
@@ -949,7 +949,7 @@ class PopupView {
     }
 
     this.dataDirty = false;
-    this.validateData_deprecated();
+    this.form.validateData();
   }
 
   showMessage(parent, text) {
@@ -1172,7 +1172,7 @@ class PopupView {
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;
     $jTags.prop('checked', !checked_k);
-    this.validateData_deprecated();
+    this.form.validateData();
   }
 
   clearLabels_deprecated() {
@@ -1648,7 +1648,7 @@ class PopupView {
   }
 
   handleOnMenuClick(target, params) {
-    this.validateData_deprecated();
+    this.form.validateData();
   }
 
   handlePopupViewInitDone() {
@@ -1732,7 +1732,7 @@ class PopupView {
       }
       this.app.events.fire('onBoardChanged', { boardId });
       if (this.comboBox) this.comboBox('updateValue');
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     const $list = $('#g2tList', this.$popup);
@@ -1740,7 +1740,7 @@ class PopupView {
       const listId = $list.val();
       this.app.events.fire('onListChanged', { listId });
       if (this.comboBox) this.comboBox('updateValue');
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     $('#g2tPosition', this.$popup)
@@ -1763,7 +1763,7 @@ class PopupView {
       .off('change')
       .on('change', () => {
         if (this.comboBox) this.comboBox('updateValue');
-        this.validateData_deprecated();
+        this.form.validateData();
       });
 
     $('#g2tDue_Shortcuts', this.$popup)
@@ -1859,7 +1859,7 @@ class PopupView {
         if (new_time.length > 0) {
           $dueTime.val(new_time);
         }
-        this.validateData_deprecated();
+        this.form.validateData();
       });
 
     $('#g2tSubmit', this.$popup)
