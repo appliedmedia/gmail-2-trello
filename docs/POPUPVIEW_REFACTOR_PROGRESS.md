@@ -65,8 +65,8 @@
 
 ## Remaining Work
 
-### 1. Continue Deprecating Methods (Following Deprecation Process)
-Methods to deprecate next:
+### 1. Continue Moving Methods to Form Class
+Methods to move next:
 - ✅ `validateData()` - complex method, needs careful migration
 - `bindData()` - form data binding
 - `bindGmailData()` - Gmail-specific data binding
@@ -130,7 +130,7 @@ PopupView (parent)
 
 ## Next Steps
 
-1. **Continue method deprecation** - Focus on simpler methods first
+1. **Continue moving methods to form class** - Focus on simpler methods first
 2. **Update event bindings** - Ensure form events are properly handled
 3. **Test integration** - Verify form works with actual Gmail data
 4. **Clean up deprecated methods** - Remove deprecated methods once proven working
