@@ -57,6 +57,7 @@
 - ✅ `handleLoadTrelloCardsSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloCardsSuccess_deprecated`
 - ✅ `handleLoadTrelloLabelsSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloLabelsSuccess_deprecated`
 - ✅ `handleLoadTrelloMembersSuccess()` copied to forms, event listeners moved to form class, original renamed `handleLoadTrelloMembersSuccess_deprecated`
+- ✅ `bindData()` copied to forms, callers updated, original renamed `bindData_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -68,7 +69,7 @@
 ### 1. Continue Moving Methods to Form Class (Following Method Move Process)
 Methods to move next:
 - ✅ `validateData()` - complex method, needs careful migration
-- `bindData()` - form data binding
+- ✅ `bindData()` - form data binding
 - `bindGmailData()` - Gmail-specific data binding
 - `updateBody()` - body content updates
 - `mime_array()` - attachment handling

@@ -63,38 +63,205 @@ class PopupViewForm {
   }
 
   bindData(data) {
-    if (!data) return;
-
-    this.parent.state = { ...this.parent.state, ...data };
-
-    // Update form fields
-    if (data.boardId) {
-      $(`#g2tBoard option[value="${data.boardId}"]`, this.parent.$popup).prop('selected', true);
-    }
-
-    if (data.listId) {
-      $(`#g2tList option[value="${data.listId}"]`, this.parent.$popup).prop('selected', true);
-    }
-
-    if (data.cardName) {
-      $('#g2tCardName', this.parent.$popup).val(data.cardName);
-    }
-
-    if (data.cardDesc) {
-      $('#g2tCardDesc', this.parent.$popup).val(data.cardDesc);
-    }
-
-    if (data.labels && Array.isArray(data.labels)) {
-      data.labels.forEach(labelId => {
-        $(`#g2tLabel${labelId}`, this.parent.$popup).prop('checked', true);
+    $('.header a').each(() => {
+      $(document).on('keyup', $(this), evt => {
+        if (evt.which == 13 || evt.which == 32) {
+          $(evt.target).trigger('click');
+        }
       });
+    });
+    $('#g2tSignOutButton', this.parent.$popup).click(() => {
+      this.parent.showSignOutOptions();
+    });
+
+    try {
+      chrome.storage.sync.get('dueShortcuts', response => {
+        // Borrowed from options file until this gets persisted everywhere:
+        const dueShortcuts_k = JSON.stringify({
+          today: {
+            am: 'd+0 am=9:00',
+            noon: 'd+0 pm=12:00',
+            pm: 'd+0 pm=3:00',
+            end: 'd+0 pm=6:00',
+            eve: 'd+0 pm=11:00',
+          },
+          tomorrow: {
+            am: 'd+1 am=9:00',
+            noon: 'd+1 pm=12:00',
+            pm: 'd+1 pm=3:00',
+            end: 'd+1 pm=6:00',
+            eve: 'd+1 pm=11:00',
+          },
+          'next monday': {
+            am: 'd=monday am=9:00',
+            noon: 'd=monday pm=12:00',
+            pm: 'd=monday pm=3:00',
+            end: 'd=monday pm=6:00',
+            eve: 'd=monday pm=11:00',
+          },
+          'next friday': {
+            am: 'd=friday am=9:00',
+            noon: 'd=friday pm=12:00',
+            pm: 'd=friday pm=3:00',
+            end: 'd=friday pm=6:00',
+            eve: 'd=friday pm=11:00',
+          },
+        });
+
+        const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
+
+        const $g2t = $('#g2tDue_Shortcuts', this.parent.$popup);
+        $g2t.html(''); // Clear it.
+
+        let opt =
+          '<option value="none" selected disabled hidden>-</option>' +
+          '<option value="d=0 am=0">--</option>';
+
+        g2t_each(due, (value, key) => {
+          // value is already available from the callback parameter
+          if (typeof value === 'object') {
+            opt += `<optgroup label="${key}">`;
+            g2t_each(value, (value1, key1) => {
+              // value1 is already available from the callback parameter
+              opt += `<option value="${value1}">${key1}</option>`;
+            });
+            opt += '</optgroup>';
+          } else {
+            opt += `<option value="${value}">${key}</option>`;
+          }
+        });
+
+        if (opt) {
+          $g2t.append($(opt));
+        }
+      });
+    } catch (error) {
+      this.parent.handleChromeAPIError(error, 'bindData');
     }
 
-    if (data.members && Array.isArray(data.members)) {
-      data.members.forEach(memberId => {
-        $(`#g2tMember${memberId}`, this.parent.$popup).prop('checked', true);
-      });
+    if (!data) {
+      g2t_log("bindData shouldn't continue without data!");
+      return;
     }
+
+    const state_existing_k = this.parent?.state || {};
+    const state_existing_boardId_valid_k = !!state_existing_k?.boardId;
+
+    const state_incoming_k = data || {};
+    const state_incoming_boardId_valid_k = !!state_incoming_k?.boardId;
+
+    if (state_incoming_k && state_incoming_boardId_valid_k) {
+      // leave state that came in, they look valid
+      this.parent.state = data;
+    } else if (state_existing_k && state_existing_boardId_valid_k) {
+      // use existing state
+      this.parent.state = { ...state_existing_k, ...data };
+    } else {
+      this.parent.state = data;
+    }
+
+    // bind trello data
+    const me = data?.trello?.user || {}; // First member is always this user
+
+    const avatarUrl = me.avatarUrl || '';
+    const avatarSrc = this.app.utils.makeAvatarUrl({ avatarUrl });
+    let avatarText = '';
+    let initials = '?';
+
+    if (!avatarSrc) {
+      if (me.initials?.length > 0) {
+        initials = me.initials;
+      } else if (me.fullName?.length > 1) {
+        const matched = me.fullName.match(/^(\w).*?[\s\\W]+(\w)\w*$/);
+        if (matched && matched.length > 1) {
+          initials = matched[1] + matched[2]; // 0 is whole string
+        }
+      } else if (me.username?.length > 0) {
+        initials = me.username.slice(0, 1);
+      }
+
+      avatarText = initials.toUpperCase();
+      $('#g2tAvatarImgOrText', this.parent.$popup).text(avatarText);
+    } else {
+      $('#g2tAvatarImgOrText', this.parent.$popup).html(
+        '<img width="30" height="30" alt="' +
+          me.username +
+          '" src="' +
+          avatarSrc +
+          '">'
+      );
+    }
+
+    $('#g2tAvatarUrl', this.parent.$popup).attr('href', me.url);
+
+    $('#g2tUsername', this.parent.$popup)
+      .attr('href', me.url)
+      .text(me.username || '?');
+
+    if (data?.useBackLink !== undefined) {
+      $('#chkBackLink', this.parent.$popup).prop('checked', data.useBackLink);
+    }
+
+    if (data?.addCC !== undefined) {
+      $('#chkCC', this.parent.$popup).prop('checked', data.addCC);
+    }
+
+    $(document).on('keyup', '.g2t-checkbox', evt => {
+      if (evt.which == 13 || evt.which == 32) {
+        $(evt.target).trigger('click');
+      }
+    });
+    $(document).on('keydown', '.g2t-checkbox', evt => {
+      if (evt.which == 13 || evt.which == 32) {
+        $(evt.target).trigger('mousedown');
+      }
+    });
+
+    if (data?.markdown !== undefined) {
+      $('#chkMarkdown', this.parent.$popup).prop('checked', data.markdown);
+    }
+
+    if (data?.dueDate !== undefined) {
+      $('#g2tDue_Date', this.parent.$popup).val(data.dueDate);
+    }
+
+    if (data?.dueTime !== undefined) {
+      $('#g2tDue_Time', this.parent.$popup).val(data.dueTime);
+    }
+
+    // Attach reportError function to report id if in text:
+    $('#report', this.parent.$popup).click(() => {
+      this.reset();
+
+      const lastError_k = (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
+
+      const user_k = this.parent?.state?.trello?.user || {};
+      const username_k = user_k?.username || '';
+      const fullname_k = user_k?.fullName || '';
+      const date_k = new Date().toISOString().substring(0, 10);
+
+      // Modify this.data directly for error reporting
+      this.parent.state.description =
+        lastError_k + JSON.stringify(this.parent.state) + '\n' + g2t_log();
+      this.parent.state.title =
+        'Error report card: ' +
+        [fullname_k, username_k].join(' @') +
+        ' ' +
+        date_k;
+
+      this.updateBoards('52e1397addf85d4751f99319'); // GtT board
+      $('#g2tDesc', this.parent.$popup).val(this.parent.state.description);
+      $('#g2tTitle', this.parent.$popup).val(this.parent.state.title);
+      this.validateData();
+    });
+
+    this.parent.$popupMessage.hide();
+    this.parent.$popupContent.show();
+
+    this.updateBoards();
+
+    // Setting up comboboxes after loading data.
+    this.comboBox();
   }
 
   bindGmailData(data = {}) {

@@ -43,10 +43,22 @@ global.g2t_each = function(obj, callback) {
 };
 global.g2t_log = console.log;
 
+// Mock jQuery combobox plugin
+$.fn.combobox = function() {
+  return this;
+};
+
 // Mock chrome API
 global.chrome = {
   runtime: {
     getURL: (url) => `chrome-extension://mock/${url}`
+  },
+  storage: {
+    sync: {
+      get: (key, callback) => {
+        callback({ dueShortcuts: '{}' });
+      }
+    }
   }
 };
 
@@ -74,8 +86,23 @@ const mockParent = {
     ]
   },
   $popup: $('#g2tPopup'),
+  $popupMessage: $('<div>'),
+  $popupContent: $('<div>'),
   size_k: { text: { min: 111 } },
-  comboInitialized: false
+  comboInitialized: false,
+  handleChromeAPIError: (error, operation) => {
+    console.log(`Chrome API Error in ${operation}:`, error);
+  },
+  showSignOutOptions: () => {
+    console.log('Show sign out options');
+  },
+  lastError: '',
+  reset: () => {
+    console.log('Reset called');
+  },
+  updateBoards: () => {
+    console.log('Update boards called');
+  }
 };
 
 // Mock app
@@ -83,6 +110,14 @@ const mockApp = {
   events: {
     fire: (event, data) => {
       console.log(`Event fired: ${event}`, data);
+    },
+    addListener: (event, handler) => {
+      console.log(`Event listener added: ${event}`);
+    }
+  },
+  utils: {
+    makeAvatarUrl: (params) => {
+      return params.avatarUrl || '';
     }
   }
 };

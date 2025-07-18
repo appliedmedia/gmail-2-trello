@@ -621,7 +621,7 @@ class PopupView {
     });
   }
 
-  bindData(data) {
+  bindData_deprecated(data) {
     $('.header a').each(() => {
       $(document).on('keyup', $(this), evt => {
         if (evt.which == 13 || evt.which == 32) {
@@ -1573,7 +1573,7 @@ class PopupView {
   }
 
   handleBeforeAuthorize() {
-    this.bindData(''); // Intentionally blank
+    this.form.bindData(''); // Intentionally blank
     this.showMessage(this.app, 'Authorizing...');
   }
 
@@ -1596,7 +1596,7 @@ class PopupView {
   handleTrelloDataReady() {
     this.$popupContent.show();
     this.hideMessage();
-    this.bindData(this.app.model);
+    this.form.bindData(this.app.model);
   }
 
 
