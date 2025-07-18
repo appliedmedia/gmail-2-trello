@@ -464,7 +464,7 @@ class PopupView {
     );
   }
 
-  submit() {
+  submit_deprecated() {
     if (this.$popupContent) {
       this.$popupContent.hide();
     }
@@ -495,7 +495,7 @@ class PopupView {
             if (isEscape_k || isCtrlCmdPeriod_k) {
               this.hidePopup();
             } else if (isCtrlCmdEnter_k) {
-              this.submit();
+              this.submit_deprecated();
             }
           }
         })
@@ -1860,7 +1860,7 @@ class PopupView {
     $('#g2tSubmit', this.$popup)
       .off('click')
       .on('click', () => {
-        this.submit();
+        this.submit_deprecated();
       });
 
     $('#g2tSignOut', this.$popup)
@@ -1878,7 +1878,7 @@ class PopupView {
     $('#addToTrello', this.$popup)
       .off('click')
       .on('click', () => {
-        this.submit();
+        this.submit_deprecated();
       });
   }
 
