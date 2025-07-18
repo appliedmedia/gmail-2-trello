@@ -394,15 +394,15 @@ class PopupView {
       'onListChanged',
       this.handleListChanged.bind(this)
     );
-    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.app.events.addListener(
-      'checkTrelloAuthorized',
-      this.handleCheckTrelloAuthorized.bind(this)
-    );
-    this.app.events.addListener(
-      'onRequestDeauthorizeTrello',
-      this.handleRequestDeauthorizeTrello.bind(this)
-    );
+    this.app.events.addListener('onSubmit', this.handleSubmit_deprecated.bind(this));
+          this.app.events.addListener(
+        'checkTrelloAuthorized',
+        this.handleCheckTrelloAuthorized_deprecated.bind(this)
+      );
+          this.app.events.addListener(
+        'onRequestDeauthorizeTrello',
+        this.handleRequestDeauthorizeTrello_deprecated.bind(this)
+      );
     this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
@@ -435,19 +435,19 @@ class PopupView {
     );
     this.app.events.addListener(
       'onLoadTrelloListSuccess',
-      this.handleLoadTrelloListSuccess.bind(this)
+      this.handleLoadTrelloListSuccess_deprecated.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloCardsSuccess',
-      this.handleLoadTrelloCardsSuccess.bind(this)
+      this.handleLoadTrelloCardsSuccess_deprecated.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloLabelsSuccess',
-      this.handleLoadTrelloLabelsSuccess.bind(this)
+      this.handleLoadTrelloLabelsSuccess_deprecated.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloMembersSuccess',
-      this.handleLoadTrelloMembersSuccess.bind(this)
+      this.handleLoadTrelloMembersSuccess_deprecated.bind(this)
     );
     this.app.events.addListener(
       'onAPIFailure',
@@ -1568,15 +1568,22 @@ class PopupView {
   }
 
   handleSubmit_deprecated() {
-    return this.form.handleSubmit();
+    if (this.$popupContent) {
+      this.$popupContent.hide();
+    }
+    this.showMessage(this, 'Submitting to Trello...');
+    this.app.events.fire('onSubmit');
   }
 
   handleCheckTrelloAuthorized_deprecated() {
-    return this.form.handleCheckTrelloAuthorized();
+    this.showMessage(this.app, 'Authorizing...');
+    this.app.model.checkTrelloAuthorized();
   }
 
   handleRequestDeauthorizeTrello_deprecated() {
-    return this.form.handleRequestDeauthorizeTrello();
+    g2t_log('onRequestDeauthorizeTrello');
+    this.app.model.deauthorizeTrello();
+    this.clearBoard_deprecated();
   }
 
   handleDetectButton() {
@@ -1614,19 +1621,23 @@ class PopupView {
   }
 
   handleLoadTrelloListSuccess_deprecated() {
-    return this.form.handleLoadTrelloListSuccess();
+    this.updateLists_deprecated();
+    this.validateData_deprecated();
   }
 
   handleLoadTrelloCardsSuccess_deprecated() {
-    return this.form.handleLoadTrelloCardsSuccess();
+    this.updateCards_deprecated();
+    this.validateData_deprecated();
   }
 
   handleLoadTrelloLabelsSuccess_deprecated() {
-    return this.form.handleLoadTrelloLabelsSuccess();
+    this.updateLabels_deprecated();
+    this.validateData_deprecated();
   }
 
   handleLoadTrelloMembersSuccess_deprecated() {
-    return this.form.handleLoadTrelloMembersSuccess();
+    this.updateMembers_deprecated();
+    this.validateData_deprecated();
   }
 
   handleAPIFailure(target, params) {
