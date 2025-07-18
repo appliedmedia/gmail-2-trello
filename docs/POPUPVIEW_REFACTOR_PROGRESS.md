@@ -16,7 +16,7 @@
 - ✅ Added form.init() call in PopupView.init()
 - ✅ Form class properly exported to G2T namespace
 
-### 3. Deprecation Process
+### 3. Method Move Process
 **CRITICAL: Deprecated methods must keep original logic intact**
 
 1. **COPY THE METHOD TO THE FORM CLASS**
@@ -40,7 +40,7 @@
 - Prevents breaking changes
 - Enables rollback if needed
 
-### 4. Deprecated Methods in PopupView
+### 4. Methods Moved to Form Class
 - ✅ `reset()` copied to forms, callers updated, original renamed `reset_deprecated`
 - ✅ `clearBoard()` copied to forms, callers updated, original renamed `clearBoard_deprecated`
 - ✅ `clearLabels()` copied to forms, callers updated, original renamed `clearLabels_deprecated`
@@ -65,7 +65,7 @@
 
 ## Remaining Work
 
-### 1. Continue Moving Methods to Form Class
+### 1. Continue Moving Methods to Form Class (Following Method Move Process)
 Methods to move next:
 - ✅ `validateData()` - complex method, needs careful migration
 - `bindData()` - form data binding
@@ -135,3 +135,11 @@ PopupView (parent)
 3. **Test integration** - Verify form works with actual Gmail data
 4. **Clean up deprecated methods** - Remove deprecated methods once proven working
 5. **Documentation** - Update documentation for new architecture
+
+## Goal Clarification
+
+The primary goal is **refactoring** the large PopupView class into two focused classes:
+- **PopupView** - popup lifecycle, events, chrome API
+- **PopupViewForm** - form data, validation, UI updates
+
+The deprecation process is merely a **follow-up step** to safely transition old methods after they've been moved to the form class. This ensures the refactor can be done gradually without breaking existing functionality.

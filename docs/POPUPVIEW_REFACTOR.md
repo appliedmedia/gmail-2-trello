@@ -136,10 +136,18 @@ Split `PopupView` into two classes:
 5. Test form functionality
 6. Test popup lifecycle
 
-## Deprecation Process
+## Method Move Process
 
 1. **COPY THE METHOD TO THE FORM CLASS**
 2. **UPDATE THE CALLERS TO USE THE FORM VERSION OF THE METHOD**
 3. **UPDATE THE METHOD NAME TO INCLUDE _deprecated**
 4. **LEAVE IT THE FUCK ALONE AND DONT TOUCH IT OR USE IT EVER AGAIN**
 5. **UPDATE THE TESTS TO PROVE THE NEW METHOD IN THE FORM CLASS IS WORKING CORRECTLY**
+
+## Goal Clarification
+
+The primary goal is **refactoring** the large PopupView class into two focused classes:
+- **PopupView** - popup lifecycle, events, chrome API
+- **PopupViewForm** - form data, validation, UI updates
+
+The deprecation process is merely a **follow-up step** to safely transition old methods after they've been moved to the form class. This ensures the refactor can be done gradually without breaking existing functionality.
