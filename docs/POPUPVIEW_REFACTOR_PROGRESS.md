@@ -19,24 +19,19 @@
 ### 3. Deprecation Process
 **CRITICAL: Deprecated methods must keep original logic intact**
 
-1. **Rename method**: `methodName()` → `methodName_deprecated()`
-2. **Keep original logic**: Copy entire original method body to deprecated version
-3. **Update callers**: Change all calls from `methodName()` to `methodName_deprecated()`
-4. **Create new method**: Add `methodName()` that delegates to `this.form.methodName()`
-5. **Verify behavior**: Ensure deprecated method works exactly like original
+1. **COPY THE METHOD TO THE FORM CLASS**
+2. **UPDATE THE CALLERS TO USE THE FORM VERSION OF THE METHOD**
+3. **UPDATE THE METHOD NAME TO INCLUDE _deprecated**
+4. **LEAVE IT THE FUCK ALONE AND DONT TOUCH IT OR USE IT EVER AGAIN**
+5. **UPDATE THE TESTS TO PROVE THE NEW METHOD IN THE FORM CLASS IS WORKING CORRECTLY**
 
 **Example:**
 ```javascript
-// Original method (now deprecated)
-validateData_deprecated() {
-    // ALL ORIGINAL LOGIC STAYS HERE
-    const data = this.getFormData();
-    if (!data.title) {
-        this.showError('Title is required');
-        return false;
-    }
-    // ... rest of original validation logic
-}
+// Step 1: Copy method to form class
+// Step 2: Update callers to use this.form.methodName()
+// Step 3: Rename original to methodName_deprecated()
+// Step 4: LEAVE IT ALONE FOREVER
+// Step 5: Test form class method works
 ```
 
 **Why this approach:**
