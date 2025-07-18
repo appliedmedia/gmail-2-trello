@@ -902,7 +902,7 @@ class PopupView {
 
     // Merge with existing state
     Object.assign(data, this.state || {});
-    this.form.updateBody(data);
+    this.updateBody_deprecated(data);
 
     $('#g2tTitle', this.$popup).val(data.subject);
 
