@@ -60,6 +60,7 @@
 - ✅ `bindData()` copied to forms, callers updated, original renamed `bindData_deprecated`
 - ✅ `bindGmailData()` copied to forms, callers updated, original renamed `bindGmailData_deprecated`
 - ✅ `updateBody()` copied to forms, callers updated, original renamed `updateBody_deprecated`
+- ✅ `mime_array()` copied to forms, callers updated, original renamed `mime_array_deprecated`
 
 ### 5. Testing
 - ✅ Created Node.js test suite: `test/popupview_form_test.js`
@@ -74,7 +75,7 @@ Methods to move next:
 - ✅ `bindData()` - form data binding
 - ✅ `bindGmailData()` - Gmail-specific data binding
 - ✅ `updateBody()` - body content updates
-- `mime_array()` - attachment handling
+- ✅ `mime_array()` - attachment handling
 - `mime_html()` - attachment HTML generation
 - `comboBox()` - autocomplete functionality
 - `submit()` - form submission

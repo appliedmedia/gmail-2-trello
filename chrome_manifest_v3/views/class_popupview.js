@@ -1291,7 +1291,7 @@ class PopupView {
     $g2t.show();
   }
 
-  mime_array(tag) {
+  mime_array_deprecated(tag) {
     const self = this;
     const tag_formatted = `#${tag} input[type="checkbox"]`;
     const $jTags = $(tag_formatted, self.$popup);

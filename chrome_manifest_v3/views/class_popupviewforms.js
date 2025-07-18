@@ -354,21 +354,28 @@ class PopupViewForm {
   }
 
   mime_array(tag) {
-    const attachments = [];
-    const $attachments = $(tag, this.parent.$popup);
-    
-    $attachments.each((index, element) => {
-      const $element = $(element);
-      const attachment = {
-        name: $element.attr('data-name') || '',
-        type: $element.attr('data-type') || '',
-        size: $element.attr('data-size') || 0,
-        data: $element.attr('data-content') || ''
+    const self = this;
+    const tag_formatted = `#${tag} input[type="checkbox"]`;
+    const $jTags = $(tag_formatted, self.parent.$popup);
+    let array = [];
+    let item = {};
+    let checked_total = 0;
+
+    $jTags.each(function () {
+      const checked = $(this).is(':checked');
+      if (checked) {
+        checked_total++;
+      }
+      item = {
+        url: $(this).attr('url'),
+        name: $(this).attr('name'),
+        mimeType: $(this).attr('mimeType'),
+        checked,
       };
-      attachments.push(attachment);
+      array.push(item);
     });
 
-    return attachments;
+    return { array, checked_total };
   }
 
   reset() {
