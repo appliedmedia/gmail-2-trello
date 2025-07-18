@@ -273,12 +273,12 @@ class PopupView {
 
     this.onResize();
 
-    this.posDirty = !this.form.validateData();
+    this.posDirty = !this.validateData_deprecated();
   }
 
   // NOTE (Ace, 15-Jan-2017): This resizes all the text areas to match the width of the popup:
   onResize() {
-    this.form.validateData(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
+    this.validateData_deprecated(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
   }
 
   resetDragResize() {
@@ -394,15 +394,15 @@ class PopupView {
       'onListChanged',
       this.handleListChanged.bind(this)
     );
-    this.app.events.addListener('onSubmit', this.handleSubmit_deprecated.bind(this));
-          this.app.events.addListener(
-        'checkTrelloAuthorized',
-        this.handleCheckTrelloAuthorized_deprecated.bind(this)
-      );
-          this.app.events.addListener(
-        'onRequestDeauthorizeTrello',
-        this.handleRequestDeauthorizeTrello_deprecated.bind(this)
-      );
+    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
     this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
@@ -435,19 +435,19 @@ class PopupView {
     );
     this.app.events.addListener(
       'onLoadTrelloListSuccess',
-      this.handleLoadTrelloListSuccess_deprecated.bind(this)
+      this.handleLoadTrelloListSuccess.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloCardsSuccess',
-      this.handleLoadTrelloCardsSuccess_deprecated.bind(this)
+      this.handleLoadTrelloCardsSuccess.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloLabelsSuccess',
-      this.handleLoadTrelloLabelsSuccess_deprecated.bind(this)
+      this.handleLoadTrelloLabelsSuccess.bind(this)
     );
     this.app.events.addListener(
       'onLoadTrelloMembersSuccess',
-      this.handleLoadTrelloMembersSuccess_deprecated.bind(this)
+      this.handleLoadTrelloMembersSuccess.bind(this)
     );
     this.app.events.addListener(
       'onAPIFailure',
@@ -547,7 +547,7 @@ class PopupView {
       this.mouseDownTracker = {};
 
       this.$popup.show();
-      this.form.validateData();
+      this.validateData_deprecated();
 
       this.app.events.fire('onPopupVisible');
     }
@@ -834,7 +834,7 @@ class PopupView {
       this.updateBoards('52e1397addf85d4751f99319'); // GtT board
       $('#g2tDesc', this.$popup).val(this.state.description);
       $('#g2tTitle', this.$popup).val(this.state.title);
-      this.form.validateData();
+      this.validateData_deprecated();
     });
 
     this.$popupMessage.hide();
@@ -949,7 +949,7 @@ class PopupView {
     }
 
     this.dataDirty = false;
-    this.form.validateData();
+    this.validateData_deprecated();
   }
 
   showMessage(parent, text) {
@@ -1172,7 +1172,7 @@ class PopupView {
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;
     $jTags.prop('checked', !checked_k);
-    this.form.validateData();
+    this.validateData_deprecated();
   }
 
   clearLabels_deprecated() {
@@ -1567,6 +1567,18 @@ class PopupView {
     this.app.model.loadTrelloCards(listId);
   }
 
+  handleSubmit() {
+    return this.form.handleSubmit();
+  }
+
+  handleCheckTrelloAuthorized() {
+    return this.form.handleCheckTrelloAuthorized();
+  }
+
+  handleRequestDeauthorizeTrello() {
+    return this.form.handleRequestDeauthorizeTrello();
+  }
+
   handleSubmit_deprecated() {
     if (this.$popupContent) {
       this.$popupContent.hide();
@@ -1620,6 +1632,22 @@ class PopupView {
     this.bindData(this.app.model);
   }
 
+  handleLoadTrelloListSuccess() {
+    return this.form.handleLoadTrelloListSuccess();
+  }
+
+  handleLoadTrelloCardsSuccess() {
+    return this.form.handleLoadTrelloCardsSuccess();
+  }
+
+  handleLoadTrelloLabelsSuccess() {
+    return this.form.handleLoadTrelloLabelsSuccess();
+  }
+
+  handleLoadTrelloMembersSuccess() {
+    return this.form.handleLoadTrelloMembersSuccess();
+  }
+
   handleLoadTrelloListSuccess_deprecated() {
     this.updateLists_deprecated();
     this.validateData_deprecated();
@@ -1659,7 +1687,7 @@ class PopupView {
   }
 
   handleOnMenuClick(target, params) {
-    this.form.validateData();
+    this.validateData_deprecated();
   }
 
   handlePopupViewInitDone() {
@@ -1743,7 +1771,7 @@ class PopupView {
       }
       this.app.events.fire('onBoardChanged', { boardId });
       if (this.comboBox) this.comboBox('updateValue');
-      this.form.validateData();
+      this.validateData_deprecated();
     });
 
     const $list = $('#g2tList', this.$popup);
@@ -1751,7 +1779,7 @@ class PopupView {
       const listId = $list.val();
       this.app.events.fire('onListChanged', { listId });
       if (this.comboBox) this.comboBox('updateValue');
-      this.form.validateData();
+      this.validateData_deprecated();
     });
 
     $('#g2tPosition', this.$popup)
@@ -1774,7 +1802,7 @@ class PopupView {
       .off('change')
       .on('change', () => {
         if (this.comboBox) this.comboBox('updateValue');
-        this.form.validateData();
+        this.validateData_deprecated();
       });
 
     $('#g2tDue_Shortcuts', this.$popup)
@@ -1870,7 +1898,7 @@ class PopupView {
         if (new_time.length > 0) {
           $dueTime.val(new_time);
         }
-        this.form.validateData();
+        this.validateData_deprecated();
       });
 
     $('#g2tSubmit', this.$popup)
