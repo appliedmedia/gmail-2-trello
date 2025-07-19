@@ -700,6 +700,7 @@ class PopupViewForm {
           break;
         case 'showsignout':
           this.parent.showSignOutOptions();
+          break;
         default:
           g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
       }
@@ -876,13 +877,7 @@ class PopupViewForm {
     }
   }
 
-  formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
+
 
   // Form Actions
   submit() {
@@ -926,22 +921,22 @@ class PopupViewForm {
   }
 
   handleLoadTrelloListSuccess() {
-    this.parent.updateLists_deprecated();
+    this.updateLists();
     this.validateData();
   }
 
   handleLoadTrelloCardsSuccess() {
-    this.parent.updateCards_deprecated();
+    this.updateCards();
     this.validateData();
   }
 
   handleLoadTrelloLabelsSuccess() {
-    this.parent.updateLabels_deprecated();
+    this.updateLabels();
     this.validateData();
   }
 
   handleLoadTrelloMembersSuccess() {
-    this.parent.updateMembers_deprecated();
+    this.updateMembers();
     this.validateData();
   }
 
