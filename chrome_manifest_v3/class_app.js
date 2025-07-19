@@ -28,6 +28,10 @@ class App {
     this.popupView = new G2T.PopupView({ app: this });
     this.utils = new G2T.Utils({ app: this });
     this.state = {};
+    
+    // Navigation detection variables
+    this.navigationTimeout = null;
+    this.navigationObserver = null;
   }
 
   loadState() {
@@ -54,12 +58,123 @@ class App {
     this.state = params || {};
   }
 
+  // Handle Gmail navigation changes
+  handleGmailNavigation() {
+    g2t_log('App: Gmail navigation detected, triggering redraw');
+    // Force a complete redraw to ensure the button appears in the new view
+    this.gmailView.forceRedraw();
+    // Also fire the force redraw event for the popup view
+    this.events.fire('forceRedraw');
+  }
+
+  // Clean up navigation observers and timeouts
+  cleanup() {
+    if (this.navigationTimeout) {
+      clearTimeout(this.navigationTimeout);
+      this.navigationTimeout = null;
+    }
+    
+    if (this.navigationObserver) {
+      this.navigationObserver.disconnect();
+      this.navigationObserver = null;
+    }
+  }
+
   // Event binding
   bindEvents() {
     this.events.addListener(
       'classAppStateLoaded',
       this.handleClassAppStateLoaded.bind(this)
     );
+  }
+
+  // Bind Gmail navigation events
+  bindGmailNavigationEvents() {
+    // Listen for URL hash changes (Gmail's primary navigation method)
+    window.addEventListener('hashchange', () => {
+      this.handleGmailNavigation();
+    });
+
+    // Listen for popstate events (back/forward navigation)
+    window.addEventListener('popstate', () => {
+      this.handleGmailNavigation();
+    });
+
+    // Listen for Gmail's internal navigation events
+    // Gmail dispatches custom events when views change
+    document.addEventListener('click', (event) => {
+      // Check if the click is on a Gmail navigation element
+      const $target = $(event.target);
+      const isGmailNav = $target.closest('[role="navigation"], .bq9, .bqA, .bqB, .bqC, .bqD, .bqE, .bqF, .bqG, .bqH, .bqI, .bqJ, .bqK, .bqL, .bqM, .bqN, .bqO, .bqP, .bqQ, .bqR, .bqS, .bqT, .bqU, .bqV, .bqW, .bqX, .bqY, .bqZ, [data-tooltip*="Inbox"], [data-tooltip*="Starred"], [data-tooltip*="Sent"], [data-tooltip*="Drafts"], [data-tooltip*="Spam"], [data-tooltip*="Trash"], [aria-label*="Inbox"], [aria-label*="Starred"], [aria-label*="Sent"], [aria-label*="Drafts"], [aria-label*="Spam"], [aria-label*="Trash"]').length > 0;
+      
+      if (isGmailNav) {
+        // Add a small delay to allow Gmail to complete the navigation
+        setTimeout(() => {
+          this.handleGmailNavigation();
+        }, 100);
+      }
+    });
+
+    // Listen for Gmail's internal route changes
+    // Gmail uses a custom router that dispatches events
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function(...args) {
+      originalPushState.apply(history, args);
+      // Trigger navigation detection after a short delay
+      setTimeout(() => {
+        if (window.g2t_app) {
+          window.g2t_app.handleGmailNavigation();
+        }
+      }, 50);
+    };
+    
+    history.replaceState = function(...args) {
+      originalReplaceState.apply(history, args);
+      // Trigger navigation detection after a short delay
+      setTimeout(() => {
+        if (window.g2t_app) {
+          window.g2t_app.handleGmailNavigation();
+        }
+      }, 50);
+    };
+
+    // Listen for Gmail's internal DOM changes that indicate navigation
+    // Gmail updates the main content area when views change
+    const observer = new MutationObserver((mutations) => {
+      let shouldRedraw = false;
+      
+      mutations.forEach((mutation) => {
+        // Check if the main Gmail content area has changed
+        if (mutation.type === 'childList' && mutation.target) {
+          const $target = $(mutation.target);
+          const isMainContent = $target.closest('.AO, .nH, .aia, [role="main"]').length > 0;
+          const isToolbarChange = $target.closest('[gh="mtb"]').length > 0;
+          
+          if (isMainContent || isToolbarChange) {
+            shouldRedraw = true;
+          }
+        }
+      });
+      
+      if (shouldRedraw) {
+        // Debounce the redraw to avoid excessive calls
+        clearTimeout(this.navigationTimeout);
+        this.navigationTimeout = setTimeout(() => {
+          this.handleGmailNavigation();
+        }, 200);
+      }
+    });
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Store the observer for cleanup if needed
+    this.navigationObserver = observer;
   }
 
   init() {
@@ -70,6 +185,9 @@ class App {
     this.popupView.init();
     this.utils.init();
     this.loadState();
+
+    // Bind Gmail navigation events to detect view changes
+    this.bindGmailNavigationEvents();
 
     // Declare before use to avoid undeclared globals
     const service = analytics.getService('gmail-2-trello');

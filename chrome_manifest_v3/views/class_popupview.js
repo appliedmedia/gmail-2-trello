@@ -369,6 +369,12 @@ class PopupView {
       'classPopupViewInitDone',
       this.handlePopupViewInitDone.bind(this)
     );
+
+    // Bind force redraw event
+    this.app.events.addListener(
+      'forceRedraw',
+      this.handleForceRedraw.bind(this)
+    );
   }
 
   bindPopupEvents() {
@@ -1565,6 +1571,33 @@ class PopupView {
       this.$toolBar = this.app.gmailView.$toolBar;
       this.finalCreatePopup(); // Moved from init() to here
     }
+  }
+
+  // Handle forced redraw requests
+  handleForceRedraw() {
+    g2t_log('PopupView:handleForceRedraw - handling forced redraw request');
+    
+    // Clear any existing button and popup
+    const $existingButton = $('#g2tButton');
+    const $existingPopup = $('#g2tPopup');
+    
+    if ($existingButton.length > 0) {
+      $existingButton.remove();
+    }
+    
+    if ($existingPopup.length > 0) {
+      $existingPopup.remove();
+    }
+    
+    // Clear cached HTML
+    this.html = {};
+    
+    // Reset state
+    this.$toolBar = null;
+    this.isInitialized = false;
+    
+    // Trigger fresh detection
+    this.handleDetectButton();
   }
 
   handleBeforeAuthorize() {
