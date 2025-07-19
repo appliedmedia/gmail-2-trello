@@ -1939,7 +1939,9 @@ class PopupView {
     // inject a button & a popup
     // this.finalCreatePopup(); // Moved to handleDetectButton for now
 
-    // TEMPORARILY DISABLED: Periodic button detection timer
+    // TEMPORARILY DISABLED (2024-12-19): Periodic button detection timer
+    // We're commenting out this section in hopes we won't need it anymore with the new navigation detection,
+    // but leaving it just in case the button disappears and we need the periodic check as a fallback.
     // Uncomment the lines below if the button disappears and you need the periodic check
     /*
     if (this.intervalId) {
