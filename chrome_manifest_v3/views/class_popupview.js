@@ -589,7 +589,7 @@ class PopupView {
                   version_new,
                 };
                 data = this.app.utils.replacer(data, dict);
-                this.showMessage(this, data);
+                this.form.showMessage(this, data);
               });
             }
           } else {
@@ -1513,7 +1513,7 @@ class PopupView {
   }
 
   handlePopupVisible() {
-    this.reset();
+    this.form.reset();
 
     const trelloUser_k = this?.app?.model?.trello?.user || {};
     const fullName = trelloUser_k?.fullName || '';
