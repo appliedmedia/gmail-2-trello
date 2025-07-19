@@ -1155,7 +1155,7 @@ class PopupView {
   clearLabels_deprecated() {
     this.state.labelsId = '';
     this.updateLabels();
-    this.form.validateData();
+    this.validateData();
   }
 
   updateLabels_deprecated() {
@@ -1219,7 +1219,7 @@ class PopupView {
   clearMembers_deprecated() {
     this.state.membersId = '';
     this.updateMembers();
-    this.form.validateData();
+    this.validateData();
   }
 
   updateMembers_deprecated() {
@@ -1366,11 +1366,11 @@ class PopupView {
       membersId = self.state.membersId; // We're not yet showing members so override membersId with state
     }
 
-    const attach_k = this.form.mime_array('g2tAttachments');
+    const attach_k = this.mime_array('g2tAttachments');
     let attachments = attach_k.array;
     let attachments_checked = attach_k.checked_total;
 
-    const images_k = this.form.mime_array('g2tImages');
+    const images_k = this.mime_array('g2tImages');
     let images = images_k.array;
     let images_checked = images_k.checked_total;
 
