@@ -354,8 +354,9 @@ class PopupViewForm {
   }
 
   mime_array(tag) {
+    const self = this;
     const tag_formatted = `#${tag} input[type="checkbox"]`;
-    const $jTags = $(tag_formatted, this.parent.$popup);
+    const $jTags = $(tag_formatted, self.parent.$popup);
     const array = [];
     let item = {};
     let checked_total = 0;
