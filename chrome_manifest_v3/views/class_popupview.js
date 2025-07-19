@@ -271,15 +271,10 @@ class PopupView {
     this.$popup.css('width', newPopupWidth + 'px');
     this.$popup.css('left', newPopupLeft + 'px');
 
-    this.onResize();
-
     this.posDirty = !this.validateData_deprecated();
   }
 
-  // NOTE (Ace, 15-Jan-2017): This resizes all the text areas to match the width of the popup:
-  onResize() {
-    this.validateData_deprecated(); // Assures size is saved // OBSOLETE (acoven@2020-08-12): Can probably remove "onResize" completely
-  }
+
 
   resetDragResize() {
     const $g2tDesc = $('#g2tDesc', this.$popup);
