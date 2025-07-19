@@ -1550,12 +1550,12 @@ class PopupView {
     if (this.$popupContent) {
       this.$popupContent.hide();
     }
-    this.showMessage(this, 'Submitting to Trello...');
+    this.form.showMessage(this, 'Submitting to Trello...');
     this.app.events.fire('onSubmit');
   }
 
   handleCheckTrelloAuthorized_deprecated() {
-    this.showMessage(this.app, 'Authorizing...');
+    this.form.showMessage(this.app, 'Authorizing...');
     this.app.model.checkTrelloAuthorized();
   }
 
