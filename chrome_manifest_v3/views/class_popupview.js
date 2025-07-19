@@ -1145,7 +1145,7 @@ class PopupView {
 
   // Select/de-select attachments and images based on first button's state:
   toggleCheckboxes_deprecated(tag) {
-    const $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
+    const $jTags = $(`#${tag} input[type="checkbox"]`, this.$popup);
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;
     $jTags.prop('checked', !checked_k);
@@ -1204,7 +1204,7 @@ class PopupView {
         const item = labels[i];
         if (settingId.indexOf(item.id) !== -1) {
           $(
-            '#g2tLabels button[trelloId-label="' + item.id + '"]',
+            `#g2tLabels button[trelloId-label="${item.id}"]`,
             this.$popup
           ).click();
         }
@@ -1279,7 +1279,7 @@ class PopupView {
         const item = members[i];
         if (settingId.indexOf(item.id) !== -1) {
           $(
-            '#g2tMembers button[trelloId-member="' + item.id + '"]',
+            `#g2tMembers button[trelloId-member="${item.id}"]`,
             this.$popup
           ).click();
         }
