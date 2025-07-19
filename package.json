@@ -46,10 +46,12 @@
   },
   "dependencies": {
     "archiver": "latest",
+    "dotenv": "latest",
     "googleapis": "latest",
-    "dotenv": "latest"
+    "jquery": "^3.7.1",
+    "jsdom": "^26.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}
