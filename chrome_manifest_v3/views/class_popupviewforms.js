@@ -354,10 +354,9 @@ class PopupViewForm {
   }
 
   mime_array(tag) {
-    const self = this;
     const tag_formatted = `#${tag} input[type="checkbox"]`;
-    const $jTags = $(tag_formatted, self.parent.$popup);
-    let array = [];
+    const $jTags = $(tag_formatted, this.parent.$popup);
+    const array = [];
     let item = {};
     let checked_total = 0;
 
@@ -670,7 +669,6 @@ class PopupViewForm {
       parent.hideMessage();
     });
 
-    const self = this;
     $(':button', this.parent.$popupMessage).click(event => {
       const $status = $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
       switch (event.target.id) {
@@ -684,20 +682,22 @@ class PopupViewForm {
           window.location.reload(true);
           break;
         case 'clearCacheNow':
-          $status.html('Clearing');
-          let hash = {};
-          hash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
-          try {
-            chrome.runtime.sendMessage(hash, () => {
-              $status.html('Done');
-              setTimeout(() => {
-                $status.html('&nbsp;');
-              }, 2500);
-            });
-          } catch (error) {
-            this.parent.handleChromeAPIError(error, 'showMessage');
+          {
+            $status.html('Clearing');
+            const hash = {};
+            hash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
+            try {
+              chrome.runtime.sendMessage(hash, () => {
+                $status.html('Done');
+                setTimeout(() => {
+                  $status.html('&nbsp;');
+                }, 2500);
+              });
+            } catch (error) {
+              this.parent.handleChromeAPIError(error, 'showMessage');
+            }
+            break;
           }
-          break;
         case 'showsignout':
           this.parent.showSignOutOptions();
           break;
