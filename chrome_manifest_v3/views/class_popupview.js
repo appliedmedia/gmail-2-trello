@@ -929,7 +929,7 @@ class PopupView {
     this.validateData_deprecated();
   }
 
-  showMessage(parent, text) {
+  showMessage_deprecated(parent, text) {
     // Guard against calling before DOM elements are initialized
     if (!this.$popupMessage) {
       g2t_log('PopupView:showMessage: DOM not ready, deferring message');
@@ -942,7 +942,7 @@ class PopupView {
 
     // Attach hideMessage function to hideMsg class if in text:
     $('.hideMsg', this.$popupMessage).click(() => {
-      parent.hideMessage();
+      parent.form.hideMessage();
     });
 
     const self = this;
@@ -988,7 +988,7 @@ class PopupView {
     this.$popupMessage.show();
   }
 
-  hideMessage() {
+  hideMessage_deprecated() {
     // Guard against calling before DOM elements are initialized
     if (!this.$popupMessage || !this.$popupContent) {
       return;
@@ -1574,11 +1574,11 @@ class PopupView {
 
   handleBeforeAuthorize() {
     this.form.bindData(''); // Intentionally blank
-    this.showMessage(this.app, 'Authorizing...');
+    this.form.showMessage(this.app, 'Authorizing...');
   }
 
   handleAuthorizeFail() {
-    this.showMessage(
+    this.form.showMessage(
       this.app,
       'Trello authorization failed <button id="showsignout">Sign out and try again</button>'
     );
@@ -1586,16 +1586,16 @@ class PopupView {
 
   handleAuthorized() {
     this.$popupContent.show();
-    this.hideMessage();
+    this.form.hideMessage();
   }
 
   handleBeforeLoadTrello() {
-    this.showMessage(this.app, 'Loading Trello data...');
+    this.form.showMessage(this.app, 'Loading Trello data...');
   }
 
   handleTrelloDataReady() {
     this.$popupContent.show();
-    this.hideMessage();
+    this.form.hideMessage();
     this.form.bindData(this.app.model);
   }
 
@@ -1658,7 +1658,7 @@ class PopupView {
 
     // Show any pending message that was queued before DOM was ready
     if (this.pendingMessage) {
-      this.showMessage(this.pendingMessage.parent, this.pendingMessage.text);
+      this.form.showMessage(this.pendingMessage.parent, this.pendingMessage.text);
       this.pendingMessage = null;
     }
 
