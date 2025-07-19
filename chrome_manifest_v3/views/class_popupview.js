@@ -1939,6 +1939,9 @@ class PopupView {
     // inject a button & a popup
     // this.finalCreatePopup(); // Moved to handleDetectButton for now
 
+    // TEMPORARILY DISABLED: Periodic button detection timer
+    // Uncomment the lines below if the button disappears and you need the periodic check
+    /*
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -1946,6 +1949,7 @@ class PopupView {
     this.intervalId = setInterval(() => {
       this.app.events.fire('detectButton');
     }, 2000);
+    */
 
     // Remove DOM-dependent code from here (was from init_popup)
 
