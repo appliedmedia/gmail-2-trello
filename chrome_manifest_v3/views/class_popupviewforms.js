@@ -655,15 +655,76 @@ class PopupViewForm {
 
   // Form Display
   showMessage(parent, text) {
-    const $parent = $(parent, this.parent.$popup);
-    const $message = $('<div class="g2t-message">' + text + '</div>');
-    
-    $parent.append($message);
-    $message.fadeIn();
+    // Guard against calling before DOM elements are initialized
+    if (!this.parent.$popupMessage) {
+      g2t_log('PopupViewForm:showMessage: DOM not ready, deferring message');
+      // Store message to show later when DOM is ready
+      this.parent.pendingMessage = { parent, text };
+      return;
+    }
+
+    this.parent.$popupMessage.html(text);
+
+    // Attach hideMessage function to hideMsg class if in text:
+    $('.hideMsg', this.parent.$popupMessage).click(() => {
+      parent.hideMessage();
+    });
+
+    const self = this;
+    $(':button', this.parent.$popupMessage).click(event => {
+      const $status = $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
+      switch (event.target.id) {
+        case 'signout':
+          $status.html('Done');
+          this.app.events.fire('onRequestDeauthorizeTrello');
+          break;
+        case 'reload':
+          this.parent.forceSetVersion(); // Sets value for version if needing update
+          $status.html('Reloading');
+          window.location.reload(true);
+          break;
+        case 'clearCacheNow':
+          $status.html('Clearing');
+          let hash = {};
+          hash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
+          try {
+            chrome.runtime.sendMessage(hash, () => {
+              $status.html('Done');
+              setTimeout(() => {
+                $status.html('&nbsp;');
+              }, 2500);
+            });
+          } catch (error) {
+            this.parent.handleChromeAPIError(error, 'showMessage');
+          }
+          break;
+        case 'showsignout':
+          this.parent.showSignOutOptions();
+        default:
+          g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
+      }
+      if ($status.length > 0) {
+        setTimeout(() => {
+          $status.html('&nbsp;');
+        }, 2500);
+      }
+    });
+
+    this.parent.$popupMessage.show();
   }
 
   hideMessage() {
-    $('.g2t-message', this.parent.$popup).fadeOut().remove();
+    // Guard against calling before DOM elements are initialized
+    if (!this.parent.$popupMessage || !this.parent.$popupContent) {
+      return;
+    }
+
+    if (this.parent.$popupContent.is(':hidden')) {
+      // Rest of box is hidden so close it all:
+      this.parent.$popup.hide(); // Parent is popup, so hide the whole thing
+    } else {
+      this.parent.$popupMessage.hide();
+    }
   }
 
   displaySubmitCompleteForm(params) {

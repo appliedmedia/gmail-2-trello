@@ -445,7 +445,7 @@ class PopupView {
     if (this.$popupContent) {
       this.$popupContent.hide();
     }
-    this.showMessage(this, 'Submitting to Trello...');
+    this.form.showMessage(this, 'Submitting to Trello...');
     this.app.events.fire('onSubmit');
   }
 
@@ -617,7 +617,7 @@ class PopupView {
 
   showSignOutOptions(data) {
     $.get(chrome.runtime.getURL('views/signOut.html'), data_in => {
-      this.showMessage(this, data_in);
+      this.form.showMessage(this, data_in);
     });
   }
 
@@ -1509,7 +1509,7 @@ class PopupView {
     The page needs to be reloaded to work correctly.
     <button id="reload">Click here to reload this page</button> <span id="reload" style="color: red">&nbsp;</span>`;
 
-    this.showMessage(this, message);
+    this.form.showMessage(this, message);
   }
 
   handlePopupVisible() {
