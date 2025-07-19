@@ -369,6 +369,12 @@ class PopupView {
       'classPopupViewInitDone',
       this.handlePopupViewInitDone.bind(this)
     );
+
+    // Bind force redraw event
+    this.app.events.addListener(
+      'forceRedraw',
+      this.handleForceRedraw.bind(this)
+    );
   }
 
   bindPopupEvents() {
@@ -1567,6 +1573,33 @@ class PopupView {
     }
   }
 
+  // Handle forced redraw requests
+  handleForceRedraw() {
+    g2t_log('PopupView:handleForceRedraw - handling forced redraw request');
+    
+    // Clear any existing button and popup
+    const $existingButton = $('#g2tButton');
+    const $existingPopup = $('#g2tPopup');
+    
+    if ($existingButton.length > 0) {
+      $existingButton.remove();
+    }
+    
+    if ($existingPopup.length > 0) {
+      $existingPopup.remove();
+    }
+    
+    // Clear cached HTML
+    this.html = {};
+    
+    // Reset state
+    this.$toolBar = null;
+    this.isInitialized = false;
+    
+    // Trigger fresh detection
+    this.handleDetectButton();
+  }
+
   handleBeforeAuthorize() {
     this.form.bindData(''); // Intentionally blank
     this.form.showMessage(this.app, 'Authorizing...');
@@ -1906,6 +1939,8 @@ class PopupView {
     // inject a button & a popup
     // this.finalCreatePopup(); // Moved to handleDetectButton for now
 
+    // NOTE (2025-07-18 @acoven): Keeping for now just commented out in case button randomly disappears
+    /*
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -1913,6 +1948,7 @@ class PopupView {
     this.intervalId = setInterval(() => {
       this.app.events.fire('detectButton');
     }, 2000);
+    */
 
     // Remove DOM-dependent code from here (was from init_popup)
 

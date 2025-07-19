@@ -310,6 +310,35 @@ class GmailView {
     }
   }
 
+  // Force a complete redraw of the G2T button
+  forceRedraw() {
+    g2t_log('GmailView:forceRedraw - forcing complete redraw');
+    
+    // Clear any existing button to force recreation
+    const $existingButton = $('#g2tButton');
+    if ($existingButton.length > 0) {
+      $existingButton.remove();
+    }
+    
+    // Clear any existing popup
+    const $existingPopup = $('#g2tPopup');
+    if ($existingPopup.length > 0) {
+      $existingPopup.remove();
+    }
+    
+    // Reset state
+    this.$toolBar = null;
+    this.runaway = 0;
+    
+    // Trigger popup view redraw as well
+    if (this.app.popupView && typeof this.app.popupView.handleForceRedraw === 'function') {
+      this.app.popupView.handleForceRedraw();
+    }
+    
+    // Trigger fresh detection
+    this.detect();
+  }
+
   detectToolbar() {
     // g2t_log('GmailView:detectToolbar');
 
