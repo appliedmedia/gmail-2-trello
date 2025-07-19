@@ -13,6 +13,11 @@ class App {
     return ck;
   }
 
+  // Extract the Gmail nav selectors into a single constant for easier maintenance
+  static get GMAIL_NAV_SELECTORS() {
+    return '[role="navigation"], .bq9, .bqA, .bqB, .bqC, .bqD, .bqE, .bqF, .bqG, .bqH, .bqI, .bqJ, .bqK, .bqL, .bqM, .bqN, .bqO, .bqP, .bqQ, .bqR, .bqS, .bqT, .bqU, .bqV, .bqW, .bqX, .bqY, .bqZ, [data-tooltip*="Inbox"], [data-tooltip*="Starred"], [data-tooltip*="Sent"], [data-tooltip*="Drafts"], [data-tooltip*="Spam"], [data-tooltip*="Trash"], [aria-label*="Inbox"], [aria-label*="Starred"], [aria-label*="Sent"], [aria-label*="Drafts"], [aria-label*="Spam"], [aria-label*="Trash"]';
+  }
+
   get ck() {
     return App.ck;
   }
@@ -105,7 +110,7 @@ class App {
     document.addEventListener('click', (event) => {
       // Check if the click is on a Gmail navigation element
       const $target = $(event.target);
-      const isGmailNav = $target.closest('[role="navigation"], .bq9, .bqA, .bqB, .bqC, .bqD, .bqE, .bqF, .bqG, .bqH, .bqI, .bqJ, .bqK, .bqL, .bqM, .bqN, .bqO, .bqP, .bqQ, .bqR, .bqS, .bqT, .bqU, .bqV, .bqW, .bqX, .bqY, .bqZ, [data-tooltip*="Inbox"], [data-tooltip*="Starred"], [data-tooltip*="Sent"], [data-tooltip*="Drafts"], [data-tooltip*="Spam"], [data-tooltip*="Trash"], [aria-label*="Inbox"], [aria-label*="Starred"], [aria-label*="Sent"], [aria-label*="Drafts"], [aria-label*="Spam"], [aria-label*="Trash"]').length > 0;
+      const isGmailNav = $target.closest(App.GMAIL_NAV_SELECTORS).length > 0;
       
       if (isGmailNav) {
         // Add a small delay to allow Gmail to complete the navigation
@@ -120,13 +125,13 @@ class App {
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
     
+    const app = this;
+    
     history.pushState = function(...args) {
       originalPushState.apply(history, args);
       // Trigger navigation detection after a short delay
       setTimeout(() => {
-        if (window.g2t_app) {
-          window.g2t_app.handleGmailNavigation();
-        }
+        app.handleGmailNavigation();
       }, 50);
     };
     
@@ -134,9 +139,7 @@ class App {
       originalReplaceState.apply(history, args);
       // Trigger navigation detection after a short delay
       setTimeout(() => {
-        if (window.g2t_app) {
-          window.g2t_app.handleGmailNavigation();
-        }
+        app.handleGmailNavigation();
       }, 50);
     };
 
