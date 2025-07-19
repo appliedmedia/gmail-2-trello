@@ -682,22 +682,20 @@ class PopupViewForm {
           window.location.reload(true);
           break;
         case 'clearCacheNow':
-          {
-            $status.html('Clearing');
-            const hash = {};
-            hash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
-            try {
-              chrome.runtime.sendMessage(hash, () => {
-                $status.html('Done');
-                setTimeout(() => {
-                  $status.html('&nbsp;');
-                }, 2500);
-              });
-            } catch (error) {
-              this.parent.handleChromeAPIError(error, 'showMessage');
-            }
-            break;
+          $status.html('Clearing');
+          const clearCacheHash = {};
+          clearCacheHash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
+          try {
+            chrome.runtime.sendMessage(clearCacheHash, () => {
+              $status.html('Done');
+              setTimeout(() => {
+                $status.html('&nbsp;');
+              }, 2500);
+            });
+          } catch (error) {
+            this.parent.handleChromeAPIError(error, 'showMessage');
           }
+          break;
         case 'showsignout':
           this.parent.showSignOutOptions();
           break;
