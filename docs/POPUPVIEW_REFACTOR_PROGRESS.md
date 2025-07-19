@@ -3,7 +3,7 @@
 ## Completed
 
 ### 1. Created PopupViewForm Class
-- ✅ New file: `chrome_manifest_v3/views/class_popupviewforms.js`
+- ✅ New file: `chrome_manifest_v3/views/class_popupViewForm.js`
 - ✅ Basic constructor with parent and app references
 - ✅ Form data validation methods
 - ✅ UI update methods (boards, lists, cards, labels, members)

@@ -13,10 +13,7 @@ class App {
     return ck;
   }
 
-  // Extract the Gmail nav selectors into a single constant for easier maintenance
-  static get GMAIL_NAV_SELECTORS() {
-    return '[role="navigation"], .bq9, .bqA, .bqB, .bqC, .bqD, .bqE, .bqF, .bqG, .bqH, .bqI, .bqJ, .bqK, .bqL, .bqM, .bqN, .bqO, .bqP, .bqQ, .bqR, .bqS, .bqT, .bqU, .bqV, .bqW, .bqX, .bqY, .bqZ, [data-tooltip*="Inbox"], [data-tooltip*="Starred"], [data-tooltip*="Sent"], [data-tooltip*="Drafts"], [data-tooltip*="Spam"], [data-tooltip*="Trash"], [aria-label*="Inbox"], [aria-label*="Starred"], [aria-label*="Sent"], [aria-label*="Drafts"], [aria-label*="Spam"], [aria-label*="Trash"]';
-  }
+
 
   get ck() {
     return App.ck;
@@ -35,8 +32,7 @@ class App {
     this.state = {};
     
     // Navigation detection variables
-    this.navigationTimeout = null;
-    this.navigationObserver = null;
+    this.lastHash = window.location.hash;
   }
 
   loadState() {
@@ -63,6 +59,20 @@ class App {
     this.state = params || {};
   }
 
+  // Parse hash to extract view level (before first '/')
+  getViewLevelFromHash(hash) {
+    const cleanHash = hash.replace(/^#/, '');
+    const viewLevel = cleanHash.split('/')[0];
+    return viewLevel || '';
+  }
+
+  // Check if hash change represents a view change (not just content change)
+  isViewChange(oldHash, newHash) {
+    const oldView = this.getViewLevelFromHash(oldHash);
+    const newView = this.getViewLevelFromHash(newHash);
+    return oldView !== newView;
+  }
+
   // Handle Gmail navigation changes
   handleGmailNavigation() {
     g2t_log('App: Gmail navigation detected, triggering redraw');
@@ -72,18 +82,7 @@ class App {
     this.events.fire('forceRedraw');
   }
 
-  // Clean up navigation observers and timeouts
-  cleanup() {
-    if (this.navigationTimeout) {
-      clearTimeout(this.navigationTimeout);
-      this.navigationTimeout = null;
-    }
-    
-    if (this.navigationObserver) {
-      this.navigationObserver.disconnect();
-      this.navigationObserver = null;
-    }
-  }
+
 
   // Event binding
   bindEvents() {
@@ -96,88 +95,17 @@ class App {
   // Bind Gmail navigation events
   bindGmailNavigationEvents() {
     // Listen for URL hash changes (Gmail's primary navigation method)
-    window.addEventListener('hashchange', () => {
-      this.handleGmailNavigation();
-    });
-
-    // Listen for popstate events (back/forward navigation)
-    window.addEventListener('popstate', () => {
-      this.handleGmailNavigation();
-    });
-
-    // Listen for Gmail's internal navigation events
-    // Gmail dispatches custom events when views change
-    document.addEventListener('click', (event) => {
-      // Check if the click is on a Gmail navigation element
-      const $target = $(event.target);
-      const isGmailNav = $target.closest(App.GMAIL_NAV_SELECTORS).length > 0;
+    window.addEventListener('hashchange', (event) => {
+      const newHash = window.location.hash;
       
-      if (isGmailNav) {
-        // Add a small delay to allow Gmail to complete the navigation
-        setTimeout(() => {
-          this.handleGmailNavigation();
-        }, 100);
+      // Only trigger redraw if this is a view change (not just content change)
+      if (this.isViewChange(this.lastHash, newHash)) {
+        g2t_log('App: Gmail view change detected via hashchange');
+        this.handleGmailNavigation();
       }
-    });
-
-    // Listen for Gmail's internal route changes
-    // Gmail uses a custom router that dispatches events
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
-    
-    const app = this;
-    
-    history.pushState = function(...args) {
-      originalPushState.apply(history, args);
-      // Trigger navigation detection after a short delay
-      setTimeout(() => {
-        app.handleGmailNavigation();
-      }, 50);
-    };
-    
-    history.replaceState = function(...args) {
-      originalReplaceState.apply(history, args);
-      // Trigger navigation detection after a short delay
-      setTimeout(() => {
-        app.handleGmailNavigation();
-      }, 50);
-    };
-
-    // Listen for Gmail's internal DOM changes that indicate navigation
-    // Gmail updates the main content area when views change
-    const observer = new MutationObserver((mutations) => {
-      let shouldRedraw = false;
       
-      mutations.forEach((mutation) => {
-        // Check if the main Gmail content area has changed
-        if (mutation.type === 'childList' && mutation.target) {
-          const $target = $(mutation.target);
-          const isMainContent = $target.closest('.AO, .nH, .aia, [role="main"]').length > 0;
-          const isToolbarChange = $target.closest('[gh="mtb"]').length > 0;
-          
-          if (isMainContent || isToolbarChange) {
-            shouldRedraw = true;
-          }
-        }
-      });
-      
-      if (shouldRedraw) {
-        // Debounce the redraw to avoid excessive calls
-        clearTimeout(this.navigationTimeout);
-        this.navigationTimeout = setTimeout(() => {
-          this.handleGmailNavigation();
-        }, 200);
-      }
+      this.lastHash = newHash;
     });
-    
-    // Start observing the document body for changes
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-    
-    // Store the observer for cleanup if needed
-    this.navigationObserver = observer;
   }
 
   init() {
