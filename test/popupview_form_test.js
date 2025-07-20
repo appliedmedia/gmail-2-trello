@@ -66,7 +66,7 @@ global.chrome = {
 global.G2T = {};
 
 // Load the PopupViewForm class
-const popupViewFormPath = path.join(__dirname, '../chrome_manifest_v3/views/class_popupviewforms.js');
+const popupViewFormPath = path.join(__dirname, '../chrome_manifest_v3/views/class_popupViewForm.js');
 const popupViewFormCode = fs.readFileSync(popupViewFormPath, 'utf8');
 
 // Mock parent PopupView

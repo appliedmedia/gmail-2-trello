@@ -135,7 +135,7 @@ testManualNavigationDetection()
 
 - `class_app.js`: Added navigation event detection and handling
 - `views/class_gmailView.js`: Added force redraw functionality
-- `views/class_popupview.js`: Added force redraw handling
+- `views/class_popupView.js`: Added force redraw handling
 - `test/navigation_test.js`: Added testing utilities
 
 ## Related Issues

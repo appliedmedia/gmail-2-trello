@@ -123,7 +123,7 @@ class Chrome {
     );
   }
 
-  // Chrome Runtime API wrappers (used in class_model.js and class_popupview.js)
+  // Chrome Runtime API wrappers (used in class_model.js and class_popupView.js)
   runtimeSendMessage(message, callback) {
     return this.wrapApiCall(
       cb => chrome.runtime.sendMessage(message, cb),

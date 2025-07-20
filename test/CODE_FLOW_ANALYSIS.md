@@ -14,7 +14,7 @@
 
 #### 1. Submit Button Click Handler
 
-**File:** `chrome_manifest_v3/views/class_popupview.js:454-462`
+**File:** `chrome_manifest_v3/views/class_popupView.js:454-462`
 
 ```javascript
 submit() {
@@ -36,7 +36,7 @@ submit() {
 
 #### 2. onSubmit Event Handler
 
-**File:** `chrome_manifest_v3/views/class_popupview.js:1567-1569`
+**File:** `chrome_manifest_v3/views/class_popupView.js:1567-1569`
 
 ```javascript
 handleSubmit() {
@@ -91,7 +91,7 @@ submit_onSuccess(data) {
 
 #### 5. onCardSubmitComplete Event Handler
 
-**File:** `chrome_manifest_v3/views/class_popupview.js:1641-1643`
+**File:** `chrome_manifest_v3/views/class_popupView.js:1641-1643`
 
 ```javascript
 handleCardSubmitComplete(target, params) {
@@ -106,7 +106,7 @@ handleCardSubmitComplete(target, params) {
 
 #### 6. Display Submit Complete Form
 
-**File:** `chrome_manifest_v3/views/class_popupview.js:1440-1470`
+**File:** `chrome_manifest_v3/views/class_popupView.js:1440-1470`
 
 ```javascript
 displaySubmitCompleteForm(params) {
