@@ -13,8 +13,6 @@ class App {
     return ck;
   }
 
-
-
   get ck() {
     return App.ck;
   }
@@ -30,7 +28,7 @@ class App {
     this.popupView = new G2T.PopupView({ app: this });
     this.utils = new G2T.Utils({ app: this });
     this.state = {};
-    
+
     // Navigation detection variables
     this.lastHash = window.location.hash;
   }
@@ -82,8 +80,6 @@ class App {
     this.events.fire('forceRedraw');
   }
 
-
-
   // Event binding
   bindEvents() {
     this.events.addListener(
@@ -95,15 +91,15 @@ class App {
   // Bind Gmail navigation events
   bindGmailNavigationEvents() {
     // Listen for URL hash changes (Gmail's primary navigation method)
-    window.addEventListener('hashchange', (event) => {
+    window.addEventListener('hashchange', event => {
       const newHash = window.location.hash;
-      
+
       // Only trigger redraw if this is a view change (not just content change)
       if (this.isViewChange(this.lastHash, newHash)) {
         g2t_log('App: Gmail view change detected via hashchange');
         this.handleGmailNavigation();
       }
-      
+
       this.lastHash = newHash;
     });
   }

@@ -279,7 +279,6 @@ class Model {
     this._state = {
       trelloAuthorized: false,
       trelloData: {},
-      settings: {},
       emailBoardListCardMap: new EmailBoardListCardMap({
         parent: this,
         app: this.app,
@@ -573,15 +572,6 @@ class Model {
     );
   }
 
-  retrieveSettings() {
-    return this.state.settings;
-  }
-
-  saveSettings(settings) {
-    this.state.settings = { ...this.state.settings, ...settings };
-    this.saveState();
-  }
-
   emailBoardListCardMapLookup(key_value = {}) {
     return this.state.emailBoardListCardMap?.lookup(key_value) || null;
   }
@@ -599,9 +589,7 @@ class Model {
       if (params.trelloData) {
         this.state.trelloData = params.trelloData;
       }
-      if (params.settings) {
-        this.state.settings = params.settings;
-      }
+
       if (params.emailBoardListCardMap) {
         this.state.emailBoardListCardMap = params.emailBoardListCardMap;
       }

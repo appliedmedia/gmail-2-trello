@@ -36,7 +36,7 @@ global.document = dom.window.document;
 
 // Mock jQuery and global functions
 global.$ = global.jQuery = require('jquery');
-global.g2t_each = function(obj, callback) {
+global.g2t_each = function (obj, callback) {
   Object.keys(obj).forEach(key => {
     callback(obj[key], key);
   });
@@ -44,29 +44,32 @@ global.g2t_each = function(obj, callback) {
 global.g2t_log = console.log;
 
 // Mock jQuery combobox plugin
-$.fn.combobox = function() {
+$.fn.combobox = function () {
   return this;
 };
 
 // Mock chrome API
 global.chrome = {
   runtime: {
-    getURL: (url) => `chrome-extension://mock/${url}`
+    getURL: url => `chrome-extension://mock/${url}`,
   },
   storage: {
     sync: {
       get: (key, callback) => {
         callback({ dueShortcuts: '{}' });
-      }
-    }
-  }
+      },
+    },
+  },
 };
 
 // Mock G2T namespace
 global.G2T = {};
 
 // Load the PopupViewForm class
-const popupViewFormPath = path.join(__dirname, '../chrome_manifest_v3/views/class_popupViewForm.js');
+const popupViewFormPath = path.join(
+  __dirname,
+  '../chrome_manifest_v3/views/class_popupViewForm.js'
+);
 const popupViewFormCode = fs.readFileSync(popupViewFormPath, 'utf8');
 
 // Mock parent PopupView
@@ -79,26 +82,35 @@ const mockParent = {
     trello: {
       boards: [
         { id: 'board1', name: 'Board 1' },
-        { id: 'board2', name: 'Board 2' }
+        { id: 'board2', name: 'Board 2' },
       ],
       lists: [
         { id: 'list1', name: 'List 1' },
-        { id: 'list2', name: 'List 2' }
+        { id: 'list2', name: 'List 2' },
       ],
       cards: [
         { id: 'card1', name: 'Card 1' },
-        { id: 'card2', name: 'Card 2' }
+        { id: 'card2', name: 'Card 2' },
       ],
       labels: [
         { id: 'label1', name: 'Label 1', color: '#ff0000' },
-        { id: 'label2', name: 'Label 2', color: '#00ff00' }
+        { id: 'label2', name: 'Label 2', color: '#00ff00' },
       ],
       members: [
-        { id: 'member1', fullName: 'Member 1', username: 'member1', initials: 'M1' },
-        { id: 'member2', fullName: 'Member 2', username: 'member2', initials: 'M2' }
-      ]
+        {
+          id: 'member1',
+          fullName: 'Member 1',
+          username: 'member1',
+          initials: 'M1',
+        },
+        {
+          id: 'member2',
+          fullName: 'Member 2',
+          username: 'member2',
+          initials: 'M2',
+        },
+      ],
     },
-    settings: {}
   },
   $popup: $('#g2tPopup'),
   $popupMessage: $('<div>'),
@@ -119,17 +131,17 @@ const mockParent = {
   updateBoards: () => {
     console.log('Update boards called');
   },
-  toggleActiveMouseDown: (elm) => {
+  toggleActiveMouseDown: elm => {
     console.log('Toggle active mouse down');
   },
   showMessage: (parent, text) => {
     console.log('Show message:', text);
   },
   menuCtrl: {
-    reset: (options) => {
+    reset: options => {
       console.log('Menu control reset');
-    }
-  }
+    },
+  },
 };
 
 // Mock app
@@ -140,13 +152,13 @@ const mockApp = {
     },
     addListener: (event, handler) => {
       console.log(`Event listener added: ${event}`);
-    }
+    },
   },
   utils: {
-    makeAvatarUrl: (params) => {
+    makeAvatarUrl: params => {
       return params.avatarUrl || '';
-    }
-  }
+    },
+  },
 };
 
 // Execute the PopupViewForm code
@@ -160,12 +172,12 @@ function runTests() {
   console.log('Test 1: Constructor and initialization');
   const form = new G2T.PopupViewForm({
     parent: mockParent,
-    app: mockApp
+    app: mockApp,
   });
-  
+
   console.log('✓ Form created successfully');
   console.log('✓ Form ID:', form.id);
-  
+
   form.init();
   console.log('✓ Form initialized:', form.isInitialized);
   console.log('');
@@ -176,9 +188,9 @@ function runTests() {
     boardId: 'board1',
     listId: 'list1',
     cardName: 'New Card Name',
-    cardDesc: 'New Description'
+    cardDesc: 'New Description',
   };
-  
+
   form.bindData(testData);
   console.log('✓ Data bound successfully');
   console.log('✓ Parent state updated:', mockParent.state.boardId === 'board1');
@@ -189,19 +201,19 @@ function runTests() {
   const validData = {
     boardId: 'board1',
     listId: 'list1',
-    cardName: 'Valid Card'
+    cardName: 'Valid Card',
   };
-  
+
   mockParent.state = validData;
   const validErrors = form.validateData();
   console.log('✓ Valid data validation:', validErrors.length === 0);
-  
+
   const invalidData = {
     boardId: '',
     listId: '',
-    cardName: ''
+    cardName: '',
   };
-  
+
   mockParent.state = invalidData;
   const invalidErrors = form.validateData();
   console.log('✓ Invalid data validation:', invalidErrors.length > 0);
@@ -212,7 +224,7 @@ function runTests() {
   console.log('Test 4: UI updates');
   form.updateBoards();
   console.log('✓ Boards updated');
-  
+
   form.updateLists();
   console.log('✓ Lists updated');
   console.log('');

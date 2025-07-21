@@ -1,12 +1,17 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class PopupView {
-  static get id() {
-    return 'g2t_popupview';
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const ck = {
+      id: 'g2t_popupview',
+      emailIdAttr: 'g2t-attr-emailId',
+    };
+    return ck;
   }
 
-  get id() {
-    return PopupView.id;
+  get ck() {
+    return PopupView.ck;
   }
 
   constructor(args) {
@@ -14,12 +19,6 @@ class PopupView {
     this.isInitialized = false;
 
     this._state = {};
-    
-    // Initialize form component
-    this.form = new PopupViewForm({
-      parent: this,
-      app: this.app
-    });
 
     this.size_k = {
       width: {
@@ -71,6 +70,12 @@ class PopupView {
 
     this.updatesPending = [];
     this.comboInitialized = false;
+
+    // Initialize form instance
+    this.form = new G2T.PopupViewForm({
+      parent: this,
+      app: this.app,
+    });
   }
 
   // Getter for state
@@ -207,20 +212,20 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        $.get(chrome.runtime.getURL('views/popupView.html'), data => {
+        $.get(this.app.chrome.runtimeGetURL('views/popupView.html'), data => {
           // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
           this.html['popup'] = data;
           g2t_log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(data);
           // Fire popupLoaded event after DOM is ready
           this.app.events.fire('popupLoaded');
-          this.app.loadSettings(this); // Calls updateData
+          this.loadState(); // Load state from Chrome storage
         });
       }
     }
 
     if (needInit) {
-      this.app.loadSettings(this); // Calls updateData
+      this.loadState(); // Load state from Chrome storage
     }
   }
 
@@ -271,10 +276,10 @@ class PopupView {
     this.$popup.css('width', newPopupWidth + 'px');
     this.$popup.css('left', newPopupLeft + 'px');
 
-    this.posDirty = !this.validateData_deprecated();
+    // this.onResize();
+
+    this.posDirty = !this.form.validateData();
   }
-
-
 
   resetDragResize() {
     const $g2tDesc = $('#g2tDesc', this.$popup);
@@ -369,12 +374,6 @@ class PopupView {
       'classPopupViewInitDone',
       this.handlePopupViewInitDone.bind(this)
     );
-
-    // Bind force redraw event
-    this.app.events.addListener(
-      'forceRedraw',
-      this.handleForceRedraw.bind(this)
-    );
   }
 
   bindPopupEvents() {
@@ -395,7 +394,15 @@ class PopupView {
       'onListChanged',
       this.handleListChanged.bind(this)
     );
-
+    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
     this.app.events.addListener(
       'detectButton',
       this.handleDetectButton.bind(this)
@@ -426,7 +433,22 @@ class PopupView {
       'onTrelloDataReady',
       this.handleTrelloDataReady.bind(this)
     );
-
+    this.app.events.addListener(
+      'onLoadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
     this.app.events.addListener(
       'onAPIFailure',
       this.handleAPIFailure.bind(this)
@@ -525,7 +547,7 @@ class PopupView {
       this.mouseDownTracker = {};
 
       this.$popup.show();
-      this.validateData_deprecated();
+      this.form.validateData();
 
       this.app.events.fire('onPopupVisible');
     }
@@ -579,27 +601,26 @@ class PopupView {
     const version_new = this.getManifestVersion();
 
     if (version_new > '0') {
-      try {
-        chrome.storage.sync.get(version_storage_k, response => {
-          const version_old = response?.[version_storage_k] || '0';
-          if (version_old > '0') {
-            if (version_old !== version_new) {
-              $.get(chrome.runtime.getURL('views/versionUpdate.html'), data => {
+      this.app.chrome.storageSyncGet(version_storage_k, response => {
+        const version_old = response?.[version_storage_k] || '0';
+        if (version_old > '0') {
+          if (version_old !== version_new) {
+            $.get(
+              this.app.chrome.runtimeGetURL('views/versionUpdate.html'),
+              data => {
                 const dict = {
                   version_old,
                   version_new,
                 };
                 data = this.app.utils.replacer(data, dict);
                 this.form.showMessage(this, data);
-              });
-            }
-          } else {
-            this.forceSetVersion();
+              }
+            );
           }
-        });
-      } catch (error) {
-        this.handleChromeAPIError(error, 'periodicChecks');
-      }
+        } else {
+          this.forceSetVersion();
+        }
+      });
     }
   }
 
@@ -609,15 +630,11 @@ class PopupView {
     const dict_k = {
       [version_storage_k]: version_new,
     };
-    try {
-      chrome.storage.sync.set(dict_k);
-    } catch (error) {
-      this.handleChromeAPIError(error, 'forceSetVersion');
-    }
+    this.app.chrome.storageSyncSet(dict_k);
   }
 
   showSignOutOptions(data) {
-    $.get(chrome.runtime.getURL('views/signOut.html'), data_in => {
+    $.get(this.app.chrome.runtimeGetURL('views/signOut.html'), data_in => {
       this.form.showMessage(this, data_in);
     });
   }
@@ -634,70 +651,66 @@ class PopupView {
       this.showSignOutOptions();
     });
 
-    try {
-      chrome.storage.sync.get('dueShortcuts', response => {
-        // Borrowed from options file until this gets persisted everywhere:
-        const dueShortcuts_k = JSON.stringify({
-          today: {
-            am: 'd+0 am=9:00',
-            noon: 'd+0 pm=12:00',
-            pm: 'd+0 pm=3:00',
-            end: 'd+0 pm=6:00',
-            eve: 'd+0 pm=11:00',
-          },
-          tomorrow: {
-            am: 'd+1 am=9:00',
-            noon: 'd+1 pm=12:00',
-            pm: 'd+1 pm=3:00',
-            end: 'd+1 pm=6:00',
-            eve: 'd+1 pm=11:00',
-          },
-          'next monday': {
-            am: 'd=monday am=9:00',
-            noon: 'd=monday pm=12:00',
-            pm: 'd=monday pm=3:00',
-            end: 'd=monday pm=6:00',
-            eve: 'd=monday pm=11:00',
-          },
-          'next friday': {
-            am: 'd=friday am=9:00',
-            noon: 'd=friday pm=12:00',
-            pm: 'd=friday pm=3:00',
-            end: 'd=friday pm=6:00',
-            eve: 'd=friday pm=11:00',
-          },
-        });
+    this.app.chrome.storageSyncGet('dueShortcuts', response => {
+      // Borrowed from options file until this gets persisted everywhere:
+      const dueShortcuts_k = JSON.stringify({
+        today: {
+          am: 'd+0 am=9:00',
+          noon: 'd+0 pm=12:00',
+          pm: 'd+0 pm=3:00',
+          end: 'd+0 pm=6:00',
+          eve: 'd+0 pm=11:00',
+        },
+        tomorrow: {
+          am: 'd+1 am=9:00',
+          noon: 'd+1 pm=12:00',
+          pm: 'd+1 pm=3:00',
+          end: 'd+1 pm=6:00',
+          eve: 'd+1 pm=11:00',
+        },
+        'next monday': {
+          am: 'd=monday am=9:00',
+          noon: 'd=monday pm=12:00',
+          pm: 'd=monday pm=3:00',
+          end: 'd=monday pm=6:00',
+          eve: 'd=monday pm=11:00',
+        },
+        'next friday': {
+          am: 'd=friday am=9:00',
+          noon: 'd=friday pm=12:00',
+          pm: 'd=friday pm=3:00',
+          end: 'd=friday pm=6:00',
+          eve: 'd=friday pm=11:00',
+        },
+      });
 
-        const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
+      const due = JSON.parse(response.dueShortcuts || dueShortcuts_k);
 
-        const $g2t = $('#g2tDue_Shortcuts', this.$popup);
-        $g2t.html(''); // Clear it.
+      const $g2t = $('#g2tDue_Shortcuts', this.$popup);
+      $g2t.html(''); // Clear it.
 
-        let opt =
-          '<option value="none" selected disabled hidden>-</option>' +
-          '<option value="d=0 am=0">--</option>';
+      let opt =
+        '<option value="none" selected disabled hidden>-</option>' +
+        '<option value="d=0 am=0">--</option>';
 
-        g2t_each(due, (value, key) => {
-          // value is already available from the callback parameter
-          if (typeof value === 'object') {
-            opt += `<optgroup label="${key}">`;
-            g2t_each(value, (value1, key1) => {
-              // value1 is already available from the callback parameter
-              opt += `<option value="${value1}">${key1}</option>`;
-            });
-            opt += '</optgroup>';
-          } else {
-            opt += `<option value="${value}">${key}</option>`;
-          }
-        });
-
-        if (opt) {
-          $g2t.append($(opt));
+      g2t_each(due, (value, key) => {
+        // value is already available from the callback parameter
+        if (typeof value === 'object') {
+          opt += `<optgroup label="${key}">`;
+          g2t_each(value, (value1, key1) => {
+            // value1 is already available from the callback parameter
+            opt += `<option value="${value1}">${key1}</option>`;
+          });
+          opt += '</optgroup>';
+        } else {
+          opt += `<option value="${value}">${key}</option>`;
         }
       });
-    } catch (error) {
-      this.handleChromeAPIError(error, 'bindData');
-    }
+
+      if (opt) {
+        $g2t.append($(opt));
+      }
+    });
 
     if (!data) {
       g2t_log("bindData shouldn't continue without data!");
@@ -791,7 +804,7 @@ class PopupView {
 
     // Attach reportError function to report id if in text:
     $('#report', this.$popup).click(() => {
-      this.reset();
+      this.form.reset();
 
       const lastError_k = (this.lastError || '') + (this.lastError ? '\n' : '');
 
@@ -803,16 +816,14 @@ class PopupView {
       // Modify this.data directly for error reporting
       this.state.description =
         lastError_k + JSON.stringify(this.state) + '\n' + g2t_log();
-      this.state.title =
-        'Error report card: ' +
-        [fullname_k, username_k].join(' @') +
-        ' ' +
-        date_k;
+      this.state.title = `Error report card: ${[fullname_k, username_k].join(
+        ' @'
+      )} ${date_k}`;
 
       this.form.updateBoards('52e1397addf85d4751f99319'); // GtT board
       $('#g2tDesc', this.$popup).val(this.state.description);
       $('#g2tTitle', this.$popup).val(this.state.title);
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     this.$popupMessage.hide();
@@ -876,7 +887,7 @@ class PopupView {
           .on('error', function () {
             $img.attr(
               'src',
-              chrome.runtime.getURL('images/doc-question-mark-512.png')
+              this.app.chrome.runtimeGetURL('images/doc-question-mark-512.png')
             );
           })
           .tooltip({
@@ -903,14 +914,14 @@ class PopupView {
 
     // Merge with existing state
     Object.assign(data, this.state || {});
-    this.updateBody_deprecated(data);
+    this.form.updateBody(data);
 
     $('#g2tTitle', this.$popup).val(data.subject);
 
     this.form.mime_html('attachments', false, data);
     this.form.mime_html('images', true, data);
 
-    const emailId = data.emailId || 0;
+    const emailId = $('#g2tDesc', this.$popup).attr(this.ck.emailIdAttr) || 0;
     const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
       emailId,
     });
@@ -927,7 +938,7 @@ class PopupView {
     }
 
     this.dataDirty = false;
-    this.validateData_deprecated();
+    this.form.validateData();
   }
 
   showMessage_deprecated(parent, text) {
@@ -943,7 +954,7 @@ class PopupView {
 
     // Attach hideMessage function to hideMsg class if in text:
     $('.hideMsg', this.$popupMessage).click(() => {
-      parent.form.hideMessage();
+      parent.hideMessage();
     });
 
     const self = this;
@@ -964,7 +975,7 @@ class PopupView {
           let hash = {};
           hash[this.CLEAR_EXT_BROWSING_DATA] = true;
           try {
-            chrome.runtime.sendMessage(hash, () => {
+            this.app.chrome.runtimeSendMessage(hash, () => {
               $status.html('Done');
               setTimeout(() => {
                 $status.html('&nbsp;');
@@ -1060,13 +1071,11 @@ class PopupView {
       return;
     }
 
-    const settings_k = this?.state?.settings || {};
-
     const boardId_k = $('#g2tBoard', this.$popup).val();
 
     const prev_item_k =
-      settings_k?.boardId == boardId_k && settings_k?.listId
-        ? settings_k.listId
+      this.state?.boardId == boardId_k && this.state?.listId
+        ? this.state.listId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -1105,13 +1114,11 @@ class PopupView {
       return;
     }
 
-    const settings_k = this?.state?.settings || {};
-
     const listId_k = $('#g2tList', this.$popup).val();
 
     const prev_item_k =
-      settings_k?.listId == listId_k && settings_k?.cardId
-        ? settings_k.cardId
+      this.state?.listId == listId_k && this.state?.cardId
+        ? this.state.cardId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -1146,17 +1153,17 @@ class PopupView {
 
   // Select/de-select attachments and images based on first button's state:
   toggleCheckboxes_deprecated(tag) {
-    const $jTags = $(`#${tag} input[type="checkbox"]`, this.$popup);
+    const $jTags = $('#' + tag + ' input[type="checkbox"]', this.$popup);
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;
     $jTags.prop('checked', !checked_k);
-    this.validateData_deprecated();
+    this.form.validateData();
   }
 
   clearLabels_deprecated() {
     this.state.labelsId = '';
-    this.updateLabels();
-    this.validateData();
+    this.form.updateLabels();
+    this.form.validateData();
   }
 
   updateLabels_deprecated() {
@@ -1205,7 +1212,7 @@ class PopupView {
         const item = labels[i];
         if (settingId.indexOf(item.id) !== -1) {
           $(
-            `#g2tLabels button[trelloId-label="${item.id}"]`,
+            '#g2tLabels button[trelloId-label="' + item.id + '"]',
             this.$popup
           ).click();
         }
@@ -1219,8 +1226,8 @@ class PopupView {
 
   clearMembers_deprecated() {
     this.state.membersId = '';
-    this.updateMembers();
-    this.validateData();
+    this.form.updateMembers();
+    this.form.validateData();
   }
 
   updateMembers_deprecated() {
@@ -1236,7 +1243,9 @@ class PopupView {
           this.app.utils.makeAvatarUrl({
             avatarUrl: item.avatarUrl || '',
           }) ||
-          chrome.runtime.getURL('images/avatar_generic_profile_gry_30x30.png'); // Default generic profile
+          this.app.chrome.runtimeGetURL(
+            'images/avatar_generic_profile_gry_30x30.png'
+          ); // Default generic profile
         const size_k = 20;
         $g2t.append(
           $('<button>')
@@ -1280,7 +1289,7 @@ class PopupView {
         const item = members[i];
         if (settingId.indexOf(item.id) !== -1) {
           $(
-            `#g2tMembers button[trelloId-member="${item.id}"]`,
+            '#g2tMembers button[trelloId-member="' + item.id + '"]',
             this.$popup
           ).click();
         }
@@ -1367,11 +1376,11 @@ class PopupView {
       membersId = self.state.membersId; // We're not yet showing members so override membersId with state
     }
 
-    const attach_k = this.mime_array('g2tAttachments');
+    const attach_k = this.form.mime_array('g2tAttachments');
     let attachments = attach_k.array;
     let attachments_checked = attach_k.checked_total;
 
-    const images_k = this.mime_array('g2tImages');
+    const images_k = this.form.mime_array('g2tImages');
     let images = images_k.array;
     let images_checked = images_k.checked_total;
 
@@ -1383,7 +1392,7 @@ class PopupView {
         : false; // Labels are not required
 
     if (validateStatus) {
-      this.state = {
+      Object.assign(this.state, {
         emailId,
         boardId,
         listId,
@@ -1405,7 +1414,7 @@ class PopupView {
         popupWidth,
         position,
         timeStamp,
-      };
+      });
       // State is already updated, just save it
       this.saveState();
     }
@@ -1442,7 +1451,7 @@ class PopupView {
       '<a class="hideMsg" title="Dismiss message">&times;</a>Trello card updated: ' +
       jQueryToRawHtml(trelloLink);
 
-    this.showMessage(this, message);
+    this.form.showMessage(this, message);
 
     this.$popupContent.hide();
 
@@ -1462,7 +1471,7 @@ class PopupView {
         'Board/List data may be stale. You can try reloading your Trello boards.';
     }
 
-    if (this.state && this.state.title) {
+    if (this.state?.title) {
       resp.title = this.state.title; // Put a temp copy of this over where we'll get the other data
     }
 
@@ -1475,7 +1484,7 @@ class PopupView {
       keys: resp.keys || '?',
     };
 
-    $.get(chrome.runtime.getURL('views/error.html'), data => {
+    $.get(this.app.chrome.runtimeGetURL('views/error.html'), data => {
       let lastErrorHtml_k = this.app.utils.replacer(data, dict_k);
 
       // Add reload button for 400 errors
@@ -1484,7 +1493,7 @@ class PopupView {
           '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
 
-      this.showMessage(this, lastErrorHtml_k);
+      this.form.showMessage(this, lastErrorHtml_k);
       this.lastError = JSON.stringify(dict_k);
       this.$popupContent.hide();
 
@@ -1493,7 +1502,7 @@ class PopupView {
         $('#reloadTrelloBoards').on('click', () => {
           g2t_log('User clicked reload Trello boards button');
           this.app.model.loadTrelloData();
-          this.reset(); // Hide error message and show popup content
+          this.form.reset(); // Hide error message and show popup content
         });
       }
 
@@ -1531,7 +1540,7 @@ class PopupView {
     }, 3000);
   }
 
-  handleBoardChanged(target, params) {
+  handleBoardChanged_deprecated(target, params) {
     const boardId = params.boardId;
     if (boardId !== '_' && boardId !== '' && boardId !== null) {
       this.app.model.loadTrelloLists(boardId);
@@ -1540,19 +1549,13 @@ class PopupView {
     }
   }
 
-  handleListChanged(target, params) {
+  handleListChanged_deprecated(target, params) {
     const listId = params.listId;
     this.app.model.loadTrelloCards(listId);
   }
 
-
-
   handleSubmit_deprecated() {
-    if (this.$popupContent) {
-      this.$popupContent.hide();
-    }
-    this.form.showMessage(this, 'Submitting to Trello...');
-    this.app.events.fire('onSubmit');
+    this.app.model.submit(this.state);
   }
 
   handleCheckTrelloAuthorized_deprecated() {
@@ -1563,7 +1566,7 @@ class PopupView {
   handleRequestDeauthorizeTrello_deprecated() {
     g2t_log('onRequestDeauthorizeTrello');
     this.app.model.deauthorizeTrello();
-    this.clearBoard_deprecated();
+    this.form.clearBoard();
   }
 
   handleDetectButton() {
@@ -1571,33 +1574,6 @@ class PopupView {
       this.$toolBar = this.app.gmailView.$toolBar;
       this.finalCreatePopup(); // Moved from init() to here
     }
-  }
-
-  // Handle forced redraw requests
-  handleForceRedraw() {
-    g2t_log('PopupView:handleForceRedraw - handling forced redraw request');
-    
-    // Clear any existing button and popup
-    const $existingButton = $('#g2tButton');
-    const $existingPopup = $('#g2tPopup');
-    
-    if ($existingButton.length > 0) {
-      $existingButton.remove();
-    }
-    
-    if ($existingPopup.length > 0) {
-      $existingPopup.remove();
-    }
-    
-    // Clear cached HTML
-    this.html = {};
-    
-    // Reset state
-    this.$toolBar = null;
-    this.isInitialized = false;
-    
-    // Trigger fresh detection
-    this.handleDetectButton();
   }
 
   handleBeforeAuthorize() {
@@ -1627,33 +1603,31 @@ class PopupView {
     this.form.bindData(this.app.model);
   }
 
-
-
   handleLoadTrelloListSuccess_deprecated() {
-    this.updateLists_deprecated();
-    this.validateData_deprecated();
+    this.form.updateLists();
+    this.form.validateData();
   }
 
   handleLoadTrelloCardsSuccess_deprecated() {
-    this.updateCards_deprecated();
-    this.validateData_deprecated();
+    this.form.updateCards();
+    this.form.validateData();
   }
 
   handleLoadTrelloLabelsSuccess_deprecated() {
-    this.updateLabels_deprecated();
-    this.validateData_deprecated();
+    this.form.updateLabels();
+    this.form.validateData();
   }
 
   handleLoadTrelloMembersSuccess_deprecated() {
-    this.updateMembers_deprecated();
-    this.validateData_deprecated();
+    this.form.updateMembers();
+    this.form.validateData();
   }
 
-  handleAPIFailure(target, params) {
+  handleAPIFailure_deprecated(target, params) {
     this.form.displayAPIFailedForm(params);
   }
 
-  handleNewCardUploadsComplete(target, params) {
+  handleNewCardUploadsComplete_deprecated(target, params) {
     this.form.displaySubmitCompleteForm(params);
     // Fire final event for data manipulations
     this.app.events.fire('postCardCreateUploadDisplayDone', {
@@ -1667,8 +1641,8 @@ class PopupView {
     }
   }
 
-  handleOnMenuClick(target, params) {
-    this.validateData_deprecated();
+  handleOnMenuClick_deprecated(target, params) {
+    this.form.validateData();
   }
 
   handlePopupViewInitDone() {
@@ -1694,7 +1668,7 @@ class PopupView {
     this.bindPopupEvents();
 
     // DOM event bindings moved from bindEvents()
-    this.resetDragResize();
+    this.form.resetDragResize();
 
     $('#close-button', this.$popup)
       .off('click')
@@ -1752,7 +1726,7 @@ class PopupView {
       }
       this.app.events.fire('onBoardChanged', { boardId });
       if (this.form.comboBox) this.form.comboBox('updateValue');
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     const $list = $('#g2tList', this.$popup);
@@ -1760,7 +1734,7 @@ class PopupView {
       const listId = $list.val();
       this.app.events.fire('onListChanged', { listId });
       if (this.form.comboBox) this.form.comboBox('updateValue');
-      this.validateData_deprecated();
+      this.form.validateData();
     });
 
     $('#g2tPosition', this.$popup)
@@ -1783,7 +1757,7 @@ class PopupView {
       .off('change')
       .on('change', () => {
         if (this.form.comboBox) this.form.comboBox('updateValue');
-        this.validateData_deprecated();
+        this.form.validateData();
       });
 
     $('#g2tDue_Shortcuts', this.$popup)
@@ -1879,7 +1853,7 @@ class PopupView {
         if (new_time.length > 0) {
           $dueTime.val(new_time);
         }
-        this.validateData_deprecated();
+        this.form.validateData();
       });
 
     $('#g2tSubmit', this.$popup)
@@ -1905,23 +1879,6 @@ class PopupView {
       .on('click', () => {
         this.form.submit();
       });
-
-    // Attachment and image header click handlers for toggling checkboxes
-    $('#g2tAttachHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.app.utils.modKey(event)) {
-          this.form.toggleCheckboxes('g2tAttachments');
-        }
-      });
-
-    $('#g2tImagesHeader', this.$popup)
-      .off('click')
-      .on('click', event => {
-        if (this.app.utils.modKey(event)) {
-          this.form.toggleCheckboxes('g2tImages');
-        }
-      });
   }
 
   init() {
@@ -1930,7 +1887,7 @@ class PopupView {
     // Create MenuControl instance
     this.menuCtrl = new G2T.MenuControl({ app: this.app });
 
-    // Initialize form component
+    // Initialize form
     this.form.init();
 
     // Bind internal events
@@ -1939,8 +1896,6 @@ class PopupView {
     // inject a button & a popup
     // this.finalCreatePopup(); // Moved to handleDetectButton for now
 
-    // NOTE (2025-07-18 @acoven): Keeping for now just commented out in case button randomly disappears
-    /*
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -1948,7 +1903,6 @@ class PopupView {
     this.intervalId = setInterval(() => {
       this.app.events.fire('detectButton');
     }, 2000);
-    */
 
     // Remove DOM-dependent code from here (was from init_popup)
 

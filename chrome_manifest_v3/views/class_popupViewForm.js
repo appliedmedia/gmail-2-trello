@@ -23,15 +23,42 @@ class PopupViewForm {
   bindEvents() {
     // Form event handlers - these belong in PopupViewForm
     this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.app.events.addListener('checkTrelloAuthorized', this.handleCheckTrelloAuthorized.bind(this));
-    this.app.events.addListener('onRequestDeauthorizeTrello', this.handleRequestDeauthorizeTrello.bind(this));
-    this.app.events.addListener('onLoadTrelloListSuccess', this.handleLoadTrelloListSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloCardsSuccess', this.handleLoadTrelloCardsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloLabelsSuccess', this.handleLoadTrelloLabelsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloMembersSuccess', this.handleLoadTrelloMembersSuccess.bind(this));
-    this.app.events.addListener('onAPIFailure', this.handleAPIFailure.bind(this));
-    this.app.events.addListener('newCardUploadsComplete', this.handleNewCardUploadsComplete.bind(this));
-    this.app.events.addListener('onMenuClick', this.handleOnMenuClick.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'onRequestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onLoadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'onAPIFailure',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'newCardUploadsComplete',
+      this.handleNewCardUploadsComplete.bind(this)
+    );
+    this.app.events.addListener(
+      'onMenuClick',
+      this.handleOnMenuClick.bind(this)
+    );
   }
 
   // Form Data & Validation
@@ -233,7 +260,8 @@ class PopupViewForm {
     $('#report', this.parent.$popup).click(() => {
       this.reset();
 
-      const lastError_k = (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
+      const lastError_k =
+        (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
 
       const user_k = this.parent?.state?.trello?.user || {};
       const username_k = user_k?.username || '';
@@ -305,7 +333,8 @@ class PopupViewForm {
       data?.markdown ?? $('#chkMarkdown', this.parent.$popup).is(':checked');
     const useBackLink_k =
       data?.useBackLink ?? $('#chkBackLink', this.parent.$popup).is(':checked');
-    const addCC_k = data?.addCC ?? $('#chkCC', this.parent.$popup).is(':checked');
+    const addCC_k =
+      data?.addCC ?? $('#chkCC', this.parent.$popup).is(':checked');
     const $g2tDesc = $('#g2tDesc', this.parent.$popup);
 
     const fields = [
@@ -384,7 +413,7 @@ class PopupViewForm {
     $('#g2tCardDesc', this.parent.$popup).val('');
     $('#g2tBoard', this.parent.$popup).val('');
     $('#g2tList', this.parent.$popup).val('');
-    
+
     // Clear checkboxes
     $('input[type="checkbox"]', this.parent.$popup).prop('checked', false);
   }
@@ -393,10 +422,10 @@ class PopupViewForm {
   updateBoards(tempId = 0) {
     const boards = this.parent.state.boards || [];
     const $boardSelect = $('#g2tBoard', this.parent.$popup);
-    
+
     $boardSelect.empty();
     $boardSelect.append('<option value="">Select a board...</option>');
-    
+
     boards.forEach(board => {
       $boardSelect.append(`<option value="${board.id}">${board.name}</option>`);
     });
@@ -413,13 +442,11 @@ class PopupViewForm {
       return;
     }
 
-    const settings_k = this.parent?.state?.settings || {};
-
     const boardId_k = $('#g2tBoard', this.parent.$popup).val();
 
     const prev_item_k =
-      settings_k?.boardId == boardId_k && settings_k?.listId
-        ? settings_k.listId
+      this.parent.state?.boardId == boardId_k && this.parent.state?.listId
+        ? this.parent.state.listId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -458,13 +485,11 @@ class PopupViewForm {
       return;
     }
 
-    const settings_k = this.parent?.state?.settings || {};
-
     const listId_k = $('#g2tList', this.parent.$popup).val();
 
     const prev_item_k =
-      settings_k?.listId == listId_k && settings_k?.cardId
-        ? settings_k.cardId
+      this.parent.state?.listId == listId_k && this.parent.state?.cardId
+        ? this.parent.state.cardId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -671,7 +696,8 @@ class PopupViewForm {
     });
 
     $(':button', this.parent.$popupMessage).click(event => {
-      const $status = $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
+      const $status =
+        $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
       switch (event.target.id) {
         case 'signout':
           $status.html('Done');
@@ -729,11 +755,13 @@ class PopupViewForm {
 
   displaySubmitCompleteForm(params) {
     const $form = $('#g2tForm', this.parent.$popup);
-    const $success = $('<div class="g2t-success">Card created successfully!</div>');
-    
+    const $success = $(
+      '<div class="g2t-success">Card created successfully!</div>'
+    );
+
     $form.hide();
     $form.after($success);
-    
+
     // Auto-hide after 3 seconds
     setTimeout(() => {
       $success.fadeOut(() => {
@@ -748,10 +776,10 @@ class PopupViewForm {
     const $form = $('#g2tForm', this.parent.$popup);
     const errorMessage = response.error || 'API request failed';
     const $error = $('<div class="g2t-error">' + errorMessage + '</div>');
-    
+
     $form.hide();
     $form.after($error);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
       $error.fadeOut(() => {
@@ -775,11 +803,7 @@ class PopupViewForm {
       const popup_offset_k = this.parent.$popup.offset();
       const popup_top_k = popup_offset_k.top;
       const board_height_k = $board_k.outerHeight();
-      const calc_k =
-        max_k -
-        popup_top_k -
-        board_height_k -
-        90;
+      const calc_k = max_k - popup_top_k - board_height_k - 90;
       const val_k = calc_k > this.parent.size_k.text.min ? calc_k : '60%';
       $('.ui-autocomplete').css('max-height', val_k);
     };
@@ -875,8 +899,6 @@ class PopupViewForm {
       });
     }
   }
-
-
 
   // Form Actions
   submit() {
