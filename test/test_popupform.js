@@ -65,12 +65,12 @@ global.chrome = {
 // Mock G2T namespace
 global.G2T = {};
 
-// Load the PopupViewForm class
-const popupViewFormPath = path.join(
+// Load the PopupForm class
+const popupFormPath = path.join(
   __dirname,
-  '../chrome_manifest_v3/views/class_popupViewForm.js'
+  '../chrome_manifest_v3/views/class_popupForm.js'
 );
-const popupViewFormCode = fs.readFileSync(popupViewFormPath, 'utf8');
+const popupFormCode = fs.readFileSync(popupFormPath, 'utf8');
 
 // Mock parent PopupView
 const mockParent = {
@@ -161,22 +161,22 @@ const mockApp = {
   },
 };
 
-// Execute the PopupViewForm code
-eval(popupViewFormCode);
+// Execute the PopupForm code
+eval(popupFormCode);
 
 // Test suite
 function runTests() {
-  console.log('Running PopupViewForm tests...\n');
+  console.log('Running PopupForm tests...\n');
 
   // Test 1: Constructor and initialization
   console.log('Test 1: Constructor and initialization');
-  const form = new G2T.PopupViewForm({
+  const form = new G2T.PopupForm({
     parent: mockParent,
     app: mockApp,
   });
 
   console.log('✓ Form created successfully');
-  console.log('✓ Form ID:', form.id);
+  console.log('✓ Form ID:', form.ck.id);
 
   form.init();
   console.log('✓ Form initialized:', form.isInitialized);

@@ -13,7 +13,6 @@ This guide provides detailed instructions for developing and contributing to the
    ```
 
 2. **Load in Chrome**:
-
    - Open `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
@@ -37,13 +36,11 @@ This guide provides detailed instructions for developing and contributing to the
 ### Key Components
 
 1. **Gmail Integration** (`content-script.js`)
-
    - Injects UI elements into Gmail
    - Handles email content extraction
    - Manages button positioning and interactions
 
 2. **Trello API** (`model.js`)
-
    - OAuth authentication
    - Board, list, and card operations
    - File uploads and attachments
@@ -143,6 +140,24 @@ npm test
 - Verify API key is valid
 - Check rate limits
 - Ensure OAuth tokens are fresh
+
+## Git Best Practices
+
+### File Operations
+
+**Always use `git mv` instead of `mv` for file renames/moves.**
+
+- `git mv` preserves git history and tracks the move as a rename operation
+- `mv` followed by `git add`/`git rm` loses history and shows as delete+add
+- Example: `git mv old_name.js new_name.js` not `mv old_name.js new_name.js`
+
+**Multiple moves can be chained:**
+
+```zsh
+git mv file1.js new_file1.js && git mv file2.js new_file2.js
+```
+
+This ensures clean git history and proper tracking of file movements.
 
 ## Contributing
 

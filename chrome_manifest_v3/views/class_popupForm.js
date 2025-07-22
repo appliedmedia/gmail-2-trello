@@ -1,12 +1,16 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
-class PopupViewForm {
-  static get id() {
-    return 'g2t_popupviewform';
+class PopupForm {
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const ck = {
+      id: 'g2t_popupform',
+    };
+    return ck;
   }
 
-  get id() {
-    return PopupViewForm.id;
+  get ck() {
+    return PopupForm.ck;
   }
 
   constructor(args) {
@@ -21,7 +25,7 @@ class PopupViewForm {
   }
 
   bindEvents() {
-    // Form event handlers - these belong in PopupViewForm
+    // Form event handlers - these belong in PopupForm
     this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
     this.app.events.addListener(
       'checkTrelloAuthorized',
@@ -682,7 +686,7 @@ class PopupViewForm {
   showMessage(parent, text) {
     // Guard against calling before DOM elements are initialized
     if (!this.parent.$popupMessage) {
-      g2t_log('PopupViewForm:showMessage: DOM not ready, deferring message');
+      g2t_log('PopupForm:showMessage: DOM not ready, deferring message');
       // Store message to show later when DOM is ready
       this.parent.pendingMessage = { parent, text };
       return;
@@ -976,4 +980,6 @@ class PopupViewForm {
 }
 
 // Export the class
-G2T.PopupViewForm = PopupViewForm;
+G2T.PopupForm = PopupForm;
+
+// End, class_popupForm.js
