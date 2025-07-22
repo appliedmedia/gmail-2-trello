@@ -570,7 +570,7 @@ class PopupViewForm {
           $(
             '#g2tLabels button[trelloId-label="' + item.id + '"]',
             this.parent.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {
@@ -639,7 +639,7 @@ class PopupViewForm {
           $(
             '#g2tMembers button[trelloId-member="' + item.id + '"]',
             this.parent.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {

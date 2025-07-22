@@ -627,6 +627,21 @@ class Model {
     this.app.events.fire('cardCreationComplete', { data: params.data });
   }
 
+  // Form event handlers - moved from PopupView
+  handleBoardChanged(target, params) {
+    const boardId = params.boardId;
+    if (boardId !== '_' && boardId !== '' && boardId !== null) {
+      this.loadTrelloLists(boardId);
+      this.loadTrelloLabels(boardId);
+      this.loadTrelloMembers(boardId);
+    }
+  }
+
+  handleListChanged(target, params) {
+    const listId = params.listId;
+    this.loadTrelloCards(listId);
+  }
+
   bindEvents() {
     this.app.events.addListener(
       'classModelStateLoaded',
@@ -643,6 +658,16 @@ class Model {
     this.app.events.addListener(
       'postCardCreateUploadDisplayDone',
       this.handlePostCardCreateUploadDisplayDone.bind(this)
+    );
+
+    // Listen to board and list change events
+    this.app.events.addListener(
+      'onBoardChanged',
+      this.handleBoardChanged.bind(this)
+    );
+    this.app.events.addListener(
+      'onListChanged',
+      this.handleListChanged.bind(this)
     );
   }
 }

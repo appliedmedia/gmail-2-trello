@@ -374,9 +374,7 @@ class PopupView {
       'classPopupViewInitDone',
       this.handlePopupViewInitDone.bind(this)
     );
-  }
 
-  bindPopupEvents() {
     // Bind internal PopupView events
     this.app.events.addListener(
       'onPopupVisible',
@@ -386,14 +384,7 @@ class PopupView {
       'periodicChecks',
       this.handlePeriodicChecks.bind(this)
     );
-    this.app.events.addListener(
-      'onBoardChanged',
-      this.handleBoardChanged.bind(this)
-    );
-    this.app.events.addListener(
-      'onListChanged',
-      this.handleListChanged.bind(this)
-    );
+
     this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
     this.app.events.addListener(
       'checkTrelloAuthorized',
@@ -454,14 +445,16 @@ class PopupView {
       this.handleAPIFailure.bind(this)
     );
 
-    // Bind chrome.runtime.onMessage for popup-specific messages
-    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
-
     // Bind MenuControl events
     this.app.events.addListener(
       'onMenuClick',
       this.handleOnMenuClick.bind(this)
     );
+  }
+
+  bindPopupEvents() {
+    // Bind chrome.runtime.onMessage for popup-specific messages
+    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
   }
 
   submit_deprecated() {
@@ -1214,7 +1207,7 @@ class PopupView {
           $(
             '#g2tLabels button[trelloId-label="' + item.id + '"]',
             this.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {
@@ -1291,7 +1284,7 @@ class PopupView {
           $(
             '#g2tMembers button[trelloId-member="' + item.id + '"]',
             this.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {
@@ -1660,7 +1653,10 @@ class PopupView {
 
     // Show any pending message that was queued before DOM was ready
     if (this.pendingMessage) {
-      this.form.showMessage(this.pendingMessage.parent, this.pendingMessage.text);
+      this.form.showMessage(
+        this.pendingMessage.parent,
+        this.pendingMessage.text
+      );
       this.pendingMessage = null;
     }
 
@@ -1689,14 +1685,12 @@ class PopupView {
           }
         }
       })
-      .hover(
-        function () {
-          $(this).addClass('T-I-JW');
-        },
-        function () {
-          $(this).removeClass('T-I-JW');
-        }
-      );
+      .on('mouseenter', function () {
+        $(this).addClass('T-I-JW');
+      })
+      .on('mouseleave', function () {
+        $(this).removeClass('T-I-JW');
+      });
 
     const $board = $('#g2tBoard', this.$popup);
     $board.off('change').on('change', () => {
@@ -1720,21 +1714,23 @@ class PopupView {
         this.state.labelsId = '';
         this.state.listId = '';
         this.state.cardId = '';
+        this.state.boardId = boardId;
       } else {
         $members.hide();
         $labels.hide();
       }
-      this.app.events.fire('onBoardChanged', { boardId });
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
+      this.app.events.fire('onBoardChanged', { boardId });
     });
 
     const $list = $('#g2tList', this.$popup);
     $list.off('change').on('change', () => {
       const listId = $list.val();
-      this.app.events.fire('onListChanged', { listId });
+      this.state.listId = listId;
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
+      this.app.events.fire('onListChanged', { listId });
     });
 
     $('#g2tPosition', this.$popup)
