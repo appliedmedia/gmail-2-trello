@@ -445,7 +445,7 @@ class PopupViewForm {
     const boardId_k = $('#g2tBoard', this.parent.$popup).val();
 
     const prev_item_k =
-      this.parent.state?.boardId == boardId_k && this.parent.state?.listId
+      this.parent.state.boardId == boardId_k && this.parent.state.listId
         ? this.parent.state.listId
         : 0;
 
@@ -488,7 +488,7 @@ class PopupViewForm {
     const listId_k = $('#g2tList', this.parent.$popup).val();
 
     const prev_item_k =
-      this.parent.state?.listId == listId_k && this.parent.state?.cardId
+      this.parent.state.listId == listId_k && this.parent.state.cardId
         ? this.parent.state.cardId
         : 0;
 
