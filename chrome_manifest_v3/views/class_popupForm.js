@@ -26,30 +26,46 @@ class PopupForm {
 
   bindEvents() {
     // Form event handlers - these belong in PopupForm
-    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
+    this.app.events.addListener('submit', this.handleSubmit.bind(this));
     this.app.events.addListener(
       'checkTrelloAuthorized',
       this.handleCheckTrelloAuthorized.bind(this)
     );
     this.app.events.addListener(
-      'onRequestDeauthorizeTrello',
+      'requestDeauthorizeTrello',
       this.handleRequestDeauthorizeTrello.bind(this)
     );
     this.app.events.addListener(
-      'onLoadTrelloListSuccess',
+      'loadTrelloListSuccess',
       this.handleLoadTrelloListSuccess.bind(this)
     );
     this.app.events.addListener(
-      'onLoadTrelloCardsSuccess',
+      'loadTrelloCardsSuccess',
       this.handleLoadTrelloCardsSuccess.bind(this)
     );
     this.app.events.addListener(
-      'onLoadTrelloLabelsSuccess',
+      'loadTrelloLabelsSuccess',
       this.handleLoadTrelloLabelsSuccess.bind(this)
     );
     this.app.events.addListener(
-      'onLoadTrelloMembersSuccess',
+      'loadTrelloMembersSuccess',
       this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloListFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloCardsFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloLabelsFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloMembersFailed',
+      this.handleAPIFailure.bind(this)
     );
     this.app.events.addListener(
       'onAPIFailure',
@@ -59,10 +75,7 @@ class PopupForm {
       'newCardUploadsComplete',
       this.handleNewCardUploadsComplete.bind(this)
     );
-    this.app.events.addListener(
-      'onMenuClick',
-      this.handleOnMenuClick.bind(this)
-    );
+    this.app.events.addListener('menuClick', this.handleOnMenuClick.bind(this));
   }
 
   // Form Data & Validation
@@ -705,7 +718,7 @@ class PopupForm {
       switch (event.target.id) {
         case 'signout':
           $status.html('Done');
-          this.app.events.fire('onRequestDeauthorizeTrello');
+          this.app.events.fire('requestDeauthorizeTrello');
           break;
         case 'reload':
           this.parent.forceSetVersion(); // Sets value for version if needing update
@@ -910,7 +923,7 @@ class PopupForm {
       this.parent.$popupContent.hide();
     }
     this.parent.showMessage(this.parent, 'Submitting to Trello...');
-    this.app.events.fire('onSubmit');
+    this.app.events.fire('submit');
   }
 
   // Form Event Handlers

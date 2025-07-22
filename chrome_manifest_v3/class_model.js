@@ -335,22 +335,22 @@ class Model {
     uploader.upload(data);
   }
 
-  checkTrelloAuthorized_onSuccess(data) {
+  checkTrelloAuthorized_success(data) {
     this.state.trelloAuthorized = true;
     this.app.events.fire('trelloAuthorized', { data });
   }
 
-  checkTrelloAuthorized_onError(data) {
+  checkTrelloAuthorized_failure(data) {
     this.state.trelloAuthorized = false;
     this.app.events.fire('trelloUnauthorized', { data });
   }
 
-  checkTrelloAuthorized_popup_onSuccess(data) {
+  checkTrelloAuthorized_popup_success(data) {
     this.state.trelloAuthorized = true;
     this.app.events.fire('trelloAuthorizedPopup', { data });
   }
 
-  checkTrelloAuthorized_popup_onError(data) {
+  checkTrelloAuthorized_popup_failure(data) {
     this.state.trelloAuthorized = false;
     this.app.events.fire('trelloUnauthorizedPopup', { data });
   }
@@ -365,8 +365,8 @@ class Model {
       'get',
       'members/me',
       {},
-      this.checkTrelloAuthorized_onSuccess.bind(this),
-      this.checkTrelloAuthorized_onError.bind(this)
+      this.checkTrelloAuthorized_success.bind(this),
+      this.checkTrelloAuthorized_failure.bind(this)
     );
   }
 
@@ -376,12 +376,12 @@ class Model {
     this.app.events.fire('trelloDeauthorized', {});
   }
 
-  loadTrelloData_success_user(data) {
+  loadTrelloData_user_success(data) {
     this.state.trelloData.user = data;
-    this.loadTrelloData_success_boards();
+    this.loadTrelloData_boards_success();
   }
 
-  loadTrelloData_success_boards(data) {
+  loadTrelloData_boards_success(data) {
     if (data) {
       this.state.trelloData.boards = data;
     }
@@ -401,7 +401,7 @@ class Model {
       'get',
       'members/me',
       {},
-      this.loadTrelloData_success_user.bind(this),
+      this.loadTrelloData_user_success.bind(this),
       this.loadTrelloData_failure.bind(this)
     );
 
@@ -409,7 +409,7 @@ class Model {
       'get',
       'members/me/boards',
       {},
-      this.loadTrelloData_success_boards.bind(this),
+      this.loadTrelloData_boards_success.bind(this),
       this.loadTrelloData_failure.bind(this)
     );
   }
@@ -424,11 +424,11 @@ class Model {
 
   loadTrelloLists_success(data) {
     this.state.trelloData.lists = data;
-    this.app.events.fire('trelloListsLoaded', { data });
+    this.app.events.fire('loadTrelloListSuccess', { data });
   }
 
   loadTrelloLists_failure(data) {
-    this.app.events.fire('trelloListsLoadFailed', { data });
+    this.app.events.fire('loadTrelloListFailed', { data });
   }
 
   loadTrelloLists(boardId) {
@@ -447,11 +447,11 @@ class Model {
 
   loadTrelloCards_success(data) {
     this.state.trelloData.cards = data;
-    this.app.events.fire('trelloCardsLoaded', { data });
+    this.app.events.fire('loadTrelloCardsSuccess', { data });
   }
 
   loadTrelloCards_failure(data) {
-    this.app.events.fire('trelloCardsLoadFailed', { data });
+    this.app.events.fire('loadTrelloCardsFailed', { data });
   }
 
   loadTrelloCards(listId) {
@@ -470,11 +470,11 @@ class Model {
 
   loadTrelloMembers_success(data) {
     this.state.trelloData.members = data;
-    this.app.events.fire('trelloMembersLoaded', { data });
+    this.app.events.fire('loadTrelloMembersSuccess', { data });
   }
 
   loadTrelloMembers_failure(data) {
-    this.app.events.fire('trelloMembersLoadFailed', { data });
+    this.app.events.fire('loadTrelloMembersFailed', { data });
   }
 
   loadTrelloMembers(boardId) {
@@ -493,11 +493,11 @@ class Model {
 
   loadTrelloLabels_success(data) {
     this.state.trelloData.labels = data;
-    this.app.events.fire('trelloLabelsLoaded', { data });
+    this.app.events.fire('loadTrelloLabelsSuccess', { data });
   }
 
   loadTrelloLabels_failure(data) {
-    this.app.events.fire('trelloLabelsLoadFailed', { data });
+    this.app.events.fire('loadTrelloLabelsFailed', { data });
   }
 
   loadTrelloLabels(boardId) {
@@ -662,11 +662,11 @@ class Model {
 
     // Listen to board and list change events
     this.app.events.addListener(
-      'onBoardChanged',
+      'boardChanged',
       this.handleBoardChanged.bind(this)
     );
     this.app.events.addListener(
-      'onListChanged',
+      'listChanged',
       this.handleListChanged.bind(this)
     );
   }

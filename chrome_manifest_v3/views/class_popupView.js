@@ -640,7 +640,7 @@ class PopupView {
       }
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
-      this.app.events.fire('onBoardChanged', { boardId });
+      this.app.events.fire('boardChanged', { boardId });
     });
 
     const $list = $('#g2tList', this.$popup);
@@ -649,7 +649,7 @@ class PopupView {
       this.state.listId = listId;
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
-      this.app.events.fire('onListChanged', { listId });
+      this.app.events.fire('listChanged', { listId });
     });
 
     $('#g2tPosition', this.$popup)
@@ -780,7 +780,7 @@ class PopupView {
     $('#g2tSignOut', this.$popup)
       .off('click')
       .on('click', () => {
-        this.app.events.fire('onRequestDeauthorizeTrello');
+        this.app.events.fire('requestDeauthorizeTrello');
       });
 
     $('#g2tAuthorize', this.$popup)
