@@ -161,11 +161,11 @@ class PopupForm {
           '<option value="none" selected disabled hidden>-</option>' +
           '<option value="d=0 am=0">--</option>';
 
-        g2t_each(due, (value, key) => {
+        Object.entries(due).forEach(([key, value]) => {
           // value is already available from the callback parameter
           if (typeof value === 'object') {
             opt += `<optgroup label="${key}">`;
-            g2t_each(value, (value1, key1) => {
+            Object.entries(value).forEach(([key1, value1]) => {
               // value1 is already available from the callback parameter
               opt += `<option value="${value1}">${key1}</option>`;
             });
@@ -184,7 +184,7 @@ class PopupForm {
     }
 
     if (!data) {
-      g2t_log("bindData shouldn't continue without data!");
+      this.app.utils.log("bindData shouldn't continue without data!");
       return;
     }
 
@@ -287,7 +287,10 @@ class PopupForm {
 
       // Modify this.data directly for error reporting
       this.parent.state.description =
-        lastError_k + JSON.stringify(this.parent.state) + '\n' + g2t_log();
+        lastError_k +
+        JSON.stringify(this.parent.state) +
+        '\n' +
+        this.app.utils.log();
       this.parent.state.title =
         'Error report card: ' +
         [fullname_k, username_k].join(' @') +
@@ -367,14 +370,14 @@ class PopupForm {
 
     if (valid_data_k) {
       // Store data in description object attributes:
-      g2t_each(fields, value => {
+      fields.forEach(value => {
         const val_k = data[value] || '';
         const name_k = attribute_storage_k + value;
         $g2tDesc.attr(name_k, val_k);
       });
     } else {
       // Restore data values from description object attributes:
-      g2t_each(fields, value => {
+      fields.forEach(value => {
         const name_k = attribute_storage_k + value;
         const val_k = $g2tDesc.attr(name_k) || '';
         data[value] = val_k;
@@ -478,7 +481,7 @@ class PopupForm {
     const $g2t = $('#g2tList', this.parent.$popup);
     $g2t.html('');
 
-    g2t_each(array_k, item => {
+    array_k.forEach(item => {
       const id_k = item.id;
       const display_k = item.name;
       const selected_k = id_k == restoreId_k;
@@ -521,7 +524,7 @@ class PopupForm {
     const $g2t = $('#g2tCard', this.parent.$popup);
     $g2t.html(new_k);
 
-    g2t_each(array_k, item => {
+    array_k.forEach(item => {
       const id_k = item.id;
       const display_k = this.app.utils.truncate(item.name, 80, '...');
       const selected_k = id_k == restoreId_k;
@@ -699,7 +702,9 @@ class PopupForm {
   showMessage(parent, text) {
     // Guard against calling before DOM elements are initialized
     if (!this.parent.$popupMessage) {
-      g2t_log('PopupForm:showMessage: DOM not ready, deferring message');
+      this.app.utils.log(
+        'PopupForm:showMessage: DOM not ready, deferring message'
+      );
       // Store message to show later when DOM is ready
       this.parent.pendingMessage = { parent, text };
       return;
@@ -744,7 +749,9 @@ class PopupForm {
           this.parent.showSignOutOptions();
           break;
         default:
-          g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
+          this.app.utils.log(
+            `showMessage: ERROR unhandled case "${event.target.id}"`
+          );
       }
       if ($status.length > 0) {
         setTimeout(() => {
@@ -810,7 +817,7 @@ class PopupForm {
   comboBox(update) {
     const $jVals = { Board: '', Card: '', List: '' };
     const setJQueryVals = () => {
-      g2t_each($jVals, (value, key) => {
+      Object.entries($jVals).forEach(([key, $value]) => {
         $jVals[key] = $(`#g2t${key}`, this.parent.$popup);
       });
     };
@@ -828,14 +835,14 @@ class PopupForm {
       setTimeout(() => {
         this.parent.comboInitialized = true;
         setJQueryVals();
-        g2t_each($jVals, ($value, key) => {
+        Object.entries($jVals).forEach(([key, $value]) => {
           $value.combobox();
         });
         set_max_autocomplete_size();
       }, 1000);
     } else if (this.parent.comboInitialized) {
       setJQueryVals();
-      g2t_each($jVals, ($value, key) => {
+      Object.entries($jVals).forEach(([key, $value]) => {
         $value.combobox(
           'setInputValue',
           $value.children('option:selected').text()
@@ -865,7 +872,7 @@ class PopupForm {
     }
 
     let x = 0;
-    g2t_each(data[tag], item => {
+    data[tag].forEach(item => {
       const dict = {
         url: item.url,
         name: item.name,
@@ -953,7 +960,7 @@ class PopupForm {
   }
 
   handleRequestDeauthorizeTrello() {
-    g2t_log('onRequestDeauthorizeTrello');
+    this.app.utils.log('onRequestDeauthorizeTrello');
     this.parent.app.model.deauthorizeTrello();
     this.clearBoard();
   }

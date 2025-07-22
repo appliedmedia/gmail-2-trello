@@ -25,8 +25,8 @@ class MenuControl {
   reset(args = {}) {
     const { selectors, nonexclusive = false } = args;
 
-    if (!selectors) {
-      g2t_log('MenuControl: missing required selectors');
+    if (!this.selectors || Object.keys(this.selectors).length === 0) {
+      this.app.utils.log('MenuControl: missing required selectors');
       return;
     }
 

@@ -29,6 +29,9 @@ const dueShortcuts_k = JSON.stringify({
   },
 });
 
+// Track debug mode state for change detection
+let previousDebugMode = false;
+
 // Saves options to localStorage.
 function save_options() {
   // Reads options from the form and stores them in chrome.storage.
@@ -38,10 +41,16 @@ function save_options() {
   chrome.storage.sync.set({ debugMode, dueShortcuts }, () => {
     // Update status to let user know options were saved.
     const status = document.getElementById('status');
-    status.innerHTML = 'Options Saved.';
+    if (debugMode !== previousDebugMode) {
+      status.innerHTML =
+        'Options Saved. Debug mode changes take effect immediately.';
+    } else {
+      status.innerHTML = 'Options Saved.';
+    }
+    previousDebugMode = debugMode;
     setTimeout(() => {
       status.innerHTML = '&nbsp;';
-    }, 2500);
+    }, 3000);
   });
 }
 
@@ -53,9 +62,13 @@ function default_dueshortcuts() {
 // Restores select box state to saved value from localStorage.
 function restore_options() {
   chrome.storage.sync.get(['debugMode', 'dueShortcuts'], function (response) {
-    document.getElementById('debugmode').checked = response.debugMode || false;
+    const debugMode = response.debugMode || false;
+    document.getElementById('debugmode').checked = debugMode;
     document.getElementById('dueshortcuts').value =
       response.dueShortcuts || dueShortcuts_k;
+
+    // Track initial debug mode state for change detection
+    previousDebugMode = debugMode;
   });
 }
 

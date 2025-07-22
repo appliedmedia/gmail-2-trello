@@ -18,7 +18,7 @@ class PopupView {
     this.app = args.app;
     this.isInitialized = false;
 
-    this._state = {};
+    // Remove local state - use centralized app state
 
     this.size_k = {
       width: {
@@ -80,12 +80,12 @@ class PopupView {
 
   // Getter for state
   get state() {
-    return this._state;
+    return this.app.state.popupView;
   }
 
   // Setter for state
   set state(newState) {
-    this._state = newState;
+    this.app.state.popupView = newState;
   }
 
   loadState() {
@@ -97,6 +97,8 @@ class PopupView {
 
   saveState() {
     this.app.utils.saveToChromeStorage(this.ck.id, this.state);
+    // Also save to centralized app state
+    this.app.saveState();
   }
 
   finalCreatePopup() {
@@ -114,7 +116,9 @@ class PopupView {
         this.html['add_to_trello'] &&
         this.html['add_to_trello'].length > 0
       ) {
-        // g2t_log('PopupView:confirmPopup: add_to_trello_html already exists');
+        this.app.utils.log(
+          'PopupView:confirmPopup: add_to_trello_html already exists'
+        );
       } else {
         let img = 'G2T';
         let classAdd = 'Bn';
@@ -142,13 +146,15 @@ class PopupView {
           img +
           '<div id="g2tDownArrow" class="G-asx T-I-J3 J-J5-Ji">&nbsp;</div></div></div></div>';
       }
-      // g2t_log('PopupView:confirmPopup: creating button');
+      this.app.utils.log('PopupView:confirmPopup: creating button');
       this.$toolBar.append(this.html['add_to_trello']);
       needInit = true;
     } else if ($button.first().is(':visible')) {
-      // g2t_log('PopupView:confirmPopup: button visible');
+      this.app.utils.log('PopupView:confirmPopup: button visible');
     } else {
-      // g2t_log('PopupView:confirmPopup: Button is in an inactive region. Moving...');
+      this.app.utils.log(
+        'PopupView:confirmPopup: Button is in an inactive region. Moving...'
+      );
       //relocate
       if ($button.length > 1) {
         $button.detach(); // In case multiple copies were created
@@ -156,14 +162,14 @@ class PopupView {
           $popup.detach(); // In case copies were created
         }
       }
-      g2t_log('PopupView:confirmPopup: adding Button and Popup');
+      this.app.utils.log('PopupView:confirmPopup: adding Button and Popup');
       $button.first().appendTo(this.$toolBar);
       $popup.first().appendTo(this.$toolBar);
     }
 
     if (needInit || $popup.length < 1) {
       if (this.html && this.html['popup'] && this.html['popup'].length > 0) {
-        // g2t_log('PopupView:confirmPopup: adding popup');
+        this.app.utils.log('PopupView:confirmPopup: adding popup');
         this.$toolBar.append(this.html['popup']);
         // Fire popupLoaded event
         this.app.events.fire('popupLoaded');
@@ -173,7 +179,7 @@ class PopupView {
         $.get(this.app.chrome.runtimeGetURL('views/popupView.html'), data => {
           // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
           this.html['popup'] = data;
-          g2t_log('PopupView:confirmPopup: creating popup');
+          this.app.utils.log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(data);
           // Fire popupLoaded event after DOM is ready
           this.app.events.fire('popupLoaded');
@@ -299,11 +305,11 @@ class PopupView {
       this.handleBeforeAuthorize.bind(this)
     );
     this.app.events.addListener(
-      'onAuthorizeFail',
+      'checkTrelloAuthorized_failed',
       this.handleAuthorizeFail.bind(this)
     );
     this.app.events.addListener(
-      'onAuthorized',
+      'checkTrelloAuthorized_success',
       this.handleAuthorized.bind(this)
     );
     this.app.events.addListener(
@@ -311,7 +317,7 @@ class PopupView {
       this.handleBeforeLoadTrello.bind(this)
     );
     this.app.events.addListener(
-      'onTrelloDataReady',
+      'loadTrelloData_success',
       this.handleTrelloDataReady.bind(this)
     );
   }
@@ -441,7 +447,7 @@ class PopupView {
   }
 
   handleChromeAPIError(error, operation) {
-    g2t_log(`${operation} ERROR: extension context invalidated`);
+    this.app.utils.log(`${operation} ERROR: extension context invalidated`);
     this.displayExtensionInvalidReload();
   }
 
@@ -634,6 +640,7 @@ class PopupView {
         this.state.listId = '';
         this.state.cardId = '';
         this.state.boardId = boardId;
+        this.saveState(); // Save state after board change (where saveSettings was called)
       } else {
         $members.hide();
         $labels.hide();
@@ -647,6 +654,7 @@ class PopupView {
     $list.off('change').on('change', () => {
       const listId = $list.val();
       this.state.listId = listId;
+      this.saveState(); // Save state after list change (where saveSettings was called)
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
       this.app.events.fire('listChanged', { listId });
@@ -728,7 +736,7 @@ class PopupView {
             new_date = dom_date_format(d);
           }
         } else {
-          g2t_log(
+          this.app.utils.log(
             `due_Shortcuts:change: Unknown due date shortcut: "${due_date}"`
           );
         }
@@ -755,7 +763,7 @@ class PopupView {
               ('0' + (hhmm_k[1] || 0).toString()).substr(-2);
           }
         } else {
-          g2t_log(
+          this.app.utils.log(
             `due_Shortcuts:change: Unknown due time shortcut: "${due_time}"`
           );
         }
@@ -797,7 +805,7 @@ class PopupView {
   }
 
   init() {
-    // g2t_log('PopupView:init');
+    // this.app.utils.log('PopupView:init');
 
     // Create MenuControl instance
     this.menuCtrl = new G2T.MenuControl({ app: this.app });

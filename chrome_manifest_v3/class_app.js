@@ -27,19 +27,80 @@ class App {
     this.gmailView = new G2T.GmailView({ app: this });
     this.popupView = new G2T.PopupView({ app: this });
     this.utils = new G2T.Utils({ app: this });
-    this.state = {};
+
+    // Centralized state management
+    this.state = {
+      // App-level state
+      app: {
+        initialized: false,
+        lastHash: '',
+      },
+      // Model state
+      model: {
+        trelloAuthorized: false,
+        trelloData: {
+          user: null,
+          boards: [],
+          lists: [],
+          cards: [],
+          members: [],
+          labels: [],
+        },
+        emailBoardListCardMap: [],
+      },
+      // PopupView state
+      popupView: {
+        popupWidth: 700,
+        popupHeight: 464,
+        boardId: null,
+        listId: null,
+        cardId: null,
+        useBackLink: true,
+        addCC: false,
+        updatesPending: [],
+        comboInitialized: false,
+        pendingMessage: null,
+      },
+      // GmailView state
+      gmailView: {
+        layoutMode: 0, // LAYOUT_DEFAULT
+      },
+      // Utils state
+      utils: {
+        storageHashes: {},
+      },
+      // Log state (not persisted to Chrome storage)
+      log: {
+        memory: [],
+        count: 0,
+        max: 100,
+        debugMode: false,
+      },
+    };
 
     // Navigation detection variables
     this.lastHash = window.location.hash;
   }
 
   loadState() {
-    const fire_on_done = 'classAppStateLoaded';
-    this.utils.loadFromChromeStorage(this.ck.id, fire_on_done);
+    // Preserve current log state before loading
+    const currentLogState = this.state.log;
+
+    this.utils.loadFromChromeStorage(this.ck.id, 'classAppStateLoaded');
+
+    // Restore log state after loading (it shouldn't be overwritten from storage)
+    this.state.log = currentLogState;
   }
 
   saveState() {
+    // Temporarily remove log state before saving (it shouldn't be persisted)
+    const logState = this.state.log;
+    delete this.state.log;
+
     this.utils.saveToChromeStorage(this.ck.id, this.state);
+
+    // Restore log state after saving
+    this.state.log = logState;
   }
 
   updateData() {
@@ -54,7 +115,30 @@ class App {
 
   // Event handlers
   handleClassAppStateLoaded(event, params) {
-    this.state = params || {};
+    if (params) {
+      // Preserve current log state
+      const currentLogState = this.state.log;
+
+      // Merge loaded state with centralized state structure
+      if (params.app) {
+        this.state.app = { ...this.state.app, ...params.app };
+      }
+      if (params.model) {
+        this.state.model = { ...this.state.model, ...params.model };
+      }
+      if (params.popupView) {
+        this.state.popupView = { ...this.state.popupView, ...params.popupView };
+      }
+      if (params.gmailView) {
+        this.state.gmailView = { ...this.state.gmailView, ...params.gmailView };
+      }
+      if (params.utils) {
+        this.state.utils = { ...this.state.utils, ...params.utils };
+      }
+
+      // Restore log state (it shouldn't be overwritten from storage)
+      this.state.log = currentLogState;
+    }
   }
 
   // Parse hash to extract view level (before first '/')
@@ -73,11 +157,16 @@ class App {
 
   // Handle Gmail navigation changes
   handleGmailNavigation() {
-    g2t_log('App: Gmail navigation detected, triggering redraw');
+    this.utils.log('App: Gmail navigation detected, triggering redraw');
     // Force a complete redraw to ensure the button appears in the new view
     this.gmailView.forceRedraw();
     // Also fire the force redraw event for the popup view
     this.events.fire('forceRedraw');
+  }
+
+  handleGmailHashChange() {
+    this.utils.log('App: Gmail view change detected via hashchange');
+    this.gmailView.forceRedraw();
   }
 
   // Event binding
@@ -96,8 +185,7 @@ class App {
 
       // Only trigger redraw if this is a view change (not just content change)
       if (this.isViewChange(this.lastHash, newHash)) {
-        g2t_log('App: Gmail view change detected via hashchange');
-        this.handleGmailNavigation();
+        this.handleGmailHashChange();
       }
 
       this.lastHash = newHash;
@@ -105,7 +193,7 @@ class App {
   }
 
   init() {
-    // g2t_log('App:initialize');
+    // this.utils.log('App:initialize');
     this.bindEvents();
     this.model.init();
     this.gmailView.init();

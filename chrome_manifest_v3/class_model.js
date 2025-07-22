@@ -96,7 +96,7 @@ class Uploader {
     const self = this;
     const generateKeysAndValues = function (object) {
       let keysAndValues = [];
-      g2t_each(object, function (value, key) {
+      Object.entries(object).forEach(([key, value]) => {
         keysAndValues.push(
           `${key}=${value || ''} (${(value || '').toString().length})`
         );
@@ -163,17 +163,16 @@ class EmailBoardListCardMap {
   constructor(args) {
     this.parent = args.parent;
     this.app = args.app;
-    this._state = [];
     this.maxSize = 100;
     this.chrome_storage_key = 'gmail2trello_eblc_map';
   }
 
   get state() {
-    return this._state;
+    return this.app.state.model.emailBoardListCardMap || [];
   }
 
   set state(newState) {
-    this._state = newState;
+    this.app.state.model.emailBoardListCardMap = newState;
   }
 
   loadState() {
@@ -185,6 +184,8 @@ class EmailBoardListCardMap {
 
   saveState() {
     this.app.utils.saveToChromeStorage(this.ck.id, this.state);
+    // Also save to centralized app state
+    this.app.saveState();
   }
 
   add(args = {}) {
@@ -276,22 +277,15 @@ class Model {
   constructor(args) {
     this.parent = args.parent;
     this.app = args.app;
-    this._state = {
-      trelloAuthorized: false,
-      trelloData: {},
-      emailBoardListCardMap: new EmailBoardListCardMap({
-        parent: this,
-        app: this.app,
-      }),
-    };
+    // Remove local state - use centralized app state
   }
 
   get state() {
-    return this._state;
+    return this.app.state.model;
   }
 
   set state(newState) {
-    this._state = newState;
+    this.app.state.model = newState;
   }
 
   loadState() {
@@ -300,6 +294,8 @@ class Model {
 
   saveState() {
     this.app.utils.saveToChromeStorage(this.ck.id, this.state);
+    // Also save to centralized app state
+    this.app.saveState();
   }
 
   init() {
@@ -337,22 +333,26 @@ class Model {
 
   checkTrelloAuthorized_success(data) {
     this.state.trelloAuthorized = true;
-    this.app.events.fire('trelloAuthorized', { data });
+    this.saveState(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_success', { data });
   }
 
   checkTrelloAuthorized_failure(data) {
     this.state.trelloAuthorized = false;
-    this.app.events.fire('trelloUnauthorized', { data });
+    this.saveState(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_failed', { data });
   }
 
   checkTrelloAuthorized_popup_success(data) {
     this.state.trelloAuthorized = true;
-    this.app.events.fire('trelloAuthorizedPopup', { data });
+    this.saveState(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_popup_success', { data });
   }
 
   checkTrelloAuthorized_popup_failure(data) {
     this.state.trelloAuthorized = false;
-    this.app.events.fire('trelloUnauthorizedPopup', { data });
+    this.saveState(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_popup_failed', { data });
   }
 
   initTrello() {
@@ -373,23 +373,28 @@ class Model {
   deauthorizeTrello() {
     this.state.trelloAuthorized = false;
     this.state.trelloData = {};
-    this.app.events.fire('trelloDeauthorized', {});
+    this.saveState(); // Save state after deauthorization
+    this.app.events.fire('deauthorizeTrello_success', {});
   }
 
   loadTrelloData_user_success(data) {
     this.state.trelloData.user = data;
+    this.saveState(); // Save state after data load
     this.loadTrelloData_boards_success();
   }
 
   loadTrelloData_boards_success(data) {
     if (data) {
       this.state.trelloData.boards = data;
+      this.saveState(); // Save state after data load
     }
-    this.app.events.fire('trelloDataLoaded', { data: this.state.trelloData });
+    this.app.events.fire('loadTrelloData_success', {
+      data: this.state.trelloData,
+    });
   }
 
   loadTrelloData_failure(data) {
-    this.app.events.fire('trelloDataLoadFailed', { data });
+    this.app.events.fire('loadTrelloData_failed', { data });
   }
 
   loadTrelloData() {
@@ -424,6 +429,7 @@ class Model {
 
   loadTrelloLists_success(data) {
     this.state.trelloData.lists = data;
+    this.saveState(); // Save state after data load
     this.app.events.fire('loadTrelloListSuccess', { data });
   }
 
@@ -447,6 +453,7 @@ class Model {
 
   loadTrelloCards_success(data) {
     this.state.trelloData.cards = data;
+    this.saveState(); // Save state after data load
     this.app.events.fire('loadTrelloCardsSuccess', { data });
   }
 
@@ -470,6 +477,7 @@ class Model {
 
   loadTrelloMembers_success(data) {
     this.state.trelloData.members = data;
+    this.saveState(); // Save state after data load
     this.app.events.fire('loadTrelloMembersSuccess', { data });
   }
 
@@ -493,6 +501,7 @@ class Model {
 
   loadTrelloLabels_success(data) {
     this.state.trelloData.labels = data;
+    this.saveState(); // Save state after data load
     this.app.events.fire('loadTrelloLabelsSuccess', { data });
   }
 
@@ -516,7 +525,7 @@ class Model {
 
   submit(data) {
     if (!this.state.trelloAuthorized) {
-      this.app.events.fire('trelloUnauthorized', {});
+      this.app.events.fire('checkTrelloAuthorized_failed', {});
       return;
     }
 
@@ -561,13 +570,13 @@ class Model {
           data.cardId = cardId;
           this.uploadAttachments(data);
         } else {
-          this.app.events.fire('trelloCardCreated', {
+          this.app.events.fire('createCard_success', {
             data: { ...data, cardId },
           });
         }
       },
       error => {
-        this.app.events.fire('trelloCardCreateFailed', { data: error });
+        this.app.events.fire('createCard_failed', { data: error });
       }
     );
   }
@@ -620,6 +629,7 @@ class Model {
       });
     }
 
+    this.saveState(); // Save state after successful card creation (where saveSettings was called)
     this.app.events.fire('cardCreationComplete', { data });
   }
 

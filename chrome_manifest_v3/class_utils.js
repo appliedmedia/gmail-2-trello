@@ -3,8 +3,62 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class Utils {
   constructor(args) {
     this.app = args.app;
-    this._state = {};
+    // Remove local state - use centralized app state
     this.storageHashes = {};
+  }
+
+  /**
+   * Refresh debug mode from Chrome storage
+   */
+  refreshDebugMode() {
+    this.app.chrome.storageSyncGet('debugMode', response => {
+      this.app.state.log.debugMode = response?.debugMode || false;
+    });
+  }
+
+  /**
+   * Log function. A wrapper for console.log, depends on logEnabled flag
+   * @param  {any} data data to write log
+   */
+  log(data) {
+    // Initialize log state if not exists
+    if (!this.app.state.log) {
+      this.app.state.log = {
+        memory: [],
+        count: 0,
+        max: 100,
+        debugMode: false,
+      };
+    }
+
+    let l = this.app.state.log;
+
+    if (data) {
+      const count_size_k = l.max.toString().length;
+      const counter_k = ('0'.repeat(count_size_k) + l.count.toString()).slice(
+        -count_size_k
+      );
+      const now_k = new Date().toISOString();
+
+      if (typeof data !== 'string') {
+        data = JSON.stringify(data);
+      }
+
+      data = `${now_k}.${counter_k} G2T→${data}`;
+
+      l.memory[l.count] = data;
+      if (++l.count >= l.max) {
+        l.count = 0;
+      }
+      if (l.debugMode) {
+        console.log(data);
+      }
+    } else {
+      return (
+        l.memory.slice(l.count).join('\n') +
+        l.memory.slice(0, l.count).join('\n')
+      );
+    }
   }
 
   static get ck() {
@@ -20,20 +74,28 @@ class Utils {
   }
 
   get state() {
-    return this._state;
+    return this.app.state.utils;
   }
 
   set state(newState) {
-    this._state = newState;
+    this.app.state.utils = newState;
   }
 
   loadState() {
-    const fire_on_done = 'classUtilsStateLoaded';
-    this.loadFromChromeStorage(this.ck.id, fire_on_done);
+    this.app.utils.loadFromChromeStorage(this.ck.id, 'classUtilsStateLoaded');
+
+    // Load debug mode setting once during initialization
+    this.app.chrome.storageSyncGet('debugMode', response => {
+      if (response?.debugMode) {
+        this.app.state.log.debugMode = true;
+      }
+    });
   }
 
   saveState() {
     this.saveToChromeStorage(this.ck.id, this.state);
+    // Also save to centralized app state
+    this.app.saveState();
   }
 
   /**
@@ -93,18 +155,20 @@ class Utils {
    * Utility routine to replace variables
    */
   replacer(text = '', dict = {}) {
-    if (text?.length < 1) {
-      // g2t_log('Require text!');
-      return '';
-    } else if (!dict || Object.keys(dict).length < 1) {
-      g2t_log('replacer: Require dictionary!');
+    if (!text || text.length === 0) {
+      // this.log('Require text!');
+      return text;
+    }
+
+    if (!dict || Object.keys(dict).length === 0) {
+      this.log('replacer: Require dictionary!');
       return text;
     }
 
     let result = text;
     let runaway_max = 3;
     while (result.indexOf('%') !== -1 && runaway_max-- > 0) {
-      g2t_each(dict, (value, key) => {
+      Object.entries(dict).forEach(([key, value]) => {
         result = this.replacer_onEach(result, value, key);
       });
     }
@@ -245,7 +309,7 @@ class Utils {
    */
   markdownify($emailBody, features, preprocess) {
     if (!$emailBody || $emailBody.length < 1) {
-      g2t_log('markdownify: Require emailBody!');
+      this.log('markdownify: Require emailBody!');
       return;
     }
 
@@ -304,20 +368,19 @@ class Utils {
      */
     const sortAndPlaceholderize = tooProcess => {
       if (tooProcess) {
-        g2t_each(
-          Object.keys(tooProcess).sort(
-            this.markdownify_sortByLength.bind(this)
-          ),
-          this.markdownify_onSortEach.bind(
-            this,
-            tooProcess,
-            unique_placeholder_k,
-            count,
-            regexp_k,
-            body,
-            replacer_dict
-          )
-        );
+        Object.keys(tooProcess)
+          .sort(this.markdownify_sortByLength.bind(this))
+          .forEach(
+            this.markdownify_onSortEach.bind(
+              this,
+              tooProcess,
+              unique_placeholder_k,
+              count,
+              regexp_k,
+              body,
+              replacer_dict
+            )
+          );
       }
     };
 
@@ -527,8 +590,7 @@ class Utils {
   decodeEntities(sourceText) {
     const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
     let re, new_s;
-    g2t_each(
-      dict_k,
+    Object.entries(dict_k).forEach(
       this.decodeEntities_onEach.bind(this, sourceText, re, new_s)
     );
     try {

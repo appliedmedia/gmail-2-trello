@@ -17,90 +17,6 @@
 let globalInit = false;
 
 /**
- * Generic hasOwnProperty check that can be easily changed if needed
- * @param {Object} obj - The object to check
- * @param {string} prop - The property name to check
- * @returns {boolean} - True if the object has the property as its own property
- */
-function g2t_has(obj, prop) {
-  // Use modern Object.hasOwn() if available, otherwise fall back to hasOwnProperty
-  if (typeof Object.hasOwn === 'function') {
-    return Object.hasOwn(obj, prop);
-  } else {
-    return Object.prototype.hasOwnProperty.call(obj, prop);
-  }
-}
-
-/**
- * g2t_each: Iterate over arrays or objects like jQuery's $.each
- * @param {Array|Object} obj - The array or object to iterate
- * @param {Function} callback - function(value, keyOrIndex, obj)
- */
-function g2t_each(obj, callback) {
-  if (Array.isArray(obj)) {
-    obj.forEach(function (value, index) {
-      callback(value, index, obj);
-    });
-  } else if (typeof obj === 'object' && obj !== null) {
-    Object.keys(obj).forEach(function (key) {
-      callback(obj[key], key, obj);
-    });
-  }
-  // else: do nothing for null/undefined
-}
-
-/**
- * Global log. A wrapper for console.log, depend on logEnabled flag
- * @param  {any} data data to write log
- */
-function g2t_log(data) {
-  window.g2t_log_g ??= {
-    memory: [],
-    count: 0,
-    max: 100,
-    debugMode: false,
-  };
-
-  try {
-    window.g2t_app.chrome.storageSyncGet('debugMode', function (response) {
-      if (response?.debugMode) {
-        window.g2t_log_g.debugMode = true;
-      }
-    });
-  } catch (error) {
-    // Extension context invalidated, continue without debug mode
-  }
-
-  let l = window.g2t_log_g;
-
-  if (data) {
-    const count_size_k = l.max.toString().length;
-    const counter_k = ('0'.repeat(count_size_k) + l.count.toString()).slice(
-      -count_size_k
-    );
-    const now_k = new Date().toISOString();
-
-    if (typeof data !== 'string') {
-      data = JSON.stringify(data);
-    }
-
-    data = `${now_k}.${counter_k} G2T→${data}`;
-
-    l.memory[l.count] = data;
-    if (++l.count >= l.max) {
-      l.count = 0;
-    }
-    if (l.debugMode) {
-      console.log(data);
-    }
-  } else {
-    return (
-      l.memory.slice(l.count).join('\n') + l.memory.slice(0, l.count).join('\n')
-    );
-  }
-}
-
-/**
  * Show extension context invalidated dialog
  */
 function extensionInvalidConfirmReload() {
@@ -135,9 +51,7 @@ function getGmailObject() {
         script.parentNode.removeChild(script);
       };
     } catch (error) {
-      g2t_log(
-        `getGmailObject ERROR: extension context invalidated - failed "chrome.runtime.getURL"`
-      );
+      // Handle context invalidation if app isn't ready yet
       extensionInvalidConfirmReload();
     }
   }
@@ -155,19 +69,15 @@ window.g2t_app = app;
  */
 function requestHandler(request, sender, sendResponse) {
   if (request?.message === 'g2t_initialize') {
-    // g2t_log('GlobalInit: '+globalInit.toString());
     globalInit = true;
     // enough delay for gmail finishes rendering
-    // g2t_log('tabs.onUpdated - complete');
-    jQuery(document).ready(function () {
-      g2t_log('document.ready');
+    jQuery(function () {
       app.init();
       getGmailObject();
     });
     // Was:
     // setTimeout(function() {
     //     jQuery(document).ready(function() {
-    //         g2t_log('document.ready');
     //         getGmailObject();
     //         app.initialize();
     //     });
@@ -179,9 +89,10 @@ function requestHandler(request, sender, sendResponse) {
 try {
   chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
 } catch (error) {
-  g2t_log(
+  console.error(
     `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
   );
+  // Handle context invalidation if app isn't ready yet
   extensionInvalidConfirmReload();
 }
 

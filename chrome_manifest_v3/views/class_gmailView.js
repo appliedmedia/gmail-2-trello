@@ -16,11 +16,10 @@ class GmailView {
 
   constructor(args) {
     this.app = args.app;
-    this._state = {};
+    // Remove local state - use centralized app state
 
     this.LAYOUT_DEFAULT = 0;
     this.LAYOUT_SPLIT = 1;
-    this.state = { layoutMode: this.LAYOUT_DEFAULT };
     this.$root = null;
     this.parsingData = false;
     this.runaway = 0;
@@ -54,7 +53,7 @@ class GmailView {
   }
 
   static get id() {
-    return 'g2t_gmailView';
+    return 'g2t_gmailview';
   }
 
   get id() {
@@ -62,11 +61,11 @@ class GmailView {
   }
 
   get state() {
-    return this._state;
+    return this.app.state.gmailView;
   }
 
   set state(newState) {
-    this._state = newState;
+    this.app.state.gmailView = newState;
   }
 
   loadState() {
@@ -78,17 +77,18 @@ class GmailView {
 
   saveState() {
     this.app.utils.saveToChromeStorage(this.ck.id, this.state);
+    // Also save to centralized app state
+    this.app.saveState();
   }
 
   // Callback methods for detectToolbar
   detectToolbar_onTimeout() {
     this.runaway++;
-    if (this.runaway > 5) {
-      this.runaway = 0;
-      g2t_log('GmailView:detectToolbar RUNAWAY FIRED!');
-    } else {
-      this.app.events.fire('detectButton');
+    if (this.runaway > 10) {
+      this.app.utils.log('GmailView:detectToolbar RUNAWAY FIRED!');
+      return;
     }
+    this.detectToolbar();
   }
 
   // Callback methods for detectEmailOpeningMode
@@ -270,7 +270,7 @@ class GmailView {
 
     let retn = {};
 
-    g2t_each(forms, item => {
+    forms.forEach(item => {
       let item1 = this.app.utils.replacer(item, dict);
       retn[item1.toLowerCase()] = anchor_md;
     });
@@ -279,13 +279,13 @@ class GmailView {
   }
 
   preDetect() {
-    // g2t_log('GmailView:preDetect');
+    // this.app.utils.log('GmailView:preDetect');
 
     const $activeGroup = $('.BltHke[role="main"]');
 
     /* // OBSOLETE (Ace, 2020-02-15): .find is always returning false, don't think detecting split needed any more
       if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
-          // g2t_log('detect: Detected SplitLayout');
+          // this.app.utils.log('detect: Detected SplitLayout');
 
           this.state.layoutMode = this.LAYOUT_SPLIT;
           this.$root = $activeGroup;
@@ -299,7 +299,7 @@ class GmailView {
   }
 
   detect() {
-    // g2t_log('GmailView:detect');
+    // this.app.utils.log('GmailView:detect');
 
     const pre_k = this.preDetect();
 
@@ -312,35 +312,38 @@ class GmailView {
 
   // Force a complete redraw of the G2T button
   forceRedraw() {
-    g2t_log('GmailView:forceRedraw - forcing complete redraw');
-    
+    this.app.utils.log('GmailView:forceRedraw - forcing complete redraw');
+
     // Clear any existing button to force recreation
     const $existingButton = $('#g2tButton');
     if ($existingButton.length > 0) {
       $existingButton.remove();
     }
-    
+
     // Clear any existing popup
     const $existingPopup = $('#g2tPopup');
     if ($existingPopup.length > 0) {
       $existingPopup.remove();
     }
-    
+
     // Reset state
     this.$toolBar = null;
     this.runaway = 0;
-    
+
     // Trigger popup view redraw as well
-    if (this.app.popupView && typeof this.app.popupView.handleForceRedraw === 'function') {
+    if (
+      this.app.popupView &&
+      typeof this.app.popupView.handleForceRedraw === 'function'
+    ) {
       this.app.popupView.handleForceRedraw();
     }
-    
+
     // Trigger fresh detection
     this.detect();
   }
 
   detectToolbar() {
-    // g2t_log('GmailView:detectToolbar');
+    // this.app.utils.log('GmailView:detectToolbar');
 
     let $toolBar = $("[gh='mtb']", this.$root) || null;
 
@@ -370,7 +373,7 @@ class GmailView {
       this.$expandedEmails &&
       this.$expandedEmails.length > 0;
     if (result) {
-      // g2t_log('detectEmailOpeningMode: Detected an email is opening: ' + JSON.stringify(this.$expandedEmails));
+      // this.app.utils.log('detectEmailOpeningMode: Detected an email is opening: ' + JSON.stringify(this.$expandedEmails));
 
       //bind events
       let counter = 0;
@@ -384,7 +387,7 @@ class GmailView {
             .attr('g2t_event', 1)
             .click(() => this.detectEmailOpeningMode_onEmailClick());
         });
-      g2t_log(
+      this.app.utils.log(
         'detectEmailOpeningMode: Binded email threads click events: ' +
           counter +
           ' items'
@@ -396,7 +399,7 @@ class GmailView {
   }
 
   parseData(args = {}) {
-    // g2t_log('parseData');
+    // this.app.utils.log('parseData');
     if (this.parsingData) {
       return;
     }
@@ -407,13 +410,13 @@ class GmailView {
 
     const $viewport = $('.aia, .nH', this.$root).first();
     //  }
-    // g2t_log('GmailView:parseData::viewport: ' + JSON.stringify($viewport));
+    // this.app.utils.log('GmailView:parseData::viewport: ' + JSON.stringify($viewport));
     if ($viewport.length == 0) {
       return;
     }
 
     this.y0 = $viewport.offset().top;
-    //g2t_log(y0);
+    //this.app.utils.log(y0);
     this.$visibleMail = null;
     // parse expanded emails again
     $('.h7', this.$root).each((index, element) =>
@@ -430,7 +433,7 @@ class GmailView {
     // Check for email body first. If we don't have this, then bail.
     const $emailBody1_k = $('.a3s.aiL', $email1_k).first();
     if (!$emailBody1_k) {
-      g2t_log(
+      this.app.utils.log(
         'GmailView:parseData::emailBody: ' + JSON.stringify($emailBody1_k)
       );
       return;
@@ -487,7 +490,7 @@ class GmailView {
     data.time = timeAttr_k || 'recently';
 
     if (data.time === 'recently') {
-      g2t_log(
+      this.app.utils.log(
         'time-debug: ' +
           JSON.stringify({
             timeAttr_k: timeAttr_k,
@@ -614,7 +617,7 @@ class GmailView {
     data.images = Object.values(this.emailImages);
 
     //var t = (new Date()).getTime();
-    //g2t_log('Elapsed: '+(t-startTime)/1000);
+    //this.app.utils.log('Elapsed: '+(t-startTime)/1000);
     this.parsingData = false;
 
     return data;

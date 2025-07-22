@@ -62,6 +62,7 @@
         "lib/trello.min.js",
         "lib/combo.js",
         "lib/google-analytics-bundle.min.js",
+        "content-script.js",
         "class_menuControl.js",
         "lib/waitCounter.js",
         "class_eventTarget.js",
@@ -71,8 +72,7 @@
         "views/class_popupView.js",
         "class_model.js",
         "class_utils.js",
-        "class_app.js",
-        "content-script.js"
+        "class_app.js"
       ],
       "css": [
         "lib/jquery-ui-1.14.1.min.css",
