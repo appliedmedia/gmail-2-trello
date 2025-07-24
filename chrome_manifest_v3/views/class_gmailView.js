@@ -4,7 +4,7 @@ class GmailView {
   static get ck() {
     // class keys here to assure they're treated like consts
     const ck = {
-      id: 'g2t_gmailView',
+      id: 'g2t_gmailview',
       uniqueUriVar: 'g2t_filename',
     };
     return ck;
@@ -23,6 +23,9 @@ class GmailView {
     this.$root = null;
     this.parsingData = false;
     this.runaway = 0;
+
+    // Create WaitCounter instance
+    this.waitCounter = new G2T.WaitCounter({ app: this.app });
 
     this.selectors = {
       // OBSOLETE (Ace, 2021-02-27): Missing too much context having it all here, and needed to process many of them, so moved into context of where code used them
@@ -52,35 +55,6 @@ class GmailView {
     };
   }
 
-  static get id() {
-    return 'g2t_gmailview';
-  }
-
-  get id() {
-    return GmailView.id;
-  }
-
-  get state() {
-    return this.app.state.gmailView;
-  }
-
-  set state(newState) {
-    this.app.state.gmailView = newState;
-  }
-
-  loadState() {
-    this.app.utils.loadFromChromeStorage(
-      this.ck.id,
-      'classGmailViewStateLoaded'
-    );
-  }
-
-  saveState() {
-    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
-    // Also save to centralized app state
-    this.app.saveState();
-  }
-
   // Callback methods for detectToolbar
   detectToolbar_onTimeout() {
     this.runaway++;
@@ -93,10 +67,10 @@ class GmailView {
 
   // Callback methods for detectEmailOpeningMode
   detectEmailOpeningMode_onEmailClick() {
-    WaitCounter.start('emailclick', 500, 5, () => {
+    this.waitCounter.start('emailclick', 500, 5, () => {
       if (this.detectEmailOpeningMode()) {
         //this.event.fire('onEmailChanged');
-        WaitCounter.stop('emailclick');
+        this.waitCounter.stop('emailclick');
       }
     });
   }
@@ -287,11 +261,11 @@ class GmailView {
       if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
           // this.app.utils.log('detect: Detected SplitLayout');
 
-          this.state.layoutMode = this.LAYOUT_SPLIT;
+          this.app.persist.layoutMode = this.LAYOUT_SPLIT;
           this.$root = $activeGroup;
       } else {
   */
-    this.state.layoutMode = this.LAYOUT_DEFAULT;
+    this.app.persist.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = $('body');
     //  }
 
@@ -635,10 +609,6 @@ class GmailView {
     }
   }
 
-  handleClassGmailViewStateLoaded(event, params) {
-    this.state = params || {};
-  }
-
   bindEvents() {
     this.app.events.addListener(
       'onDetected',
@@ -648,17 +618,12 @@ class GmailView {
       'detectButton',
       this.handleDetectButton.bind(this)
     );
-    this.app.events.addListener(
-      'classGmailViewStateLoaded',
-      this.handleClassGmailViewStateLoaded.bind(this)
-    );
   }
 
   init() {
     this.bindEvents();
     // Start detection
     this.detect();
-    this.loadState();
   }
 }
 

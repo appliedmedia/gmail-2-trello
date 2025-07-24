@@ -9,8 +9,7 @@
             static get ck() {
                 // class keys here to assure they're treated like consts
                 const cks = {
-                    id: 'g2t_app',
-                    emailIdAttr: 'g2t-attr-emailId'
+                    id: 'g2t_app'
                 };
                 return cks;
             }
@@ -44,13 +43,13 @@
         
         console.log('Static access:');
         console.log('TestApp.ck.id:', TestApp.ck.id);
-        console.log('TestApp.ck.emailIdAttr:', TestApp.ck.emailIdAttr);
+
         console.log('TestGmailView.ck.id:', TestGmailView.ck.id);
         console.log('TestGmailView.ck.uniqueUriVar:', TestGmailView.ck.uniqueUriVar);
         
         console.log('\nInstance access:');
         console.log('app.ck.id:', app.ck.id);
-        console.log('app.ck.emailIdAttr:', app.ck.emailIdAttr);
+
         console.log('gmailView.ck.id:', gmailView.ck.id);
         console.log('gmailView.ck.uniqueUriVar:', gmailView.ck.uniqueUriVar);
         

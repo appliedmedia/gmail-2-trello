@@ -4,7 +4,7 @@ class Utils {
   constructor(args) {
     this.app = args.app;
     // Remove local state - use centralized app state
-    this.storageHashes = {};
+    // storageHashes moved to app.persist.storageHashes
   }
 
   /**
@@ -12,7 +12,7 @@ class Utils {
    */
   refreshDebugMode() {
     this.app.chrome.storageSyncGet('debugMode', response => {
-      this.app.state.log.debugMode = response?.debugMode || false;
+      this.app.temp.log.debugMode = response?.debugMode || false;
     });
   }
 
@@ -22,8 +22,8 @@ class Utils {
    */
   log(data) {
     // Initialize log state if not exists
-    if (!this.app.state.log) {
-      this.app.state.log = {
+    if (!this.app.temp.log) {
+      this.app.temp.log = {
         memory: [],
         count: 0,
         max: 100,
@@ -31,7 +31,7 @@ class Utils {
       };
     }
 
-    let l = this.app.state.log;
+    let l = this.app.temp.log;
 
     if (data) {
       const count_size_k = l.max.toString().length;
@@ -51,7 +51,7 @@ class Utils {
         l.count = 0;
       }
       if (l.debugMode) {
-        console.log(data);
+        window.console.log(data);
       }
     } else {
       return (
@@ -73,31 +73,6 @@ class Utils {
     return Utils.ck;
   }
 
-  get state() {
-    return this.app.state.utils;
-  }
-
-  set state(newState) {
-    this.app.state.utils = newState;
-  }
-
-  loadState() {
-    this.app.utils.loadFromChromeStorage(this.ck.id, 'classUtilsStateLoaded');
-
-    // Load debug mode setting once during initialization
-    this.app.chrome.storageSyncGet('debugMode', response => {
-      if (response?.debugMode) {
-        this.app.state.log.debugMode = true;
-      }
-    });
-  }
-
-  saveState() {
-    this.saveToChromeStorage(this.ck.id, this.state);
-    // Also save to centralized app state
-    this.app.saveState();
-  }
-
   /**
    * Load data from chrome storage
    */
@@ -108,7 +83,7 @@ class Utils {
 
       // Store hash of loaded data for future comparison
       if (jsonData) {
-        this.storageHashes[keyId] = this.djb2Hash(jsonData);
+        this.app.persist.storageHashes[keyId] = this.djb2Hash(jsonData);
       }
 
       if (fire_on_done) {
@@ -126,13 +101,13 @@ class Utils {
     const dataHash = this.djb2Hash(jsonData);
 
     // Check if we have a stored hash for this key
-    const storedHash = this.storageHashes[keyId];
+    const storedHash = this.app.persist.storageHashes[keyId];
     if (storedHash === dataHash) {
       return; // No changes, don't save
     }
 
     // Update stored hash and save data
-    this.storageHashes[keyId] = dataHash;
+    this.app.persist.storageHashes[keyId] = dataHash;
 
     this.app.chrome.storageSyncSet({ [keyId]: jsonData });
   }
@@ -141,7 +116,7 @@ class Utils {
    * Correctly escape RegExp
    */
   escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+    return str.replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1');
   }
 
   // Callback methods for replacer
@@ -305,6 +280,114 @@ class Utils {
   }
 
   /**
+   * Sort markdown elements by length (largest to smallest)
+   */
+  markdownify_sortByLength(a, b) {
+    return b.length - a.length;
+  }
+
+  /**
+   * Process each element during markdown sorting
+   */
+  markdownify_onSortEach(context, value) {
+    const replace = context.toProcess[value];
+    const swap = `${context.placeholder}${(context.count++).toString()}`;
+    const regex = new RegExp(
+      context.regexp.begin + this.escapeRegExp(value) + context.regexp.end,
+      'gi'
+    );
+    const replaced = context.body.replace(regex, `%${swap}%`); // Replace occurrence with placeholder
+    if (context.body !== replaced) {
+      context.replacer_dict[swap] = replace;
+      return replaced;
+    }
+    return context.body;
+  }
+
+  /**
+   * Process each element during markdown processing
+   */
+  markdownify_onElementEach(context, replaceText) {
+    const text = ($(this).text() || '').trim();
+    if (text && text.length > context.min_text_length) {
+      const replace = this.replacer(replaceText, { text });
+      context.toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Process headers during markdown processing
+   */
+  markdownify_onHeaderEach(context) {
+    const text = ($(this).text() || '').trim();
+    const nodeName = $(this).prop('nodeName') || '0';
+    if (nodeName && text && text.length > context.min_text_length) {
+      const x = nodeName.substr(-1);
+      context.toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Process links during markdown processing
+   */
+  markdownify_onLinkEach(context) {
+    const text = ($(this).text() || '').trim();
+    const href = ($(this).prop('href') || '').trim(); // Was attr
+    if (href && text && text.length >= context.min_text_length) {
+      context.toProcess[text.toLowerCase()] = this.anchorMarkdownify(
+        text,
+        href
+      ); // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Check if a markdown feature is enabled
+   */
+  markdownify_featureEnabled(features, elementTag = '') {
+    return features === false ? false : features?.[elementTag] !== false;
+  }
+
+  /**
+   * Sort and placeholderize markdown elements
+   */
+  markdownify_sortAndPlaceholderize(context) {
+    if (context.toProcess) {
+      Object.keys(context.toProcess)
+        .sort(this.markdownify_sortByLength.bind(this))
+        .forEach(this.markdownify_onSortEach.bind(this, context));
+    }
+  }
+
+  /**
+   * Process markdown for a specific element tag
+   */
+  markdownify_processMarkdown(context, features, elementTag, replaceText) {
+    if (this.markdownify_featureEnabled(features, elementTag)) {
+      $(elementTag, context.$html).each(
+        this.markdownify_onElementEach.bind(this, context, replaceText)
+      );
+    }
+  }
+
+  /**
+   * Repeat replace until no more changes or max attempts reached
+   */
+  markdownify_repeatReplace(context, inRegexp, replaceWith) {
+    let replaced = context.body;
+    let attempts = 0;
+    while (
+      replaced !== context.body &&
+      attempts < context.max_replace_attempts
+    ) {
+      context.body = replaced;
+      replaced = context.body.replace(inRegexp, replaceWith);
+      attempts++;
+    }
+    return replaced;
+  }
+
+  /**
    * Markdownify a text block
    */
   markdownify($emailBody, features, preprocess) {
@@ -313,155 +396,127 @@ class Utils {
       return;
     }
 
-    const min_text_length_k = 4;
-    const max_replace_attempts_k = 10;
-    const regexp_k = {
-      begin: '(^|\\s+|<|\\[|\\(|\\b|(?=\\W+))',
-      end: '($|\\s+|>|\\]|\\)|\\b|(?=\\W+))',
+    // Create markdownify context with all constants and state
+    let context = {
+      // Constants
+      placeholder: 'g2t_placeholder:',
+      regexp: {
+        begin: '(^|\\s+|<|\\[|\\(|\\b|(?=\\W+))',
+        end: '($|\\s+|>|\\]|\\)|\\b|(?=\\W+))',
+      },
+      min_text_length: 4,
+      max_replace_attempts: 10,
+
+      // State variables
+      count: 0,
+      replacer_dict: {},
+      $html: $emailBody || '',
+      body: $emailBody.html() || '',
+      toProcess: {},
     };
-    const unique_placeholder_k = 'g2t_placeholder:'; // Unique placeholder tag
-
-    let count = 0;
-    let replacer_dict = {};
-
-    const featureEnabled = (elementTag = '') =>
-      features === false ? false : features?.[elementTag] !== false;
-
-    const $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
-    // let body = $emailBody.text() || "";
-    let body = $emailBody.html() || '';
 
     // Different encodings handle CRLF differently, so we'll process the main body as html and convert to text:
     // Convert paragraph marker to two returns:
-    let replaced = body.replace(/\s*[\n\r]*<p[^>]*>\s*[\n\r]*/g, '\n\n');
-    body = replaced;
+    let replaced = context.body.replace(
+      /\s*[\n\r]*<p[^>]*>\s*[\n\r]*/g,
+      '\n\n'
+    );
+    context.body = replaced;
 
     // Convert br marker to one return:
-    replaced = body.replace(/\s*[\n\r]*<br[^>]*>\s*[\n\r]*/g, '\n');
-    body = replaced;
+    replaced = context.body.replace(/\s*[\n\r]*<br[^>]*>\s*[\n\r]*/g, '\n');
+    context.body = replaced;
 
     // Remove all other html markers:
-    replaced = body.replace(/<[^>]*>/g, '');
-    body = replaced;
+    replaced = context.body.replace(/<[^>]*>/g, '');
+    context.body = replaced;
 
     // Decode HTML entities:
-    replaced = this.decodeEntities(body);
-    body = replaced;
+    replaced = this.decodeEntities(context.body);
+    context.body = replaced;
 
     // Replace hr:
-    replaced = body.replace(/\s*-{3,}\s*/g, '---\n');
-    body = replaced;
+    replaced = context.body.replace(/\s*-{3,}\s*/g, '---\n');
+    context.body = replaced;
 
     // Convert crlf x 2 (or more) to paragraph markers:
-    replaced = body.replace(/(\s*[\n\r]\s*){2,}/g, '<p />\n');
-    body = replaced;
-
-    let toProcess = {};
-
-    /**
-     * 5 explicit steps in 3 passes:
-     * (1) Collect tagged items
-     * (2) Remove duplicates
-     * (3) Sort force-lowercase by length
-     * (4) Replace with placeholder
-     * (5) Replace placeholders with final text
-     */
-    const sortAndPlaceholderize = tooProcess => {
-      if (tooProcess) {
-        Object.keys(tooProcess)
-          .sort(this.markdownify_sortByLength.bind(this))
-          .forEach(
-            this.markdownify_onSortEach.bind(
-              this,
-              tooProcess,
-              unique_placeholder_k,
-              count,
-              regexp_k,
-              body,
-              replacer_dict
-            )
-          );
-      }
-    };
-
-    const processMarkdown = (elementTag, replaceText) => {
-      if (featureEnabled(elementTag)) {
-        $(elementTag, $html).each(
-          this.markdownify_onElementEach.bind(
-            this,
-            replaceText,
-            toProcess,
-            min_text_length_k
-          )
-        );
-      }
-    };
-
-    const repeatReplace = (body, inRegexp, replaceWith) => {
-      let replaced = body;
-      let attempts = 0;
-      while (replaced !== body && attempts < max_replace_attempts_k) {
-        body = replaced;
-        replaced = body.replace(inRegexp, replaceWith);
-        attempts++;
-      }
-      return replaced;
-    };
+    replaced = context.body.replace(/(\s*[\n\r]\s*){2,}/g, '<p />\n');
+    context.body = replaced;
 
     // Pass 1: Collect tagged items
-    processMarkdown('h1', '**%text%**');
-    processMarkdown('h2', '**%text%**');
-    processMarkdown('h3', '**%text%**');
-    processMarkdown('h4', '**%text%**');
-    processMarkdown('h5', '**%text%**');
-    processMarkdown('h6', '**%text%**');
-    processMarkdown('strong', '**%text%**');
-    processMarkdown('b', '**%text%**');
-    processMarkdown('em', '*%text%*');
-    processMarkdown('i', '*%text%*');
-    processMarkdown('u', '__%text%__');
-    processMarkdown('strike', '~~%text%~~');
-    processMarkdown('s', '~~%text%~~');
-    processMarkdown('del', '~~%text%~~');
-    processMarkdown('a', this.anchorMarkdownify.bind(this));
+    this.markdownify_processMarkdown(context, features, 'h1', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'h2', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'h3', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'h4', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'h5', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'h6', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'strong', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'b', '**%text%**');
+    this.markdownify_processMarkdown(context, features, 'em', '*%text%*');
+    this.markdownify_processMarkdown(context, features, 'i', '*%text%*');
+    this.markdownify_processMarkdown(context, features, 'u', '__%text%__');
+    this.markdownify_processMarkdown(context, features, 'strike', '~~%text%~~');
+    this.markdownify_processMarkdown(context, features, 's', '~~%text%~~');
+    this.markdownify_processMarkdown(context, features, 'del', '~~%text%~~');
+    this.markdownify_processMarkdown(
+      context,
+      features,
+      'a',
+      this.anchorMarkdownify.bind(this)
+    );
+
+    // Process links separately
+    if (this.markdownify_featureEnabled(features, 'a')) {
+      $('a', context.$html).each(
+        this.markdownify_onLinkEach.bind(this, context)
+      );
+    }
 
     // Pass 2: Remove duplicates and sort by length
-    sortAndPlaceholderize(toProcess);
+    this.markdownify_sortAndPlaceholderize(context);
 
     // Pass 3: Replace with final text
-    body = this.replacer(body, replacer_dict);
+    context.body = this.replacer(context.body, context.replacer_dict);
 
     // Clean up the body:
     // Replace bullets with asterisks:
-    replaced = body.replace(/\s*[\n\r]+\s*[·-]+\s*/g, '<p />* '); // = [\u00B7\u2022]
-    body = replaced;
+    replaced = context.body.replace(/\s*[\n\r]+\s*[·-]+\s*/g, '<p />* '); // = [\u00B7\u2022]
+    context.body = replaced;
 
     // Replace remaining bullets with asterisks:
-    replaced = body.replace(/[·]/g, '*');
-    body = replaced;
+    replaced = context.body.replace(/[·]/g, '*');
+    context.body = replaced;
 
     // ORDER MATTERS FOR THIS NEXT SET:
     // (1) Replace <space>CRLF<space> with just CR:
-    replaced = body.replace(/\s*[\n\r]+\s*/g, '\n');
-    body = replaced;
+    replaced = context.body.replace(/\s*[\n\r]+\s*/g, '\n');
+    context.body = replaced;
 
     // (2) Replace 2 or more spaces with just one:
-    replaced = repeatReplace(body, new RegExp('\\s{2,}', 'g'), ' ');
-    body = replaced;
+    replaced = this.markdownify_repeatReplace(
+      context,
+      new RegExp('\\s{2,}', 'g'),
+      ' '
+    );
+    context.body = replaced;
 
     // (3) Replace paragraph markers with CR+CR:
-    replaced = body.replace(/\s*<p \/>\s*/g, '\n\n');
-    body = replaced;
+    replaced = context.body.replace(/\s*<p \/>\s*/g, '\n\n');
+    context.body = replaced;
 
     // (4) Replace 3 or more CRs with just two:
-    replaced = repeatReplace(body, new RegExp('\\n{3,}', 'g'), '\n\n');
-    body = replaced;
+    replaced = this.markdownify_repeatReplace(
+      context,
+      new RegExp('\\n{3,}', 'g'),
+      '\n\n'
+    );
+    context.body = replaced;
 
     // (5) Trim excess at beginning and end:
-    replaced = body.trim();
-    body = replaced;
+    replaced = context.body.trim();
+    context.body = replaced;
 
-    return body;
+    return context.body;
   }
 
   /**
@@ -667,91 +722,15 @@ class Utils {
     return args?.avatarUrl ? `${args.avatarUrl}/30.png` : '';
   }
 
-  // Callback methods for markdownify
-  markdownify_sortByLength(a, b) {
-    // Go by order of largest to smallest
-    return b.length - a.length;
-  }
-
-  markdownify_onSortEach(
-    tooProcess,
-    unique_placeholder_k,
-    count,
-    regexp_k,
-    body,
-    replacer_dict,
-    value
-  ) {
-    const replace = tooProcess[value];
-    const swap = `${unique_placeholder_k}${(count++).toString()}`;
-    const regex = new RegExp(
-      regexp_k.begin + this.escapeRegExp(value) + regexp_k.end,
-      'gi'
-    );
-    const replaced = body.replace(regex, `%${swap}%`); // Replace occurance with placeholder
-    if (body !== replaced) {
-      replacer_dict[swap] = replace;
-      return replaced;
-    }
-    return body;
-  }
-
-  markdownify_onElementEach(
-    replaceText,
-    toProcess,
-    min_text_length_k,
-    index,
-    value
-  ) {
-    const text = ($(this).text() || '').trim();
-    if (text && text.length > min_text_length_k) {
-      const replace = this.replacer(replaceText, { text });
-      toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
-    }
-  }
-
-  markdownify_onHeaderEach(toProcess, min_text_length_k, index, value) {
-    const text = ($(this).text() || '').trim();
-    const nodeName = $(this).prop('nodeName') || '0';
-    if (nodeName && text && text.length > min_text_length_k) {
-      const x = nodeName.substr(-1);
-      toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
-    }
-  }
-
-  markdownify_onLinkEach(toProcess, min_text_length_k, index, value) {
-    const text = ($(this).text() || '').trim();
-    const href = ($(this).prop('href') || '').trim(); // Was attr
-    /*
-      var uri_display = this.uriForDisplay(href);
-      var comment = ' "' + text + ' via ' + uri_display + '"';
-      var re = new RegExp(this.escapeRegExp(text), "i");
-      if (uri.match(re)) {
-          comment = ' "Open ' + uri_display + '"';
-      }
-      */
-    if (href && text && text.length >= min_text_length_k) {
-      toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
-    }
-  }
-
-  // Event handlers
-  handleClassUtilsStateLoaded(event, params) {
-    this.state = params || {};
-  }
-
   // Event binding
   bindEvents() {
-    this.app.events.addListener(
-      'classUtilsStateLoaded',
-      this.handleClassUtilsStateLoaded.bind(this)
-    );
+    // No events to bind
   }
 
   init() {
     // Utils initialization if needed
     this.bindEvents();
-    this.loadState();
+    // State is loaded centrally by app
   }
 }
 

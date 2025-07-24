@@ -35,7 +35,7 @@ WaitCounter.start = function (name, interval, maxSteps, callBack) {
 
     current.handler = setInterval(function () {
       current.counter++;
-      console.log(
+      window.console.log(
         'WaitCounter[' + current.name + ']. Round #' + current.counter
       );
 

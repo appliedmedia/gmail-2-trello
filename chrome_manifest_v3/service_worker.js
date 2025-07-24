@@ -16,14 +16,14 @@ function logbs(data) {
         }
       });
     } catch (error) {
-      console.log(
+      window.console.log(
         `logbs ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
       );
     }
   }
 
   if (debugMode_g) {
-    console.log(`g2t→${data}`);
+    window.console.log(`g2t→${data}`);
   }
 }
 
@@ -157,10 +157,9 @@ function g2t_hasAllKeys(dict, keys) {
   if (!dict || !keys?.length) return false;
   const hasAllKeys = keys.every(key => {
     const val = dict[key];
-    return val != null && (
-      typeof val === "number" ||
-      typeof val === "boolean" ||
-      val.length > 0
+    return (
+      val != null &&
+      (typeof val === 'number' || typeof val === 'boolean' || val.length > 0)
     );
   });
   return hasAllKeys;
@@ -242,19 +241,16 @@ function g2t_uploadAttach(args, callback) {
  * Manage content script activities that for security reasons and otherwise need to beh andled in background script:
  */
 try {
-  chrome.runtime.onMessage.addListener(function (
-    request,
-    sender,
-    sendResponse
-  ) {
-    // Was: chrome.extension.onMessage.addListener
-    // local storage request
-    if (!request) {
-      // Intentionally blank, don't do anything in this case
-    } else if (request?.storage) {
-      // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
-      // Commented out as this code path is not used and localStorage is not available in service workers
-      /*
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      // Was: chrome.extension.onMessage.addListener
+      // local storage request
+      if (!request) {
+        // Intentionally blank, don't do anything in this case
+      } else if (request?.storage) {
+        // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
+        // Commented out as this code path is not used and localStorage is not available in service workers
+        /*
       if (typeof request.value !== 'undefined') {
         chrome.storage.local.set(
           { [request.storage]: request.value },
@@ -268,20 +264,21 @@ try {
     });
     return true; // Asynchronous
     */
-      logbs(
-        'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
-      );
-      sendResponse({ storage: null });
-    } else if (request?.[CLEAR_EXT_BROWSING_DATA]) {
-      g2t_clearExtensionBrowsingData(sendResponse);
-      return true; // Asynchronous
-    } else if (request?.[UPLOAD_ATTACH] != null) {
-      g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
-      return true; // Asynchronous
-    } else {
-      sendResponse({});
+        logbs(
+          'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
+        );
+        sendResponse({ storage: null });
+      } else if (request?.[CLEAR_EXT_BROWSING_DATA]) {
+        g2t_clearExtensionBrowsingData(sendResponse);
+        return true; // Asynchronous
+      } else if (request?.[UPLOAD_ATTACH] != null) {
+        g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
+        return true; // Asynchronous
+      } else {
+        sendResponse({});
+      }
     }
-  });
+  );
 } catch (error) {
   logbs(
     `onMessage ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`

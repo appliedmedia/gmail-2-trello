@@ -39,7 +39,7 @@ class Chrome {
     try {
       return apiCall(callback);
     } catch (error) {
-      console.log(
+      window.console.log(
         `${this.ck.errorPrefix} ${operation} failed: ${error.message}`
       );
       throw error;
@@ -56,7 +56,7 @@ class Chrome {
 
     // Check for context invalidation
     if (errorMessage.includes(this.ck.contextInvalidError)) {
-      console.log(
+      window.console.log(
         `${this.ck.errorPrefix} Context invalidated during ${operation}. ${this.ck.reloadMessage}`
       );
       // Show alert directly instead of firing event that might not be handled
@@ -71,7 +71,9 @@ class Chrome {
     }
 
     // Log other Chrome API errors
-    console.log(`${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`);
+    window.console.log(
+      `${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`
+    );
   }
 
   /**

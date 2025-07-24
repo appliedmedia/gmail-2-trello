@@ -1,6 +1,8 @@
 /** Gmail2Trello Application - ES6 Class Version
  */
 
+/* global analytics */ // Declare analytics as global from Google Analytics library
+
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
 class App {
@@ -8,7 +10,6 @@ class App {
     // class keys here to assure they're treated like consts
     const ck = {
       id: 'g2t_app',
-      emailIdAttr: 'g2t-attr-emailId',
     };
     return ck;
   }
@@ -28,79 +29,68 @@ class App {
     this.popupView = new G2T.PopupView({ app: this });
     this.utils = new G2T.Utils({ app: this });
 
-    // Centralized state management
-    this.state = {
-      // App-level state
-      app: {
-        initialized: false,
-        lastHash: '',
-      },
+    // Persistent state management
+    this.persist = {
+      // Gmail layout state
+      layoutMode: 0, // LAYOUT_DEFAULT
       // Model state
-      model: {
-        trelloAuthorized: false,
-        trelloData: {
-          user: null,
-          boards: [],
-          lists: [],
-          cards: [],
-          members: [],
-          labels: [],
-        },
-        emailBoardListCardMap: [],
-      },
+      trelloAuthorized: false,
+      // Trello data (flattened)
+      trelloUser: null,
+      trelloBoards: [],
+      trelloLists: [],
+      trelloCards: [],
+      trelloMembers: [],
+      trelloLabels: [],
+      emailBoardListCardMap: [],
       // PopupView state
-      popupView: {
-        popupWidth: 700,
-        popupHeight: 464,
-        boardId: null,
-        listId: null,
-        cardId: null,
-        useBackLink: true,
-        addCC: false,
-        updatesPending: [],
-        comboInitialized: false,
-        pendingMessage: null,
-      },
-      // GmailView state
-      gmailView: {
-        layoutMode: 0, // LAYOUT_DEFAULT
-      },
+      popupWidth: 700,
+      popupHeight: 464,
       // Utils state
-      utils: {
-        storageHashes: {},
-      },
-      // Log state (not persisted to Chrome storage)
+      storageHashes: {},
+      // Form state (persisted)
+      boardId: null,
+      listId: null,
+      cardId: null,
+      useBackLink: true,
+      addCC: false,
+      // User preferences (persisted)
+      labelsId: '',
+      membersId: '',
+    };
+
+    // Temporary state (not saved to storage)
+    this.temp = {
+      lastHash: '',
       log: {
         memory: [],
         count: 0,
         max: 100,
         debugMode: false,
       },
+      updatesPending: [],
+      comboInitialized: false,
+      pendingMessage: null,
+      // Personal data (not persisted)
+      description: '',
+      title: '',
+      attachments: [],
+      images: [],
     };
 
-    // Navigation detection variables
-    this.lastHash = window.location.hash;
+    // App initialization flag (local, not persisted)
+    this.initialized = false;
+
+    // Initialize navigation detection
+    this.temp.lastHash = window.location.hash;
   }
 
-  loadState() {
-    // Preserve current log state before loading
-    const currentLogState = this.state.log;
-
+  persistLoad() {
     this.utils.loadFromChromeStorage(this.ck.id, 'classAppStateLoaded');
-
-    // Restore log state after loading (it shouldn't be overwritten from storage)
-    this.state.log = currentLogState;
   }
 
-  saveState() {
-    // Temporarily remove log state before saving (it shouldn't be persisted)
-    const logState = this.state.log;
-    delete this.state.log;
-
-    this.utils.saveToChromeStorage(this.ck.id, this.state);
-
-    // Restore log state after saving
-    this.state.log = logState;
+  persistSave() {
+    this.utils.saveToChromeStorage(this.ck.id, this.persist);
   }
 
   updateData() {
@@ -116,43 +106,8 @@ class App {
   // Event handlers
   handleClassAppStateLoaded(event, params) {
     if (params) {
-      // Preserve current log state
-      const currentLogState = this.state.log;
-
-      // Merge loaded state with centralized state structure
-      if (params.app) {
-        this.state.app = { ...this.state.app, ...params.app };
-      }
-      if (params.model) {
-        this.state.model = { ...this.state.model, ...params.model };
-      }
-      if (params.popupView) {
-        this.state.popupView = { ...this.state.popupView, ...params.popupView };
-      }
-      if (params.gmailView) {
-        this.state.gmailView = { ...this.state.gmailView, ...params.gmailView };
-      }
-      if (params.utils) {
-        this.state.utils = { ...this.state.utils, ...params.utils };
-      }
-
-      // Restore log state (it shouldn't be overwritten from storage)
-      this.state.log = currentLogState;
+      this.persist = { ...this.persist, ...params };
     }
-  }
-
-  // Parse hash to extract view level (before first '/')
-  getViewLevelFromHash(hash) {
-    const cleanHash = hash.replace(/^#/, '');
-    const viewLevel = cleanHash.split('/')[0];
-    return viewLevel || '';
-  }
-
-  // Check if hash change represents a view change (not just content change)
-  isViewChange(oldHash, newHash) {
-    const oldView = this.getViewLevelFromHash(oldHash);
-    const newView = this.getViewLevelFromHash(newHash);
-    return oldView !== newView;
   }
 
   // Handle Gmail navigation changes
@@ -181,14 +136,15 @@ class App {
   bindGmailNavigationEvents() {
     // Listen for URL hash changes (Gmail's primary navigation method)
     window.addEventListener('hashchange', event => {
-      const newHash = window.location.hash;
+      const oldHash = (event?.oldURL || '').match(/#([^/]+)/)?.[1] || '';
+      const newHash = (event?.newURL || '').match(/#([^/]+)/)?.[1] || '';
 
       // Only trigger redraw if this is a view change (not just content change)
-      if (this.isViewChange(this.lastHash, newHash)) {
+      if (oldHash !== newHash) {
         this.handleGmailHashChange();
       }
 
-      this.lastHash = newHash;
+      this.temp.lastHash = newHash;
     });
   }
 
@@ -199,20 +155,23 @@ class App {
     this.gmailView.init();
     this.popupView.init();
     this.utils.init();
-    this.loadState();
+    this.persistLoad();
 
     // Bind Gmail navigation events to detect view changes
     this.bindGmailNavigationEvents();
 
-    // Declare before use to avoid undeclared globals
-    const service = analytics.getService('gmail-2-trello');
-
-    // Get a Tracker using your Google Analytics app Tracking ID.
-    const tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
-
-    // Record an "appView" each time the user launches your app or goes to a new
-    // screen within the app.
-    tracker.sendAppView('PopupView');
+    // Google Analytics tracking (only if analytics is available)
+    if (typeof analytics !== 'undefined') {
+      try {
+        const service = analytics.getService('gmail-2-trello');
+        const tracker = service.getTracker('G-0QPEDL7YDL'); // Was: UA-8469046-1 -> UA-42442437-4
+        tracker.sendAppView('PopupView');
+      } catch (error) {
+        this.utils.log('Google Analytics failed:', error);
+      }
+    } else {
+      this.utils.log('Google Analytics not available - tracking disabled');
+    }
   }
 }
 

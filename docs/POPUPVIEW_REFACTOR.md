@@ -13,8 +13,8 @@ Split `PopupView` into two classes:
 
 - `constructor(args)`
 - `get state()` / `set state(newState)`
-- `loadState()`
-- `saveState()`
+- `persistLoad()`
+- `persistSave()`
 
 ### Popup Lifecycle
 

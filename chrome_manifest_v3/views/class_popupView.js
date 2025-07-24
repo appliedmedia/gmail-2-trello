@@ -5,7 +5,6 @@ class PopupView {
     // class keys here to assure they're treated like consts
     const ck = {
       id: 'g2t_popupview',
-      emailIdAttr: 'g2t-attr-emailId',
     };
     return ck;
   }
@@ -76,29 +75,6 @@ class PopupView {
       parent: this,
       app: this.app,
     });
-  }
-
-  // Getter for state
-  get state() {
-    return this.app.state.popupView;
-  }
-
-  // Setter for state
-  set state(newState) {
-    this.app.state.popupView = newState;
-  }
-
-  loadState() {
-    this.app.utils.loadFromChromeStorage(
-      this.ck.id,
-      'classPopupViewStateLoaded'
-    );
-  }
-
-  saveState() {
-    this.app.utils.saveToChromeStorage(this.ck.id, this.state);
-    // Also save to centralized app state
-    this.app.saveState();
   }
 
   finalCreatePopup() {
@@ -183,13 +159,12 @@ class PopupView {
           this.$toolBar.append(data);
           // Fire popupLoaded event after DOM is ready
           this.app.events.fire('popupLoaded');
-          this.loadState(); // Load state from Chrome storage
         });
       }
     }
 
     if (needInit) {
-      this.loadState(); // Load state from Chrome storage
+      // State is loaded centrally by app
     }
   }
 
@@ -215,11 +190,8 @@ class PopupView {
       newPopupWidth = useWidth; // May snap to min if necessary
       g2tCenter = this.$popup.position().left;
       g2tCenter += this.$popup.width() / 2;
-    } else if (this.state?.popupWidth?.length > 0) {
-      newPopupWidth = Number.parseFloat(
-        this.state.popupWidth,
-        10 /* base 10 */
-      );
+    } else if (this.app.persist.popupWidth > 0) {
+      newPopupWidth = this.app.persist.popupWidth;
     } else {
       newPopupWidth = calcWidth_k;
     }
@@ -564,7 +536,7 @@ class PopupView {
   }
 
   handlePopupViewInitDone() {
-    this.loadState();
+    // State is now loaded centrally by App.persistLoad()
   }
 
   handlePopupLoaded() {
@@ -627,7 +599,11 @@ class PopupView {
       if (boardId === '_') {
         $board.val('');
       }
-      if (boardId === '_' || boardId === '' || boardId !== this.state.boardId) {
+      if (
+        boardId === '_' ||
+        boardId === '' ||
+        boardId !== this.app.persist.boardId
+      ) {
         $members.html('').hide();
         $labels.html('').hide();
         $list
@@ -636,11 +612,11 @@ class PopupView {
         $card
           .html($('<option value="">...please pick a list...</option>'))
           .val('');
-        this.state.labelsId = '';
-        this.state.listId = '';
-        this.state.cardId = '';
-        this.state.boardId = boardId;
-        this.saveState(); // Save state after board change (where saveSettings was called)
+        this.app.persist.labelsId = '';
+        this.app.persist.listId = '';
+        this.app.persist.cardId = '';
+        this.app.persist.boardId = boardId;
+        this.app.persistSave(); // Save state after board change
       } else {
         $members.hide();
         $labels.hide();
@@ -653,8 +629,8 @@ class PopupView {
     const $list = $('#g2tList', this.$popup);
     $list.off('change').on('change', () => {
       const listId = $list.val();
-      this.state.listId = listId;
-      this.saveState(); // Save state after list change (where saveSettings was called)
+      this.app.persist.listId = listId;
+      this.app.persistSave(); // Save state after list change
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
       this.app.events.fire('listChanged', { listId });
@@ -681,6 +657,7 @@ class PopupView {
       .on('change', () => {
         if (this.form.comboBox) this.form.comboBox('updateValue');
         this.form.validateData();
+        this.app.persistSave(); // Save state after card change
       });
 
     $('#g2tDue_Shortcuts', this.$popup)
@@ -777,6 +754,7 @@ class PopupView {
           $dueTime.val(new_time);
         }
         this.form.validateData();
+        this.app.persistSave(); // Save state after due date/time change
       });
 
     $('#g2tSubmit', this.$popup)
@@ -801,6 +779,23 @@ class PopupView {
       .off('click')
       .on('click', () => {
         this.form.submit();
+      });
+
+    // Handle checkbox changes for persistent state
+    $('#chkBackLink', this.$popup)
+      .off('change')
+      .on('change', () => {
+        this.app.persist.useBackLink = $('#chkBackLink', this.$popup).is(
+          ':checked'
+        );
+        this.app.persistSave(); // Save state after checkbox change
+      });
+
+    $('#chkCC', this.$popup)
+      .off('change')
+      .on('change', () => {
+        this.app.persist.addCC = $('#chkCC', this.$popup).is(':checked');
+        this.app.persistSave(); // Save state after checkbox change
       });
   }
 

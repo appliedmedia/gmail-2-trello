@@ -286,20 +286,20 @@ class PopupForm {
       const date_k = new Date().toISOString().substring(0, 10);
 
       // Modify this.data directly for error reporting
-      this.parent.state.description =
+      this.app.temp.description =
         lastError_k +
         JSON.stringify(this.parent.state) +
         '\n' +
         this.app.utils.log();
-      this.parent.state.title =
+      this.app.temp.title =
         'Error report card: ' +
         [fullname_k, username_k].join(' @') +
         ' ' +
         date_k;
 
       this.updateBoards('52e1397addf85d4751f99319'); // GtT board
-      $('#g2tDesc', this.parent.$popup).val(this.parent.state.description);
-      $('#g2tTitle', this.parent.$popup).val(this.parent.state.title);
+      $('#g2tDesc', this.parent.$popup).val(this.app.temp.description);
+      $('#g2tTitle', this.parent.$popup).val(this.app.temp.title);
       this.validateData();
     });
 
@@ -465,8 +465,8 @@ class PopupForm {
     const boardId_k = $('#g2tBoard', this.parent.$popup).val();
 
     const prev_item_k =
-      this.parent.state.boardId == boardId_k && this.parent.state.listId
-        ? this.parent.state.listId
+      this.app.persist.boardId == boardId_k && this.app.persist.listId
+        ? this.app.persist.listId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -508,8 +508,8 @@ class PopupForm {
     const listId_k = $('#g2tList', this.parent.$popup).val();
 
     const prev_item_k =
-      this.parent.state.listId == listId_k && this.parent.state.cardId
-        ? this.parent.state.cardId
+      this.app.persist.listId == listId_k && this.app.persist.cardId
+        ? this.app.persist.cardId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -594,7 +594,7 @@ class PopupForm {
         }
       }
     } else {
-      this.parent.state.labelsId = ''; // Labels do not have to be set, so no default.
+      this.app.persist.labelsId = ''; // Labels do not have to be set, so no default.
     }
 
     $g2t.show();
@@ -663,7 +663,7 @@ class PopupForm {
         }
       }
     } else {
-      this.parent.state.membersId = '';
+      this.app.persist.membersId = '';
     }
 
     $g2t.show();
@@ -679,13 +679,13 @@ class PopupForm {
   }
 
   clearLabels() {
-    this.parent.state.labelsId = '';
+    this.app.persist.labelsId = '';
     this.updateLabels();
     this.validateData();
   }
 
   clearMembers() {
-    this.parent.state.membersId = '';
+    this.app.persist.membersId = '';
     this.updateMembers();
     this.validateData();
   }
@@ -937,7 +937,7 @@ class PopupForm {
   handleBoardChanged(target, params) {
     const boardId = $(target).val();
     if (boardId) {
-      this.parent.state.boardId = boardId;
+      this.app.persist.boardId = boardId;
       this.app.events.fire('boardChanged', { boardId });
     }
   }
@@ -945,7 +945,7 @@ class PopupForm {
   handleListChanged(target, params) {
     const listId = $(target).val();
     if (listId) {
-      this.parent.state.listId = listId;
+      this.app.persist.listId = listId;
       this.app.events.fire('listChanged', { listId });
     }
   }
