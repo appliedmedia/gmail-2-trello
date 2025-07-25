@@ -32,6 +32,9 @@ global.G2T = {};
 // Import the EventTarget class
 const EventTarget = require('../chrome_manifest_v3/class_eventTarget.js');
 
+// Add EventTarget to G2T namespace for testing
+global.G2T.EventTarget = EventTarget;
+
 describe('EventTarget Class', () => {
   let eventTarget;
   let mockApp;

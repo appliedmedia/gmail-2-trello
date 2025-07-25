@@ -262,8 +262,28 @@ describe('Model Class', () => {
 
   describe('Card Creation and Submission', () => {
     test('submit should submit card data', () => {
-      const data = { title: 'Test Card', description: 'Test Description' };
+      // Mock Trello authorization
+      model.state.trelloAuthorized = true;
+
+      const data = {
+        title: 'Test Card',
+        description: 'Test Description',
+        boardId: 'test-board-id',
+        listId: 'test-list-id',
+      };
+
+      // Mock the events.fire method
+      const mockFire = jest.fn();
+      model.app.events.fire = mockFire;
+
       expect(() => model.submit(data)).not.toThrow();
+
+      // Verify that createCard was called (indirectly through submit)
+      // The submit method should call createCard when data is valid
+      expect(mockFire).toHaveBeenCalledWith(
+        'createCard_success',
+        expect.any(Object)
+      );
     });
 
     test('createCard should create a new card', () => {
