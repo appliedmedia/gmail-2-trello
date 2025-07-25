@@ -1,7 +1,7 @@
 # PR #71 Comment Processing Summary
 
 ## Overview
-Processed [PR #71](https://github.com/appliedmedia/gmail-2-trello/pull/71) comments and implemented fixes for identified bugs.
+Processed [PR #71](<https://github.com/appliedmedia/gmail-2-trello/pull/71>) comments and implemented fixes for identified bugs.
 
 ## Comments Reviewed
 
