@@ -11,7 +11,6 @@ class Uploader {
     this.itemsForUpload = [];
   }
 
-
   init() {
     this.bindEvents();
   }
@@ -168,8 +167,6 @@ class EmailBoardListCardMap {
     this.maxSize = 100;
   }
 
-  }
-
   add(args = {}) {
     const entry = {
       email: args.email || '',
@@ -183,7 +180,7 @@ class EmailBoardListCardMap {
   }
 
   find(key_value = {}) {
-    return this.state.find(entry => {
+    return this.app.persist.emailBoardListCardMap.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
     });
   }
@@ -194,11 +191,11 @@ class EmailBoardListCardMap {
   }
 
   makeRoom(index = -1) {
-    if (this.state.length >= this.maxSize) {
+    if (this.app.persist.emailBoardListCardMap.length >= this.maxSize) {
       if (index === -1) {
-        this.state.shift(); // Remove oldest
+        this.app.persist.emailBoardListCardMap.shift(); // Remove oldest
       } else {
-        this.state.splice(index, 1); // Remove specific index
+        this.app.persist.emailBoardListCardMap.splice(index, 1); // Remove specific index
       }
     }
   }
@@ -208,19 +205,19 @@ class EmailBoardListCardMap {
   }
 
   maxxed() {
-    return this.state.length >= this.maxSize;
+    return this.app.persist.emailBoardListCardMap.length >= this.maxSize;
   }
 
   oldest() {
-    if (this.state.length === 0) return null;
+    if (this.app.persist.emailBoardListCardMap.length === 0) return null;
 
-    let oldestEntry = this.state[0];
+    let oldestEntry = this.app.persist.emailBoardListCardMap[0];
     let oldestTime = oldestEntry.timestamp;
 
-    for (let i = 1; i < this.state.length; i++) {
-      if (this.state[i].timestamp < oldestTime) {
-        oldestTime = this.state[i].timestamp;
-        oldestEntry = this.state[i];
+    for (let i = 1; i < this.app.persist.emailBoardListCardMap.length; i++) {
+      if (this.app.persist.emailBoardListCardMap[i].timestamp < oldestTime) {
+        oldestTime = this.app.persist.emailBoardListCardMap[i].timestamp;
+        oldestEntry = this.app.persist.emailBoardListCardMap[i];
       }
     }
 
@@ -235,7 +232,7 @@ class EmailBoardListCardMap {
 
   remove(index = -1) {
     if (index === -1) {
-      this.state.pop();
+      this.app.persist.emailBoardListCardMap.pop();
     } else {
       this.app.persist.emailBoardListCardMap.splice(index, 1);
     }
@@ -262,10 +259,9 @@ class Model {
     // Remove local state - use centralized app state
     this.emailBoardListCardMap = new EmailBoardListCardMap({
       parent: this,
-      app: this.app
+      app: this.app,
     });
   }
-
 
   init() {
     // State is loaded centrally by app
@@ -554,11 +550,11 @@ class Model {
   }
 
   emailBoardListCardMapLookup(key_value = {}) {
-    return this.app.persist.emailBoardListCardMap?.lookup(key_value) || null;
+    return this.emailBoardListCardMap.lookup(key_value);
   }
 
   emailBoardListCardMapUpdate(key_value = {}) {
-    return this.app.persist.emailBoardListCardMap?.add(key_value) || null;
+    return this.emailBoardListCardMap.add(key_value);
   }
 
   handleClassModelStateLoaded(event, params) {

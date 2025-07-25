@@ -561,7 +561,7 @@ class PopupView {
     this.bindPopupEvents();
 
     // DOM event bindings moved from bindEvents()
-    this.form.resetDragResize();
+    this.resetDragResize();
 
     $('#close-button', this.$popup)
       .off('click')

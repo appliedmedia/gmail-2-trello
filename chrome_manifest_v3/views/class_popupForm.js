@@ -304,7 +304,7 @@ class PopupForm {
 
     // Merge with existing state
     Object.assign(data, this.app.persist || {});
-    this.parent.updateBody(data);
+    this.updateBody(data);
 
     $('#g2tTitle', this.parent.$popup).val(data.subject);
 
