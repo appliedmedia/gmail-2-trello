@@ -6,11 +6,12 @@ console.log('📋 Test 1: Checking g2t_each replacement...');
 try {
   // Check if g2t_each still exists globally (it shouldn't)
   if (typeof g2t_each !== 'undefined') {
-    throw new Error('g2t_each still exists globally - replacement failed');
+    console.log('❌ FAIL: g2t_each still exists globally - replacement failed');
+  } else {
+    console.log('✅ PASS: g2t_each successfully removed from global scope');
   }
-  console.log('✅ PASS: g2t_each successfully removed from global scope');
 } catch (error) {
-  console.log('✅ PASS: g2t_each not found globally (expected)');
+  console.log('❌ FAIL: Unexpected error testing g2t_each:', error.message);
 }
 
 // Test 2: Check that g2t_log replacement worked
@@ -18,11 +19,12 @@ console.log('📋 Test 2: Checking g2t_log replacement...');
 try {
   // Check if g2t_log still exists globally (it shouldn't)
   if (typeof g2t_log !== 'undefined') {
-    throw new Error('g2t_log still exists globally - replacement failed');
+    console.log('❌ FAIL: g2t_log still exists globally - replacement failed');
+  } else {
+    console.log('✅ PASS: g2t_log successfully removed from global scope');
   }
-  console.log('✅ PASS: g2t_log successfully removed from global scope');
 } catch (error) {
-  console.log('✅ PASS: g2t_log not found globally (expected)');
+  console.log('❌ FAIL: Unexpected error testing g2t_log:', error.message);
 }
 
 // Test 3: Check that Object.entries usage is correct
@@ -83,19 +85,16 @@ try {
     log: { memory: [], count: 0, max: 100, debugMode: false },
   };
 
-  if (!mockState.log || !mockState.model || !mockState.popupView) {
-    throw new Error('Centralized state structure is missing required sections');
+  const requiredSections = ['app', 'model', 'popupView', 'gmailView', 'utils', 'log'];
+  const missingSections = requiredSections.filter(section => !mockState[section]);
+  if (missingSections.length > 0) {
+    throw new Error(`Centralized state missing sections: ${missingSections.join(', ')}`);
   }
   console.log('✅ PASS: Centralized state structure is valid');
 } catch (error) {
   console.log('❌ FAIL: State structure test failed:', error.message);
 }
 
+// Note: This is a manual test script - check console output above for actual results
 console.log('\n📊 Validation Test Summary:');
-console.log('✅ All core functionality tests passed');
-console.log('✅ g2t_each and g2t_log successfully replaced');
-console.log('✅ Object.entries and forEach working correctly');
-console.log('✅ Centralized state structure is valid');
-console.log(
-  '\n🎉 Validation complete! Our changes appear to be working correctly.'
-);
+console.log('Check individual test results above for actual pass/fail status');

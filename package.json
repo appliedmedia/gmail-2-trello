@@ -42,9 +42,9 @@
   "devDependencies": {
     "eslint": "latest",
     "prettier": "latest",
-    "jest": "^29.0.0",
-    "jsdom": "^22.0.0",
-    "jquery": "^3.7.1"
+    "jest": "latest",
+    "jsdom": "latest",
+    "jquery": "latest"
   },
   "jest": {
     "testEnvironment": "node",
