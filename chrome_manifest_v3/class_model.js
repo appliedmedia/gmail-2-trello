@@ -11,9 +11,6 @@ class Uploader {
     this.itemsForUpload = [];
   }
 
-  get state() {
-    return this.app.persist;
-  }
 
   init() {
     this.bindEvents();
@@ -156,6 +153,7 @@ class EmailBoardListCardMap {
     // class keys here to assure they're treated like consts
     const ck = {
       id: 'g2t_emailboardlistcardmap',
+      key: 'g2t_eblc',
     };
     return ck;
   }
@@ -168,11 +166,8 @@ class EmailBoardListCardMap {
     this.parent = args.parent;
     this.app = args.app;
     this.maxSize = 100;
-    this.chrome_storage_key = 'gmail2trello_eblc_map';
-
-  get state() {
-    return this.app.persist.emailBoardListCardMap || [];
   }
+
   }
 
   add(args = {}) {
@@ -271,9 +266,6 @@ class Model {
     });
   }
 
-  get state() {
-    return this.app.persist;
-  }
 
   init() {
     // State is loaded centrally by app
