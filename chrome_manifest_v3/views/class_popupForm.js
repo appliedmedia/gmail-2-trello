@@ -786,20 +786,50 @@ class PopupForm {
   }
 
   displayAPIFailedForm(response) {
-    const $form = $('#g2tForm', this.parent.$popup);
-    const errorMessage = response.error || 'API request failed';
-    const $error = $('<div class="g2t-error">' + errorMessage + '</div>');
+    const resp = response?.data || response || {};
 
-    $form.hide();
-    $form.after($error);
+    // Check for 400 errors and show reload option
+    if (resp?.status == 400) {
+      resp.statusText =
+        'Board/List data may be stale. You can try reloading your Trello boards.';
+    }
 
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      $error.fadeOut(() => {
-        $error.remove();
-        $form.show();
-      });
-    }, 5000);
+    const dict_k = {
+      title: resp.title || 'API Request Failed',
+      status: resp.status || 'Unknown',
+      statusText: resp.statusText || 'Unknown error',
+      responseText: resp.responseText || JSON.stringify(response),
+      method: resp.method || 'Unknown',
+      keys: resp.keys || 'Unknown',
+    };
+
+    // Load and display the comprehensive error template
+    $.get(chrome.runtime.getURL('views/error.html'), data => {
+      const errorHtml = this.app.utils.replacer(data, dict_k);
+
+      // Add reload button for 400 errors
+      if (resp?.status == 400) {
+        errorHtml +=
+          '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
+      }
+
+      this.parent.showMessage(this.app, errorHtml);
+      this.parent.$popupContent.hide();
+
+      // Handle reload button click for 400 errors
+      if (resp?.status == 400) {
+        $('#reloadTrelloBoards').on('click', () => {
+          this.app.utils.log('User clicked reload Trello boards button');
+          this.app.model.loadTrelloData();
+          this.parent.reset(); // Hide error message and show popup content
+        });
+      }
+
+      // Handle 401 errors (invalid token)
+      if (resp?.status == 401) {
+        this.app.events.fire('requestDeauthorizeTrello');
+      }
+    });
   }
 
   // Form Components

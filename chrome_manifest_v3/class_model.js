@@ -296,18 +296,6 @@ class Model {
     uploader.upload(data);
   }
 
-  checkTrelloAuthorized_success(data) {
-    this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_success', { data });
-  }
-
-  checkTrelloAuthorized_failure(data) {
-    this.app.persist.trelloAuthorized = false;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_failed', { data });
-  }
-
   checkTrelloAuthorized_popup_success(data) {
     this.app.persist.trelloAuthorized = true;
     this.app.persistSave(); // Save state after authorization change
@@ -321,18 +309,71 @@ class Model {
   }
 
   initTrello() {
+    this.app.utils.log(
+      'Initializing Trello with API key:',
+      this.app.trelloApiKey
+    );
     Trello.setKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
   }
 
   checkTrelloAuthorized() {
-    Trello.rest(
-      'get',
-      'members/me',
-      {},
-      this.checkTrelloAuthorized_success.bind(this),
-      this.checkTrelloAuthorized_failure.bind(this)
+    // First, try to authorize with stored token (non-interactive)
+    Trello.authorize({
+      interactive: false,
+      success: this.checkTrelloAuthorized_success.bind(this),
+      error: this.checkTrelloAuthorized_failure.bind(this),
+    });
+  }
+
+  checkTrelloAuthorized_success(data) {
+    this.app.persist.trelloAuthorized = true;
+    this.app.persistSave(); // Save state after authorization change
+
+    // Log successful authorization
+    this.app.utils.log('Trello authorization successful:', {
+      user: data?.username || data?.fullName || 'Unknown user',
+      id: data?.id,
+      url: data?.url,
+    });
+
+    this.app.events.fire('checkTrelloAuthorized_success', { data });
+  }
+
+  checkTrelloAuthorized_failure(data) {
+    this.app.utils.log(
+      'Trello authorization with stored token failed, showing popup'
     );
+    if (!Trello.authorized()) {
+      // No valid token, show authorization popup
+      this.app.events.fire('onBeforeAuthorize');
+      Trello.authorize({
+        type: 'popup',
+        name: 'Gmail-2-Trello',
+        interactive: true,
+        persist: true,
+        scope: { read: true, write: true },
+        expiration: 'never',
+        success: this.checkTrelloAuthorized_popup_success.bind(this),
+        error: this.checkTrelloAuthorized_popup_failure.bind(this),
+      });
+    } else {
+      // We have a token but the API call failed - this shouldn't happen
+      this.app.utils.log('Trello authorization failed with valid token');
+      this.app.events.fire('checkTrelloAuthorized_failed', { data });
+    }
+  }
+
+  checkTrelloAuthorized_popup_success(data) {
+    this.app.persist.trelloAuthorized = true;
+    this.app.persistSave(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_popup_success', { data });
+  }
+
+  checkTrelloAuthorized_popup_failure(data) {
+    this.app.persist.trelloAuthorized = false;
+    this.app.persistSave(); // Save state after authorization change
+    this.app.events.fire('checkTrelloAuthorized_popup_failure', { data });
   }
 
   deauthorizeTrello() {

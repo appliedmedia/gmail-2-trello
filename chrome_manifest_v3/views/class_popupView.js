@@ -507,16 +507,16 @@ class PopupView {
     this.form.showMessage(this.app, 'Authorizing...');
   }
 
-  handleAuthorizeFail() {
-    this.form.showMessage(
-      this.app,
-      'Trello authorization failed <button id="showsignout">Sign out and try again</button>'
-    );
+  handleAuthorizeFail(event, params = {}) {
+    // Route through the comprehensive error display system
+    this.form.displayAPIFailedForm(params);
   }
 
   handleAuthorized() {
     this.$popupContent.show();
     this.form.hideMessage();
+    // Load Trello data after successful authorization
+    this.app.model.loadTrelloData();
   }
 
   handleBeforeLoadTrello() {
