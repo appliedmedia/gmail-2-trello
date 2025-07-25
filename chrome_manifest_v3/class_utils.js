@@ -3,8 +3,62 @@ var G2T = G2T || {}; // must be var to guarantee correct scope
 class Utils {
   constructor(args) {
     this.app = args.app;
-    this._state = {};
-    this.storageHashes = {};
+    // Remove local state - use centralized app state
+    // storageHashes moved to app.persist.storageHashes
+  }
+
+  /**
+   * Refresh debug mode from Chrome storage
+   */
+  refreshDebugMode() {
+    this.app.chrome.storageSyncGet('debugMode', response => {
+      this.app.temp.log.debugMode = response?.debugMode || false;
+    });
+  }
+
+  /**
+   * Log function. A wrapper for console.log, depends on logEnabled flag
+   * @param  {any} data data to write log
+   */
+  log(data) {
+    // Initialize log state if not exists
+    if (!this.app.temp.log) {
+      this.app.temp.log = {
+        memory: [],
+        count: 0,
+        max: 100,
+        debugMode: false,
+      };
+    }
+
+    let l = this.app.temp.log;
+
+    if (data) {
+      const count_size_k = l.max.toString().length;
+      const counter_k = ('0'.repeat(count_size_k) + l.count.toString()).slice(
+        -count_size_k
+      );
+      const now_k = new Date().toISOString();
+
+      if (typeof data !== 'string') {
+        data = JSON.stringify(data);
+      }
+
+      data = `${now_k}.${counter_k} G2T→${data}`;
+
+      l.memory[l.count] = data;
+      if (++l.count >= l.max) {
+        l.count = 0;
+      }
+      if (l.debugMode) {
+        window.console.log(data);
+      }
+    } else {
+      return (
+        l.memory.slice(l.count).join('\n') +
+        l.memory.slice(0, l.count).join('\n')
+      );
+    }
   }
 
   static get ck() {
@@ -19,23 +73,6 @@ class Utils {
     return Utils.ck;
   }
 
-  get state() {
-    return this._state;
-  }
-
-  set state(newState) {
-    this._state = newState;
-  }
-
-  loadState() {
-    const fire_on_done = 'classUtilsStateLoaded';
-    this.loadFromChromeStorage(this.ck.id, fire_on_done);
-  }
-
-  saveState() {
-    this.saveToChromeStorage(this.ck.id, this.state);
-  }
-
   /**
    * Load data from chrome storage
    */
@@ -46,7 +83,7 @@ class Utils {
 
       // Store hash of loaded data for future comparison
       if (jsonData) {
-        this.storageHashes[keyId] = this.djb2Hash(jsonData);
+        this.app.persist.storageHashes[keyId] = this.djb2Hash(jsonData);
       }
 
       if (fire_on_done) {
@@ -64,13 +101,13 @@ class Utils {
     const dataHash = this.djb2Hash(jsonData);
 
     // Check if we have a stored hash for this key
-    const storedHash = this.storageHashes[keyId];
+    const storedHash = this.app.persist.storageHashes[keyId];
     if (storedHash === dataHash) {
       return; // No changes, don't save
     }
 
     // Update stored hash and save data
-    this.storageHashes[keyId] = dataHash;
+    this.app.persist.storageHashes[keyId] = dataHash;
 
     this.app.chrome.storageSyncSet({ [keyId]: jsonData });
   }
@@ -78,12 +115,12 @@ class Utils {
   /**
    * Correctly escape RegExp
    */
-  escapeRegExp(str) {
-    return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
+  escapeRegExp(str = '') {
+    return (str || '').replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1');
   }
 
   // Callback methods for replacer
-  replacer_onEach(text, value, key) {
+  replacer_onEach(text, value, key = '') {
     const regex = new RegExp(`%${this.escapeRegExp(key)}%`, 'gi');
     const replaced = text.replace(regex, value);
     return replaced;
@@ -93,18 +130,20 @@ class Utils {
    * Utility routine to replace variables
    */
   replacer(text = '', dict = {}) {
-    if (text?.length < 1) {
-      // g2t_log('Require text!');
-      return '';
-    } else if (!dict || Object.keys(dict).length < 1) {
-      g2t_log('replacer: Require dictionary!');
+    if (!text || text.length === 0) {
+      // this.log('Require text!');
+      return text;
+    }
+
+    if (!dict || Object.keys(dict).length === 0) {
+      this.log('replacer: Require dictionary!');
       return text;
     }
 
     let result = text;
     let runaway_max = 3;
     while (result.indexOf('%') !== -1 && runaway_max-- > 0) {
-      g2t_each(dict, (value, key) => {
+      Object.entries(dict).forEach(([key, value]) => {
         result = this.replacer_onEach(result, value, key);
       });
     }
@@ -171,7 +210,7 @@ class Utils {
   /**
    * Make anchored backlink
    */
-  anchorMarkdownify(text, href, comment) {
+  anchorMarkdownify(text, href, comment = '') {
     const text1 = (text || '').trim();
     const text1lc = text1.toLowerCase();
     const href1 = (href || '').trim();
@@ -241,164 +280,292 @@ class Utils {
   }
 
   /**
+   * Sort markdown elements by length (largest to smallest)
+   */
+  markdownify_sortByLength(a, b) {
+    return b.length - a.length;
+  }
+
+  /**
+   * Process each element during markdown sorting
+   */
+  markdownify_onSortEach(context, value = '') {
+    const replace = context.toProcess[value];
+    const swap = `${context.placeholder}${(context.count++).toString()}`;
+    const regex = new RegExp('\\b' + this.escapeRegExp(value) + '\\b', 'gi');
+    const replaced = context.body.replace(regex, `%${swap}%`); // Replace occurrence with placeholder
+    if (context.body !== replaced) {
+      context.replacer_dict[swap] = replace;
+      context.body = replaced;
+    }
+  }
+
+  /**
+   * Process each element during markdown processing
+   */
+  markdownify_onElementEach(context, replaceText) {
+    if (context.element_meets_min_length) {
+      const replace = context.self.replacer(replaceText, {
+        text: context.element_text,
+      });
+      context.toProcess[context.element_text.toLowerCase()] = replace; // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Process headers during markdown processing
+   */
+  markdownify_onHeaderEach(context) {
+    const nodeName = context.$element.prop('nodeName') || '0';
+    if (nodeName && context.element_meets_min_length) {
+      const headerLevelText = nodeName.substr(-1);
+      const headerLevel = parseInt(headerLevelText, 10);
+      const headerMarkdown = `\n\n${'#'.repeat(headerLevel)} ${context.element_text}\n\n`;
+      context.toProcess[context.element_text.toLowerCase()] = headerMarkdown; // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Process links during markdown processing
+   */
+  markdownify_onLinkEach(context) {
+    const href = (context.$element.prop('href') || '').trim(); // Was attr
+    if (href && context.element_meets_min_length) {
+      context.toProcess[context.element_text.toLowerCase()] =
+        context.self.anchorMarkdownify(context.element_text, href); // Intentionally overwrites duplicates
+    }
+  }
+
+  /**
+   * Check if a markdown feature is enabled
+   */
+  markdownify_featureEnabled(features, elementTag = '') {
+    return features === false ? false : features?.[elementTag] !== false;
+  }
+
+  /**
+   * Sort and placeholderize markdown elements
+   */
+  markdownify_sortAndPlaceholderize(context) {
+    if (context.toProcess) {
+      Object.keys(context.toProcess)
+        .sort(context.self.markdownify_sortByLength.bind(context.self))
+        .forEach(
+          context.self.markdownify_onSortEach.bind(context.self, context)
+        );
+    }
+  }
+
+  /**
+   * Process markdown for a specific element tag
+   */
+  markdownify_processMarkdown(context, elementTag, replaceText) {
+    if (context.self.markdownify_featureEnabled(context.features, elementTag)) {
+      $(elementTag, context.$html).each((index, element) => {
+        context.$element = $(element);
+        context.element_text = (context.$element.text() || '').trim();
+        context.element_meets_min_length =
+          context.element_text.length >= context.min_text_length;
+
+        // Check if replaceText is a function or string
+        if (typeof replaceText === 'function') {
+          // Call the function directly (e.g., markdownify_onHeaderEach)
+          replaceText.call(context.self, context);
+        } else {
+          // Use string replacement (existing behavior)
+          context.self.markdownify_onElementEach(context, replaceText);
+        }
+      });
+    }
+  }
+
+  /**
+   * Repeat replace until no more changes or max attempts reached
+   */
+  markdownify_repeatReplace(context, inRegexp, replaceWith) {
+    let runaway = 11; // max replace attempts to prevent runaway
+    let previous;
+
+    do {
+      previous = context.body;
+      context.body = context.body.replace(inRegexp, replaceWith);
+    } while (context.body !== previous && --runaway > 0);
+  }
+
+  /**
    * Markdownify a text block
    */
   markdownify($emailBody, features, preprocess) {
     if (!$emailBody || $emailBody.length < 1) {
-      g2t_log('markdownify: Require emailBody!');
-      return;
+      this.log('markdownify: Require emailBody!');
+      return '';
     }
 
-    const min_text_length_k = 4;
-    const max_replace_attempts_k = 10;
-    const regexp_k = {
-      begin: '(^|\\s+|<|\\[|\\(|\\b|(?=\\W+))',
-      end: '($|\\s+|>|\\]|\\)|\\b|(?=\\W+))',
-    };
-    const unique_placeholder_k = 'g2t_placeholder:'; // Unique placeholder tag
+    // Create markdownify context with all constants and state
+    let context = {
+      // Constants
+      placeholder: 'g2t_placeholder:',
+      min_text_length: 4,
 
-    let count = 0;
-    let replacer_dict = {};
+      // State variables
+      count: 0,
+      replacer_dict: {},
+      $html: $emailBody || '',
+      body: $emailBody.html() || '',
+      toProcess: {},
 
-    const featureEnabled = (elementTag = '') =>
-      features === false ? false : features?.[elementTag] !== false;
-
-    const $html = $emailBody || ''; // Was: $emailBody.innerHTML || "";
-    // let body = $emailBody.text() || "";
-    let body = $emailBody.html() || '';
-
-    // Different encodings handle CRLF differently, so we'll process the main body as html and convert to text:
-    // Convert paragraph marker to two returns:
-    let replaced = body.replace(/\s*[\n\r]*<p[^>]*>\s*[\n\r]*/g, '\n\n');
-    body = replaced;
-
-    // Convert br marker to one return:
-    replaced = body.replace(/\s*[\n\r]*<br[^>]*>\s*[\n\r]*/g, '\n');
-    body = replaced;
-
-    // Remove all other html markers:
-    replaced = body.replace(/<[^>]*>/g, '');
-    body = replaced;
-
-    // Decode HTML entities:
-    replaced = this.decodeEntities(body);
-    body = replaced;
-
-    // Replace hr:
-    replaced = body.replace(/\s*-{3,}\s*/g, '---\n');
-    body = replaced;
-
-    // Convert crlf x 2 (or more) to paragraph markers:
-    replaced = body.replace(/(\s*[\n\r]\s*){2,}/g, '<p />\n');
-    body = replaced;
-
-    let toProcess = {};
-
-    /**
-     * 5 explicit steps in 3 passes:
-     * (1) Collect tagged items
-     * (2) Remove duplicates
-     * (3) Sort force-lowercase by length
-     * (4) Replace with placeholder
-     * (5) Replace placeholders with final text
-     */
-    const sortAndPlaceholderize = tooProcess => {
-      if (tooProcess) {
-        g2t_each(
-          Object.keys(tooProcess).sort(
-            this.markdownify_sortByLength.bind(this)
-          ),
-          this.markdownify_onSortEach.bind(
-            this,
-            tooProcess,
-            unique_placeholder_k,
-            count,
-            regexp_k,
-            body,
-            replacer_dict
-          )
-        );
-      }
+      // References for clarity
+      self: this, // Reference to the Utils class instance
+      $element: null, // Will be set for each element being processed
+      element_text: '', // Will be set for each element being processed
+      element_meets_min_length: false, // Will be set for each element being processed
+      features: features, // Markdown features configuration
     };
 
-    const processMarkdown = (elementTag, replaceText) => {
-      if (featureEnabled(elementTag)) {
-        $(elementTag, $html).each(
-          this.markdownify_onElementEach.bind(
-            this,
-            replaceText,
-            toProcess,
-            min_text_length_k
-          )
-        );
-      }
-    };
+    // Step 1: Normalize line endings to \n
+    let replacements = [
+      {
+        // Normalize line endings to \n (with surrounding whitespace)
+        pattern: new RegExp('[ \\t]*[\\n\\r\\f\\v][ \\t]*', 'g'),
+        repl: '\n',
+      },
+    ];
 
-    const repeatReplace = (body, inRegexp, replaceWith) => {
-      let replaced = body;
-      let attempts = 0;
-      while (replaced !== body && attempts < max_replace_attempts_k) {
-        body = replaced;
-        replaced = body.replace(inRegexp, replaceWith);
-        attempts++;
-      }
-      return replaced;
-    };
+    // Process line ending normalization
+    replacements.forEach(({ pattern, repl }) => {
+      context.body = context.body.replace(pattern, repl);
+    });
+
+    // Step 2: Handle block elements with proper spacing
+    replacements = [
+      {
+        // Convert horizontal rules to markdown with proper spacing
+        pattern: new RegExp('\\s*<hr[^>]*>\\s*', 'g'),
+        repl: '\n\n---\n\n',
+      },
+      {
+        // Convert horizontal rules to markdown
+        pattern: new RegExp('\\s*[-=_]{4,}\\s*', 'g'),
+        repl: '\n\n---\n\n',
+      },
+      {
+        // Convert paragraph tags to double line breaks
+        pattern: new RegExp('\\s*</?p[^>]*>\\s*', 'g'),
+        repl: '\n\n',
+      },
+      {
+        // Convert div tags to double line breaks
+        pattern: new RegExp('\\s*</?div[^>]*>\\s*', 'g'),
+        repl: '\n\n',
+      },
+      {
+        // Convert break tags to single line breaks
+        pattern: new RegExp('\\s*<br[^>]*>\\s*', 'g'),
+        repl: '\n',
+      },
+    ];
+
+    // Process block element replacements
+    replacements.forEach(({ pattern, repl }) => {
+      context.body = context.body.replace(pattern, repl);
+    });
+
+    // Step 3: Remove remaining HTML tags (inline elements)
+    context.body = context.body.replace(new RegExp('<[^>]*>', 'g'), '');
+
+    // Step 4: Decode HTML entities
+    context.body = context.self.decodeEntities(context.body);
+
+    // Step 5: Process markdown elements and text patterns
+    replacements = [{}];
+
+    // Process additional replacements
+    replacements.forEach(({ pattern, repl }) => {
+      context.body = context.body.replace(pattern, repl);
+    });
 
     // Pass 1: Collect tagged items
-    processMarkdown('h1', '**%text%**');
-    processMarkdown('h2', '**%text%**');
-    processMarkdown('h3', '**%text%**');
-    processMarkdown('h4', '**%text%**');
-    processMarkdown('h5', '**%text%**');
-    processMarkdown('h6', '**%text%**');
-    processMarkdown('strong', '**%text%**');
-    processMarkdown('b', '**%text%**');
-    processMarkdown('em', '*%text%*');
-    processMarkdown('i', '*%text%*');
-    processMarkdown('u', '__%text%__');
-    processMarkdown('strike', '~~%text%~~');
-    processMarkdown('s', '~~%text%~~');
-    processMarkdown('del', '~~%text%~~');
-    processMarkdown('a', this.anchorMarkdownify.bind(this));
+    replacements = [
+      { tag: 'strong', repl: '**%text%**' },
+      { tag: 'b', repl: '**%text%**' },
+      { tag: 'em', repl: '*%text%*' },
+      { tag: 'i', repl: '*%text%*' },
+      { tag: 'u', repl: '__%text%__' },
+      { tag: 'strike', repl: '~~%text%~~' },
+      { tag: 's', repl: '~~%text%~~' },
+      { tag: 'del', repl: '~~%text%~~' },
+      { tag: 'h1', repl: this.markdownify_onHeaderEach },
+      { tag: 'h2', repl: this.markdownify_onHeaderEach },
+      { tag: 'h3', repl: this.markdownify_onHeaderEach },
+      { tag: 'h4', repl: this.markdownify_onHeaderEach },
+      { tag: 'h5', repl: this.markdownify_onHeaderEach },
+      { tag: 'h6', repl: this.markdownify_onHeaderEach },
+      { tag: 'a', repl: this.markdownify_onLinkEach },
+    ];
+
+    // Process each element type
+    replacements.forEach(({ tag, repl }) => {
+      this.markdownify_processMarkdown(context, tag, repl);
+    });
 
     // Pass 2: Remove duplicates and sort by length
-    sortAndPlaceholderize(toProcess);
+    this.markdownify_sortAndPlaceholderize(context);
 
     // Pass 3: Replace with final text
-    body = this.replacer(body, replacer_dict);
+    context.body = this.replacer(context.body, context.replacer_dict);
 
     // Clean up the body:
-    // Replace bullets with asterisks:
-    replaced = body.replace(/\s*[\n\r]+\s*[·-]+\s*/g, '<p />* '); // = [\u00B7\u2022]
-    body = replaced;
+    replacements = [
+      {
+        // Replace middle dot bullets with asterisks
+        pattern: new RegExp('[ \\t]*[\\n]+[ \\t]]*[·]\\s*', 'g'),
+        repl: '\n\n* ',
+      }, // = [\u00B7\u2022]
+      {
+        // Replace remaining bullets with asterisks
+        pattern: new RegExp('[·]', 'g'),
+        repl: '*',
+      },
+      {
+        // Handle empty elements by ensuring they create spacing
+        pattern: new RegExp('\\n[ \\t]+\\n', 'g'),
+        repl: '\n\n',
+      },
+      {
+        // Normalize multiple line breaks to double line breaks (paragraph breaks)
+        pattern: new RegExp('\\n{3,}', 'g'),
+        repl: '\n\n',
+      },
+    ];
 
-    // Replace remaining bullets with asterisks:
-    replaced = body.replace(/[·]/g, '*');
-    body = replaced;
+    // Process cleanup replacements
+    replacements.forEach(({ pattern, repl }) => {
+      context.body = context.body.replace(pattern, repl);
+    });
 
-    // ORDER MATTERS FOR THIS NEXT SET:
-    // (1) Replace <space>CRLF<space> with just CR:
-    replaced = body.replace(/\s*[\n\r]+\s*/g, '\n');
-    body = replaced;
+    // ORDER MATTERS FOR THIS NEXT SET
+    replacements = [
+      {
+        // (1) Replace 2 or more spaces (but not newlines) with just one
+        pattern: new RegExp('[ \\t]{2,}', 'g'),
+        repl: ' ',
+      },
+      {
+        // (2) Replace 3 or more CRs with just two (need RepeatReplace() for this)
+        pattern: new RegExp('\\n{3,}', 'g'),
+        repl: '\n\n',
+      },
+    ];
 
-    // (2) Replace 2 or more spaces with just one:
-    replaced = repeatReplace(body, new RegExp('\\s{2,}', 'g'), ' ');
-    body = replaced;
-
-    // (3) Replace paragraph markers with CR+CR:
-    replaced = body.replace(/\s*<p \/>\s*/g, '\n\n');
-    body = replaced;
-
-    // (4) Replace 3 or more CRs with just two:
-    replaced = repeatReplace(body, new RegExp('\\n{3,}', 'g'), '\n\n');
-    body = replaced;
+    // Process final replacements with repeatReplace for all
+    replacements.forEach(({ pattern, repl }) => {
+      this.markdownify_repeatReplace(context, pattern, repl);
+    });
 
     // (5) Trim excess at beginning and end:
-    replaced = body.trim();
-    body = replaced;
+    context.body = context.body.trim();
 
-    return body;
+    return context.body;
   }
 
   /**
@@ -514,7 +681,7 @@ class Utils {
   }
 
   // Callback methods for decodeEntities
-  decodeEntities_onEach(sourceText, re, new_s, value, key) {
+  decodeEntities_onEach(sourceText, value, key) {
     // value is already available from the callback parameter
     const regex = new RegExp(this.escapeRegExp(key), 'gi');
     const replaced = sourceText.replace(regex, value);
@@ -525,12 +692,10 @@ class Utils {
    * Decode entities
    */
   decodeEntities(sourceText) {
-    const dict_k = { '...': '&hellip;', '*': '&bullet;', '-': '&mdash;' };
-    let re, new_s;
-    g2t_each(
-      dict_k,
-      this.decodeEntities_onEach.bind(this, sourceText, re, new_s)
-    );
+    const dict_k = { '&hellip;': '...', '&bullet;': '*', '&mdash;': '-' };
+    Object.entries(dict_k).forEach(([key, value]) => {
+      sourceText = this.decodeEntities_onEach(sourceText, value, key);
+    });
     try {
       new_s = decodeURIComponent(sourceText);
       sourceText = new_s;
@@ -605,91 +770,15 @@ class Utils {
     return args?.avatarUrl ? `${args.avatarUrl}/30.png` : '';
   }
 
-  // Callback methods for markdownify
-  markdownify_sortByLength(a, b) {
-    // Go by order of largest to smallest
-    return b.length - a.length;
-  }
-
-  markdownify_onSortEach(
-    tooProcess,
-    unique_placeholder_k,
-    count,
-    regexp_k,
-    body,
-    replacer_dict,
-    value
-  ) {
-    const replace = tooProcess[value];
-    const swap = `${unique_placeholder_k}${(count++).toString()}`;
-    const regex = new RegExp(
-      regexp_k.begin + this.escapeRegExp(value) + regexp_k.end,
-      'gi'
-    );
-    const replaced = body.replace(regex, `%${swap}%`); // Replace occurance with placeholder
-    if (body !== replaced) {
-      replacer_dict[swap] = replace;
-      return replaced;
-    }
-    return body;
-  }
-
-  markdownify_onElementEach(
-    replaceText,
-    toProcess,
-    min_text_length_k,
-    index,
-    value
-  ) {
-    const text = ($(this).text() || '').trim();
-    if (text && text.length > min_text_length_k) {
-      const replace = this.replacer(replaceText, { text });
-      toProcess[text.toLowerCase()] = replace; // Intentionally overwrites duplicates
-    }
-  }
-
-  markdownify_onHeaderEach(toProcess, min_text_length_k, index, value) {
-    const text = ($(this).text() || '').trim();
-    const nodeName = $(this).prop('nodeName') || '0';
-    if (nodeName && text && text.length > min_text_length_k) {
-      const x = nodeName.substr(-1);
-      toProcess[text.toLowerCase()] = `\n${'#'.repeat(x)} ${text}\n`; // Intentionally overwrites duplicates
-    }
-  }
-
-  markdownify_onLinkEach(toProcess, min_text_length_k, index, value) {
-    const text = ($(this).text() || '').trim();
-    const href = ($(this).prop('href') || '').trim(); // Was attr
-    /*
-      var uri_display = this.uriForDisplay(href);
-      var comment = ' "' + text + ' via ' + uri_display + '"';
-      var re = new RegExp(this.escapeRegExp(text), "i");
-      if (uri.match(re)) {
-          comment = ' "Open ' + uri_display + '"';
-      }
-      */
-    if (href && text && text.length >= min_text_length_k) {
-      toProcess[text.toLowerCase()] = this.anchorMarkdownify(text, href); // Comment seemed like too much extra text // Intentionally overwrites duplicates
-    }
-  }
-
-  // Event handlers
-  handleClassUtilsStateLoaded(event, params) {
-    this.state = params || {};
-  }
-
   // Event binding
   bindEvents() {
-    this.app.events.addListener(
-      'classUtilsStateLoaded',
-      this.handleClassUtilsStateLoaded.bind(this)
-    );
+    // No events to bind
   }
 
   init() {
     // Utils initialization if needed
     this.bindEvents();
-    this.loadState();
+    // State is loaded centrally by app
   }
 }
 

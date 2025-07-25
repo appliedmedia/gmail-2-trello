@@ -1,10 +1,13 @@
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+
 class Chrome {
   static get ck() {
     // class keys here to assure they're treated like consts
     const ck = {
-      contextInvalidError: 'Extension context invalidated.',
-      reloadMessage: 'Please reload the extension to continue.',
+      id: 'g2t_chrome',
       errorPrefix: 'Chrome API Error:',
+      contextInvalidError: 'Extension context invalidated',
+      reloadMessage: 'Extension needs to be reloaded.',
     };
     return ck;
   }
@@ -15,6 +18,17 @@ class Chrome {
 
   constructor({ app } = {}) {
     this.app = app;
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    // Listen for storage changes to refresh debug mode
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'sync' && changes.debugMode) {
+        // Debug mode changed, refresh the state
+        this.app.utils.refreshDebugMode();
+      }
+    });
   }
 
   /**
@@ -27,7 +41,10 @@ class Chrome {
     try {
       return apiCall(callback);
     } catch (error) {
-      this.handleChromeError(error, operation);
+      window.console.log(
+        `${this.ck.errorPrefix} ${operation} failed: ${error.message}`
+      );
+      throw error;
     }
   }
 
@@ -37,20 +54,28 @@ class Chrome {
    * @param {string} operation - Description of the operation that failed
    */
   handleChromeError(error, operation) {
-    const errorMessage = error.message || error.toString();
+    const errorMessage = error?.message || 'Unknown error';
 
     // Check for context invalidation
     if (errorMessage.includes(this.ck.contextInvalidError)) {
-      g2t_log(
+      window.console.log(
         `${this.ck.errorPrefix} Context invalidated during ${operation}. ${this.ck.reloadMessage}`
       );
-
-      // Show user-friendly message
-      this.showContextInvalidMessage();
+      // Show alert directly instead of firing event that might not be handled
+      if (
+        confirm(
+          'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+        )
+      ) {
+        window.location.reload();
+      }
+      return;
     }
 
     // Log other Chrome API errors
-    g2t_log(`${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`);
+    window.console.log(
+      `${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`
+    );
   }
 
   /**

@@ -1,12 +1,16 @@
 var G2T = G2T || {}; // must be var to guarantee correct scope
 
-class PopupViewForm {
-  static get id() {
-    return 'g2t_popupviewform';
+class PopupForm {
+  static get ck() {
+    // class keys here to assure they're treated like consts
+    const ck = {
+      id: 'g2t_popupform',
+    };
+    return ck;
   }
 
-  get id() {
-    return PopupViewForm.id;
+  get ck() {
+    return PopupForm.ck;
   }
 
   constructor(args) {
@@ -21,17 +25,57 @@ class PopupViewForm {
   }
 
   bindEvents() {
-    // Form event handlers - these belong in PopupViewForm
-    this.app.events.addListener('onSubmit', this.handleSubmit.bind(this));
-    this.app.events.addListener('checkTrelloAuthorized', this.handleCheckTrelloAuthorized.bind(this));
-    this.app.events.addListener('onRequestDeauthorizeTrello', this.handleRequestDeauthorizeTrello.bind(this));
-    this.app.events.addListener('onLoadTrelloListSuccess', this.handleLoadTrelloListSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloCardsSuccess', this.handleLoadTrelloCardsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloLabelsSuccess', this.handleLoadTrelloLabelsSuccess.bind(this));
-    this.app.events.addListener('onLoadTrelloMembersSuccess', this.handleLoadTrelloMembersSuccess.bind(this));
-    this.app.events.addListener('onAPIFailure', this.handleAPIFailure.bind(this));
-    this.app.events.addListener('newCardUploadsComplete', this.handleNewCardUploadsComplete.bind(this));
-    this.app.events.addListener('onMenuClick', this.handleOnMenuClick.bind(this));
+    // Form event handlers - these belong in PopupForm
+    this.app.events.addListener('submit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this)
+    );
+    this.app.events.addListener(
+      'requestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloListSuccess',
+      this.handleLoadTrelloListSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloCardsSuccess',
+      this.handleLoadTrelloCardsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloLabelsSuccess',
+      this.handleLoadTrelloLabelsSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloMembersSuccess',
+      this.handleLoadTrelloMembersSuccess.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloListFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloCardsFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloLabelsFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'loadTrelloMembersFailed',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'onAPIFailure',
+      this.handleAPIFailure.bind(this)
+    );
+    this.app.events.addListener(
+      'newCardUploadsComplete',
+      this.handleNewCardUploadsComplete.bind(this)
+    );
+    this.app.events.addListener('menuClick', this.handleOnMenuClick.bind(this));
   }
 
   // Form Data & Validation
@@ -70,7 +114,7 @@ class PopupViewForm {
         }
       });
     });
-    $('#g2tSignOutButton', this.parent.$popup).click(() => {
+    $('#g2tSignOutButton', this.parent.$popup).on('click', () => {
       this.parent.showSignOutOptions();
     });
 
@@ -117,11 +161,11 @@ class PopupViewForm {
           '<option value="none" selected disabled hidden>-</option>' +
           '<option value="d=0 am=0">--</option>';
 
-        g2t_each(due, (value, key) => {
+        Object.entries(due).forEach(([key, value]) => {
           // value is already available from the callback parameter
           if (typeof value === 'object') {
             opt += `<optgroup label="${key}">`;
-            g2t_each(value, (value1, key1) => {
+            Object.entries(value).forEach(([key1, value1]) => {
               // value1 is already available from the callback parameter
               opt += `<option value="${value1}">${key1}</option>`;
             });
@@ -140,7 +184,7 @@ class PopupViewForm {
     }
 
     if (!data) {
-      g2t_log("bindData shouldn't continue without data!");
+      this.app.utils.log("bindData shouldn't continue without data!");
       return;
     }
 
@@ -230,10 +274,11 @@ class PopupViewForm {
     }
 
     // Attach reportError function to report id if in text:
-    $('#report', this.parent.$popup).click(() => {
+    $('#report', this.parent.$popup).on('click', () => {
       this.reset();
 
-      const lastError_k = (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
+      const lastError_k =
+        (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
 
       const user_k = this.parent?.state?.trello?.user || {};
       const username_k = user_k?.username || '';
@@ -241,17 +286,20 @@ class PopupViewForm {
       const date_k = new Date().toISOString().substring(0, 10);
 
       // Modify this.data directly for error reporting
-      this.parent.state.description =
-        lastError_k + JSON.stringify(this.parent.state) + '\n' + g2t_log();
-      this.parent.state.title =
+      this.app.temp.description =
+        lastError_k +
+        JSON.stringify(this.parent.state) +
+        '\n' +
+        this.app.utils.log();
+      this.app.temp.title =
         'Error report card: ' +
         [fullname_k, username_k].join(' @') +
         ' ' +
         date_k;
 
       this.updateBoards('52e1397addf85d4751f99319'); // GtT board
-      $('#g2tDesc', this.parent.$popup).val(this.parent.state.description);
-      $('#g2tTitle', this.parent.$popup).val(this.parent.state.title);
+      $('#g2tDesc', this.parent.$popup).val(this.app.temp.description);
+      $('#g2tTitle', this.parent.$popup).val(this.app.temp.title);
       this.validateData();
     });
 
@@ -305,7 +353,8 @@ class PopupViewForm {
       data?.markdown ?? $('#chkMarkdown', this.parent.$popup).is(':checked');
     const useBackLink_k =
       data?.useBackLink ?? $('#chkBackLink', this.parent.$popup).is(':checked');
-    const addCC_k = data?.addCC ?? $('#chkCC', this.parent.$popup).is(':checked');
+    const addCC_k =
+      data?.addCC ?? $('#chkCC', this.parent.$popup).is(':checked');
     const $g2tDesc = $('#g2tDesc', this.parent.$popup);
 
     const fields = [
@@ -321,14 +370,14 @@ class PopupViewForm {
 
     if (valid_data_k) {
       // Store data in description object attributes:
-      g2t_each(fields, value => {
+      fields.forEach(value => {
         const val_k = data[value] || '';
         const name_k = attribute_storage_k + value;
         $g2tDesc.attr(name_k, val_k);
       });
     } else {
       // Restore data values from description object attributes:
-      g2t_each(fields, value => {
+      fields.forEach(value => {
         const name_k = attribute_storage_k + value;
         const val_k = $g2tDesc.attr(name_k) || '';
         data[value] = val_k;
@@ -384,7 +433,7 @@ class PopupViewForm {
     $('#g2tCardDesc', this.parent.$popup).val('');
     $('#g2tBoard', this.parent.$popup).val('');
     $('#g2tList', this.parent.$popup).val('');
-    
+
     // Clear checkboxes
     $('input[type="checkbox"]', this.parent.$popup).prop('checked', false);
   }
@@ -393,10 +442,10 @@ class PopupViewForm {
   updateBoards(tempId = 0) {
     const boards = this.parent.state.boards || [];
     const $boardSelect = $('#g2tBoard', this.parent.$popup);
-    
+
     $boardSelect.empty();
     $boardSelect.append('<option value="">Select a board...</option>');
-    
+
     boards.forEach(board => {
       $boardSelect.append(`<option value="${board.id}">${board.name}</option>`);
     });
@@ -413,13 +462,11 @@ class PopupViewForm {
       return;
     }
 
-    const settings_k = this.parent?.state?.settings || {};
-
     const boardId_k = $('#g2tBoard', this.parent.$popup).val();
 
     const prev_item_k =
-      settings_k?.boardId == boardId_k && settings_k?.listId
-        ? settings_k.listId
+      this.app.persist.boardId == boardId_k && this.app.persist.listId
+        ? this.app.persist.listId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -434,7 +481,7 @@ class PopupViewForm {
     const $g2t = $('#g2tList', this.parent.$popup);
     $g2t.html('');
 
-    g2t_each(array_k, item => {
+    array_k.forEach(item => {
       const id_k = item.id;
       const display_k = item.name;
       const selected_k = id_k == restoreId_k;
@@ -458,13 +505,11 @@ class PopupViewForm {
       return;
     }
 
-    const settings_k = this.parent?.state?.settings || {};
-
     const listId_k = $('#g2tList', this.parent.$popup).val();
 
     const prev_item_k =
-      settings_k?.listId == listId_k && settings_k?.cardId
-        ? settings_k.cardId
+      this.app.persist.listId == listId_k && this.app.persist.cardId
+        ? this.app.persist.cardId
         : 0;
 
     const first_item_k = array_k.length ? array_k[0].id : 0; // Default to first item
@@ -479,7 +524,7 @@ class PopupViewForm {
     const $g2t = $('#g2tCard', this.parent.$popup);
     $g2t.html(new_k);
 
-    g2t_each(array_k, item => {
+    array_k.forEach(item => {
       const id_k = item.id;
       const display_k = this.app.utils.truncate(item.name, 80, '...');
       const selected_k = id_k == restoreId_k;
@@ -545,11 +590,11 @@ class PopupViewForm {
           $(
             '#g2tLabels button[trelloId-label="' + item.id + '"]',
             this.parent.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {
-      this.parent.state.labelsId = ''; // Labels do not have to be set, so no default.
+      this.app.persist.labelsId = ''; // Labels do not have to be set, so no default.
     }
 
     $g2t.show();
@@ -614,11 +659,11 @@ class PopupViewForm {
           $(
             '#g2tMembers button[trelloId-member="' + item.id + '"]',
             this.parent.$popup
-          ).click();
+          ).trigger('click');
         }
       }
     } else {
-      this.parent.state.membersId = '';
+      this.app.persist.membersId = '';
     }
 
     $g2t.show();
@@ -634,13 +679,13 @@ class PopupViewForm {
   }
 
   clearLabels() {
-    this.parent.state.labelsId = '';
+    this.app.persist.labelsId = '';
     this.updateLabels();
     this.validateData();
   }
 
   clearMembers() {
-    this.parent.state.membersId = '';
+    this.app.persist.membersId = '';
     this.updateMembers();
     this.validateData();
   }
@@ -657,7 +702,9 @@ class PopupViewForm {
   showMessage(parent, text) {
     // Guard against calling before DOM elements are initialized
     if (!this.parent.$popupMessage) {
-      g2t_log('PopupViewForm:showMessage: DOM not ready, deferring message');
+      this.app.utils.log(
+        'PopupForm:showMessage: DOM not ready, deferring message'
+      );
       // Store message to show later when DOM is ready
       this.parent.pendingMessage = { parent, text };
       return;
@@ -666,42 +713,47 @@ class PopupViewForm {
     this.parent.$popupMessage.html(text);
 
     // Attach hideMessage function to hideMsg class if in text:
-    $('.hideMsg', this.parent.$popupMessage).click(() => {
+    $('.hideMsg', this.parent.$popupMessage).on('click', () => {
       parent.hideMessage();
     });
 
-    $(':button', this.parent.$popupMessage).click(event => {
-      const $status = $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
+    $(':button', this.parent.$popupMessage).on('click', event => {
+      const $status =
+        $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
       switch (event.target.id) {
         case 'signout':
           $status.html('Done');
-          this.app.events.fire('onRequestDeauthorizeTrello');
+          this.app.events.fire('requestDeauthorizeTrello');
           break;
         case 'reload':
           this.parent.forceSetVersion(); // Sets value for version if needing update
           $status.html('Reloading');
           window.location.reload(true);
           break;
-        case 'clearCacheNow':
+        case 'clearCacheNow': {
           $status.html('Clearing');
-          const clearCacheHash = {};
-          clearCacheHash[this.parent.CLEAR_EXT_BROWSING_DATA] = true;
           try {
-            chrome.runtime.sendMessage(clearCacheHash, () => {
-              $status.html('Done');
-              setTimeout(() => {
-                $status.html('&nbsp;');
-              }, 2500);
-            });
+            chrome.runtime.sendMessage(
+              { [this.parent.CLEAR_EXT_BROWSING_DATA]: true },
+              () => {
+                $status.html('Done');
+                setTimeout(() => {
+                  $status.html('&nbsp;');
+                }, 2500);
+              }
+            );
           } catch (error) {
             this.parent.handleChromeAPIError(error, 'showMessage');
           }
           break;
+        }
         case 'showsignout':
           this.parent.showSignOutOptions();
           break;
         default:
-          g2t_log(`showMessage: ERROR unhandled case "${event.target.id}"`);
+          this.app.utils.log(
+            `showMessage: ERROR unhandled case "${event.target.id}"`
+          );
       }
       if ($status.length > 0) {
         setTimeout(() => {
@@ -729,11 +781,13 @@ class PopupViewForm {
 
   displaySubmitCompleteForm(params) {
     const $form = $('#g2tForm', this.parent.$popup);
-    const $success = $('<div class="g2t-success">Card created successfully!</div>');
-    
+    const $success = $(
+      '<div class="g2t-success">Card created successfully!</div>'
+    );
+
     $form.hide();
     $form.after($success);
-    
+
     // Auto-hide after 3 seconds
     setTimeout(() => {
       $success.fadeOut(() => {
@@ -748,10 +802,10 @@ class PopupViewForm {
     const $form = $('#g2tForm', this.parent.$popup);
     const errorMessage = response.error || 'API request failed';
     const $error = $('<div class="g2t-error">' + errorMessage + '</div>');
-    
+
     $form.hide();
     $form.after($error);
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
       $error.fadeOut(() => {
@@ -765,7 +819,7 @@ class PopupViewForm {
   comboBox(update) {
     const $jVals = { Board: '', Card: '', List: '' };
     const setJQueryVals = () => {
-      g2t_each($jVals, (value, key) => {
+      Object.entries($jVals).forEach(([key, $value]) => {
         $jVals[key] = $(`#g2t${key}`, this.parent.$popup);
       });
     };
@@ -775,11 +829,7 @@ class PopupViewForm {
       const popup_offset_k = this.parent.$popup.offset();
       const popup_top_k = popup_offset_k.top;
       const board_height_k = $board_k.outerHeight();
-      const calc_k =
-        max_k -
-        popup_top_k -
-        board_height_k -
-        90;
+      const calc_k = max_k - popup_top_k - board_height_k - 90;
       const val_k = calc_k > this.parent.size_k.text.min ? calc_k : '60%';
       $('.ui-autocomplete').css('max-height', val_k);
     };
@@ -787,14 +837,14 @@ class PopupViewForm {
       setTimeout(() => {
         this.parent.comboInitialized = true;
         setJQueryVals();
-        g2t_each($jVals, ($value, key) => {
+        Object.entries($jVals).forEach(([key, $value]) => {
           $value.combobox();
         });
         set_max_autocomplete_size();
       }, 1000);
     } else if (this.parent.comboInitialized) {
       setJQueryVals();
-      g2t_each($jVals, ($value, key) => {
+      Object.entries($jVals).forEach(([key, $value]) => {
         $value.combobox(
           'setInputValue',
           $value.children('option:selected').text()
@@ -824,7 +874,7 @@ class PopupViewForm {
     }
 
     let x = 0;
-    g2t_each(data[tag], item => {
+    data[tag].forEach(item => {
       const dict = {
         url: item.url,
         name: item.name,
@@ -876,22 +926,20 @@ class PopupViewForm {
     }
   }
 
-
-
   // Form Actions
   submit() {
     if (this.parent.$popupContent) {
       this.parent.$popupContent.hide();
     }
     this.parent.showMessage(this.parent, 'Submitting to Trello...');
-    this.app.events.fire('onSubmit');
+    this.app.events.fire('submit');
   }
 
   // Form Event Handlers
   handleBoardChanged(target, params) {
     const boardId = $(target).val();
     if (boardId) {
-      this.parent.state.boardId = boardId;
+      this.app.persist.boardId = boardId;
       this.app.events.fire('boardChanged', { boardId });
     }
   }
@@ -899,7 +947,7 @@ class PopupViewForm {
   handleListChanged(target, params) {
     const listId = $(target).val();
     if (listId) {
-      this.parent.state.listId = listId;
+      this.app.persist.listId = listId;
       this.app.events.fire('listChanged', { listId });
     }
   }
@@ -914,7 +962,7 @@ class PopupViewForm {
   }
 
   handleRequestDeauthorizeTrello() {
-    g2t_log('onRequestDeauthorizeTrello');
+    this.app.utils.log('onRequestDeauthorizeTrello');
     this.parent.app.model.deauthorizeTrello();
     this.clearBoard();
   }
@@ -954,4 +1002,6 @@ class PopupViewForm {
 }
 
 // Export the class
-G2T.PopupViewForm = PopupViewForm;
+G2T.PopupForm = PopupForm;
+
+// End, class_popupForm.js
