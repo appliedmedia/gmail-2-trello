@@ -5,6 +5,8 @@
 
 // Mock jQuery for testing
 global.jQuery = jest.fn();
+// adding this as we will need it in future deeper tests
+global.$ = jest.fn();
 
 // Mock chrome API
 global.chrome = {
