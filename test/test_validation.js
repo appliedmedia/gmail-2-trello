@@ -6,11 +6,12 @@ console.log('📋 Test 1: Checking g2t_each replacement...');
 try {
   // Check if g2t_each still exists globally (it shouldn't)
   if (typeof g2t_each !== 'undefined') {
-    throw new Error('g2t_each still exists globally - replacement failed');
+    console.log('❌ FAIL: g2t_each still exists globally - replacement failed');
+  } else {
+    console.log('✅ PASS: g2t_each successfully removed from global scope');
   }
-  console.log('✅ PASS: g2t_each successfully removed from global scope');
 } catch (error) {
-  console.log('✅ PASS: g2t_each not found globally (expected)');
+  console.log('❌ FAIL: Unexpected error testing g2t_each:', error.message);
 }
 
 // Test 2: Check that g2t_log replacement worked
