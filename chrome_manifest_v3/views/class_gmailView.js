@@ -59,7 +59,7 @@ class GmailView {
   detectToolbar_onTimeout() {
     this.runaway++;
     if (this.runaway > 10) {
-      this.app.utils.log('GmailView:detectToolbar RUNAWAY FIRED!');
+      this.app.utils.log('ERROR GmailView:detectToolbar RUNAWAY TRIGGERED');
       return;
     }
     this.detectToolbar();
@@ -69,7 +69,7 @@ class GmailView {
   detectEmailOpeningMode_onEmailClick() {
     this.waitCounter.start('emailclick', 500, 5, () => {
       if (this.detectEmailOpeningMode()) {
-        //this.event.fire('onEmailChanged');
+        //this.event.emit('onEmailChanged');
         this.waitCounter.stop('emailclick');
       }
     });
@@ -278,7 +278,7 @@ class GmailView {
     const pre_k = this.preDetect();
 
     if (pre_k) {
-      this.app.events.fire('onDetected');
+      this.app.events.emit('onDetected');
     } else {
       this.detectEmailOpeningMode();
     }
@@ -367,7 +367,7 @@ class GmailView {
           ' items'
       );
 
-      this.app.events.fire('onDetected');
+      this.app.events.emit('onDetected');
     }
     return result;
   }

@@ -106,7 +106,7 @@ class Uploader {
     let upload1 = self.itemsForUpload.shift();
     if (!upload1) {
       // All attachment uploads complete
-      self.app.events.fire('newCardUploadsComplete', { data });
+      self.app.events.emit('newCardUploadsComplete', { data });
     } else {
       const dict_k = { cardId: this.cardId || '' };
 
@@ -139,7 +139,7 @@ class Uploader {
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
           });
-          self.app.events.fire('onAPIFailure', { data });
+          self.app.events.emit('onAPIFailure', { data });
         }
       );
     }
@@ -271,7 +271,7 @@ class Model {
 
   uploadAttachments(data = {}) {
     if (!data.attachments || data.attachments.length === 0) {
-      this.app.events.fire('newCardUploadsComplete', { data });
+      this.app.events.emit('newCardUploadsComplete', { data });
       return;
     }
 
@@ -299,13 +299,13 @@ class Model {
   checkTrelloAuthorized_popup_success(data) {
     this.app.persist.trelloAuthorized = true;
     this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_success', { data });
+    this.app.events.emit('checkTrelloAuthorized_popup_success', { data });
   }
 
   checkTrelloAuthorized_popup_failure(data) {
     this.app.persist.trelloAuthorized = false;
     this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_failed', { data });
+    this.app.events.emit('checkTrelloAuthorized_popup_failed', { data });
   }
 
   initTrello() {
@@ -315,15 +315,6 @@ class Model {
     );
     Trello.setKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
-  }
-
-  checkTrelloAuthorized() {
-    // First, try to authorize with stored token (non-interactive)
-    Trello.authorize({
-      interactive: false,
-      success: this.checkTrelloAuthorized_success.bind(this),
-      error: this.checkTrelloAuthorized_failure.bind(this),
-    });
   }
 
   checkTrelloAuthorized_success(data) {
@@ -337,7 +328,7 @@ class Model {
       url: data?.url,
     });
 
-    this.app.events.fire('checkTrelloAuthorized_success', { data });
+    this.app.events.emit('checkTrelloAuthorized_success', { data });
   }
 
   checkTrelloAuthorized_failure(data) {
@@ -346,7 +337,7 @@ class Model {
     );
     if (!Trello.authorized()) {
       // No valid token, show authorization popup
-      this.app.events.fire('onBeforeAuthorize');
+      this.app.events.emit('onBeforeAuthorize');
       Trello.authorize({
         type: 'popup',
         name: 'Gmail-2-Trello',
@@ -360,27 +351,36 @@ class Model {
     } else {
       // We have a token but the API call failed - this shouldn't happen
       this.app.utils.log('Trello authorization failed with valid token');
-      this.app.events.fire('checkTrelloAuthorized_failed', { data });
+      this.app.events.emit('checkTrelloAuthorized_failed', { data });
     }
+  }
+
+  checkTrelloAuthorized() {
+    // First, try to authorize with stored token (non-interactive)
+    Trello.authorize({
+      interactive: false,
+      success: this.checkTrelloAuthorized_success.bind(this),
+      error: this.checkTrelloAuthorized_failure.bind(this),
+    });
   }
 
   checkTrelloAuthorized_popup_success(data) {
     this.app.persist.trelloAuthorized = true;
     this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_success', { data });
+    this.app.events.emit('checkTrelloAuthorized_popup_success', { data });
   }
 
   checkTrelloAuthorized_popup_failure(data) {
     this.app.persist.trelloAuthorized = false;
     this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_failure', { data });
+    this.app.events.emit('checkTrelloAuthorized_popup_failure', { data });
   }
 
   deauthorizeTrello() {
     this.app.persist.trelloAuthorized = false;
     this.app.persist.trelloData = {};
     this.app.persistSave(); // Save state after deauthorization
-    this.app.events.fire('deauthorizeTrello_success', {});
+    this.app.events.emit('deauthorizeTrello_success', {});
   }
 
   loadTrelloData_user_success(data) {
@@ -394,7 +394,7 @@ class Model {
       this.app.persist.boards = data;
       this.app.persistSave(); // Save state after data load
     }
-    this.app.events.fire('loadTrelloData_success', {
+    this.app.events.emit('loadTrelloData_success', {
       data: {
         user: this.app.persist.user,
         boards: this.app.persist.boards,
@@ -403,7 +403,7 @@ class Model {
   }
 
   loadTrelloData_failure(data) {
-    this.app.events.fire('loadTrelloData_failed', { data });
+    this.app.events.emit('loadTrelloData_failed', { data });
   }
 
   loadTrelloData() {
@@ -439,11 +439,11 @@ class Model {
   loadTrelloLists_success(data) {
     this.app.persist.lists = data;
     this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloListSuccess', { data });
+    this.app.events.emit('loadTrelloListSuccess', { data });
   }
 
   loadTrelloLists_failure(data) {
-    this.app.events.fire('loadTrelloListFailed', { data });
+    this.app.events.emit('loadTrelloListFailed', { data });
   }
 
   loadTrelloLists(boardId) {
@@ -463,11 +463,11 @@ class Model {
   loadTrelloCards_success(data) {
     this.app.persist.cards = data;
     this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloCardsSuccess', { data });
+    this.app.events.emit('loadTrelloCardsSuccess', { data });
   }
 
   loadTrelloCards_failure(data) {
-    this.app.events.fire('loadTrelloCardsFailed', { data });
+    this.app.events.emit('loadTrelloCardsFailed', { data });
   }
 
   loadTrelloCards(listId) {
@@ -487,11 +487,11 @@ class Model {
   loadTrelloMembers_success(data) {
     this.app.persist.members = data;
     this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloMembersSuccess', { data });
+    this.app.events.emit('loadTrelloMembersSuccess', { data });
   }
 
   loadTrelloMembers_failure(data) {
-    this.app.events.fire('loadTrelloMembersFailed', { data });
+    this.app.events.emit('loadTrelloMembersFailed', { data });
   }
 
   loadTrelloMembers(boardId) {
@@ -511,11 +511,11 @@ class Model {
   loadTrelloLabels_success(data) {
     this.app.persist.labels = data;
     this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloLabelsSuccess', { data });
+    this.app.events.emit('loadTrelloLabelsSuccess', { data });
   }
 
   loadTrelloLabels_failure(data) {
-    this.app.events.fire('loadTrelloLabelsFailed', { data });
+    this.app.events.emit('loadTrelloLabelsFailed', { data });
   }
 
   loadTrelloLabels(boardId) {
@@ -534,12 +534,12 @@ class Model {
 
   submit(data) {
     if (!this.app.persist.trelloAuthorized) {
-      this.app.events.fire('checkTrelloAuthorized_failed', {});
+      this.app.events.emit('checkTrelloAuthorized_failed', {});
       return;
     }
 
     if (!data || !data.boardId || !data.listId) {
-      this.app.events.fire('invalidFormData', { data });
+      this.app.events.emit('invalidFormData', { data });
       return;
     }
 
@@ -579,13 +579,13 @@ class Model {
           data.cardId = cardId;
           this.uploadAttachments(data);
         } else {
-          this.app.events.fire('createCard_success', {
+          this.app.events.emit('createCard_success', {
             data: { ...data, cardId },
           });
         }
       },
       error => {
-        this.app.events.fire('createCard_failed', { data: error });
+        this.app.events.emit('createCard_failed', { data: error });
       }
     );
   }
@@ -618,7 +618,7 @@ class Model {
     const data = params.data;
 
     if (!data) {
-      this.app.events.fire('invalidFormData', { data });
+      this.app.events.emit('invalidFormData', { data });
       return;
     }
 
@@ -639,11 +639,11 @@ class Model {
     }
 
     this.app.persistSave(); // Save state after successful card creation
-    this.app.events.fire('cardCreationComplete', { data });
+    this.app.events.emit('cardCreationComplete', { data });
   }
 
   handlePostCardCreateUploadDisplayDone(target, params) {
-    this.app.events.fire('cardCreationComplete', { data: params.data });
+    this.app.events.emit('cardCreationComplete', { data: params.data });
   }
 
   // Form event handlers - moved from PopupView

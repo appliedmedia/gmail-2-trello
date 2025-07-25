@@ -147,8 +147,8 @@ class PopupView {
       if (this.html && this.html['popup'] && this.html['popup'].length > 0) {
         this.app.utils.log('PopupView:confirmPopup: adding popup');
         this.$toolBar.append(this.html['popup']);
-        // Fire popupLoaded event
-        this.app.events.fire('popupLoaded');
+        // Emit popupLoaded event
+        this.app.events.emit('popupLoaded');
         needInit = true;
       } else {
         needInit = false;
@@ -157,8 +157,8 @@ class PopupView {
           this.html['popup'] = data;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(data);
-          // Fire popupLoaded event after DOM is ready
-          this.app.events.fire('popupLoaded');
+          // Emit popupLoaded event after DOM is ready
+          this.app.events.emit('popupLoaded');
         });
       }
     }
@@ -376,7 +376,7 @@ class PopupView {
       this.$popup.show();
       this.form.validateData();
 
-      this.app.events.fire('onPopupVisible');
+      this.app.events.emit('onPopupVisible');
     }
   }
 
@@ -486,7 +486,7 @@ class PopupView {
     this.app.gmailView.parsingData = false;
     this.app.model.gmail = this.app.gmailView.parseData({ fullName });
     this.form.bindGmailData(this.app.model.gmail);
-    this.app.events.fire('periodicChecks');
+    this.app.events.emit('periodicChecks');
   }
 
   handlePeriodicChecks() {
@@ -623,7 +623,7 @@ class PopupView {
       }
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
-      this.app.events.fire('boardChanged', { boardId });
+      this.app.events.emit('boardChanged', { boardId });
     });
 
     const $list = $('#g2tList', this.$popup);
@@ -633,7 +633,7 @@ class PopupView {
       this.app.persistSave(); // Save state after list change
       if (this.form.comboBox) this.form.comboBox('updateValue');
       this.form.validateData();
-      this.app.events.fire('listChanged', { listId });
+      this.app.events.emit('listChanged', { listId });
     });
 
     $('#g2tPosition', this.$popup)
@@ -766,13 +766,13 @@ class PopupView {
     $('#g2tSignOut', this.$popup)
       .off('click')
       .on('click', () => {
-        this.app.events.fire('requestDeauthorizeTrello');
+        this.app.events.emit('requestDeauthorizeTrello');
       });
 
     $('#g2tAuthorize', this.$popup)
       .off('click')
       .on('click', () => {
-        this.app.events.fire('checkTrelloAuthorized');
+        this.app.events.emit('checkTrelloAuthorized');
       });
 
     $('#addToTrello', this.$popup)
@@ -819,13 +819,13 @@ class PopupView {
     }
 
     this.intervalId = setInterval(() => {
-      this.app.events.fire('detectButton');
+      this.app.events.emit('detectButton');
     }, 2000);
 
     // Remove DOM-dependent code from here (was from init_popup)
 
-    // Fire init done event
-    this.app.events.fire('classPopupViewInitDone');
+    // Emit init done event
+    this.app.events.emit('classPopupViewInitDone');
   }
 }
 

@@ -54,7 +54,7 @@ class MenuControl {
           .removeClass('active');
       }
 
-      this.app.events.fire('menuClick', {
+      this.app.events.emit('menuClick', {
         target: event.currentTarget,
         index: newIndex,
       });

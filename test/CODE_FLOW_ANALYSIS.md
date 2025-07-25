@@ -23,7 +23,7 @@ submit() {
             this.$popupContent.hide();
         }
         this.showMessage(this, 'Submitting to Trello...'); // ← "Submitting to Trello..." message shown
-        this.app.events.fire('onSubmit'); // ← Fires onSubmit event
+        this.app.events.emit('onSubmit'); // ← Fires onSubmit event
     }
 }
 ```
@@ -79,7 +79,7 @@ submit() {
 
 ```javascript
 submit_onSuccess(data) {
-    this.app.events.fire('onCardSubmitComplete', { data }); // ← Fires success event
+    this.app.events.emit('onCardSubmitComplete', { data }); // ← Fires success event
     g2t_log(data);
 }
 ```
@@ -119,7 +119,7 @@ displaySubmitCompleteForm(params) {
     this.showMessage(this, message); // ← Shows success message
     this.$popupContent.hide();
 
-    this.app.events.fire('submittedFormShownComplete', { data: trelloData }); // ← Fires completion event
+    this.app.events.emit('submittedFormShownComplete', { data: trelloData }); // ← Fires completion event
 }
 ```
 

@@ -76,7 +76,7 @@ class Utils {
   /**
    * Load data from chrome storage
    */
-  loadFromChromeStorage(keyId, fire_on_done = '') {
+  loadFromChromeStorage(keyId, emit_on_done = '') {
     this.app.chrome.storageSyncGet(keyId, response => {
       const jsonData = response?.[keyId];
       const result = jsonData ? JSON.parse(jsonData) : '';
@@ -86,8 +86,8 @@ class Utils {
         this.app.persist.storageHashes[keyId] = this.djb2Hash(jsonData);
       }
 
-      if (fire_on_done) {
-        this.app.events.fire(fire_on_done, result);
+      if (emit_on_done) {
+        this.app.events.emit(emit_on_done, result);
       }
     });
   }
@@ -320,7 +320,9 @@ class Utils {
     if (nodeName && context.element_meets_min_length) {
       const headerLevelText = nodeName.substr(-1);
       const headerLevel = parseInt(headerLevelText, 10);
-      const headerMarkdown = `\n\n${'#'.repeat(headerLevel)} ${context.element_text}\n\n`;
+      const headerMarkdown = `\n\n${'#'.repeat(headerLevel)} ${
+        context.element_text
+      }\n\n`;
       context.toProcess[context.element_text.toLowerCase()] = headerMarkdown; // Intentionally overwrites duplicates
     }
   }

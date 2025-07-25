@@ -140,7 +140,7 @@ const PerformanceTest = {
     // Fire events
     for (let i = 0; i < this.iterations; i++) {
       const eventType = this.eventTypes[i % this.eventTypes.length];
-      eventTarget.fire(eventType, this.testData);
+      eventTarget.emit(eventType, this.testData);
     }
 
     // Remove listeners
@@ -175,7 +175,7 @@ const PerformanceTest = {
     // Fire events
     for (let i = 0; i < this.iterations; i++) {
       const eventType = this.eventTypes[i % this.eventTypes.length];
-      eventTarget.fire(eventType, this.testData);
+      eventTarget.emit(eventType, this.testData);
     }
 
     // Remove listeners

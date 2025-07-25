@@ -115,8 +115,8 @@ class App {
     this.utils.log('App: Gmail navigation detected, triggering redraw');
     // Force a complete redraw to ensure the button appears in the new view
     this.gmailView.forceRedraw();
-    // Also fire the force redraw event for the popup view
-    this.events.fire('forceRedraw');
+    // Also emit the force redraw event for the popup view
+    this.events.emit('forceRedraw');
   }
 
   handleGmailHashChange() {

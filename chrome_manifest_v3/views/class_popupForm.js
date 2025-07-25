@@ -710,7 +710,7 @@ class PopupForm {
       switch (event.target.id) {
         case 'signout':
           $status.html('Done');
-          this.app.events.fire('requestDeauthorizeTrello');
+          this.app.events.emit('requestDeauthorizeTrello');
           break;
         case 'reload':
           this.parent.forceSetVersion(); // Sets value for version if needing update
@@ -827,7 +827,7 @@ class PopupForm {
 
       // Handle 401 errors (invalid token)
       if (resp?.status == 401) {
-        this.app.events.fire('requestDeauthorizeTrello');
+        this.app.events.emit('requestDeauthorizeTrello');
       }
     });
   }
@@ -949,7 +949,7 @@ class PopupForm {
       this.parent.$popupContent.hide();
     }
     this.parent.showMessage(this.parent, 'Submitting to Trello...');
-    this.app.events.fire('submit');
+    this.app.events.emit('submit');
   }
 
   // Form Event Handlers
@@ -957,7 +957,7 @@ class PopupForm {
     const boardId = $(target).val();
     if (boardId) {
       this.app.persist.boardId = boardId;
-      this.app.events.fire('boardChanged', { boardId });
+      this.app.events.emit('boardChanged', { boardId });
     }
   }
 
@@ -965,7 +965,7 @@ class PopupForm {
     const listId = $(target).val();
     if (listId) {
       this.app.persist.listId = listId;
-      this.app.events.fire('listChanged', { listId });
+      this.app.events.emit('listChanged', { listId });
     }
   }
 
@@ -1014,7 +1014,7 @@ class PopupForm {
 
   handleOnMenuClick(target, params) {
     // Handle menu clicks - delegate to parent if needed
-    this.app.events.fire('menuClick', { target, params });
+    this.app.events.emit('menuClick', { target, params });
   }
 }
 
