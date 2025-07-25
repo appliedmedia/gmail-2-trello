@@ -1,3 +1,5 @@
+var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+
 class Chrome {
   static get ck() {
     // class keys here to assure they're treated like consts
