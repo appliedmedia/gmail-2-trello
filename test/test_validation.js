@@ -19,11 +19,12 @@ console.log('📋 Test 2: Checking g2t_log replacement...');
 try {
   // Check if g2t_log still exists globally (it shouldn't)
   if (typeof g2t_log !== 'undefined') {
-    throw new Error('g2t_log still exists globally - replacement failed');
+    console.log('❌ FAIL: g2t_log still exists globally - replacement failed');
+  } else {
+    console.log('✅ PASS: g2t_log successfully removed from global scope');
   }
-  console.log('✅ PASS: g2t_log successfully removed from global scope');
 } catch (error) {
-  console.log('✅ PASS: g2t_log not found globally (expected)');
+  console.log('❌ FAIL: Unexpected error testing g2t_log:', error.message);
 }
 
 // Test 3: Check that Object.entries usage is correct
