@@ -383,13 +383,13 @@ class Utils {
    * Repeat replace until no more changes or max attempts reached
    */
   markdownify_repeatReplace(context, inRegexp, replaceWith) {
-    let replaced = context.body;
     let runaway = 11; // max replace attempts to prevent runaway
-    while (replaced !== context.body && --runaway > 0) {
-      context.body = replaced;
-      replaced = context.body.replace(inRegexp, replaceWith);
-    }
-    context.body = replaced;
+    let previous;
+
+    do {
+      previous = context.body;
+      context.body = context.body.replace(inRegexp, replaceWith);
+    } while (context.body !== previous && --runaway > 0);
   }
 
   /**

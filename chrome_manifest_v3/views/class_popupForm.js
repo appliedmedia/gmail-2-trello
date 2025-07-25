@@ -114,7 +114,7 @@ class PopupForm {
         }
       });
     });
-    $('#g2tSignOutButton', this.parent.$popup).click(() => {
+    $('#g2tSignOutButton', this.parent.$popup).on('click', () => {
       this.parent.showSignOutOptions();
     });
 
@@ -274,7 +274,7 @@ class PopupForm {
     }
 
     // Attach reportError function to report id if in text:
-    $('#report', this.parent.$popup).click(() => {
+    $('#report', this.parent.$popup).on('click', () => {
       this.reset();
 
       const lastError_k =
@@ -713,11 +713,11 @@ class PopupForm {
     this.parent.$popupMessage.html(text);
 
     // Attach hideMessage function to hideMsg class if in text:
-    $('.hideMsg', this.parent.$popupMessage).click(() => {
+    $('.hideMsg', this.parent.$popupMessage).on('click', () => {
       parent.hideMessage();
     });
 
-    $(':button', this.parent.$popupMessage).click(event => {
+    $(':button', this.parent.$popupMessage).on('click', event => {
       const $status =
         $(`span#${event.target.id}`, this.parent.$popupMessage) || '';
       switch (event.target.id) {
