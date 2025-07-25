@@ -16,7 +16,7 @@ This guide provides detailed instructions for developing and contributing to the
    - Open `chrome://extensions/`
    - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select `chrome_manifest_v3/` directory
+   - Select the `chrome_manifest_v3/` directory
 
 3. **Test the extension**:
    - Go to Gmail
@@ -65,11 +65,11 @@ This guide provides detailed instructions for developing and contributing to the
 1. **Extension errors**: Check `chrome://extensions/` for error messages
 2. **Content script errors**: Open Gmail DevTools (F12) and check Console
 3. **Background script errors**: Go to `chrome://extensions/` → "service worker" link
-4. **API issues**: Check Network tab in DevTools
+4. **API issues**: Check the Network tab in DevTools
 
 ### Common Issues
 
-- **Extension not loading**: Check manifest.json syntax
+- **Extension not loading**: Check `manifest.json` syntax
 - **Gmail integration broken**: Gmail may have changed selectors
 - **Trello API errors**: Check authentication and API limits
 
@@ -125,7 +125,7 @@ npm test
 
 ### Extension Won't Load
 
-- Check manifest.json syntax
+- Check `manifest.json` syntax
 - Verify all referenced files exist
 - Check Chrome's extension error log
 
@@ -137,7 +137,7 @@ npm test
 
 ### Trello API Problems
 
-- Verify API key is valid
+- Verify the API key is valid
 - Check rate limits
 - Ensure OAuth tokens are fresh
 
@@ -148,7 +148,7 @@ npm test
 **Always use `git mv` instead of `mv` for file renames/moves.**
 
 - `git mv` preserves git history and tracks the move as a rename operation
-- `mv` followed by `git add`/`git rm` loses history and shows as delete+add
+- `mv` followed by `git add`/`git rm` loses history, and shows as delete+add
 - Example: `git mv old_name.js new_name.js` not `mv old_name.js new_name.js`
 
 **Multiple moves can be chained:**
