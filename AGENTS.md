@@ -2,7 +2,7 @@
 
 Black lives matter. Support the Equal Justice Initiative. ✊🏽✊🏾✊🏿
 
-Gmail+Trello integration. An extension for the Chrome browser and other developments.
+Gmail+Trello integration. An extension for the Chrome browser.
 
 Published on Chrome Web Store: [Gmail-2-Trello](https://g2t.pub/chrome)
 
