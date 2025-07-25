@@ -11,6 +11,10 @@ class Uploader {
     this.itemsForUpload = [];
   }
 
+  get state() {
+    return this.app.persist;
+  }
+
   init() {
     this.bindEvents();
   }
@@ -165,6 +169,10 @@ class EmailBoardListCardMap {
     this.app = args.app;
     this.maxSize = 100;
     this.chrome_storage_key = 'gmail2trello_eblc_map';
+
+  get state() {
+    return this.app.persist.emailBoardListCardMap || [];
+  }
   }
 
   add(args = {}) {
@@ -257,6 +265,14 @@ class Model {
     this.parent = args.parent;
     this.app = args.app;
     // Remove local state - use centralized app state
+    this.emailBoardListCardMap = new EmailBoardListCardMap({
+      parent: this,
+      app: this.app
+    });
+  }
+
+  get state() {
+    return this.app.persist;
   }
 
   init() {
@@ -585,7 +601,7 @@ class Model {
 
     // Update the email-board-list-card mapping
     if (data.emailId && data.boardId && data.listId && data.cardId) {
-      this.app.persist.emailBoardListCardMap.add({
+      this.emailBoardListCardMap.add({
         email: data.emailId,
         boardId: data.boardId,
         listId: data.listId,
