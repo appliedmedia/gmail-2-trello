@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "echo '🚀 Development Setup: 1) Open chrome://extensions/ 2) Enable Developer mode 3) Load unpacked: chrome_manifest_v3/ 4) Go to Gmail to test'",
     "build": "cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
-    "test": "node test/test.js",
+    "test": "jest",
+    "test:legacy": "node test/test_main.js",
+    "test:markdownify": "jest test/test_markdownify.js",
     "lint": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
     "lint:fix": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js --fix",
     "format": "prettier --write chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
@@ -39,10 +41,20 @@
   "homepage": "https://g2t.support",
   "devDependencies": {
     "eslint": "latest",
-    "eslint-config-prettier": "latest",
-    "eslint-plugin-prettier": "latest",
     "prettier": "latest",
-    "web-ext": "latest"
+    "jest": "^29.0.0",
+    "jsdom": "^22.0.0",
+    "jquery": "^3.7.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/test/test_*.js"],
+    "setupFilesAfterEnv": [],
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "lcov", "html"],
+    "modulePathIgnorePatterns": ["<rootDir>/Ω_archives_ignore/"],
+    "watchPathIgnorePatterns": ["<rootDir>/Ω_archives_ignore/"]
   },
   "dependencies": {
     "archiver": "latest",
