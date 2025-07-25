@@ -93,11 +93,6 @@ try {
   console.log('❌ FAIL: State structure test failed:', error.message);
 }
 
+// Note: This is a manual test script - check console output above for actual results
 console.log('\n📊 Validation Test Summary:');
-console.log('✅ All core functionality tests passed');
-console.log('✅ g2t_each and g2t_log successfully replaced');
-console.log('✅ Object.entries and forEach working correctly');
-console.log('✅ Centralized state structure is valid');
-console.log(
-  '\n🎉 Validation complete! Our changes appear to be working correctly.'
-);
+console.log('Check individual test results above for actual pass/fail status');
