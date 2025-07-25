@@ -85,8 +85,10 @@ try {
     log: { memory: [], count: 0, max: 100, debugMode: false },
   };
 
-  if (!mockState.log || !mockState.model || !mockState.popupView) {
-    throw new Error('Centralized state structure is missing required sections');
+  const requiredSections = ['app', 'model', 'popupView', 'gmailView', 'utils', 'log'];
+  const missingSections = requiredSections.filter(section => !mockState[section]);
+  if (missingSections.length > 0) {
+    throw new Error(`Centralized state missing sections: ${missingSections.join(', ')}`);
   }
   console.log('✅ PASS: Centralized state structure is valid');
 } catch (error) {
