@@ -653,7 +653,9 @@ describe('Markdownify Function Tests', () => {
       const items = Array.from(
         { length: 100 },
         (_, i) =>
-          `<p>Item ${i + 1} with <strong>bold</strong> and <em>italic</em> text</p>`
+          `<p>Item ${
+            i + 1
+          } with <strong>bold</strong> and <em>italic</em> text</p>`
       ).join('');
 
       const input = `<div>${items}</div>`;
