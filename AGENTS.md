@@ -4,9 +4,9 @@ Black lives matter. Support the Equal Justice Initiative. ✊🏽✊🏾✊🏿
 
 Gmail+Trello integration. An extension for the Chrome browser.
 
-Published on Chrome Web Store: [Gmail-2-Trello](https://g2t.pub/chrome)
+Published on Chrome Web Store: [Gmail-2-Trello](<https://g2t.pub/chrome>)
 
-Support, common questions, interaction with other fans: [g2t.support](https://g2t.support)
+Support, common questions, interaction with other fans: [g2t.support](<https://g2t.support>)
 
 ## Agent Instructions
 
@@ -14,29 +14,17 @@ Support, common questions, interaction with other fans: [g2t.support](https://g2
 
 This document serves as the agent instructions for the Gmail-2-Trello public repo.
 
-<<<<<<< HEAD
-**📖 Read the [README.md](<./README.md>) file first for project description and goals.**
-=======
-📖 Read the [README.md](./README.md) file first for project description and goals.
->>>>>>> 0f25f192c6b1e7d496d88321d2b3e162c9b585c1
+📖 Read the [README.md](<./README.md>) file first for project description and goals.
 
 ## Essential Reading for Developers
 
 Before working on this codebase, please read these essential documents:
 
-<<<<<<< HEAD
 ### 📚 [DEPLOYMENT.md](<DEPLOYMENT.md>)
 
 Complete deployment guide for the Gmail-2-Trello extension. Covers Chrome Web Store submission, version management, and release procedures.
 
 ### 🔧 [DEVELOPMENT.md](<DEVELOPMENT.md>)
-=======
-### 📚 DEPLOYMENT.md
-
-Complete deployment guide for the Gmail-2-Trello extension. Covers Chrome Web Store submission, version management, and release procedures.
-
-### 🔧 DEVELOPMENT.md
->>>>>>> 0f25f192c6b1e7d496d88321d2b3e162c9b585c1
 
 Development setup, coding standards, and workflow guidelines. Essential for understanding the codebase structure and development practices.
 
