@@ -11,12 +11,12 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
-    }
+      set: jest.fn(),
+    },
   },
   runtime: {
-    sendMessage: jest.fn()
-  }
+    sendMessage: jest.fn(),
+  },
 };
 
 // Mock Trello API
@@ -25,14 +25,14 @@ global.Trello = {
   token: jest.fn(() => 'test-token'),
   authorize: jest.fn(),
   deauthorize: jest.fn(),
-  get: jest.fn()
+  get: jest.fn(),
 };
 
 // Mock console for testing
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Mock G2T global object
@@ -51,24 +51,24 @@ describe('Model Class', () => {
     mockUtils = {
       log: jest.fn(),
       loadFromChromeStorage: jest.fn(),
-      saveToChromeStorage: jest.fn()
+      saveToChromeStorage: jest.fn(),
     };
 
     mockApp = {
       utils: mockUtils,
       chrome: {
-        runtimeSendMessage: jest.fn()
+        runtimeSendMessage: jest.fn(),
       },
       eventTarget: {
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
-      }
+        dispatchEvent: jest.fn(),
+      },
     };
 
     // Create a fresh Model instance for each test
     model = new Model({ app: mockApp });
-    
+
     // Reset all mocks
     $.mockClear();
     chrome.storage.local.get.mockClear();
@@ -272,7 +272,9 @@ describe('Model Class', () => {
     });
 
     test('uploadAttachments should upload attachments', () => {
-      const data = { attachments: [{ name: 'test.txt', value: 'test-content' }] };
+      const data = {
+        attachments: [{ name: 'test.txt', value: 'test-content' }],
+      };
       expect(() => model.uploadAttachments(data)).not.toThrow();
     });
   });
@@ -284,7 +286,11 @@ describe('Model Class', () => {
     });
 
     test('emailBoardListCardMapUpdate should update mapping', () => {
-      const keyValue = { email: 'test@example.com', boardId: '123', listId: '456' };
+      const keyValue = {
+        email: 'test@example.com',
+        boardId: '123',
+        listId: '456',
+      };
       expect(() => model.emailBoardListCardMapUpdate(keyValue)).not.toThrow();
     });
   });
@@ -293,25 +299,33 @@ describe('Model Class', () => {
     test('handleClassModelStateLoaded should handle state loaded event', () => {
       const event = { type: 'stateLoaded' };
       const params = { data: 'test' };
-      expect(() => model.handleClassModelStateLoaded(event, params)).not.toThrow();
+      expect(() =>
+        model.handleClassModelStateLoaded(event, params)
+      ).not.toThrow();
     });
 
     test('handleSubmittedFormShownComplete should handle form submission', () => {
       const target = document.createElement('div');
       const params = { formData: 'test' };
-      expect(() => model.handleSubmittedFormShownComplete(target, params)).not.toThrow();
+      expect(() =>
+        model.handleSubmittedFormShownComplete(target, params)
+      ).not.toThrow();
     });
 
     test('handleTrelloCardCreateSuccess should handle card creation success', () => {
       const target = document.createElement('div');
       const params = { card: { id: '123', name: 'Test Card' } };
-      expect(() => model.handleTrelloCardCreateSuccess(target, params)).not.toThrow();
+      expect(() =>
+        model.handleTrelloCardCreateSuccess(target, params)
+      ).not.toThrow();
     });
 
     test('handlePostCardCreateUploadDisplayDone should handle upload completion', () => {
       const target = document.createElement('div');
       const params = { uploads: [] };
-      expect(() => model.handlePostCardCreateUploadDisplayDone(target, params)).not.toThrow();
+      expect(() =>
+        model.handlePostCardCreateUploadDisplayDone(target, params)
+      ).not.toThrow();
     });
 
     test('handleBoardChanged should handle board change', () => {
@@ -364,14 +378,14 @@ describe('Model Class', () => {
       const attachment = {
         name: 'test.txt',
         value: 'test-content',
-        property: 'attachments'
+        property: 'attachments',
       };
-      
+
       const result = uploader.add(attachment);
       expect(uploader.itemsForUpload).toHaveLength(1);
       expect(uploader.itemsForUpload[0]).toEqual({
         ...attachment,
-        property: 'cards/undefined/attachments'
+        property: 'cards/undefined/attachments',
       });
       expect(result).toBe(uploader);
     });
@@ -380,9 +394,9 @@ describe('Model Class', () => {
       const invalidAttachment = {
         name: '',
         value: null,
-        property: ''
+        property: '',
       };
-      
+
       uploader.add(invalidAttachment);
       expect(uploader.itemsForUpload).toHaveLength(0);
     });
@@ -390,7 +404,10 @@ describe('Model Class', () => {
     test('attach should handle file upload', () => {
       const method = 'POST';
       const property = 'cards/123/attachments';
-      const upload1 = { value: 'https://example.com/file.txt', name: 'file.txt' };
+      const upload1 = {
+        value: 'https://example.com/file.txt',
+        name: 'file.txt',
+      };
       const success = jest.fn();
       const failure = jest.fn();
 
@@ -402,8 +419,8 @@ describe('Model Class', () => {
 
     test('attach should not process invalid upload', () => {
       const method = 'POST';
-      const property = 'short'; // Too short
-      const upload1 = { value: 'short', name: 'file.txt' }; // Too short
+      const property = 'short'; // Property must be at least X characters
+      const upload1 = { value: 'short', name: 'file.txt' }; // Value must be at least Y characters
       const success = jest.fn();
       const failure = jest.fn();
 
@@ -416,8 +433,16 @@ describe('Model Class', () => {
       const data = { cardId: '123' };
       uploader.cardId = '123';
       uploader.itemsForUpload = [
-        { name: 'test1.txt', value: 'content1', property: 'cards/123/attachments' },
-        { name: 'test2.txt', value: 'content2', property: 'cards/123/attachments' }
+        {
+          name: 'test1.txt',
+          value: 'content1',
+          property: 'cards/123/attachments',
+        },
+        {
+          name: 'test2.txt',
+          value: 'content2',
+          property: 'cards/123/attachments',
+        },
       ];
 
       expect(() => uploader.upload(data)).not.toThrow();
@@ -468,9 +493,18 @@ describe('Model Class', () => {
   describe('Performance Tests', () => {
     test('should handle large data sets efficiently', () => {
       const largeData = {
-        boards: Array.from({ length: 100 }, (_, i) => ({ id: `board-${i}`, name: `Board ${i}` })),
-        lists: Array.from({ length: 100 }, (_, i) => ({ id: `list-${i}`, name: `List ${i}` })),
-        cards: Array.from({ length: 100 }, (_, i) => ({ id: `card-${i}`, name: `Card ${i}` }))
+        boards: Array.from({ length: 100 }, (_, i) => ({
+          id: `board-${i}`,
+          name: `Board ${i}`,
+        })),
+        lists: Array.from({ length: 100 }, (_, i) => ({
+          id: `list-${i}`,
+          name: `List ${i}`,
+        })),
+        cards: Array.from({ length: 100 }, (_, i) => ({
+          id: `card-${i}`,
+          name: `Card ${i}`,
+        })),
       };
 
       const startTime = Date.now();

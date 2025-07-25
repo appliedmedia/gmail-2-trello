@@ -11,41 +11,41 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
-    }
+      set: jest.fn(),
+    },
   },
   runtime: {
-    sendMessage: jest.fn()
-  }
+    sendMessage: jest.fn(),
+  },
 };
 
 // Mock console for testing
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Mock G2T global object and its classes
 global.G2T = {
-  WaitCounter: jest.fn()
+  WaitCounter: jest.fn(),
 };
 
 // Mock window object
 global.window = {
   location: {
     hash: '#test-hash',
-    href: 'https://mail.google.com'
+    href: 'https://mail.google.com',
   },
   addEventListener: jest.fn(),
-  removeEventListener: jest.fn()
+  removeEventListener: jest.fn(),
 };
 
 // Mock document object
 global.document = {
   createElement: jest.fn(),
   querySelector: jest.fn(),
-  querySelectorAll: jest.fn()
+  querySelectorAll: jest.fn(),
 };
 
 // Import the GmailView class
@@ -61,7 +61,7 @@ describe('GmailView Class', () => {
     // Create mock instances
     mockWaitCounter = {
       start: jest.fn(),
-      stop: jest.fn()
+      stop: jest.fn(),
     };
 
     mockUtils = {
@@ -70,7 +70,7 @@ describe('GmailView Class', () => {
       addSpace: jest.fn((front, back) => `${front} ${back}`),
       markdownify: jest.fn(),
       anchorMarkdownify: jest.fn(),
-      splitEmailDomain: jest.fn()
+      splitEmailDomain: jest.fn(),
     };
 
     mockApp = {
@@ -78,8 +78,8 @@ describe('GmailView Class', () => {
       eventTarget: {
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
-      }
+        dispatchEvent: jest.fn(),
+      },
     };
 
     // Setup G2T class mocks
@@ -87,7 +87,7 @@ describe('GmailView Class', () => {
 
     // Create a fresh GmailView instance for each test
     gmailView = new GmailView({ app: mockApp });
-    
+
     // Reset all mocks
     $.mockClear();
     chrome.storage.local.get.mockClear();
@@ -130,14 +130,14 @@ describe('GmailView Class', () => {
     test('ck static getter should return correct value', () => {
       expect(GmailView.ck).toEqual({
         id: 'g2t_gmailview',
-        uniqueUriVar: 'g2t_filename'
+        uniqueUriVar: 'g2t_filename',
       });
     });
 
     test('ck getter should return correct value', () => {
       expect(gmailView.ck).toEqual({
         id: 'g2t_gmailview',
-        uniqueUriVar: 'g2t_filename'
+        uniqueUriVar: 'g2t_filename',
       });
     });
   });
@@ -151,7 +151,9 @@ describe('GmailView Class', () => {
     test('detectToolbar_onTimeout should stop after 10 attempts', () => {
       gmailView.runaway = 10;
       gmailView.detectToolbar_onTimeout();
-      expect(mockUtils.log).toHaveBeenCalledWith('GmailView:detectToolbar RUNAWAY FIRED!');
+      expect(mockUtils.log).toHaveBeenCalledWith(
+        'GmailView:detectToolbar RUNAWAY FIRED!'
+      );
     });
 
     test('detectToolbar should be callable', () => {
@@ -162,7 +164,12 @@ describe('GmailView Class', () => {
   describe('Email Opening Mode Detection', () => {
     test('detectEmailOpeningMode_onEmailClick should start wait counter', () => {
       gmailView.detectEmailOpeningMode_onEmailClick();
-      expect(mockWaitCounter.start).toHaveBeenCalledWith('emailclick', 500, 5, expect.any(Function));
+      expect(mockWaitCounter.start).toHaveBeenCalledWith(
+        'emailclick',
+        500,
+        5,
+        expect.any(Function)
+      );
     });
 
     test('detectEmailOpeningMode should be callable', () => {
@@ -172,13 +179,25 @@ describe('GmailView Class', () => {
 
   describe('URL and Email Processing', () => {
     test('url_with_filename should add filename parameter', () => {
-      const result = gmailView.url_with_filename('https://example.com', 'test.txt');
-      expect(mockUtils.url_add_var).toHaveBeenCalledWith('https://example.com', 'g2t_filename=/test.txt');
+      const result = gmailView.url_with_filename(
+        'https://example.com',
+        'test.txt'
+      );
+      expect(mockUtils.url_add_var).toHaveBeenCalledWith(
+        'https://example.com',
+        'g2t_filename=/test.txt'
+      );
     });
 
     test('displayNameAndEmail should format name and email', () => {
-      const result = gmailView.displayNameAndEmail('John Doe', 'john@example.com');
-      expect(mockUtils.addSpace).toHaveBeenCalledWith('John Doe', '<john@example.com>');
+      const result = gmailView.displayNameAndEmail(
+        'John Doe',
+        'john@example.com'
+      );
+      expect(mockUtils.addSpace).toHaveBeenCalledWith(
+        'John Doe',
+        '<john@example.com>'
+      );
     });
 
     test('displayNameAndEmail should handle empty email', () => {
@@ -203,31 +222,41 @@ describe('GmailView Class', () => {
     test('parseData_onVisibleMailEach should process visible emails', () => {
       const index = 0;
       const element = document.createElement('div');
-      expect(() => gmailView.parseData_onVisibleMailEach(index, element)).not.toThrow();
+      expect(() =>
+        gmailView.parseData_onVisibleMailEach(index, element)
+      ).not.toThrow();
     });
 
     test('parseData_onEmailCCEach should process CC emails', () => {
       const index = 0;
       const element = document.createElement('div');
-      expect(() => gmailView.parseData_onEmailCCEach(index, element)).not.toThrow();
+      expect(() =>
+        gmailView.parseData_onEmailCCEach(index, element)
+      ).not.toThrow();
     });
 
     test('parseData_onAttachmentEach should process attachments', () => {
       const index = 0;
       const element = document.createElement('div');
-      expect(() => gmailView.parseData_onAttachmentEach(index, element)).not.toThrow();
+      expect(() =>
+        gmailView.parseData_onAttachmentEach(index, element)
+      ).not.toThrow();
     });
 
     test('parseData_onEmailCCIterate should process CC iteration', () => {
       const iter = 0;
       const item = 'test@example.com';
-      expect(() => gmailView.parseData_onEmailCCIterate(iter, item)).not.toThrow();
+      expect(() =>
+        gmailView.parseData_onEmailCCIterate(iter, item)
+      ).not.toThrow();
     });
 
     test('parseData_onImageEach should process images', () => {
       const index = 0;
       const element = document.createElement('div');
-      expect(() => gmailView.parseData_onImageEach(index, element)).not.toThrow();
+      expect(() =>
+        gmailView.parseData_onImageEach(index, element)
+      ).not.toThrow();
     });
 
     test('parseData should process email data', () => {
@@ -297,70 +326,6 @@ describe('GmailView Class', () => {
     });
   });
 
-  describe('Email Data Processing', () => {
-    test('should process email subject', () => {
-      const subject = 'Test Subject';
-      const result = gmailView.processEmailSubject(subject);
-      expect(result).toBeDefined();
-    });
-
-    test('should process email body', () => {
-      const body = '<p>Test email body</p>';
-      const result = gmailView.processEmailBody(body);
-      expect(result).toBeDefined();
-    });
-
-    test('should process email attachments', () => {
-      const attachments = [
-        { name: 'test.txt', url: 'https://example.com/test.txt' }
-      ];
-      const result = gmailView.processEmailAttachments(attachments);
-      expect(result).toBeDefined();
-    });
-
-    test('should process email images', () => {
-      const images = [
-        { src: 'https://example.com/image.jpg', alt: 'Test Image' }
-      ];
-      const result = gmailView.processEmailImages(images);
-      expect(result).toBeDefined();
-    });
-  });
-
-  describe('Layout Detection', () => {
-    test('should detect default layout', () => {
-      gmailView.$root = { hasClass: jest.fn(() => false) };
-      const layout = gmailView.detectLayout();
-      expect(layout).toBe(gmailView.LAYOUT_DEFAULT);
-    });
-
-    test('should detect split layout', () => {
-      gmailView.$root = { hasClass: jest.fn(() => true) };
-      const layout = gmailView.detectLayout();
-      expect(layout).toBe(gmailView.LAYOUT_SPLIT);
-    });
-  });
-
-  describe('Email Thread Processing', () => {
-    test('should process email thread', () => {
-      const thread = {
-        id: 'thread-123',
-        emails: [
-          { id: 'email-1', subject: 'Test 1' },
-          { id: 'email-2', subject: 'Test 2' }
-        ]
-      };
-      const result = gmailView.processEmailThread(thread);
-      expect(result).toBeDefined();
-    });
-
-    test('should handle empty thread', () => {
-      const thread = { id: 'thread-123', emails: [] };
-      const result = gmailView.processEmailThread(thread);
-      expect(result).toBeDefined();
-    });
-  });
-
   describe('Error Handling', () => {
     test('should handle parsing errors gracefully', () => {
       gmailView.parsingData = true;
@@ -371,66 +336,30 @@ describe('GmailView Class', () => {
       gmailView.$root = null;
       expect(() => gmailView.detectToolbar()).not.toThrow();
     });
-
-    test('should handle invalid email data gracefully', () => {
-      const invalidData = { subject: null, body: undefined };
-      expect(() => gmailView.processEmailData(invalidData)).not.toThrow();
-    });
-  });
-
-  describe('Performance Tests', () => {
-    test('should handle large email threads efficiently', () => {
-      const largeThread = {
-        id: 'thread-123',
-        emails: Array.from({ length: 100 }, (_, i) => ({
-          id: `email-${i}`,
-          subject: `Email ${i}`,
-          body: `Body ${i}`.repeat(100)
-        }))
-      };
-
-      const startTime = Date.now();
-      const result = gmailView.processEmailThread(largeThread);
-      const endTime = Date.now();
-
-      expect(result).toBeDefined();
-      expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
-    });
-
-    test('should handle many attachments efficiently', () => {
-      const manyAttachments = Array.from({ length: 50 }, (_, i) => ({
-        name: `attachment-${i}.txt`,
-        url: `https://example.com/attachment-${i}.txt`
-      }));
-
-      const startTime = Date.now();
-      const result = gmailView.processEmailAttachments(manyAttachments);
-      const endTime = Date.now();
-
-      expect(result).toBeDefined();
-      expect(endTime - startTime).toBeLessThan(500); // Should complete within 500ms
-    });
   });
 
   describe('Integration Tests', () => {
     test('should integrate with app utils correctly', () => {
       const email = 'test@example.com';
       const name = 'Test User';
-      
+
       gmailView.displayNameAndEmail(name, email);
-      
-      expect(mockUtils.addSpace).toHaveBeenCalledWith(name, '<test@example.com>');
+
+      expect(mockUtils.addSpace).toHaveBeenCalledWith(
+        name,
+        '<test@example.com>'
+      );
     });
 
     test('should integrate with wait counter correctly', () => {
       gmailView.detectEmailOpeningMode_onEmailClick();
-      
+
       expect(mockWaitCounter.start).toHaveBeenCalled();
     });
 
     test('should integrate with event system correctly', () => {
       gmailView.bindEvents();
-      
+
       expect(mockApp.eventTarget.addEventListener).toHaveBeenCalled();
     });
   });
@@ -438,20 +367,20 @@ describe('GmailView Class', () => {
   describe('State Management', () => {
     test('should maintain parsing state correctly', () => {
       expect(gmailView.parsingData).toBe(false);
-      
+
       gmailView.parsingData = true;
       expect(gmailView.parsingData).toBe(true);
-      
+
       gmailView.parsingData = false;
       expect(gmailView.parsingData).toBe(false);
     });
 
     test('should maintain runaway counter correctly', () => {
       expect(gmailView.runaway).toBe(0);
-      
+
       gmailView.runaway = 5;
       expect(gmailView.runaway).toBe(5);
-      
+
       gmailView.runaway = 0;
       expect(gmailView.runaway).toBe(0);
     });

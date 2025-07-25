@@ -11,16 +11,16 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
-    }
-  }
+      set: jest.fn(),
+    },
+  },
 };
 
 // Mock console for testing
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Import the Utils class
@@ -32,7 +32,7 @@ describe('Utils Class', () => {
   beforeEach(() => {
     // Create a fresh Utils instance for each test
     utils = new Utils({ debug: false });
-    
+
     // Reset all mocks
     $.mockClear();
     chrome.storage.local.get.mockClear();
@@ -94,7 +94,10 @@ describe('Utils Class', () => {
       });
 
       const result = await utils.loadFromChromeStorage('testKey');
-      expect(chrome.storage.local.get).toHaveBeenCalledWith('testKey', expect.any(Function));
+      expect(chrome.storage.local.get).toHaveBeenCalledWith(
+        'testKey',
+        expect.any(Function)
+      );
     });
 
     test('saveToChromeStorage should call chrome.storage.local.set', async () => {
@@ -103,7 +106,10 @@ describe('Utils Class', () => {
       });
 
       await utils.saveToChromeStorage('testKey', 'testValue');
-      expect(chrome.storage.local.set).toHaveBeenCalledWith({ testKey: 'testValue' }, expect.any(Function));
+      expect(chrome.storage.local.set).toHaveBeenCalledWith(
+        { testKey: 'testValue' },
+        expect.any(Function)
+      );
     });
 
     test('loadFromChromeStorage should handle errors', async () => {
@@ -166,7 +172,9 @@ describe('Utils Class', () => {
       expect(utils.uriForDisplay('https://example.com')).toBe('example.com');
       expect(utils.uriForDisplay('http://example.com')).toBe('example.com');
       expect(utils.uriForDisplay('ftp://example.com')).toBe('example.com');
-      expect(utils.uriForDisplay('mailto:test@example.com')).toBe('test@example.com');
+      expect(utils.uriForDisplay('mailto:test@example.com')).toBe(
+        'test@example.com'
+      );
       expect(utils.uriForDisplay('tel:+1234567890')).toBe('+1234567890');
     });
 
@@ -178,12 +186,18 @@ describe('Utils Class', () => {
     });
 
     test('url_add_var should add query parameters', () => {
-      expect(utils.url_add_var('https://example.com', 'param=value')).toBe('https://example.com?param=value');
-      expect(utils.url_add_var('https://example.com?existing=1', 'param=value')).toBe('https://example.com?existing=1&param=value');
+      expect(utils.url_add_var('https://example.com', 'param=value')).toBe(
+        'https://example.com?param=value'
+      );
+      expect(
+        utils.url_add_var('https://example.com?existing=1', 'param=value')
+      ).toBe('https://example.com?existing=1&param=value');
     });
 
     test('url_add_var should handle empty parameters', () => {
-      expect(utils.url_add_var('https://example.com', '')).toBe('https://example.com');
+      expect(utils.url_add_var('https://example.com', '')).toBe(
+        'https://example.com'
+      );
       expect(utils.url_add_var('', 'param=value')).toBe('?param=value');
     });
   });
@@ -286,11 +300,15 @@ describe('Utils Class', () => {
 
   describe('HTML Entity Processing', () => {
     test('encodeEntities should encode HTML entities', () => {
-      expect(utils.encodeEntities('& < > " \'')).toBe('&amp; &lt; &gt; &quot; &#39;');
+      expect(utils.encodeEntities('& < > " \'')).toBe(
+        '&amp; &lt; &gt; &quot; &#39;'
+      );
     });
 
     test('decodeEntities should decode HTML entities', () => {
-      expect(utils.decodeEntities('&amp; &lt; &gt; &quot; &#39;')).toBe('& < > " \'');
+      expect(utils.decodeEntities('&amp; &lt; &gt; &quot; &#39;')).toBe(
+        '& < > " \''
+      );
     });
 
     test('decodeEntities should handle unknown entities', () => {
@@ -304,10 +322,30 @@ describe('Utils Class', () => {
 
   describe('Event Handling', () => {
     test('modKey should detect modifier keys', () => {
-      const ctrlEvent = { ctrlKey: true, metaKey: false, shiftKey: false, altKey: false };
-      const cmdEvent = { ctrlKey: false, metaKey: true, shiftKey: false, altKey: false };
-      const shiftEvent = { ctrlKey: false, metaKey: false, shiftKey: true, altKey: false };
-      const altEvent = { ctrlKey: false, metaKey: false, shiftKey: false, altKey: true };
+      const ctrlEvent = {
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: false,
+        altKey: false,
+      };
+      const cmdEvent = {
+        ctrlKey: false,
+        metaKey: true,
+        shiftKey: false,
+        altKey: false,
+      };
+      const shiftEvent = {
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: true,
+        altKey: false,
+      };
+      const altEvent = {
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+        altKey: true,
+      };
 
       expect(utils.modKey(ctrlEvent)).toBe('ctrl');
       expect(utils.modKey(cmdEvent)).toBe('cmd');
@@ -316,7 +354,12 @@ describe('Utils Class', () => {
     });
 
     test('modKey should return empty string for no modifier', () => {
-      const noModEvent = { ctrlKey: false, metaKey: false, shiftKey: false, altKey: false };
+      const noModEvent = {
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+        altKey: false,
+      };
       expect(utils.modKey(noModEvent)).toBe('');
     });
   });
@@ -327,6 +370,8 @@ describe('Utils Class', () => {
       const result = utils.makeAvatarUrl(args);
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
+      expect(result).toMatch(/^https?:\/\/.+/);
+      expect(result).toContain('50');
     });
   });
 
@@ -361,7 +406,7 @@ describe('Utils Class', () => {
       const startTime = Date.now();
       const result = utils.escapeRegExp(largeString);
       const endTime = Date.now();
-      
+
       expect(result).toBeDefined();
       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
     });
@@ -371,11 +416,11 @@ describe('Utils Class', () => {
       for (let i = 0; i < 1000; i++) {
         largeObj[`key${i}`] = `value${i}`;
       }
-      
+
       const startTime = Date.now();
       const result = utils.excludeFields(largeObj, ['key1', 'key2']);
       const endTime = Date.now();
-      
+
       expect(result).toBeDefined();
       expect(endTime - startTime).toBeLessThan(100);
     });

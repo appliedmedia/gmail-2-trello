@@ -11,25 +11,25 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
-    }
+      set: jest.fn(),
+    },
   },
   runtime: {
     sendMessage: jest.fn(),
-    getManifest: jest.fn(() => ({ version: '2.9.0' }))
-  }
+    getManifest: jest.fn(() => ({ version: '2.9.0' })),
+  },
 };
 
 // Mock console for testing
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Mock G2T global object and its classes
 global.G2T = {
-  PopupForm: jest.fn()
+  PopupForm: jest.fn(),
 };
 
 // Mock window object
@@ -37,7 +37,7 @@ global.window = {
   innerWidth: 1920,
   innerHeight: 1080,
   addEventListener: jest.fn(),
-  removeEventListener: jest.fn()
+  removeEventListener: jest.fn(),
 };
 
 // Mock document object
@@ -45,7 +45,7 @@ global.document = {
   createElement: jest.fn(),
   querySelector: jest.fn(),
   querySelectorAll: jest.fn(),
-  getElementById: jest.fn()
+  getElementById: jest.fn(),
 };
 
 // Import the PopupView class
@@ -62,13 +62,13 @@ describe('PopupView Class', () => {
     mockForm = {
       init: jest.fn(),
       bindData: jest.fn(),
-      submit: jest.fn()
+      submit: jest.fn(),
     };
 
     mockUtils = {
       log: jest.fn(),
       loadFromChromeStorage: jest.fn(),
-      saveToChromeStorage: jest.fn()
+      saveToChromeStorage: jest.fn(),
     };
 
     mockApp = {
@@ -76,8 +76,8 @@ describe('PopupView Class', () => {
       eventTarget: {
         addEventListener: jest.fn(),
         removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
-      }
+        dispatchEvent: jest.fn(),
+      },
     };
 
     // Setup G2T class mocks
@@ -85,7 +85,7 @@ describe('PopupView Class', () => {
 
     // Create a fresh PopupView instance for each test
     popupView = new PopupView({ app: mockApp });
-    
+
     // Reset all mocks
     $.mockClear();
     chrome.storage.local.get.mockClear();
@@ -138,7 +138,9 @@ describe('PopupView Class', () => {
 
     test('should initialize constants', () => {
       expect(popupView.EVENT_LISTENER).toBe('.g2t_event_listener');
-      expect(popupView.CLEAR_EXT_BROWSING_DATA).toBe('g2t_clear_extension_browsing_data');
+      expect(popupView.CLEAR_EXT_BROWSING_DATA).toBe(
+        'g2t_clear_extension_browsing_data'
+      );
       expect(popupView.VERSION_STORAGE).toBe('g2t_version');
       expect(popupView.ATTRIBUTE_STORAGE).toBe('g2t-attr-');
     });
@@ -147,7 +149,7 @@ describe('PopupView Class', () => {
       expect(popupView.form).toBe(mockForm);
       expect(G2T.PopupForm).toHaveBeenCalledWith({
         parent: popupView,
-        app: mockApp
+        app: mockApp,
       });
     });
 
@@ -169,11 +171,11 @@ describe('PopupView Class', () => {
     test('finalCreatePopup should create popup when button exists', () => {
       popupView.$toolBar = document.createElement('div');
       popupView.html = { add_to_trello: '' };
-      
+
       // Mock jQuery
       const mockButton = { length: 1 };
       const mockPopup = { length: 0 };
-      $.mockImplementation((selector) => {
+      $.mockImplementation(selector => {
         if (selector === '#g2tButton') return mockButton;
         if (selector === '#g2tPopup') return mockPopup;
         return { length: 0 };
@@ -238,7 +240,9 @@ describe('PopupView Class', () => {
     test('handleChromeAPIError should handle API errors', () => {
       const error = new Error('API Error');
       const operation = 'test_operation';
-      expect(() => popupView.handleChromeAPIError(error, operation)).not.toThrow();
+      expect(() =>
+        popupView.handleChromeAPIError(error, operation)
+      ).not.toThrow();
     });
 
     test('should handle missing dependencies gracefully', () => {
@@ -292,7 +296,9 @@ describe('PopupView Class', () => {
       const request = { type: 'test' };
       const sender = { id: 'test' };
       const sendResponse = jest.fn();
-      expect(() => popupView.handleRuntimeMessage(request, sender, sendResponse)).not.toThrow();
+      expect(() =>
+        popupView.handleRuntimeMessage(request, sender, sendResponse)
+      ).not.toThrow();
     });
   });
 
@@ -357,15 +363,19 @@ describe('PopupView Class', () => {
     test('should handle window resize', () => {
       const originalWidth = window.innerWidth;
       const originalHeight = window.innerHeight;
-      
+
       window.innerWidth = 1600;
       window.innerHeight = 900;
-      
+
       const newPopupView = new PopupView({ app: mockApp });
-      
+
       expect(newPopupView.size_k.width.max).toBe(1600 - 16);
       expect(newPopupView.draggable.width.max).toBe(1600 - 100);
       expect(newPopupView.draggable.height.max).toBe(900 - 100);
+
+      // Restore original dimensions
+      window.innerWidth = originalWidth;
+      window.innerHeight = originalHeight;
     });
   });
 
@@ -379,10 +389,10 @@ describe('PopupView Class', () => {
     test('should maintain dirty state flags', () => {
       expect(popupView.dataDirty).toBe(true);
       expect(popupView.posDirty).toBe(false);
-      
+
       popupView.dataDirty = false;
       popupView.posDirty = true;
-      
+
       expect(popupView.dataDirty).toBe(false);
       expect(popupView.posDirty).toBe(true);
     });
@@ -404,10 +414,10 @@ describe('PopupView Class', () => {
     test('should handle multiple mouse down events', () => {
       const element1 = document.createElement('div');
       const element2 = document.createElement('div');
-      
+
       popupView.toggleActiveMouseDown(element1);
       popupView.toggleActiveMouseDown(element2);
-      
+
       expect(popupView.mouseDownTracker).toBeDefined();
     });
   });
@@ -417,7 +427,7 @@ describe('PopupView Class', () => {
       const startTime = Date.now();
       const newPopupView = new PopupView({ app: mockApp });
       const endTime = Date.now();
-      
+
       expect(newPopupView).toBeDefined();
       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
     });
@@ -427,7 +437,7 @@ describe('PopupView Class', () => {
       popupView.showPopup();
       popupView.hidePopup();
       const endTime = Date.now();
-      
+
       expect(endTime - startTime).toBeLessThan(100);
     });
   });
