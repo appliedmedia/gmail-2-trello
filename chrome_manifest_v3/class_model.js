@@ -347,20 +347,20 @@ class Model {
   }
 
   loadTrelloData_user_success(data) {
-    this.app.persist.trelloUser = data;
+    this.app.persist.user = data;
     this.app.persistSave(); // Save state after data load
     this.loadTrelloData_boards_success();
   }
 
   loadTrelloData_boards_success(data) {
     if (data) {
-      this.app.persist.trelloBoards = data;
+      this.app.persist.boards = data;
       this.app.persistSave(); // Save state after data load
     }
     this.app.events.fire('loadTrelloData_success', {
       data: {
-        user: this.app.persist.trelloUser,
-        boards: this.app.persist.trelloBoards,
+        user: this.app.persist.user,
+        boards: this.app.persist.boards,
       },
     });
   }
@@ -370,7 +370,7 @@ class Model {
   }
 
   loadTrelloData() {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -393,14 +393,14 @@ class Model {
 
   checkTrelloDataReady() {
     return (
-      this.state.trelloAuthorized &&
-      this.app.persist.trelloUser &&
-      this.app.persist.trelloBoards
+      this.app.persist.trelloAuthorized &&
+      this.app.persist.user &&
+      this.app.persist.boards
     );
   }
 
   loadTrelloLists_success(data) {
-    this.app.persist.trelloLists = data;
+    this.app.persist.lists = data;
     this.app.persistSave(); // Save state after data load
     this.app.events.fire('loadTrelloListSuccess', { data });
   }
@@ -410,7 +410,7 @@ class Model {
   }
 
   loadTrelloLists(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -424,7 +424,7 @@ class Model {
   }
 
   loadTrelloCards_success(data) {
-    this.app.persist.trelloCards = data;
+    this.app.persist.cards = data;
     this.app.persistSave(); // Save state after data load
     this.app.events.fire('loadTrelloCardsSuccess', { data });
   }
@@ -434,7 +434,7 @@ class Model {
   }
 
   loadTrelloCards(listId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -448,7 +448,7 @@ class Model {
   }
 
   loadTrelloMembers_success(data) {
-    this.app.persist.trelloMembers = data;
+    this.app.persist.members = data;
     this.app.persistSave(); // Save state after data load
     this.app.events.fire('loadTrelloMembersSuccess', { data });
   }
@@ -458,7 +458,7 @@ class Model {
   }
 
   loadTrelloMembers(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -472,7 +472,7 @@ class Model {
   }
 
   loadTrelloLabels_success(data) {
-    this.app.persist.trelloLabels = data;
+    this.app.persist.labels = data;
     this.app.persistSave(); // Save state after data load
     this.app.events.fire('loadTrelloLabelsSuccess', { data });
   }
@@ -482,7 +482,7 @@ class Model {
   }
 
   loadTrelloLabels(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -496,7 +496,7 @@ class Model {
   }
 
   submit(data) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       this.app.events.fire('checkTrelloAuthorized_failed', {});
       return;
     }
@@ -554,25 +554,25 @@ class Model {
   }
 
   emailBoardListCardMapLookup(key_value = {}) {
-    return this.state.emailBoardListCardMap?.lookup(key_value) || null;
+    return this.app.persist.emailBoardListCardMap?.lookup(key_value) || null;
   }
 
   emailBoardListCardMapUpdate(key_value = {}) {
-    return this.state.emailBoardListCardMap?.add(key_value) || null;
+    return this.app.persist.emailBoardListCardMap?.add(key_value) || null;
   }
 
   handleClassModelStateLoaded(event, params) {
     if (params) {
       // Only update specific state properties that were loaded
       if (params.trelloAuthorized !== undefined) {
-        this.state.trelloAuthorized = params.trelloAuthorized;
+        this.app.persist.trelloAuthorized = params.trelloAuthorized;
       }
       if (params.trelloData) {
-        this.state.trelloData = params.trelloData;
+        this.app.persist.trelloData = params.trelloData;
       }
 
       if (params.emailBoardListCardMap) {
-        this.state.emailBoardListCardMap = params.emailBoardListCardMap;
+        this.app.persist.emailBoardListCardMap = params.emailBoardListCardMap;
       }
     }
   }

@@ -80,26 +80,25 @@ class PopupForm {
 
   // Form Data & Validation
   validateData() {
-    const data = this.parent.state;
     const errors = [];
 
-    if (!data.boardId || data.boardId === '') {
+    if (!this.app.persist.boardId || this.app.persist.boardId === '') {
       errors.push('Please select a board');
     }
 
-    if (!data.listId || data.listId === '') {
+    if (!this.app.persist.listId || this.app.persist.listId === '') {
       errors.push('Please select a list');
     }
 
-    if (!data.cardName || data.cardName.trim() === '') {
+    if (!this.app.temp.title || this.app.temp.title.trim() === '') {
       errors.push('Please enter a card name');
     }
 
-    if (data.cardName && data.cardName.length > 16384) {
+    if (this.app.temp.title && this.app.temp.title.length > 16384) {
       errors.push('Card name is too long (max 16384 characters)');
     }
 
-    if (data.cardDesc && data.cardDesc.length > 16384) {
+    if (this.app.temp.description && this.app.temp.description.length > 16384) {
       errors.push('Card description is too long (max 16384 characters)');
     }
 
@@ -188,21 +187,7 @@ class PopupForm {
       return;
     }
 
-    const state_existing_k = this.parent?.state || {};
-    const state_existing_boardId_valid_k = !!state_existing_k?.boardId;
-
-    const state_incoming_k = data || {};
-    const state_incoming_boardId_valid_k = !!state_incoming_k?.boardId;
-
-    if (state_incoming_k && state_incoming_boardId_valid_k) {
-      // leave state that came in, they look valid
-      this.parent.state = data;
-    } else if (state_existing_k && state_existing_boardId_valid_k) {
-      // use existing state
-      this.parent.state = { ...state_existing_k, ...data };
-    } else {
-      this.parent.state = data;
-    }
+    // State is managed centrally by app.persist - no need to set this.parent.state
 
     // bind trello data
     const me = data?.trello?.user || {}; // First member is always this user
@@ -280,7 +265,7 @@ class PopupForm {
       const lastError_k =
         (this.parent.lastError || '') + (this.parent.lastError ? '\n' : '');
 
-      const user_k = this.parent?.state?.trello?.user || {};
+      const user_k = this.app.persist.user || {};
       const username_k = user_k?.username || '';
       const fullname_k = user_k?.fullName || '';
       const date_k = new Date().toISOString().substring(0, 10);
@@ -288,7 +273,7 @@ class PopupForm {
       // Modify this.data directly for error reporting
       this.app.temp.description =
         lastError_k +
-        JSON.stringify(this.parent.state) +
+        JSON.stringify(this.app.persist) +
         '\n' +
         this.app.utils.log();
       this.app.temp.title =
@@ -318,7 +303,7 @@ class PopupForm {
     }
 
     // Merge with existing state
-    Object.assign(data, this.parent.state || {});
+    Object.assign(data, this.app.persist || {});
     this.parent.updateBody(data);
 
     $('#g2tTitle', this.parent.$popup).val(data.subject);
@@ -440,7 +425,7 @@ class PopupForm {
 
   // UI Updates
   updateBoards(tempId = 0) {
-    const boards = this.parent.state.boards || [];
+    const boards = this.app.persist.boards || [];
     const $boardSelect = $('#g2tBoard', this.parent.$popup);
 
     $boardSelect.empty();
@@ -456,7 +441,7 @@ class PopupForm {
   }
 
   updateLists(tempId = 0) {
-    const array_k = this.parent?.state?.trello?.lists || [];
+    const array_k = this.app.persist.lists || [];
 
     if (!array_k) {
       return;
@@ -499,7 +484,7 @@ class PopupForm {
   updateCards(tempId = 0) {
     const new_k = '<option value="-1">(new card at top)</option>';
 
-    const array_k = this.parent?.state?.trello?.cards || [];
+    const array_k = this.app.persist.cards || [];
 
     if (!array_k) {
       return;
@@ -543,7 +528,7 @@ class PopupForm {
   }
 
   updateLabels() {
-    const labels = this.parent.state.trello.labels;
+    const labels = this.app.persist.labels;
     const $g2t = $('#g2tLabels', this.parent.$popup);
     $g2t.html(''); // Clear out
 
@@ -580,10 +565,13 @@ class PopupForm {
       nonexclusive: true,
     });
 
-    const state = this.parent.state;
     const boardId = $('#g2tBoard', this.parent.$popup).val();
-    if (state.boardId && state.boardId === boardId && state.labelsId) {
-      const settingId = state.labelsId;
+    if (
+      this.app.persist.boardId &&
+      this.app.persist.boardId === boardId &&
+      this.app.persist.labelsId
+    ) {
+      const settingId = this.app.persist.labelsId;
       for (let i = 0; i < labels.length; i++) {
         const item = labels[i];
         if (settingId.indexOf(item.id) !== -1) {
@@ -601,7 +589,7 @@ class PopupForm {
   }
 
   updateMembers() {
-    const members = this.parent.state.trello.members;
+    const members = this.app.persist.members;
     const $g2t = $('#g2tMembers', this.parent.$popup);
     $g2t.html(''); // Clear out
 
@@ -650,9 +638,8 @@ class PopupForm {
       nonexclusive: true,
     });
 
-    const state = this.parent.state;
-    if (state.membersId?.length > 0) {
-      const settingId = state.membersId;
+    if (this.app.persist.membersId?.length > 0) {
+      const settingId = this.app.persist.membersId;
       for (let i = 0; i < members.length; i++) {
         const item = members[i];
         if (settingId.indexOf(item.id) !== -1) {
@@ -953,7 +940,7 @@ class PopupForm {
   }
 
   handleSubmit() {
-    this.parent.app.model.submit(this.parent.state);
+    this.parent.app.model.submit(this.app.persist);
   }
 
   handleCheckTrelloAuthorized() {

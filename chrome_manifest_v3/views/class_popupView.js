@@ -480,8 +480,8 @@ class PopupView {
   handlePopupVisible() {
     this.form.reset();
 
-    const trelloUser_k = this?.app?.model?.trello?.user || {};
-    const fullName = trelloUser_k?.fullName || '';
+    const user_k = this.app.persist.user || {};
+    const fullName = user_k?.fullName || '';
 
     this.app.gmailView.parsingData = false;
     this.app.model.gmail = this.app.gmailView.parseData({ fullName });

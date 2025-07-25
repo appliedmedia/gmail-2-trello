@@ -36,12 +36,12 @@ class App {
       // Model state
       trelloAuthorized: false,
       // Trello data (flattened)
-      trelloUser: null,
-      trelloBoards: [],
-      trelloLists: [],
-      trelloCards: [],
-      trelloMembers: [],
-      trelloLabels: [],
+      user: null,
+      boards: [],
+      lists: [],
+      cards: [],
+      members: [],
+      labels: [],
       emailBoardListCardMap: [],
       // PopupView state
       popupWidth: 700,
