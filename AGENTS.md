@@ -14,17 +14,17 @@ Support, commonly asked questions, interaction with other fans: https://g2t.supp
 
 This document serves as the Agent instructions for the Gmail-2-Trello public repo.
 
-**📖 Read the [README.md](./README.md) file first for project description and goals.**
+**📖 Read the [README.md](<./README.md>) file first for project description and goals.**
 
 ## Essential Reading for Developers
 
 Before working on this codebase, please read these essential documents:
 
-### 📚 [DEPLOYMENT.md](DEPLOYMENT.md)
+### 📚 [DEPLOYMENT.md](<DEPLOYMENT.md>)
 
 Complete deployment guide for the Gmail-2-Trello extension. Covers Chrome Web Store submission, version management, and release procedures.
 
-### 🔧 [DEVELOPMENT.md](DEVELOPMENT.md)
+### 🔧 [DEVELOPMENT.md](<DEVELOPMENT.md>)
 
 Development setup, coding standards, and workflow guidelines. Essential for understanding the codebase structure and development practices.
 

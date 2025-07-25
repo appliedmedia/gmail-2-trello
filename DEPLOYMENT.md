@@ -25,7 +25,7 @@ This guide covers automated deployment to the Chrome Web Store using our deploym
 
 ### 1. Google Cloud Console Setup
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+1. Go to [Google Cloud Console](<https://console.cloud.google.com/>)
 2. Create a new project or select existing one
 3. Enable the Chrome Web Store API:
    - Go to "APIs & Services" > "Library"
@@ -43,7 +43,7 @@ This guide covers automated deployment to the Chrome Web Store using our deploym
 
 1. Use the OAuth 2.0 Playground:
 
-   - Go to [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+   - Go to [OAuth 2.0 Playground](<https://developers.google.com/oauthplayground/>)
    - Click the settings icon (⚙️)
    - Check "Use your own OAuth credentials"
    - Enter your Client ID and Client Secret
@@ -59,7 +59,7 @@ This guide covers automated deployment to the Chrome Web Store using our deploym
 
 ### 4. Get Extension ID
 
-1. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/)
+1. Go to [Chrome Web Store Developer Dashboard](<https://chrome.google.com/webstore/devconsole/>)
 2. Select your extension
 3. Copy the Extension ID from the URL or dashboard
 
@@ -122,7 +122,7 @@ npm run deploy:manual
 
 Then:
 
-1. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole/)
+1. Go to [Chrome Web Store Developer Dashboard](<https://chrome.google.com/webstore/devconsole/>)
 2. Select your extension
 3. Click "Upload Updated Package"
 4. Select the zip file from `dist/` directory
@@ -251,6 +251,6 @@ api.getExtensionInfo().then(console.log).catch(console.error);
 
 ## Support
 
-- [Chrome Web Store API Documentation](https://developer.chrome.com/docs/webstore/api/)
-- [Google Cloud Console](https://console.cloud.google.com/)
-- [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+- [Chrome Web Store API Documentation](<https://developer.chrome.com/docs/webstore/api/>)
+- [Google Cloud Console](<https://console.cloud.google.com/>)
+- [OAuth 2.0 Playground](<https://developers.google.com/oauthplayground/>)

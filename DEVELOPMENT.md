@@ -176,7 +176,7 @@ This ensures clean git history and proper tracking of file movements.
 
 ## Resources
 
-- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
-- [Trello API Documentation](https://developer.atlassian.com/cloud/trello/)
-- [Gmail API Documentation](https://developers.google.com/gmail/api)
-- [Project Support](https://g2t.support)
+- [Chrome Extension Documentation](<https://developer.chrome.com/docs/extensions/>)
+- [Trello API Documentation](<https://developer.atlassian.com/cloud/trello/>)
+- [Gmail API Documentation](<https://developers.google.com/gmail/api>)
+- [Project Support](<https://g2t.support>)

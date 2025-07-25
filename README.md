@@ -1,6 +1,6 @@
 # Gmail-2-Trello
 
-Black lives matter. Support the [Equal Justice Initiative](https://eji.org/about). ✊🏽✊🏾✊🏿
+Black lives matter. Support the [Equal Justice Initiative](<https://eji.org/about>). ✊🏽✊🏾✊🏿
 
 Gmail+Trello integration. Extension for Chrome browser and other developments.
 
@@ -123,7 +123,7 @@ For automated deployment to Chrome Web Store:
    npm run deploy
    ```
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed setup instructions.
+See [DEPLOYMENT.md](<DEPLOYMENT.md>) for detailed setup instructions.
 
 ### Manual Deployment
 
@@ -159,8 +159,8 @@ To create a distributable extension manually:
 
 ## License
 
-MIT License - see [LICENSE.txt](LICENSE.txt) for details.
+MIT License - see [LICENSE.txt](<LICENSE.txt>) for details.
 
 ## Changelog
 
-See [docs/CHANGES.md](docs/CHANGES.md) for detailed version history.
+See [docs/CHANGES.md](<docs/CHANGES.md>) for detailed version history.
