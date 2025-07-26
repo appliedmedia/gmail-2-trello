@@ -307,10 +307,75 @@ function createMockJQuery(html = '') {
   return mockJQuery;
 }
 
+/**
+ * Helper function to create a G2T namespace with proper constructors
+ * @param {Object} mockInstances - Mock instances object
+ * @returns {Object} - G2T namespace object
+ */
+function createG2TNamespace(mockInstances) {
+  const {
+    mockChrome,
+    mockEventTarget,
+    mockModel,
+    mockGmailView,
+    mockPopupView,
+    mockUtils
+  } = mockInstances;
+
+  // Create actual constructor functions that can be called with 'new'
+  const G2T = {
+    Chrome: function(args) {
+      if (!(this instanceof G2T.Chrome)) {
+        return new G2T.Chrome(args);
+      }
+      Object.assign(this, mockChrome);
+      return this;
+    },
+    EventTarget: function(args) {
+      if (!(this instanceof G2T.EventTarget)) {
+        return new G2T.EventTarget(args);
+      }
+      Object.assign(this, mockEventTarget);
+      return this;
+    },
+    Model: function(args) {
+      if (!(this instanceof G2T.Model)) {
+        return new G2T.Model(args);
+      }
+      Object.assign(this, mockModel);
+      return this;
+    },
+    GmailView: function(args) {
+      if (!(this instanceof G2T.GmailView)) {
+        return new G2T.GmailView(args);
+      }
+      Object.assign(this, mockGmailView);
+      return this;
+    },
+    PopupView: function(args) {
+      if (!(this instanceof G2T.PopupView)) {
+        return new G2T.PopupView(args);
+      }
+      Object.assign(this, mockPopupView);
+      return this;
+    },
+    Utils: function(args) {
+      if (!(this instanceof G2T.Utils)) {
+        return new G2T.Utils(args);
+      }
+      Object.assign(this, mockUtils);
+      return this;
+    }
+  };
+
+  return G2T;
+}
+
 module.exports = {
   loadClassFile,
   createMockInstances,
   setupG2TMocks,
   clearAllMocks,
-  createMockJQuery
+  createMockJQuery,
+  createG2TNamespace
 };

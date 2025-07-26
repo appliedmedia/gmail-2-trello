@@ -4,24 +4,35 @@
  */
 
 // Import shared test utilities
-const { loadClassFile, createMockInstances, setupG2TMocks, clearAllMocks } = require('./test_shared');
+const { loadClassFile, createMockInstances, setupG2TMocks, clearAllMocks, createG2TNamespace } = require('./test_shared');
 
 // Set up mocks before loading the App class
 const mockInstances = createMockInstances();
-setupG2TMocks(mockInstances);
+
+// Create G2T namespace with proper constructors
+const mockG2T = createG2TNamespace(mockInstances);
+global.G2T = mockG2T;
 
 // Make mockInstances available to tests
 global.mockInstances = mockInstances;
 
-// Debug: Check if G2T.Chrome is defined
-console.log('Before loading App class:');
-console.log('G2T exists:', typeof global.G2T !== 'undefined');
-console.log('G2T.Chrome exists:', typeof global.G2T.Chrome !== 'undefined');
-console.log('G2T.Chrome is constructor:', typeof global.G2T.Chrome === 'function');
-
 // Load the App class using eval (for Chrome extension compatibility)
 const appCode = loadClassFile('chrome_manifest_v3/class_app.js');
-eval(appCode);
+
+// Inject mock constructors after G2T namespace is initialized
+const injectedCode = appCode.replace(
+  'var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope',
+  `var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+// Inject mock constructors for testing
+G2T.Chrome = ${mockG2T.Chrome.toString()};
+G2T.EventTarget = ${mockG2T.EventTarget.toString()};
+G2T.Model = ${mockG2T.Model.toString()};
+G2T.GmailView = ${mockG2T.GmailView.toString()};
+G2T.PopupView = ${mockG2T.PopupView.toString()};
+G2T.Utils = ${mockG2T.Utils.toString()};`
+);
+
+eval(injectedCode);
 
 describe('App Class', () => {
   let app;
