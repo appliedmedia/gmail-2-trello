@@ -98,7 +98,7 @@ describe('Utils.markdownify', () => {
     });
 
     test('should normalize line endings', () => {
-      const $withLineEndings = createMockJQuery('Line 1\r\nLine 2\rLine 3\nLine 4');
+      const $withLineEndings = { html: () => 'Line 1\r\nLine 2\rLine 3\nLine 4' };
       const result = utils.markdownify($withLineEndings);
       expect(result).toBe('Line 1\nLine 2\nLine 3\nLine 4');
     });
