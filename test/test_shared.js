@@ -293,16 +293,13 @@ function extractHtmlContent(input) {
  * @returns {Object} - Mock jQuery object
  */
 function createMockJQuery(htmlOrElements = '', customElements = []) {
-  // Simple approach: when someone asks jQuery for html, they expect simple "<tag>Content</tag>" structures
-  
-  // If it's a string, use it directly as HTML
+  // For simple cases (which is what the tests are using), just return the HTML content directly
   if (typeof htmlOrElements === 'string') {
     const mockJQuery = {
       html: () => htmlOrElements,
       length: 1,
       find: jest.fn(() => createMockJQuery()),
       each: jest.fn((callback) => {
-        // Create a simple element representation
         const element = { tagName: 'DIV', textContent: htmlOrElements };
         callback.call({ text: () => element.textContent }, 0, element);
         return mockJQuery;
@@ -323,7 +320,7 @@ function createMockJQuery(htmlOrElements = '', customElements = []) {
     return mockJQuery;
   }
   
-  // If it's an object with html() method, extract the content
+  // For objects with html() method (like the test mocks)
   if (htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function') {
     const content = htmlOrElements.html();
     const mockJQuery = {
@@ -351,7 +348,7 @@ function createMockJQuery(htmlOrElements = '', customElements = []) {
     return mockJQuery;
   }
   
-  // If it's an array of elements, convert to HTML
+  // For arrays of elements (more complex cases)
   if (Array.isArray(htmlOrElements)) {
     const elements = [...htmlOrElements, ...customElements];
     const htmlContent = elements.map(el => `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`).join('');
