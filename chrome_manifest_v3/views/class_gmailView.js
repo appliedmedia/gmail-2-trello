@@ -79,7 +79,7 @@ class GmailView {
   url_with_filename(url_in = '', var_in = '') {
     return this.app.utils.url_add_var(
       url_in,
-      `${this.ck.uniqueUriVar}=/${var_in}`
+      `${this.ck.uniqueUriVar}=/${var_in}`,
     );
   }
 
@@ -163,7 +163,7 @@ class GmailView {
       if (attachment && attachment.length > 3) {
         const name_k = this.app.utils.decodeEntities(attachment[2]); // was: decodeURIComponent
         const url_k = attachment[3]; // Was: this.app.utils.midTruncate(attachment[3], 50, '...');
-        this.emailAttachments.push({
+        this.attachment.push({
           mimeType: attachment[1],
           name: name_k,
           // NOTE (Ace@2017-04-20): Adding this explicitly at the end of the URL so it'll pick up the "filename":
@@ -181,7 +181,7 @@ class GmailView {
     }
     $.extend(
       this.preprocess['a'],
-      this.make_preprocess_mailto(item.name, item.email)
+      this.make_preprocess_mailto(item.name, item.email),
     );
     let cc_raw_md = this.email_raw_md(item.name, item.email);
     if (cc_raw_md.raw.length > 0 || cc_raw_md.md.length > 0) {
@@ -211,12 +211,12 @@ class GmailView {
       this.app.utils.uriForDisplay(href_k) ||
       '';
     const display_k = this.app.utils.decodeEntities(
-      this.app.utils.midTruncate(name_k.trim(), 50, '...')
+      this.app.utils.midTruncate(name_k.trim(), 50, '...'),
     );
     const type_k = ($(element).prop('type') || 'text/link').trim(); // Was attr
     if (href_k.length > 0 && display_k.length > 0) {
       // Will store as key/value pairs to automatically overide duplicates
-      this.emailImages[href_k] = {
+      this.image[href_k] = {
         mimeType: type_k,
         name: display_k,
         url: this.url_with_filename(href_k, name_k),
@@ -353,7 +353,7 @@ class GmailView {
       let counter = 0;
       this.$root
         .find(
-          '.kv:not([g2t_event]), .h7:not([g2t_event]), .kQ:not([g2t_event]), .kx:not([g2t_event])'
+          '.kv:not([g2t_event]), .h7:not([g2t_event]), .kQ:not([g2t_event]), .kx:not([g2t_event])',
         )
         .each((index, element) => {
           counter++;
@@ -364,7 +364,7 @@ class GmailView {
       this.app.utils.log(
         'detectEmailOpeningMode: Binded email threads click events: ' +
           counter +
-          ' items'
+          ' items',
       );
 
       this.app.events.emit('onDetected');
@@ -394,7 +394,7 @@ class GmailView {
     this.$visibleMail = null;
     // parse expanded emails again
     $('.h7', this.$root).each((index, element) =>
-      this.parseData_onVisibleMailEach(index, element)
+      this.parseData_onVisibleMailEach(index, element),
     );
 
     if (!this.$visibleMail) {
@@ -408,7 +408,7 @@ class GmailView {
     const $emailBody1_k = $('.a3s.aiL', $email1_k).first();
     if (!$emailBody1_k) {
       this.app.utils.log(
-        'GmailView:parseData::emailBody: ' + JSON.stringify($emailBody1_k)
+        'GmailView:parseData::emailBody: ' + JSON.stringify($emailBody1_k),
       );
       return;
     }
@@ -421,7 +421,7 @@ class GmailView {
     this.me_name = '';
     this.emailCC = [];
     $emailCC_k.each((index, element) =>
-      this.parseData_onEmailCCEach(index, element)
+      this.parseData_onEmailCCEach(index, element),
     );
 
     // email name
@@ -437,13 +437,13 @@ class GmailView {
       this.me_name = emailFromName;
     }
 
-    // email attachments
-    this.emailAttachments = [];
+    // email attachment
+    this.attachment = [];
     $('span.aZo', $email1_k).each((index, element) =>
-      this.parseData_onAttachmentEach(index, element)
+      this.parseData_onAttachmentEach(index, element),
     );
 
-    data.attachments = this.emailAttachments;
+    data.attachment = this.attachment;
 
     // timestamp
     const $time_k = $('.gH .gK .g3', $email1_k).first();
@@ -474,18 +474,18 @@ class GmailView {
               'timeAsDateInvalid_k': timeAsDateInvalid_k,
               */
             time_k: $time_k,
-          })
+          }),
       );
     }
 
     let from_raw_md = this.email_raw_md(emailFromName, emailFromAddress);
     const from_raw = `From: ${this.app.utils.addSpace(
       from_raw_md.raw,
-      data.time
+      data.time,
     )}`;
     const from_md = `From: ${this.app.utils.addSpace(
       from_raw_md.md,
-      data.time
+      data.time,
     )}`;
 
     // subject
@@ -558,7 +558,7 @@ class GmailView {
     this.cc_md = '';
 
     $.each(this.emailCC, (iter, item) =>
-      this.parseData_onEmailCCIterate(iter, item)
+      this.parseData_onEmailCCIterate(iter, item),
     );
 
     if (this.cc_raw.length > 0) {
@@ -582,13 +582,13 @@ class GmailView {
       this.app.utils.markdownify($emailBody1_k, true, this.preprocess)
     }`;
 
-    this.emailImages = {};
+    this.emailImage = {};
 
     $('img', $emailBody1_k).each((index, element) =>
-      this.parseData_onImageEach(index, element)
+      this.parseData_onImageEach(index, element),
     );
 
-    data.images = Object.values(this.emailImages);
+    data.image = Object.values(this.emailImage);
 
     //var t = (new Date()).getTime();
     //this.app.utils.log('Elapsed: '+(t-startTime)/1000);
@@ -612,12 +612,28 @@ class GmailView {
   bindEvents() {
     this.app.events.addListener(
       'onDetected',
-      this.handleGmailDetected.bind(this)
+      this.handleGmailDetected.bind(this),
     );
     this.app.events.addListener(
       'detectButton',
-      this.handleDetectButton.bind(this)
+      this.handleDetectButton.bind(this),
     );
+    this.app.events.addListener(
+      'trelloUserAndBoardsReady',
+      this.handleTrelloUserAndBoardsReady.bind(this),
+    );
+  }
+
+  handleTrelloUserAndBoardsReady() {
+    // Trello user data is now available, parse Gmail with proper fullName
+    const user_k = this.app.persist.user || {};
+    const fullName = user_k?.fullName || '';
+
+    this.parsingData = false;
+    this.app.model.gmail = this.parseData({ fullName });
+
+    // Emit event that Gmail data is ready, passing the data
+    this.app.events.emit('gmailDataReady', { gmail: this.app.model.gmail });
   }
 
   init() {

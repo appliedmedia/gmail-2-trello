@@ -19,8 +19,8 @@ class Uploader {
     // Uploader-specific event bindings (if any)
   }
 
-  get attachments() {
-    return 'attachments';
+  get attachment() {
+    return 'attachment';
   }
 
   add(args) {
@@ -60,7 +60,7 @@ class Uploader {
     const trello_url_k = 'https://api.trello.com/1/';
     const param_k = upload1.value;
 
-    // NOTE (Ace, 2020-02-15): We have a funny problem with embedded images so breaking this up:
+    // NOTE (Ace, 2020-02-15): We have a funny problem with embedded image so breaking this up:
     // Was: const filename_k = (param_k.split('/').pop().split('#')[0].split('?')[0]) || upload1.name || param_k || 'unknown_filename'; // Removes # or ? after filename
     // Remove # or ? afer filename. Could do this as a regex, but this is a bit faster and more resiliant:
     const slash_split_k = param_k.split('/'); // First split by directory slashes
@@ -98,7 +98,7 @@ class Uploader {
       let keysAndValues = [];
       Object.entries(object).forEach(([key, value]) => {
         keysAndValues.push(
-          `${key}=${value || ''} (${(value || '').toString().length})`
+          `${key}=${value || ''} (${(value || '').toString().length})`,
         );
       });
       return keysAndValues.sort().join(' ');
@@ -115,7 +115,7 @@ class Uploader {
       upload1.method = undefined;
       upload1.property = undefined;
 
-      const fn_k = property.endsWith(self.attachments)
+      const fn_k = property.endsWith(self.attachment)
         ? self.attach
         : Trello.rest;
 
@@ -140,7 +140,7 @@ class Uploader {
             emailId: self.emailId,
           });
           self.app.events.emit('APIFail', { data });
-        }
+        },
       );
     }
   }
@@ -227,7 +227,6 @@ class EmailBoardListCardMap {
   push(entry = {}) {
     this.makeRoom();
     this.app.persist.emailBoardListCardMap.push(entry);
-    this.app.persistSave();
   }
 
   remove(index = -1) {
@@ -236,7 +235,6 @@ class EmailBoardListCardMap {
     } else {
       this.app.persist.emailBoardListCardMap.splice(index, 1);
     }
-    this.app.persistSave();
   }
 }
 
@@ -271,12 +269,18 @@ class Model {
   }
 
   load() {
-    // Start Trello authentication and data loading
-    this.trelloLoad();
+    // Check if we already have the data we need
+    if (this.app.persist.trelloAuthorized && this.app.temp.boards?.length) {
+      // Data already loaded, just emit ready event
+      this.app.events.emit('trelloUserAndBoardsReady');
+    } else {
+      // Need to load data
+      this.trelloLoad();
+    }
   }
 
-  uploadAttachments(data = {}) {
-    if (!data.attachments || data.attachments.length === 0) {
+  uploadAttachment(data = {}) {
+    if (!data.attachment || data.attachment.length === 0) {
       this.app.events.emit('newCardUploadsComplete', { data });
       return;
     }
@@ -290,10 +294,10 @@ class Model {
 
     uploader.init();
 
-    data.attachments.forEach(attachment => {
+    data.attachment.forEach(attachment => {
       uploader.add({
         method: 'post',
-        property: 'attachments',
+        property: 'attachment',
         value: attachment.url,
         name: attachment.name,
       });
@@ -334,7 +338,7 @@ class Model {
 
   checkTrelloAuthorized_failure(data) {
     this.app.utils.log(
-      'Trello authorization with stored token failed, showing popup'
+      'Trello authorization with stored token failed, showing popup',
     );
     if (!Trello.authorized()) {
       // No valid token, show authorization popup
@@ -367,8 +371,7 @@ class Model {
 
   deauthorizeTrello() {
     this.app.persist.trelloAuthorized = false;
-    this.app.persist.trelloData = {};
-    this.app.persistSave(); // Save state after deauthorization
+    this.app.persist.user = {};
     this.app.events.emit('deauthorizeTrello_success', {});
   }
 
@@ -393,7 +396,7 @@ class Model {
       'members/me',
       {},
       this.loadTrelloUser_success.bind(this),
-      this.loadTrelloUser_failure.bind(this)
+      this.loadTrelloUser_failure.bind(this),
     );
   }
 
@@ -420,7 +423,7 @@ class Model {
       'members/me/boards',
       {},
       this.loadTrelloBoards_success.bind(this),
-      this.loadTrelloBoards_failure.bind(this)
+      this.loadTrelloBoards_failure.bind(this),
     );
   }
 
@@ -443,7 +446,7 @@ class Model {
       `boards/${boardId}/lists`,
       {},
       this.loadTrelloLists_success.bind(this),
-      this.loadTrelloLists_failure.bind(this)
+      this.loadTrelloLists_failure.bind(this),
     );
   }
 
@@ -466,7 +469,7 @@ class Model {
       `lists/${listId}/cards`,
       {},
       this.loadTrelloCards_success.bind(this),
-      this.loadTrelloCards_failure.bind(this)
+      this.loadTrelloCards_failure.bind(this),
     );
   }
 
@@ -489,7 +492,7 @@ class Model {
       `boards/${boardId}/members`,
       {},
       this.loadTrelloMembers_success.bind(this),
-      this.loadTrelloMembers_failure.bind(this)
+      this.loadTrelloMembers_failure.bind(this),
     );
   }
 
@@ -512,7 +515,7 @@ class Model {
       `boards/${boardId}/labels`,
       {},
       this.loadTrelloLabels_success.bind(this),
-      this.loadTrelloLabels_failure.bind(this)
+      this.loadTrelloLabels_failure.bind(this),
     );
   }
 
@@ -558,10 +561,10 @@ class Model {
       response => {
         const cardId = response.id;
 
-        // Add attachments if any
-        if (data.attachments && data.attachments.length > 0) {
+        // Add attachment if any
+        if (data.attachment && data.attachment.length > 0) {
           data.cardId = cardId;
-          this.uploadAttachments(data);
+          this.uploadAttachment(data);
         } else {
           this.app.events.emit('createCard_success', {
             data: { ...data, cardId },
@@ -570,7 +573,7 @@ class Model {
       },
       error => {
         this.app.events.emit('createCard_failed', { data: error });
-      }
+      },
     );
   }
 
@@ -622,7 +625,6 @@ class Model {
       });
     }
 
-    this.app.persistSave(); // Save state after successful card creation
     this.app.events.emit('cardCreationComplete', { data });
   }
 
@@ -648,41 +650,41 @@ class Model {
   bindEvents() {
     this.app.events.addListener(
       'classModelStateLoaded',
-      this.handleClassModelStateLoaded.bind(this)
+      this.handleClassModelStateLoaded.bind(this),
     );
     this.app.events.addListener(
       'submittedFormShownComplete',
-      this.handleSubmittedFormShownComplete.bind(this)
+      this.handleSubmittedFormShownComplete.bind(this),
     );
     this.app.events.addListener(
       'trelloCardCreateSuccess',
-      this.handleTrelloCardCreateSuccess.bind(this)
+      this.handleTrelloCardCreateSuccess.bind(this),
     );
     this.app.events.addListener(
       'postCardCreateUploadDisplayDone',
-      this.handlePostCardCreateUploadDisplayDone.bind(this)
+      this.handlePostCardCreateUploadDisplayDone.bind(this),
     );
 
     // Listen to board and list change events
     this.app.events.addListener(
       'boardChanged',
-      this.handleBoardChanged.bind(this)
+      this.handleBoardChanged.bind(this),
     );
     this.app.events.addListener(
       'listChanged',
-      this.handleListChanged.bind(this)
+      this.handleListChanged.bind(this),
     );
 
     // Listen to Trello user ready event to load boards
     this.app.events.addListener(
       'trelloUserReady',
-      this.handleTrelloUserReady.bind(this)
+      this.handleTrelloUserReady.bind(this),
     );
 
     // Listen to authorization success to start data loading
     this.app.events.addListener(
       'checkTrelloAuthorized_success',
-      this.handleCheckTrelloAuthorized_success.bind(this)
+      this.handleCheckTrelloAuthorized_success.bind(this),
     );
   }
 
@@ -694,7 +696,7 @@ class Model {
   handleCheckTrelloAuthorized_success() {
     // Load Trello data after successful authorization (don't show popup yet)
     this.app.utils.log(
-      'handleCheckTrelloAuthorized_success called, loading user data'
+      'handleCheckTrelloAuthorized_success called, loading user data',
     );
     this.loadTrelloUser();
   }

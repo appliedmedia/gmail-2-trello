@@ -40,9 +40,9 @@
               var nextSelAttr = $('#' + forAttr).attr('next-select');
               var nextSel = $('#' + nextSelAttr);
               if ($(nextSel).hasClass('g2t-custom-combobox')) {
-                $(nextSel).find('input').focus();
+                $(nextSel).find('input').trigger('focus');
               } else {
-                $(nextSel).focus();
+                $(nextSel).trigger('focus');
               }
             }
           }

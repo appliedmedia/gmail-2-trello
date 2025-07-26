@@ -69,8 +69,8 @@ class App {
       // Personal data (not persisted)
       description: '',
       title: '',
-      attachments: [],
-      images: [],
+      attachment: [],
+      image: [],
       // Trello data (not persisted - reloaded from API)
       boards: [],
       lists: [],
@@ -130,7 +130,7 @@ class App {
   bindEvents() {
     this.events.addListener(
       'classAppStateLoaded',
-      this.handleClassAppStateLoaded.bind(this)
+      this.handleClassAppStateLoaded.bind(this),
     );
   }
 

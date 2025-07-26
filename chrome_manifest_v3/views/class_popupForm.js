@@ -24,67 +24,50 @@ class PopupForm {
     this.bindEvents();
   }
 
-  bindEvents() {
-    // Form event handlers - these belong in PopupForm
-    this.app.events.addListener('submit', this.handleSubmit.bind(this));
-    this.app.events.addListener(
-      'checkTrelloAuthorized',
-      this.handleCheckTrelloAuthorized.bind(this)
-    );
-    this.app.events.addListener(
-      'requestDeauthorizeTrello',
-      this.handleRequestDeauthorizeTrello.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloLists_success',
-      this.handleLoadTrelloLists_success.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloCards_success',
-      this.handleLoadTrelloCards_success.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloLabels_success',
-      this.handleLoadTrelloLabels_success.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloMembers_success',
-      this.handleLoadTrelloMembers_success.bind(this)
-    );
-    this.app.events.addListener('APIFail', this.handleAPIFail.bind(this));
-    this.app.events.addListener(
-      'newCardUploadsComplete',
-      this.handleNewCardUploadsComplete.bind(this)
-    );
-    this.app.events.addListener('menuClick', this.handleOnMenuClick.bind(this));
+  handleGmailDataReady(event, params) {
+    // Both Trello and Gmail data are ready - do final assembly
+    const gmailData = params?.gmail || this.app.model.gmail;
+
+    // Bind all the data
+    this.bindData(); // Bind Trello user data
+    this.bindGmailData(gmailData); // Bind Gmail data
+
+    // Update UI components
+    this.updateBoards(); // Populate the boards dropdown
+
+    // Show the completed popup
+    this.parent.$popupContent.show();
+    this.hideMessage();
   }
 
-  // Form Data & Validation
-  validateData() {
-    const errors = [];
-
-    if (!this.app.persist.boardId || this.app.persist.boardId === '') {
-      errors.push('Please select a board');
+  /** This is what we'd submit originally for update to trello:
+    //  validateData() {
+        // Labels, members, attachment, image, and popupWidth are now handled by their respective change handlers
+        this.app.temp.newCard = {
+            emailId: this.app.temp.emailId,
+            boardId: this.app.persist.boardId,
+            listId: this.app.persist.listId,
+            cardId: this.app.persist.cardId,
+            cardPos: this.app.temp.cardPos,
+            cardMembers: this.app.temp.cardMembers,
+            cardLabels: this.app.temp.cardLabels,
+            labelsId: this.app.persist.labelsId,
+            membersId: this.app.persist.membersId,
+            dueDate: this.app.temp.dueDate,
+            dueTime: this.app.temp.dueTime,
+            title: this.app.temp.title,
+            description: this.app.temp.description,
+            attachment: this.app.temp.attachment || [],
+            image: this.app.temp.image || [],
+            useBackLink: this.app.persist.useBackLink,
+            addCC: this.app.persist.addCC,
+            markdown: this.app.persist.markdown,
+            popupWidth: this.app.persist.popupWidth,
+            position: this.app.temp.position,
+            timeStamp: this.app.temp.timeStamp,
+        };
     }
-
-    if (!this.app.persist.listId || this.app.persist.listId === '') {
-      errors.push('Please select a list');
-    }
-
-    if (!this.app.temp.title || this.app.temp.title.trim() === '') {
-      errors.push('Please enter a card name');
-    }
-
-    if (this.app.temp.title && this.app.temp.title.length > 16384) {
-      errors.push('Card name is too long (max 16384 characters)');
-    }
-
-    if (this.app.temp.description && this.app.temp.description.length > 16384) {
-      errors.push('Card description is too long (max 16384 characters)');
-    }
-
-    return errors;
-  }
+    **/
 
   bindData(data) {
     $('.header a').each(() => {
@@ -195,7 +178,7 @@ class PopupForm {
           me.username +
           '" src="' +
           avatarSrc +
-          '">'
+          '">',
       );
     }
 
@@ -208,7 +191,7 @@ class PopupForm {
     if (this.app.persist.useBackLink !== undefined) {
       $('#chkBackLink', this.parent.$popup).prop(
         'checked',
-        this.app.persist.useBackLink
+        this.app.persist.useBackLink,
       );
     }
 
@@ -243,11 +226,15 @@ class PopupForm {
       const date_k = new Date().toISOString().substring(0, 10);
 
       // Modify this.data directly for error reporting
+      let persistData = '';
+      try {
+        persistData = JSON.stringify(this.app.persist);
+      } catch (e) {
+        persistData = `[Error serializing persist data: ${e.message}]`;
+      }
+
       this.app.temp.description =
-        lastError_k +
-        JSON.stringify(this.app.persist) +
-        '\n' +
-        this.app.utils.log();
+        lastError_k + persistData + '\n' + this.app.utils.log();
       this.app.temp.title =
         'Error report card: ' +
         [fullname_k, username_k].join(' @') +
@@ -257,50 +244,13 @@ class PopupForm {
       this.updateBoards('52e1397addf85d4751f99319'); // GtT board
       $('#g2tDesc', this.parent.$popup).val(this.app.temp.description);
       $('#g2tTitle', this.parent.$popup).val(this.app.temp.title);
-      this.validateData();
     });
 
     this.parent.$popupMessage.hide();
     this.parent.$popupContent.show();
 
-    this.updateBoards();
-
     // Setting up comboboxes after loading data.
     this.comboBox();
-  }
-
-  bindGmailData(data = {}) {
-    if ($.isEmptyObject(data)) {
-      return;
-    }
-
-    // Merge with existing state
-    Object.assign(data, this.app.persist || {});
-    this.updateBody(data);
-
-    $('#g2tTitle', this.parent.$popup).val(data.subject);
-
-    this.mime_html('attachments', false, data);
-    this.mime_html('images', true, data);
-
-    const emailId = data.emailId || 0;
-    const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
-      emailId,
-    });
-
-    if (
-      ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
-    ) {
-      $('#g2tPosition', this.parent.$popup).val('to');
-      this.updateBoards(mapAvailable_k.boardId);
-      const listId = mapAvailable_k.listId;
-      const cardId = mapAvailable_k.cardId;
-      this.parent.updatesPending.push({ listId });
-      this.parent.updatesPending.push({ cardId });
-    }
-
-    this.parent.dataDirty = false;
-    this.validateData();
   }
 
   updateBody(data = {}) {
@@ -351,7 +301,7 @@ class PopupForm {
     const desc_k = this.app.utils.truncate(
       body_k,
       this.parent.MAX_BODY_SIZE - (link_k.length + cc_k.length),
-      '...'
+      '...',
     );
     const val_k = link_k + cc_k + desc_k;
 
@@ -395,6 +345,32 @@ class PopupForm {
     $('input[type="checkbox"]', this.parent.$popup).prop('checked', false);
   }
 
+  // Helper function for getting active IDs from button groups
+  getButtonGroupActiveIDs(tag = '') {
+    if (!tag) {
+      return '';
+    }
+    return $(`#g2t_${tag} button.active`, this.parent.$popup)
+      .map(function (iter, item) {
+        return $(item).attr(`trelloId-${tag}`);
+      })
+      .get()
+      .join();
+  }
+
+  // Update submit button availability based on required fields
+  updateSubmitAvailable() {
+    const isAvailable = !!(
+      this.app.persist.boardId &&
+      this.app.persist.listId &&
+      this.app.temp.title
+    );
+    $('#addToTrello', this.parent.$popup).attr(
+      'disabled',
+      isAvailable ? false : 'disabled',
+    );
+  }
+
   // UI Updates
   updateBoards(tempId = 0) {
     const boards = this.app.temp.boards || [];
@@ -407,9 +383,18 @@ class PopupForm {
       $boardSelect.append(`<option value="${board.id}">${board.name}</option>`);
     });
 
-    if (tempId > 0) {
-      $boardSelect.val(tempId);
-    }
+    // Use consistent restoreId logic like updateLists/updateCards
+    const prev_item_k = this.app.persist.boardId || '';
+
+    const updatePending_k = this.parent.updatesPending[0]?.boardId
+      ? this.parent.updatesPending.shift().boardId
+      : '';
+
+    // For boards, we don't default to first item - we want "Select a board..." to show
+    const restoreId_k = updatePending_k || tempId || prev_item_k || '';
+
+    // Always explicitly set the value
+    $boardSelect.val(restoreId_k);
   }
 
   updateLists(tempId = 0) {
@@ -446,7 +431,7 @@ class PopupForm {
         $('<option>')
           .attr('value', id_k)
           .prop('selected', selected_k)
-          .append(display_k)
+          .append(display_k),
       );
     });
 
@@ -492,7 +477,7 @@ class PopupForm {
           .prop('members', item.idMembers)
           .prop('labels', item.idLabels)
           .prop('selected', selected_k)
-          .append(display_k)
+          .append(display_k),
       );
     });
 
@@ -501,7 +486,7 @@ class PopupForm {
 
   updateLabels() {
     const labels = this.app.temp.labels;
-    const $g2t = $('#g2tLabels', this.parent.$popup);
+    const $g2t = $('#g2t_label', this.parent.$popup);
     $g2t.html(''); // Clear out
 
     for (let i = 0; i < labels.length; i++) {
@@ -518,6 +503,8 @@ class PopupForm {
             .on('mousedown mouseup', evt => {
               const elm = $(evt.currentTarget);
               this.parent.toggleActiveMouseDown(elm);
+              // Update persist.labelsId when label selection changes
+              this.app.persist.labelsId = this.getButtonGroupActiveIDs('label');
             })
             .on('keypress', evt => {
               const trigger_k =
@@ -525,15 +512,15 @@ class PopupForm {
               if (trigger_k) {
                 $(evt.target).trigger(trigger_k);
               }
-            })
+            }),
         );
       }
     }
 
-    $('#g2tLabelsMsg', this.parent.$popup).hide();
+    $('#g2t_label_msg', this.parent.$popup).hide();
 
     this.parent.menuCtrl.reset({
-      selectors: '#g2tLabels button',
+      selectors: '#g2t_label button',
       nonexclusive: true,
     });
 
@@ -548,8 +535,8 @@ class PopupForm {
         const item = labels[i];
         if (settingId.indexOf(item.id) !== -1) {
           $(
-            '#g2tLabels button[trelloId-label="' + item.id + '"]',
-            this.parent.$popup
+            '#g2t_label button[trelloId-label="' + item.id + '"]',
+            this.parent.$popup,
           ).trigger('click');
         }
       }
@@ -584,12 +571,15 @@ class PopupForm {
               $('<img>')
                 .attr('src', avatar)
                 .attr('width', size_k)
-                .attr('height', size_k)
+                .attr('height', size_k),
             )
             .append(' ' + txt)
             .on('mousedown mouseup', evt => {
               const elm = $(evt.currentTarget);
               this.parent.toggleActiveMouseDown(elm);
+              // Update persist.membersId when member selection changes
+              this.app.persist.membersId =
+                this.getButtonGroupActiveIDs('member');
             })
             // NOTE (Ace, 2021-02-08): crlf uses mousedown, spacebar uses click:
             .on('keypress', evt => {
@@ -598,12 +588,12 @@ class PopupForm {
               if (trigger_k) {
                 $(evt.target).trigger(trigger_k);
               }
-            })
+            }),
         );
       }
     }
 
-    $('#g2tMembersMsg', this.parent.$popup).hide();
+    $('#g2t_member_msg', this.parent.$popup).hide();
 
     this.parent.menuCtrl.reset({
       selectors: '#g2tMembers button',
@@ -617,7 +607,7 @@ class PopupForm {
         if (settingId.indexOf(item.id) !== -1) {
           $(
             '#g2tMembers button[trelloId-member="' + item.id + '"]',
-            this.parent.$popup
+            this.parent.$popup,
           ).trigger('click');
         }
       }
@@ -640,13 +630,11 @@ class PopupForm {
   clearLabels() {
     this.app.persist.labelsId = '';
     this.updateLabels();
-    this.validateData();
   }
 
   clearMembers() {
     this.app.persist.membersId = '';
     this.updateMembers();
-    this.validateData();
   }
 
   toggleCheckboxes(tag) {
@@ -654,7 +642,6 @@ class PopupForm {
     const $jTag1 = $jTags.first();
     const checked_k = $jTag1.prop('checked') || false;
     $jTags.prop('checked', !checked_k);
-    this.validateData();
   }
 
   // Form Display
@@ -662,7 +649,7 @@ class PopupForm {
     // Guard against calling before DOM elements are initialized
     if (!this.parent.$popupMessage) {
       this.app.utils.log(
-        'PopupForm:showMessage: DOM not ready, deferring message'
+        'PopupForm:showMessage: DOM not ready, deferring message',
       );
       // Store message to show later when DOM is ready
       this.parent.pendingMessage = { parent, text };
@@ -699,7 +686,7 @@ class PopupForm {
                 setTimeout(() => {
                   $status.html('&nbsp;');
                 }, 2500);
-              }
+              },
             );
           } catch (error) {
             this.parent.handleChromeAPIError(error, 'showMessage');
@@ -711,7 +698,7 @@ class PopupForm {
           break;
         default:
           this.app.utils.log(
-            `showMessage: ERROR unhandled case "${event.target.id}"`
+            `showMessage: ERROR unhandled case "${event.target.id}"`,
           );
       }
       if ($status.length > 0) {
@@ -741,7 +728,7 @@ class PopupForm {
   displaySubmitCompleteForm(params) {
     const $form = $('#g2tForm', this.parent.$popup);
     const $success = $(
-      '<div class="g2t-success">Card created successfully!</div>'
+      '<div class="g2t-success">Card created successfully!</div>',
     );
 
     $form.hide();
@@ -836,7 +823,7 @@ class PopupForm {
       Object.entries($jVals).forEach(([key, $value]) => {
         $value.combobox(
           'setInputValue',
-          $value.children('option:selected').text()
+          $value.children('option:selected').text(),
         );
       });
       set_max_autocomplete_size();
@@ -848,12 +835,10 @@ class PopupForm {
     let html = '';
     let img = '';
     let img_big = '';
-    const domTag_k = `#g2t${tag.charAt(0).toUpperCase()}${tag
-      .slice(1)
-      .toLowerCase()}`;
+    const domTag_k = `#g2t_${tag.toLowerCase()}`;
     const $domTag = $(domTag_k, this.parent.$popup);
 
-    const domTagContainer = domTag_k + 'Container';
+    const domTagContainer = domTag_k + '_container';
     const $domTagContainer = $(domTagContainer, this.parent.$popup);
     $domTagContainer.css('display', data[tag].length > 0 ? 'block' : 'none');
 
@@ -872,15 +857,15 @@ class PopupForm {
         id: `${item.name}:${x}`,
       };
 
-      if (tag == 'attachments') {
+      if (tag == 'attachment') {
         html += this.app.utils.replacer(
           '<div class="imgOrAttach textOnlyPopup" title="%name%"><input type="checkbox" id="%id%" class="g2t-checkbox" mimeType="%mimeType%" name="%name%" url="%url%" checked /><label for="%id%">%name%</label></div>',
-          dict
+          dict,
         );
-      } else if (tag == 'images') {
+      } else if (tag == 'image') {
         html += this.app.utils.replacer(
           '<div class="imgOrAttach"><input type="checkbox" id="%id%" mimeType="%mimeType%" class="g2t-checkbox" name="%name%" url="%url%" /><label for="%id%" title="%name%"> %img% </label></div>',
-          dict
+          dict,
         );
       }
       x++;
@@ -895,7 +880,7 @@ class PopupForm {
           .on('error', function () {
             $img.attr(
               'src',
-              chrome.runtime.getURL('images/doc-question-mark-512.png')
+              chrome.runtime.getURL('images/doc-question-mark-512.png'),
             );
           })
           .tooltip({
@@ -958,22 +943,18 @@ class PopupForm {
 
   handleLoadTrelloLists_success() {
     this.updateLists();
-    this.validateData();
   }
 
   handleLoadTrelloCards_success() {
     this.updateCards();
-    this.validateData();
   }
 
   handleLoadTrelloLabels_success() {
     this.updateLabels();
-    this.validateData();
   }
 
   handleLoadTrelloMembers_success() {
     this.updateMembers();
-    this.validateData();
   }
 
   handleAPIFail(target, params) {
@@ -987,6 +968,83 @@ class PopupForm {
   handleOnMenuClick(target, params) {
     // Handle menu clicks - delegate to parent if needed
     this.app.events.emit('menuClick', { target, params });
+  }
+
+  bindGmailData(data = {}) {
+    if ($.isEmptyObject(data)) {
+      return;
+    }
+
+    // Merge with existing state
+    Object.assign(data, this.app.persist || {});
+    this.updateBody(data);
+
+    $('#g2tTitle', this.parent.$popup).val(data.subject);
+
+    this.mime_html('attachment', false, data);
+    this.mime_html('image', true, data);
+
+    // Set Gmail-derived temp values directly
+    this.app.temp.emailId = data.emailId || 0;
+    this.app.temp.timeStamp = data.time || '';
+    // Note: attachment/image are processed by mime_array() in validateData
+
+    const emailId = data.emailId || 0;
+    const mapAvailable_k = this.app.model.emailBoardListCardMapLookup({
+      emailId,
+    });
+
+    if (
+      ['boardId', 'listId', 'cardId'].every(field => !!mapAvailable_k?.[field])
+    ) {
+      $('#g2tPosition', this.parent.$popup).val('to');
+      this.updateBoards(mapAvailable_k.boardId);
+      const listId = mapAvailable_k.listId;
+      const cardId = mapAvailable_k.cardId;
+      this.parent.updatesPending.push({ listId });
+      this.parent.updatesPending.push({ cardId });
+    }
+
+    this.parent.dataDirty = false;
+  }
+
+  bindEvents() {
+    // Form event handlers - these belong in PopupForm
+    this.app.events.addListener('submit', this.handleSubmit.bind(this));
+    this.app.events.addListener(
+      'checkTrelloAuthorized',
+      this.handleCheckTrelloAuthorized.bind(this),
+    );
+    this.app.events.addListener(
+      'requestDeauthorizeTrello',
+      this.handleRequestDeauthorizeTrello.bind(this),
+    );
+    this.app.events.addListener(
+      'loadTrelloLists_success',
+      this.handleLoadTrelloLists_success.bind(this),
+    );
+    this.app.events.addListener(
+      'loadTrelloCards_success',
+      this.handleLoadTrelloCards_success.bind(this),
+    );
+    this.app.events.addListener(
+      'loadTrelloLabels_success',
+      this.handleLoadTrelloLabels_success.bind(this),
+    );
+    this.app.events.addListener(
+      'loadTrelloMembers_success',
+      this.handleLoadTrelloMembers_success.bind(this),
+    );
+    this.app.events.addListener('APIFail', this.handleAPIFail.bind(this));
+    this.app.events.addListener(
+      'newCardUploadsComplete',
+      this.handleNewCardUploadsComplete.bind(this),
+    );
+    this.app.events.addListener('menuClick', this.handleOnMenuClick.bind(this));
+    this.app.events.addListener(
+      'gmailDataReady',
+      this.handleGmailDataReady.bind(this),
+    );
   }
 }
 
