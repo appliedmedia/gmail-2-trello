@@ -785,9 +785,6 @@ class Utils {
 // Assign class to namespace
 G2T.Utils = Utils;
 
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Utils;
-}
+
 
 // End, class_utils.js
