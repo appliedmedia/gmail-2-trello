@@ -3,31 +3,47 @@
  * Tests the Utils class markdownify and related methods
  */
 
-// Mock jQuery for testing
-global.$ = jest.fn();
+// Import shared test utilities
+const { loadClassFile, createMockInstances, setupG2TMocks, clearAllMocks, createMockJQuery } = require('./test_shared');
 
-// Mock chrome API
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn()
-    }
-  }
-};
-
-// Import the Utils class
-const Utils = require('../chrome_manifest_v3/class_utils.js');
+// Load the Utils class using eval (for Chrome extension compatibility)
+const utilsCode = loadClassFile('chrome_manifest_v3/class_utils.js');
+eval(utilsCode);
 
 describe('Utils.markdownify', () => {
   let utils;
 
   beforeEach(() => {
-    // Create a fresh Utils instance for each test
-    utils = new Utils({ debug: false });
+    // Create mock instances
+    const mockInstances = createMockInstances();
+    setupG2TMocks(mockInstances);
     
-    // Reset jQuery mock
-    $.mockClear();
+    // Create a mock app object
+    const app = {
+      persist: {
+        storageHashes: {}
+      },
+      temp: {
+        log: {
+          memory: [],
+          count: 0,
+          max: 100,
+          debugMode: false
+        }
+      },
+      chrome: mockInstances.mockChrome,
+      events: mockInstances.mockEventTarget,
+      model: mockInstances.mockModel,
+      gmailView: mockInstances.mockGmailView,
+      popupView: mockInstances.mockPopupView,
+      utils: mockInstances.mockUtils
+    };
+    
+    // Create a fresh Utils instance for each test
+    utils = new G2T.Utils({ app });
+    
+    // Clear all mocks
+    clearAllMocks();
   });
 
   describe('anchorMarkdownify', () => {
