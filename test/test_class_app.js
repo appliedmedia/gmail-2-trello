@@ -165,6 +165,15 @@ describe('App Class', () => {
     test('should handle Gmail hash change events', () => {
       expect(() => app.handleGmailHashChange()).not.toThrow();
     });
+
+    test('should handle null events gracefully', () => {
+      expect(() => app.handleClassAppStateLoaded(null, {})).not.toThrow();
+    });
+
+    test('should handle events missing type property', () => {
+      const eventWithoutType = { data: {} };
+      expect(() => app.handleClassAppStateLoaded(eventWithoutType, {})).not.toThrow();
+    });
   });
 
   describe('Data Management', () => {
