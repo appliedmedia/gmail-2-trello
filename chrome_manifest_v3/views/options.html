@@ -1,36 +1,81 @@
 <html>
 	<head>
 		<title>Gmail-2-Trello Extension Options</title>
+		<style>
+			#dueshortcuts {
+				min-width: 40em;
+                max-width: 100%;
+                min-height: 4em;
+                max-height: 40%;
+			}
+			#default-dueshortcuts {
+				margin-top: 1em;
+			}
+			#clearcache {
+				margin-left: 1em;
+			}
+			#status, #cache-status {
+				color: red;
+				margin-left: 1em;
+			}
+			.help-list {
+				list-style: none;
+				padding: 0;
+				margin-left: 1em;
+			}
+			.help-list .arrow {
+				font-size: 150%;
+			}
+			hr {
+				margin-top: 2em;
+				margin-bottom: 2em;
+			}
+			.version {
+				margin-top: 2em;
+				margin-bottom: 2em;
+			}
+			.save-button {
+				margin-left: 1em;
+			}
+		</style>
 	</head>
 	<body>
 		<h4>Gmail-2-Trello Extension Options</h4>
-		<input type="checkbox" id="debugmode" />
-		<label for="debugmode">Enable debug mode</label>
 		<p />
 		<label for="dueshortcuts">Due shortcuts:</label>
 		<textarea id="dueshortcuts" rows="10" cols="40">Due shortcuts</textarea>
 		<button id="default-dueshortcuts" title="Restore shortcuts to defaults">
 			Default
 		</button>
-		<p />
-		<button id="save">Save</button>
-		<span id="status" style="color: red;">&nbsp;</span>
-		<p />
-		<ul style="list-style: none; padding: 0; margin-left: 1em;">
+		<button class="save-button" id="save">Save</button>
+		<span id="status">&nbsp;</span>
+        <p />
+		<hr />
+        <p />
+		<input type="checkbox" id="debugmode" />
+		<label for="debugmode">Enable debug mode</label>
+		<button id="clearcache">Clear Cache</button>
+		<span id="cache-status">&nbsp;</span>
+        <p />
+		<hr />
+        <p />
+		<ul class="help-list">
 			<li>
-				<span style="font-size: 150%;">&uparrow;</span>
+				<span class="arrow">&uparrow;</span>
 				<i>This is the options screen.</i>
 			</li>
 			<li>
-				<span style="font-size: 150%;">&leftarrow;</span>
+				<span class="arrow">&nwarr; &leftarrow;</span>
 				<i
 					>The main Gmail-2-Trello button is at the top of the Gmail
 					view, next to the "More" button.</i
 				>
 			</li>
 		</ul>
-		<p />
-		<small>version <span id="g2tVersion">&nbsp;</span></small>
+        <p />
+		<hr />
+        <p />
+		<small class="version">version <span id="g2tVersion">&nbsp;</span></small>
 	</body>
 	<script src="options.js"></script>
 </html>
