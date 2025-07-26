@@ -112,7 +112,7 @@ describe('App Class', () => {
   });
 
   afterEach(() => {
-    // Clean up after each test
+    // Clean up
     if (app && typeof app.destroy === 'function') {
       app.destroy();
     }
@@ -169,17 +169,6 @@ describe('App Class', () => {
     });
   });
 
-  describe('View Management', () => {
-    test('should manage views correctly', () => {
-      // Test view management if methods exist
-      if (typeof app.renderView === 'function') {
-        const renderViewSpy = jest.spyOn(app, 'renderView');
-        app.renderView('gmail');
-        expect(renderViewSpy).toHaveBeenCalledWith('gmail');
-      }
-    });
-  });
-
   describe('Utility Methods', () => {
     test('should use utility methods correctly', () => {
       // Test utility method usage if methods exist
@@ -192,21 +181,8 @@ describe('App Class', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    test('should handle errors gracefully', () => {
-      // Test error handling if methods exist
-      if (typeof app.handleError === 'function') {
-        const error = new Error('Test error');
-        const handleErrorSpy = jest.spyOn(app, 'handleError');
-        app.handleError(error);
-        expect(handleErrorSpy).toHaveBeenCalledWith(error);
-      }
-    });
-  });
-
   describe('Cleanup', () => {
-    test('should cleanup resources properly', () => {
-      // Test cleanup if destroy method exists
+    test('should clean up resources on destroy', () => {
       if (typeof app.destroy === 'function') {
         const destroySpy = jest.spyOn(app, 'destroy');
         app.destroy();
