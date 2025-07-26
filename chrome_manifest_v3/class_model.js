@@ -296,16 +296,9 @@ class Model {
     uploader.upload(data);
   }
 
-  checkTrelloAuthorized_popup_success(data) {
-    this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.emit('checkTrelloAuthorized_popup_success', { data });
-  }
-
   checkTrelloAuthorized_popup_failure(data) {
     this.app.persist.trelloAuthorized = false;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.emit('checkTrelloAuthorized_popup_failed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   initTrello() {
@@ -319,7 +312,6 @@ class Model {
 
   checkTrelloAuthorized_success(data) {
     this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
 
     // Log successful authorization
     this.app.utils.log('Trello authorization successful:', {
@@ -329,6 +321,11 @@ class Model {
     });
 
     this.app.events.emit('checkTrelloAuthorized_success', { data });
+  }
+
+  checkTrelloAuthorized_popup_failure(data) {
+    this.app.persist.trelloAuthorized = false;
+    this.app.events.emit('APIFail', { data });
   }
 
   checkTrelloAuthorized_failure(data) {
@@ -345,13 +342,13 @@ class Model {
         persist: true,
         scope: { read: true, write: true },
         expiration: 'never',
-        success: this.checkTrelloAuthorized_popup_success.bind(this),
+        success: this.checkTrelloAuthorized_success.bind(this),
         error: this.checkTrelloAuthorized_popup_failure.bind(this),
       });
     } else {
       // We have a token but the API call failed - this shouldn't happen
       this.app.utils.log('Trello authorization failed with valid token');
-      this.app.events.emit('checkTrelloAuthorized_failed', { data });
+      this.app.events.emit('APIFail', { data });
     }
   }
 
@@ -362,18 +359,6 @@ class Model {
       success: this.checkTrelloAuthorized_success.bind(this),
       error: this.checkTrelloAuthorized_failure.bind(this),
     });
-  }
-
-  checkTrelloAuthorized_popup_success(data) {
-    this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.emit('checkTrelloAuthorized_popup_success', { data });
-  }
-
-  checkTrelloAuthorized_popup_failure(data) {
-    this.app.persist.trelloAuthorized = false;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.emit('checkTrelloAuthorized_popup_failure', { data });
   }
 
   deauthorizeTrello() {
@@ -525,7 +510,7 @@ class Model {
 
   submit(data) {
     if (!this.app.persist.trelloAuthorized) {
-      this.app.events.emit('checkTrelloAuthorized_failed', {});
+      this.app.events.emit('APIFail', { data });
       return;
     }
 

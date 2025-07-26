@@ -62,6 +62,7 @@ class Utils {
         if (l.debugMode) {
           window.console.log(l.memory[l.lastMessageIndex]);
         }
+        // Don't increment the counter for duplicates
         return;
       }
 

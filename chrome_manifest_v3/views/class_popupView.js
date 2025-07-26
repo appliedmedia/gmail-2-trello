@@ -282,7 +282,7 @@ class PopupView {
     );
     this.app.events.addListener(
       'checkTrelloAuthorized_success',
-      this.handleAuthorized.bind(this)
+      this.handleCheckTrelloAuthorized_success.bind(this)
     );
     this.app.events.addListener(
       'onBeforeLoadTrello',
@@ -507,12 +507,7 @@ class PopupView {
     this.form.showMessage(this.app, 'Authorizing...');
   }
 
-  handleAuthorizeFail(event, params = {}) {
-    // Route through the comprehensive error display system
-    this.form.displayAPIFailedForm(params);
-  }
-
-  handleAuthorized() {
+  handleCheckTrelloAuthorized_success() {
     this.$popupContent.show();
     this.form.hideMessage();
     // Load Trello data after successful authorization
