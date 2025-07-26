@@ -244,8 +244,10 @@ function clearAllMocks() {
   console.warn.mockClear();
   window.addEventListener.mockClear();
   window.removeEventListener.mockClear();
-  analytics.track.mockClear();
-  analytics.getService.mockClear();
+  if (global.analytics) {
+    global.analytics.track.mockClear();
+    global.analytics.getService.mockClear();
+  }
 }
 
 /**
