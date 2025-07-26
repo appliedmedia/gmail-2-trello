@@ -37,11 +37,6 @@ class App {
       trelloAuthorized: false,
       // Trello data (flattened)
       user: null,
-      boards: [],
-      lists: [],
-      cards: [],
-      members: [],
-      labels: [],
       emailBoardListCardMap: [],
       // PopupView state
       popupWidth: 700,
@@ -76,6 +71,12 @@ class App {
       title: '',
       attachments: [],
       images: [],
+      // Trello data (not persisted - reloaded from API)
+      boards: [],
+      lists: [],
+      cards: [],
+      members: [],
+      labels: [],
     };
 
     // App initialization flag (local, not persisted)
@@ -104,10 +105,11 @@ class App {
   }
 
   // Event handlers
-  handleClassAppStateLoaded(event, params) {
-    if (params) {
-      this.persist = { ...this.persist, ...params };
-    }
+  handleClassAppStateLoaded(event, params = {}) {
+    // Merge loaded data into persist state
+    Object.assign(this.persist, params);
+
+    this.initialized = true;
   }
 
   // Handle Gmail navigation changes

@@ -139,7 +139,7 @@ class Uploader {
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
           });
-          self.app.events.emit('onAPIFailure', { data });
+          self.app.events.emit('APIFail', { data });
         }
       );
     }
@@ -164,7 +164,7 @@ class EmailBoardListCardMap {
   constructor(args) {
     this.parent = args.parent;
     this.app = args.app;
-    this.maxSize = 100;
+    this.maxSize = 50; // Reduced from 100 to prevent storage quota issues
   }
 
   add(args = {}) {
@@ -383,30 +383,16 @@ class Model {
     this.app.events.emit('deauthorizeTrello_success', {});
   }
 
-  loadTrelloData_user_success(data) {
+  loadTrelloUser_success(data) {
     this.app.persist.user = data;
-    this.app.persistSave(); // Save state after data load
-    this.loadTrelloData_boards_success();
+    this.app.events.emit('trelloUserReady');
   }
 
-  loadTrelloData_boards_success(data) {
-    if (data) {
-      this.app.persist.boards = data;
-      this.app.persistSave(); // Save state after data load
-    }
-    this.app.events.emit('loadTrelloData_success', {
-      data: {
-        user: this.app.persist.user,
-        boards: this.app.persist.boards,
-      },
-    });
+  loadTrelloUser_failure(data) {
+    this.app.events.emit('APIFail', { data });
   }
 
-  loadTrelloData_failure(data) {
-    this.app.events.emit('loadTrelloData_failed', { data });
-  }
-
-  loadTrelloData() {
+  loadTrelloUser() {
     if (!this.app.persist.trelloAuthorized) {
       return;
     }
@@ -415,35 +401,43 @@ class Model {
       'get',
       'members/me',
       {},
-      this.loadTrelloData_user_success.bind(this),
-      this.loadTrelloData_failure.bind(this)
+      this.loadTrelloUser_success.bind(this),
+      this.loadTrelloUser_failure.bind(this)
     );
+  }
+
+  loadTrelloBoards_success(data) {
+    if (data) {
+      this.app.temp.boards = data;
+    }
+    this.app.events.emit('trelloUserAndBoardsReady');
+  }
+
+  loadTrelloBoards_failure(data) {
+    this.app.events.emit('APIFail', { data });
+  }
+
+  loadTrelloBoards() {
+    if (!this.app.persist.trelloAuthorized) {
+      return;
+    }
 
     Trello.rest(
       'get',
       'members/me/boards',
       {},
-      this.loadTrelloData_boards_success.bind(this),
-      this.loadTrelloData_failure.bind(this)
-    );
-  }
-
-  checkTrelloDataReady() {
-    return (
-      this.app.persist.trelloAuthorized &&
-      this.app.persist.user &&
-      this.app.persist.boards
+      this.loadTrelloBoards_success.bind(this),
+      this.loadTrelloBoards_failure.bind(this)
     );
   }
 
   loadTrelloLists_success(data) {
-    this.app.persist.lists = data;
-    this.app.persistSave(); // Save state after data load
+    this.app.temp.lists = data;
     this.app.events.emit('loadTrelloListSuccess', { data });
   }
 
   loadTrelloLists_failure(data) {
-    this.app.events.emit('loadTrelloListFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloLists(boardId) {
@@ -461,13 +455,12 @@ class Model {
   }
 
   loadTrelloCards_success(data) {
-    this.app.persist.cards = data;
-    this.app.persistSave(); // Save state after data load
+    this.app.temp.cards = data;
     this.app.events.emit('loadTrelloCardsSuccess', { data });
   }
 
   loadTrelloCards_failure(data) {
-    this.app.events.emit('loadTrelloCardsFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloCards(listId) {
@@ -485,13 +478,12 @@ class Model {
   }
 
   loadTrelloMembers_success(data) {
-    this.app.persist.members = data;
-    this.app.persistSave(); // Save state after data load
+    this.app.temp.members = data;
     this.app.events.emit('loadTrelloMembersSuccess', { data });
   }
 
   loadTrelloMembers_failure(data) {
-    this.app.events.emit('loadTrelloMembersFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloMembers(boardId) {
@@ -509,13 +501,12 @@ class Model {
   }
 
   loadTrelloLabels_success(data) {
-    this.app.persist.labels = data;
-    this.app.persistSave(); // Save state after data load
+    this.app.temp.labels = data;
     this.app.events.emit('loadTrelloLabelsSuccess', { data });
   }
 
   loadTrelloLabels_failure(data) {
-    this.app.events.emit('loadTrelloLabelsFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloLabels(boardId) {
@@ -688,6 +679,16 @@ class Model {
       'listChanged',
       this.handleListChanged.bind(this)
     );
+
+    // Listen to Trello user ready event to load boards
+    this.app.events.addListener(
+      'trelloUserReady',
+      this.handleTrelloUserReady.bind(this)
+    );
+  }
+
+  handleTrelloUserReady() {
+    this.loadTrelloBoards();
   }
 }
 

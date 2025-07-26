@@ -289,7 +289,7 @@ class PopupView {
       this.handleBeforeLoadTrello.bind(this)
     );
     this.app.events.addListener(
-      'loadTrelloData_success',
+      'trelloUserAndBoardsReady',
       this.handleTrelloDataReady.bind(this)
     );
   }
@@ -516,7 +516,7 @@ class PopupView {
     this.$popupContent.show();
     this.form.hideMessage();
     // Load Trello data after successful authorization
-    this.app.model.loadTrelloData();
+    this.app.model.loadTrelloUser();
   }
 
   handleBeforeLoadTrello() {

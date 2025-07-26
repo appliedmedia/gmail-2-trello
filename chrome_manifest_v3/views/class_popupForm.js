@@ -51,26 +51,7 @@ class PopupForm {
       'loadTrelloMembersSuccess',
       this.handleLoadTrelloMembersSuccess.bind(this)
     );
-    this.app.events.addListener(
-      'loadTrelloListFailed',
-      this.handleAPIFailure.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloCardsFailed',
-      this.handleAPIFailure.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloLabelsFailed',
-      this.handleAPIFailure.bind(this)
-    );
-    this.app.events.addListener(
-      'loadTrelloMembersFailed',
-      this.handleAPIFailure.bind(this)
-    );
-    this.app.events.addListener(
-      'onAPIFailure',
-      this.handleAPIFailure.bind(this)
-    );
+    this.app.events.addListener('APIFail', this.handleAPIFail.bind(this));
     this.app.events.addListener(
       'newCardUploadsComplete',
       this.handleNewCardUploadsComplete.bind(this)
@@ -425,7 +406,7 @@ class PopupForm {
 
   // UI Updates
   updateBoards(tempId = 0) {
-    const boards = this.app.persist.boards || [];
+    const boards = this.app.temp.boards || [];
     const $boardSelect = $('#g2tBoard', this.parent.$popup);
 
     $boardSelect.empty();
@@ -441,7 +422,7 @@ class PopupForm {
   }
 
   updateLists(tempId = 0) {
-    const array_k = this.app.persist.lists || [];
+    const array_k = this.app.temp.lists || [];
 
     if (!array_k) {
       return;
@@ -484,7 +465,7 @@ class PopupForm {
   updateCards(tempId = 0) {
     const new_k = '<option value="-1">(new card at top)</option>';
 
-    const array_k = this.app.persist.cards || [];
+    const array_k = this.app.temp.cards || [];
 
     if (!array_k) {
       return;
@@ -528,7 +509,7 @@ class PopupForm {
   }
 
   updateLabels() {
-    const labels = this.app.persist.labels;
+    const labels = this.app.temp.labels;
     const $g2t = $('#g2tLabels', this.parent.$popup);
     $g2t.html(''); // Clear out
 
@@ -589,7 +570,7 @@ class PopupForm {
   }
 
   updateMembers() {
-    const members = this.app.persist.members;
+    const members = this.app.temp.members;
     const $g2t = $('#g2tMembers', this.parent.$popup);
     $g2t.html(''); // Clear out
 
@@ -820,7 +801,7 @@ class PopupForm {
       if (resp?.status == 400) {
         $('#reloadTrelloBoards').on('click', () => {
           this.app.utils.log('User clicked reload Trello boards button');
-          this.app.model.loadTrelloData();
+          this.app.model.loadTrelloUser();
           this.parent.reset(); // Hide error message and show popup content
         });
       }
@@ -1004,7 +985,7 @@ class PopupForm {
     this.validateData();
   }
 
-  handleAPIFailure(target, params) {
+  handleAPIFail(target, params) {
     this.displayAPIFailedForm(params);
   }
 
