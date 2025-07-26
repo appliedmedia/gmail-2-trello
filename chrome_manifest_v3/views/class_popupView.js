@@ -456,14 +456,14 @@ class PopupView {
     // can't get this from html doc via chrome call if context is invalidated
     const message = `<a class="hideMsg" title="Dismiss message">&times;</a><h3>Gmail-2-Trello has changed</h3>
     The page needs to be reloaded to work correctly.
-    <button id="reload">Click here to reload this page</button>  <span id="reload" style="color: red">&nbsp;</span>`;
+    <button id="reload-button">Click here to reload this page</button>  <span id="reload-status" style="color: red">&nbsp;</span>`;
 
     this.form.showMessage(this, message);
 
     // Attach reload button handler after message is shown
     // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
-      $('#reload')
+      $('#reload-button')
         .off('click')
         .on('click', () => {
           // Use window.location.reload() which works even when extension context is invalidated

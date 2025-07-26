@@ -14,7 +14,7 @@ class CustomEventTarget {
     this._listeners[type].push(listener);
   }
 
-  fire(event, params) {
+  emit(event, params) {
     if (typeof event === 'string') {
       event = { type: event };
     }
@@ -70,7 +70,7 @@ class NativeEventTargetWrapper extends EventTarget {
     this.addEventListener(type, wrapper);
   }
 
-  fire(event, params) {
+  emit(event, params) {
     if (typeof event === 'string') {
       const customEvent = new CustomEvent(event, {
         detail: params,
@@ -133,7 +133,7 @@ const PerformanceTest = {
       listeners.push(listener);
       eventTarget.addListener(
         this.eventTypes[i % this.eventTypes.length],
-        listener
+        listener,
       );
     }
 
@@ -148,7 +148,7 @@ const PerformanceTest = {
       const listener = listeners[i];
       eventTarget.removeListener(
         this.eventTypes[i % this.eventTypes.length],
-        listener
+        listener,
       );
     }
 
@@ -168,7 +168,7 @@ const PerformanceTest = {
       listeners.push(listener);
       eventTarget.addListener(
         this.eventTypes[i % this.eventTypes.length],
-        listener
+        listener,
       );
     }
 
@@ -183,7 +183,7 @@ const PerformanceTest = {
       const listener = listeners[i];
       eventTarget.removeListener(
         this.eventTypes[i % this.eventTypes.length],
-        listener
+        listener,
       );
     }
 
@@ -243,10 +243,10 @@ const PerformanceTest = {
 
     console.log(`\nEvents per second:`);
     console.log(
-      `Custom: ${(this.iterations / (avgCustom / 1000)).toLocaleString()}`
+      `Custom: ${(this.iterations / (avgCustom / 1000)).toLocaleString()}`,
     );
     console.log(
-      `Native: ${(this.iterations / (avgNative / 1000)).toLocaleString()}`
+      `Native: ${(this.iterations / (avgNative / 1000)).toLocaleString()}`,
     );
 
     return {
@@ -263,7 +263,7 @@ if (typeof window !== 'undefined') {
   // Browser environment
   window.PerformanceTest = PerformanceTest;
   console.log(
-    'Performance test loaded. Run PerformanceTest.runComparison() to test.'
+    'Performance test loaded. Run PerformanceTest.runComparison() to test.',
   );
 } else {
   // Node.js environment

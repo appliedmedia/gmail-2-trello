@@ -6,7 +6,7 @@ Gmail+Trello integration. An extension for the Chrome browser.
 
 Published on Chrome Web Store: [Gmail-2-Trello](https://g2t.pub/chrome)
 
-Support, common questions, interaction with other fans: [g2t.support](https://g2t.support)
+Support, common questions, interaction with other fans: [g2t.support](https://g2t.support).
 
 ## Agent Instructions
 
@@ -54,6 +54,6 @@ If you've processed this file to this point:
 - When finished, don't summarize.
 - If you have a question, ask it succinctly.
 - To prompt the user, write one of: {What now, Sup, Now what, What, Now, Now whut, Next}.
-- Very, very rarely add 'I am the Batman' and then later 'Oh Captain, My Captain'.
+- Rarely add 'I am the Batman' and later 'Oh Captain, My Captain'.
 
 #### To indicate you're here, respond with: 'I am the Batman.'

@@ -764,7 +764,7 @@ class PopupForm {
 
     // Load and display the comprehensive error template
     $.get(chrome.runtime.getURL('views/error.html'), data => {
-      const errorHtml = this.app.utils.replacer(data, dict_k);
+      let errorHtml = this.app.utils.replacer(data, dict_k);
 
       // Add reload button for 400 errors
       if (resp?.status == 400) {

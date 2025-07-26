@@ -1,9 +1,10 @@
+// Ensure namespace is declared before any use
+var G2T = G2T || {}; // must be var to guarantee correct scope
+
 /**
  * WaitCounter - ES6 Class Version
  * @depend class_eventtarget.js
  */
-
-var G2T = G2T || {}; // must be var to guarantee correct scope
 
 class WaitCounter {
   constructor(args) {
@@ -51,16 +52,16 @@ class WaitCounter {
     const current = this.items[name];
 
     if (!current.busy) {
-      current.counter = 0;
+      current.count = 0;
       current.busy = true;
 
       current.handler = setInterval(() => {
-        current.counter++;
+        current.count++;
         this.app.utils.log(
-          'WaitCounter[' + current.name + ']. Round #' + current.counter
+          'WaitCounter[' + current.name + ']. Round #' + current.count,
         );
 
-        if (current.counter >= current.maxSteps) {
+        if (current.count >= current.maxSteps) {
           clearInterval(current.handler);
           current.busy = false;
         }

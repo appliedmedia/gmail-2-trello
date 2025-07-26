@@ -306,11 +306,6 @@ class Model {
     uploader.upload(data);
   }
 
-  checkTrelloAuthorized_popup_failure(data) {
-    this.app.persist.trelloAuthorized = false;
-    this.app.events.emit('APIFail', { data });
-  }
-
   trelloLoad() {
     this.app.utils.log('Loading Trello with API key:', this.app.trelloApiKey);
     Trello.setKey(this.app.trelloApiKey);
