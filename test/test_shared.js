@@ -43,17 +43,9 @@ global.G2T = global.G2T || {};
 global.document = {
   createElement: jest.fn((tagName) => {
     if (tagName === 'textarea') {
-      let innerHTML = '';
-      let value = '';
       return {
-        get innerHTML() { return innerHTML; },
-        set innerHTML(val) { 
-          innerHTML = val; 
-          // Simulate how textarea.innerHTML affects value
-          value = val.replace(/<[^>]*>/g, '');
-        },
-        get value() { return value; },
-        set value(val) { value = val; },
+        innerHTML: '',
+        value: '',
         style: {
           cssText: ''
         },
@@ -239,124 +231,52 @@ function clearAllMocks() {
 }
 
 /**
- * Default HTML element structure for common test scenarios
- */
-const DEFAULT_HTML_ELEMENTS = [
-  { tagName: 'P', textContent: 'Test paragraph', attributes: {} },
-  { tagName: 'DIV', textContent: 'Test div', attributes: {} },
-  { tagName: 'BR', textContent: '', attributes: {} },
-  { tagName: 'HR', textContent: '', attributes: {} },
-  { tagName: 'STRONG', textContent: 'Bold text', attributes: {} },
-  { tagName: 'EM', textContent: 'Italic text', attributes: {} },
-  { tagName: 'U', textContent: 'Underlined text', attributes: {} },
-  { tagName: 'STRIKE', textContent: 'Strikethrough text', attributes: {} },
-  { tagName: 'H1', textContent: 'Heading 1', attributes: {} },
-  { tagName: 'H2', textContent: 'Heading 2', attributes: {} },
-  { tagName: 'H3', textContent: 'Heading 3', attributes: {} },
-  { tagName: 'A', textContent: 'Link text', attributes: { href: '#' } }
-];
-
-/**
- * Helper function to extract HTML content from various input types
- * @param {any} input - Input that might contain HTML content
- * @returns {string} - HTML content string
- */
-function extractHtmlContent(input) {
-  if (typeof input === 'string') {
-    return input;
-  }
-  
-  if (input && typeof input === 'object') {
-    // Handle objects with html() method (like jQuery objects or test mocks)
-    if (typeof input.html === 'function') {
-      return input.html();
-    }
-    
-    // Handle objects with html property
-    if (input.html !== undefined) {
-      return input.html;
-    }
-    
-    // Handle objects with innerHTML property
-    if (input.innerHTML !== undefined) {
-      return input.innerHTML;
-    }
-  }
-  
-  return '';
-}
-
-/**
  * Helper function to create a mock jQuery object
- * @param {string|Array} htmlOrElements - HTML content string or array of element objects
- * @param {Array} customElements - Optional custom elements to add or replace defaults
+ * @param {string} html - HTML content
  * @returns {Object} - Mock jQuery object
  */
-function createMockJQuery(htmlOrElements = '', customElements = []) {
-  // Extract HTML content from various input types
-  const htmlContent = extractHtmlContent(htmlOrElements);
-  
-  // Determine the input type for processing
-  const isHTMLString = typeof htmlOrElements === 'string';
-  const isObjectWithHtml = htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function';
-  const isElementArray = Array.isArray(htmlOrElements);
-  
-  // Build the element list
-  let elements = [];
-  
-  if (isHTMLString || isObjectWithHtml) {
-    // For HTML strings or objects with html method, use defaults but filter based on content
-    elements = DEFAULT_HTML_ELEMENTS.filter(element => 
-      htmlContent.includes(`<${element.tagName.toLowerCase()}`)
-    );
-  } else if (isElementArray) {
-    // If it's an array, use it directly
-    elements = htmlOrElements;
-  }
-  
-  // Add or replace with custom elements
-  if (customElements.length > 0) {
-    if (isHTMLString || isObjectWithHtml) {
-      // For HTML strings or objects with html, add custom elements
-      elements = [...elements, ...customElements];
-    } else {
-      // For element arrays, replace with custom elements
-      elements = customElements;
-    }
-  }
-  
+function createMockJQuery(html = '') {
   const mockJQuery = {
-    html: () => {
-      if (isHTMLString || isObjectWithHtml) return htmlContent;
-      if (isElementArray) {
-        return elements.map(el => 
-          `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
-        ).join('');
-      }
-      return htmlContent;
-    },
-    length: elements.length,
+    html: () => html,
+    length: html ? 1 : 0,
     find: jest.fn(() => createMockJQuery()),
     each: jest.fn((callback) => {
-      elements.forEach((element, index) => {
-        const $element = createMockJQuery([element]);
-        $element.text = jest.fn(() => element.textContent);
-        $element.attr = jest.fn((attr) => element.attributes[attr]);
-        callback.call($element, index, element);
-      });
+      // Simulate jQuery each behavior
+      if (html && html.includes('<')) {
+        // If there's HTML content, simulate finding elements
+        const elements = [];
+        if (html.includes('<p>')) elements.push({ tagName: 'P' });
+        if (html.includes('<div>')) elements.push({ tagName: 'DIV' });
+        if (html.includes('<br')) elements.push({ tagName: 'BR' });
+        if (html.includes('<hr')) elements.push({ tagName: 'HR' });
+        if (html.includes('<strong>')) elements.push({ tagName: 'STRONG' });
+        if (html.includes('<em>')) elements.push({ tagName: 'EM' });
+        if (html.includes('<u>')) elements.push({ tagName: 'U' });
+        if (html.includes('<strike>')) elements.push({ tagName: 'STRIKE' });
+        if (html.includes('<h1>')) elements.push({ tagName: 'H1' });
+        if (html.includes('<h2>')) elements.push({ tagName: 'H2' });
+        if (html.includes('<h3>')) elements.push({ tagName: 'H3' });
+        if (html.includes('<a ')) elements.push({ tagName: 'A' });
+        
+        elements.forEach((element, index) => {
+          const $element = createMockJQuery(html);
+          $element.text = jest.fn(() => {
+            // Extract text content based on tag
+            const tagName = element.tagName.toLowerCase();
+            const regex = new RegExp(`<${tagName}[^>]*>(.*?)</${tagName}>`, 'i');
+            const match = html.match(regex);
+            return match ? match[1] : '';
+          });
+          callback.call($element, index, element);
+        });
+      }
       return mockJQuery;
     }),
     addClass: jest.fn(),
     removeClass: jest.fn(),
-    text: jest.fn(() => {
-      if (isHTMLString || isObjectWithHtml) return htmlContent;
-      return elements.map(el => el.textContent).join('');
-    }),
+    text: jest.fn(() => html),
     val: jest.fn(),
-    attr: jest.fn((attr) => {
-      if (elements.length === 1) return elements[0].attributes[attr];
-      return undefined;
-    }),
+    attr: jest.fn(),
     prop: jest.fn(),
     show: jest.fn(),
     hide: jest.fn(),
