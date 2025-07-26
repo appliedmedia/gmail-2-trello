@@ -231,52 +231,98 @@ function clearAllMocks() {
 }
 
 /**
+ * Default HTML element structure for common test scenarios
+ */
+const DEFAULT_HTML_ELEMENTS = [
+  { tagName: 'P', textContent: 'Test paragraph', attributes: {} },
+  { tagName: 'DIV', textContent: 'Test div', attributes: {} },
+  { tagName: 'BR', textContent: '', attributes: {} },
+  { tagName: 'HR', textContent: '', attributes: {} },
+  { tagName: 'STRONG', textContent: 'Bold text', attributes: {} },
+  { tagName: 'EM', textContent: 'Italic text', attributes: {} },
+  { tagName: 'U', textContent: 'Underlined text', attributes: {} },
+  { tagName: 'STRIKE', textContent: 'Strikethrough text', attributes: {} },
+  { tagName: 'H1', textContent: 'Heading 1', attributes: {} },
+  { tagName: 'H2', textContent: 'Heading 2', attributes: {} },
+  { tagName: 'H3', textContent: 'Heading 3', attributes: {} },
+  { tagName: 'A', textContent: 'Link text', attributes: { href: '#' } }
+];
+
+/**
  * Helper function to create a mock jQuery object
- * @param {string} html - HTML content
+ * @param {string|Array} htmlOrElements - HTML content string or array of element objects
+ * @param {Array} customElements - Optional custom elements to add or replace defaults
  * @returns {Object} - Mock jQuery object
  */
-function createMockJQuery(html = '') {
+function createMockJQuery(htmlOrElements = '', customElements = []) {
+  // Determine if we're getting HTML string, element array, or object with html method
+  const isHTMLString = typeof htmlOrElements === 'string';
+  const isObjectWithHtml = htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function';
+  
+  // Build the element list
+  let elements = [];
+  let htmlContent = '';
+  
+  if (isHTMLString) {
+    // If it's an HTML string, use defaults but filter based on content
+    htmlContent = htmlOrElements;
+    elements = DEFAULT_HTML_ELEMENTS.filter(element => 
+      htmlOrElements.includes(`<${element.tagName.toLowerCase()}`)
+    );
+  } else if (isObjectWithHtml) {
+    // If it's an object with html method, extract the HTML content
+    htmlContent = htmlOrElements.html();
+    elements = DEFAULT_HTML_ELEMENTS.filter(element => 
+      htmlContent.includes(`<${element.tagName.toLowerCase()}`)
+    );
+  } else if (Array.isArray(htmlOrElements)) {
+    // If it's an array, use it directly
+    elements = htmlOrElements;
+    htmlContent = elements.map(el => 
+      `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
+    ).join('');
+  }
+  
+  // Add or replace with custom elements
+  if (customElements.length > 0) {
+    if (isHTMLString || isObjectWithHtml) {
+      // For HTML strings or objects with html, add custom elements
+      elements = [...elements, ...customElements];
+    } else {
+      // For element arrays, replace with custom elements
+      elements = customElements;
+    }
+  }
+  
   const mockJQuery = {
-    html: () => html,
-    length: html ? 1 : 0,
+    html: () => {
+      if (isHTMLString || isObjectWithHtml) return htmlContent;
+      return elements.map(el => 
+        `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
+      ).join('');
+    },
+    length: elements.length,
     find: jest.fn(() => createMockJQuery()),
     each: jest.fn((callback) => {
-      // Simulate jQuery each behavior
-      if (html && html.includes('<')) {
-        // If there's HTML content, simulate finding elements
-        const elements = [];
-        if (html.includes('<p>')) elements.push({ tagName: 'P' });
-        if (html.includes('<div>')) elements.push({ tagName: 'DIV' });
-        if (html.includes('<br')) elements.push({ tagName: 'BR' });
-        if (html.includes('<hr')) elements.push({ tagName: 'HR' });
-        if (html.includes('<strong>')) elements.push({ tagName: 'STRONG' });
-        if (html.includes('<em>')) elements.push({ tagName: 'EM' });
-        if (html.includes('<u>')) elements.push({ tagName: 'U' });
-        if (html.includes('<strike>')) elements.push({ tagName: 'STRIKE' });
-        if (html.includes('<h1>')) elements.push({ tagName: 'H1' });
-        if (html.includes('<h2>')) elements.push({ tagName: 'H2' });
-        if (html.includes('<h3>')) elements.push({ tagName: 'H3' });
-        if (html.includes('<a ')) elements.push({ tagName: 'A' });
-        
-        elements.forEach((element, index) => {
-          const $element = createMockJQuery(html);
-          $element.text = jest.fn(() => {
-            // Extract text content based on tag
-            const tagName = element.tagName.toLowerCase();
-            const regex = new RegExp(`<${tagName}[^>]*>(.*?)</${tagName}>`, 'i');
-            const match = html.match(regex);
-            return match ? match[1] : '';
-          });
-          callback.call($element, index, element);
-        });
-      }
+      elements.forEach((element, index) => {
+        const $element = createMockJQuery([element]);
+        $element.text = jest.fn(() => element.textContent);
+        $element.attr = jest.fn((attr) => element.attributes[attr]);
+        callback.call($element, index, element);
+      });
       return mockJQuery;
     }),
     addClass: jest.fn(),
     removeClass: jest.fn(),
-    text: jest.fn(() => html),
+    text: jest.fn(() => {
+      if (isHTMLString || isObjectWithHtml) return htmlContent;
+      return elements.map(el => el.textContent).join('');
+    }),
     val: jest.fn(),
-    attr: jest.fn(),
+    attr: jest.fn((attr) => {
+      if (elements.length === 1) return elements[0].attributes[attr];
+      return undefined;
+    }),
     prop: jest.fn(),
     show: jest.fn(),
     hide: jest.fn(),
