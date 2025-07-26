@@ -213,6 +213,15 @@ describe('App Class', () => {
       expect(app.persist).toEqual(originalState);
     });
 
+    test('handleClassAppStateLoaded should handle null events gracefully', () => {
+      expect(() => app.handleClassAppStateLoaded(null, {})).not.toThrow();
+    });
+
+    test('handleClassAppStateLoaded should handle events missing type property', () => {
+      const eventWithoutType = { data: {} };
+      expect(() => app.handleClassAppStateLoaded(eventWithoutType, {})).not.toThrow();
+    });
+
     test('handleGmailNavigation should trigger redraw and fire event', () => {
       app.handleGmailNavigation();
       
