@@ -4,7 +4,75 @@
  */
 
 // Mock jQuery for testing
-global.$ = jest.fn();
+global.$ = jest.fn((selector, context) => {
+  // Return a mock jQuery object with common methods
+  return {
+    html: jest.fn(() => ''),
+    text: jest.fn(() => ''),
+    each: jest.fn((callback) => {
+      // Simulate jQuery each behavior
+      if (typeof selector === 'string' && context) {
+        // This simulates finding elements in a context
+        const mockElements = [];
+        // Create a few mock elements based on the selector
+        if (selector.includes('p')) {
+          mockElements.push({ tagName: 'P', textContent: 'Mock paragraph' });
+        }
+        if (selector.includes('div')) {
+          mockElements.push({ tagName: 'DIV', textContent: 'Mock div' });
+        }
+        if (selector.includes('strong')) {
+          mockElements.push({ tagName: 'STRONG', textContent: 'Mock bold' });
+        }
+        if (selector.includes('em')) {
+          mockElements.push({ tagName: 'EM', textContent: 'Mock italic' });
+        }
+        if (selector.includes('a')) {
+          mockElements.push({ tagName: 'A', textContent: 'Mock link', href: 'https://example.com' });
+        }
+        if (selector.includes('h1')) {
+          mockElements.push({ tagName: 'H1', textContent: 'Mock header 1' });
+        }
+        if (selector.includes('h2')) {
+          mockElements.push({ tagName: 'H2', textContent: 'Mock header 2' });
+        }
+        if (selector.includes('h3')) {
+          mockElements.push({ tagName: 'H3', textContent: 'Mock header 3' });
+        }
+        if (selector.includes('br')) {
+          mockElements.push({ tagName: 'BR' });
+        }
+        if (selector.includes('hr')) {
+          mockElements.push({ tagName: 'HR' });
+        }
+        if (selector.includes('u')) {
+          mockElements.push({ tagName: 'U', textContent: 'Mock underline' });
+        }
+        if (selector.includes('strike')) {
+          mockElements.push({ tagName: 'STRIKE', textContent: 'Mock strikethrough' });
+        }
+        
+        mockElements.forEach((element, index) => {
+          const $element = {
+            text: jest.fn(() => element.textContent || ''),
+            html: jest.fn(() => element.textContent || ''),
+            attr: jest.fn((name) => {
+              if (name === 'href') return element.href;
+              return '';
+            }),
+            prop: jest.fn((name) => {
+              if (name === 'nodeName') return element.tagName;
+              return '';
+            })
+          };
+          callback(index, element);
+        });
+      }
+      return this;
+    }),
+    length: 0
+  };
+});
 
 // Mock chrome API
 global.chrome = {
@@ -23,8 +91,29 @@ describe('Utils.markdownify', () => {
   let utils;
 
   beforeEach(() => {
+    // Create a mock app object for Utils
+    const mockApp = {
+      temp: {
+        log: {
+          memory: [],
+          count: 0,
+          max: 100,
+          debugMode: false
+        }
+      },
+      persist: {
+        storageHashes: {}
+      },
+      chrome: {
+        storageSyncGet: jest.fn()
+      },
+      events: {
+        fire: jest.fn()
+      }
+    };
+
     // Create a fresh Utils instance for each test
-    utils = new Utils({ debug: false });
+    utils = new Utils({ app: mockApp });
     
     // Reset jQuery mock
     $.mockClear();

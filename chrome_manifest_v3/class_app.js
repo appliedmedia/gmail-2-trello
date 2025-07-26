@@ -178,4 +178,9 @@ class App {
 // Assign class to namespace
 G2T.App = App;
 
+// Export for testing
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = App;
+}
+
 // End, class_app.js
