@@ -785,6 +785,4 @@ class Utils {
 // Assign class to namespace
 G2T.Utils = Utils;
 
-
-
 // End, class_utils.js

@@ -1,6 +1,6 @@
 /**
- * Comprehensive Jest test suite for App class functionality
- * Tests the App class and its methods
+ * Basic Jest test suite for App class functionality
+ * Tests the App class constructor and basic method existence
  */
 
 // Mock jQuery for testing
@@ -136,58 +136,93 @@ describe('App Class', () => {
 
   describe('Initialization', () => {
     test('should initialize the app correctly', () => {
-      // Mock the init method if it exists
-      if (typeof app.init === 'function') {
-        const initSpy = jest.spyOn(app, 'init');
-        app.init();
-        expect(initSpy).toHaveBeenCalled();
-      }
+      const initSpy = jest.spyOn(app, 'init');
+      app.init();
+      expect(initSpy).toHaveBeenCalled();
+      expect(app.gmailView.init).toHaveBeenCalled();
+      expect(app.popupView.init).toHaveBeenCalled();
+      expect(app.model.init).toHaveBeenCalled();
+      expect(app.utils.init).toHaveBeenCalled();
+    });
+
+    test('should set up event listeners', () => {
+      app.init();
+      expect(app.events.addEventListener).toHaveBeenCalled();
     });
   });
 
   describe('Event Handling', () => {
-    test('should handle events correctly', () => {
-      // Test event handling if methods exist
-      if (typeof app.handleEvent === 'function') {
-        const event = { type: 'test', data: {} };
-        const handleEventSpy = jest.spyOn(app, 'handleEvent');
-        app.handleEvent(event);
-        expect(handleEventSpy).toHaveBeenCalledWith(event);
-      }
+    test('should handle class app state loaded events', () => {
+      const event = { type: 'classAppStateLoaded' };
+      const params = { data: 'test' };
+      expect(() => app.handleClassAppStateLoaded(event, params)).not.toThrow();
+    });
+
+    test('should handle Gmail navigation events', () => {
+      expect(() => app.handleGmailNavigation()).not.toThrow();
+    });
+
+    test('should handle Gmail hash change events', () => {
+      expect(() => app.handleGmailHashChange()).not.toThrow();
     });
   });
 
-  describe('Storage Operations', () => {
-    test('should handle storage operations', () => {
-      // Test storage operations if methods exist
-      if (typeof app.saveData === 'function') {
-        const data = { key: 'value' };
-        const saveDataSpy = jest.spyOn(app, 'saveData');
-        app.saveData(data);
-        expect(saveDataSpy).toHaveBeenCalledWith(data);
-      }
+  describe('Data Management', () => {
+    test('should update data correctly', () => {
+      expect(() => app.updateData()).not.toThrow();
+    });
+
+    test('should load persistent data', () => {
+      expect(() => app.persistLoad()).not.toThrow();
+      expect(app.utils.loadFromChromeStorage).toHaveBeenCalledWith('g2t_app', 'classAppStateLoaded');
+    });
+
+    test('should save persistent data', () => {
+      expect(() => app.persistSave()).not.toThrow();
+      expect(app.utils.saveToChromeStorage).toHaveBeenCalledWith('g2t_app', app.persist);
     });
   });
 
-  describe('Utility Methods', () => {
-    test('should use utility methods correctly', () => {
-      // Test utility method usage if methods exist
-      if (typeof app.processData === 'function') {
-        const data = 'test data';
-        const processDataSpy = jest.spyOn(app, 'processData');
-        app.processData(data);
-        expect(processDataSpy).toHaveBeenCalledWith(data);
-      }
+  describe('Event Binding', () => {
+    test('should bind events correctly', () => {
+      expect(() => app.bindEvents()).not.toThrow();
+    });
+
+    test('should bind Gmail navigation events', () => {
+      expect(() => app.bindGmailNavigationEvents()).not.toThrow();
     });
   });
 
-  describe('Cleanup', () => {
-    test('should clean up resources on destroy', () => {
-      if (typeof app.destroy === 'function') {
-        const destroySpy = jest.spyOn(app, 'destroy');
-        app.destroy();
-        expect(destroySpy).toHaveBeenCalled();
-      }
+  describe('State Management', () => {
+    test('should have correct default persistent state', () => {
+      expect(app.persist.layoutMode).toBe(0);
+      expect(app.persist.trelloAuthorized).toBe(false);
+      expect(app.persist.trelloUser).toBe(null);
+      expect(app.persist.trelloBoards).toEqual([]);
+      expect(app.persist.popupWidth).toBe(700);
+      expect(app.persist.popupHeight).toBe(464);
+    });
+
+    test('should have correct default temporary state', () => {
+      expect(app.temp.lastHash).toBe('#test-hash');
+      expect(app.temp.log.memory).toEqual([]);
+      expect(app.temp.log.count).toBe(0);
+      expect(app.temp.log.max).toBe(100);
+      expect(app.temp.log.debugMode).toBe(false);
+    });
+
+    test('should have correct Trello API key', () => {
+      expect(app.trelloApiKey).toBe('21b411b1b5b549c54bd32f0e90738b41');
+    });
+  });
+
+  describe('Class Properties', () => {
+    test('should have correct static ck property', () => {
+      expect(App.ck).toEqual({ id: 'g2t_app' });
+    });
+
+    test('should have correct instance ck property', () => {
+      expect(app.ck).toEqual({ id: 'g2t_app' });
     });
   });
 });
