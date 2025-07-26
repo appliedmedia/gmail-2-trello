@@ -29,7 +29,7 @@ class EventTarget {
     this._listeners[type].push(listener);
   }
 
-  fire(event, params) {
+  emit(event, params) {
     if (typeof event === 'string') {
       event = { type: event };
     }

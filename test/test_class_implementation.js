@@ -117,7 +117,7 @@ ClassImplementationTestSuite.addTest('Class Model - Event System', () => {
   };
 
   G2T.app.events.addListener('test', listener);
-  G2T.app.events.fire('test', { message: 'hello' });
+  G2T.app.events.emit('test', { message: 'hello' });
 
   if (!eventFired) {
     throw new Error('Event listener not triggered');
@@ -368,8 +368,8 @@ ClassImplementationTestSuite.addTest(
     });
 
     // Fire events
-    G2T.app.events.fire('onTrelloDataReady', { data: 'test' });
-    G2T.app.events.fire('onDetected', { element: 'test' });
+    G2T.app.events.emit('onTrelloDataReady', { data: 'test' });
+    G2T.app.events.emit('onDetected', { element: 'test' });
 
     if (!modelEventFired) {
       throw new Error('Model event not fired');
@@ -387,7 +387,7 @@ ClassImplementationTestSuite.addTest(
   () => {
     // Test that invalid event types are handled gracefully
     try {
-      G2T.app.events.fire('', {});
+      G2T.app.events.emit('', {});
       // Should not throw for empty event type in current implementation
     } catch (error) {
       if (!error.message.includes("Event object missing 'type' property")) {
@@ -433,7 +433,7 @@ ClassImplementationTestSuite.addTest(
       eventFired = true;
     };
     G2T.app.events.addListener('test', testListener);
-    G2T.app.events.fire('test', {});
+    G2T.app.events.emit('test', {});
     G2T.app.events.removeListener('test', testListener);
 
     if (!eventFired) {
@@ -458,7 +458,7 @@ ClassImplementationTestSuite.addTest(
 
     // Fire many events
     for (let i = 0; i < 1000; i++) {
-      G2T.app.events.fire('test', { iteration: i });
+      G2T.app.events.emit('test', { iteration: i });
     }
 
     // Remove listeners
@@ -518,7 +518,7 @@ ClassImplementationTestSuite.addTest(
     const model = new G2T.Model(app);
     const modelMethods = model.constructor.toString();
 
-    if (!modelMethods.includes('G2T.app.events.fire')) {
+    if (!modelMethods.includes('G2T.app.events.emit')) {
       throw new Error('Model should fire global events');
     }
   }
@@ -549,7 +549,7 @@ ClassImplementationTestSuite.addTest(
     });
 
     // Simulate card submit complete
-    G2T.app.events.fire('onCardSubmitComplete', {
+    G2T.app.events.emit('onCardSubmitComplete', {
       data: { title: 'Test Card' },
     });
 
@@ -583,7 +583,7 @@ ClassImplementationTestSuite.addTest(
     });
 
     // Simulate submittedFormShownComplete event
-    G2T.app.events.fire('submittedFormShownComplete', {
+    G2T.app.events.emit('submittedFormShownComplete', {
       data: { title: 'Test Card' },
     });
 

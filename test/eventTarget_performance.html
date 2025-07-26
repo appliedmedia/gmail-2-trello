@@ -137,7 +137,7 @@
             };
             
             eventTarget.addListener('test', listener);
-            eventTarget.fire('test', { message: 'hello' });
+            eventTarget.emit('test', { message: 'hello' });
             
             if (testResult === 'Event: test, Params: {"message":"hello"}') {
                 output += '✅ PASS: Basic functionality works\n';
@@ -147,7 +147,7 @@
             
             eventTarget.removeListener('test', listener);
             testResult = '';
-            eventTarget.fire('test', { message: 'should not fire' });
+            eventTarget.emit('test', { message: 'should not fire' });
             
             if (testResult === '') {
                 output += '✅ PASS: Listener removal works\n';
@@ -165,7 +165,7 @@
             
             eventTarget2.addListener('multi', listener1);
             eventTarget2.addListener('multi', listener2);
-            eventTarget2.fire('multi', {});
+            eventTarget2.emit('multi', {});
             
             if (results.join('') === '12') {
                 output += '✅ PASS: Multiple listeners work\n';
@@ -190,8 +190,8 @@
             eventTarget3.addListener('string', stringListener);
             eventTarget3.addListener('object', objectListener);
             
-            eventTarget3.fire('string', {});
-            eventTarget3.fire({ type: 'object' }, {});
+            eventTarget3.emit('string', {});
+            eventTarget3.emit({ type: 'object' }, {});
             
             if (stringResult === 'Type: string, Target: true' && objectResult === 'Type: object, Target: true') {
                 output += '✅ PASS: String and object events work\n';

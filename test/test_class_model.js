@@ -151,36 +151,40 @@ describe('Model Class', () => {
   });
 
   describe('Trello Data Loading', () => {
-    test('loadTrelloData should load Trello data', () => {
-      expect(() => model.loadTrelloData()).not.toThrow();
+    test('loadTrelloUser should load Trello user data', () => {
+      expect(() => model.loadTrelloUser()).not.toThrow();
     });
 
-    test('loadTrelloData_user_success should handle user data success', () => {
-      const data = { user: { id: '123', name: 'Test User' } };
-      model.loadTrelloData_user_success(data);
-      expect(model.user).toEqual(data.user);
+    test('loadTrelloUser_success should handle user data success', () => {
+      const data = { id: '123', name: 'Test User' };
+      model.loadTrelloUser_success(data);
+      expect(model.app.persist.user).toEqual(data);
     });
 
-    test('loadTrelloData_boards_success should handle boards data success', () => {
-      const data = { boards: [{ id: '1', name: 'Board 1' }] };
-      model.loadTrelloData_boards_success(data);
-      expect(model.boards).toEqual(data.boards);
+    test('loadTrelloBoards should load Trello boards data', () => {
+      expect(() => model.loadTrelloBoards()).not.toThrow();
     });
 
-    test('loadTrelloData_failure should handle data loading failure', () => {
-      const data = { error: 'Failed to load data' };
-      model.loadTrelloData_failure(data);
-      expect(model.trelloDataReady).toBe(false);
+    test('loadTrelloBoards_success should handle boards data success', () => {
+      const data = [{ id: '1', name: 'Board 1' }];
+      model.loadTrelloBoards_success(data);
+      expect(model.app.temp.boards).toEqual(data);
     });
 
-    test('checkTrelloDataReady should check if data is ready', () => {
-      model.user = { id: '123' };
-      model.boards = [{ id: '1' }];
-      expect(model.checkTrelloDataReady()).toBe(true);
+    test('loadTrelloUser_failure should handle user loading failure', () => {
+      const data = { error: 'Failed to load user data' };
+      model.loadTrelloUser_failure(data);
     });
 
-    test('checkTrelloDataReady should return false when data is not ready', () => {
-      expect(model.checkTrelloDataReady()).toBe(false);
+    test('loadTrelloBoards_failure should handle boards loading failure', () => {
+      const data = { error: 'Failed to load boards data' };
+      model.loadTrelloBoards_failure(data);
+    });
+
+    test('handleTrelloUserReady should trigger boards loading', () => {
+      const loadTrelloBoardsSpy = jest.spyOn(model, 'loadTrelloBoards');
+      model.handleTrelloUserReady();
+      expect(loadTrelloBoardsSpy).toHaveBeenCalled();
     });
   });
 

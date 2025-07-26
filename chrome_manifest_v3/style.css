@@ -108,8 +108,8 @@
     right: 24px;
 }
 
-#g2tPopup #g2tLabelsMsg,
-#g2tPopup #g2tMembersMsg {
+#g2tPopup #g2t_label_msg,
+#g2tPopup #g2t_member_msg {
     background: #f9edb8;
     height: 16px;
     width: 29%;
@@ -118,7 +118,7 @@
     margin-bottom: 50px;
 }
 
-#g2tPopup #g2tLabels {
+#g2tPopup #g2t_label {
     margin: 0;
     padding: 0;
     min-height: 40px;
@@ -129,19 +129,19 @@
     align-items: flex-start;
 }
 
-#g2tPopup #g2tImages,
+#g2tPopup #g2t_image,
 #g2tPopup #g2tMembers,
-#g2tPopup #g2tAttachments {
+#g2tPopup #g2t_attachment {
     overflow: auto;
 }
 
-#g2tPopup #g2tImages {
+#g2tPopup #g2t_image {
     max-height: 110px;
 }
 #g2tPopup #g2tMembers {
     max-height: 85px;
 }
-#g2tPopup #g2tAttachments {
+#g2tPopup #g2t_attachment {
     max-height: 85px;
 }
 
@@ -188,7 +188,7 @@
     font-weight: bold;
 }
 
-#g2tPopup #g2tImages img {
+#g2tPopup #g2t_image img {
     vertical-align: middle;
     border: 1px solid lightgray;
     margin: 1px auto;
@@ -328,7 +328,7 @@
     margin-right: 6px;
 }
 
-#g2tPopup #g2tLabels button,
+#g2tPopup #g2t_label button,
 #g2tPopup #g2tMembers button,
 #g2tPopup .imgOrAttach label {
     float: left;
@@ -484,7 +484,7 @@
     margin: 0 4px 0 0 !important;
     justify-content: flex-end;
 }
-#g2tPopup .memberLabel + .g2tFormControl #g2tLabels {
+#g2tPopup .memberLabel + .g2tFormControl #g2t_label {
     min-height: 35px;
     padding-top: 5px;
 }
@@ -493,14 +493,14 @@
     padding-top: 1px;
 }
 
-#g2tPopup #g2tLabels button:hover,
+#g2tPopup #g2t_label button:hover,
 #g2tPopup #g2tMembers button:hover,
 #g2tPopup .imgOrAttach label:hover {
     border-color: #52a8d9 !important;
     color: #1789c0 !important;
 }
 
-#g2tPopup #g2tLabels button.active,
+#g2tPopup #g2t_label button.active,
 #g2tPopup #g2tMembers button.active,
 #g2tPopup .imgOrAttach input:checked + label {
     border-color: inherit;
@@ -555,7 +555,7 @@
     width: 30px;
 }
 
-#g2tPopup #g2tAttachments .imgOrAttach label {
+#g2tPopup #g2t_attachment .imgOrAttach label {
     overflow: hidden;
     text-overflow: ellipsis;
     /* shows atleast 10 chars. */
@@ -564,14 +564,14 @@
     white-space: nowrap;
     display: block;
 }
-#g2tPopup #g2tAttachments .img-container {
+#g2tPopup #g2t_attachment .img-container {
     width: 100%;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 12px;
 }
-#g2tPopup #g2tAttachments {
+#g2tPopup #g2t_attachment {
     margin-top: 2px;
 }
 
@@ -727,8 +727,8 @@
     flex-basis: 150px;
     transition: 300ms;
 }
-#g2tPopup #g2tLabels button.active-mouseDown,
-#g2tPopup #g2tLabels .active-mouseDown,
+#g2tPopup #g2t_label button.active-mouseDown,
+#g2tPopup #g2t_label .active-mouseDown,
 #g2tPopup #g2tMembers button.active-mouseDown,
 #g2tPopup #g2tMembers .active-mouseDown {
     border-color: rgba(120, 217, 255, 0.8) !important;

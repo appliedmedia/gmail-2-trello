@@ -77,7 +77,7 @@ function runPerformanceTest() {
     // Fire events
     for (let i = 0; i < iterations; i++) {
       const eventType = eventTypes[i % eventTypes.length];
-      eventTarget.fire(eventType, testData);
+      eventTarget.emit(eventType, testData);
     }
 
     // Remove listeners

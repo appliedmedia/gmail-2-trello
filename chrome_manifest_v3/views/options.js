@@ -45,7 +45,7 @@ function save_options() {
       status.innerHTML =
         'Options Saved. Debug mode changes take effect immediately.';
     } else {
-      status.innerHTML = 'Options Saved.';
+      status.innerHTML = 'Options saved.';
     }
     previousDebugMode = debugMode;
     setTimeout(() => {
@@ -57,6 +57,18 @@ function save_options() {
 // Returns dueshortcuts to default:
 function default_dueshortcuts() {
   document.getElementById('dueshortcuts').value = dueShortcuts_k;
+}
+
+// Clear cache function
+function clear_cache() {
+  const cacheStatus = document.getElementById('cache-status');
+
+  chrome.runtime.sendMessage({ g2t_clear_extension_browsing_data: true });
+
+  cacheStatus.innerHTML = 'Cache cleared.';
+  setTimeout(() => {
+    cacheStatus.innerHTML = '&nbsp;';
+  }, 3000);
 }
 
 // Restores select box state to saved value from localStorage.
@@ -87,6 +99,7 @@ document.querySelector('#save').addEventListener('click', save_options);
 document
   .querySelector('#default-dueshortcuts')
   .addEventListener('click', default_dueshortcuts);
+document.querySelector('#clearcache').addEventListener('click', clear_cache);
 try {
   document.getElementById('g2tVersion').textContent =
     chrome.runtime.getManifest().version || 'unknown';

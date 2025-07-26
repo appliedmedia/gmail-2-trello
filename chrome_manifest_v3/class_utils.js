@@ -28,6 +28,9 @@ class Utils {
         count: 0,
         max: 100,
         debugMode: false,
+        lastMessage: null,
+        lastMessageCount: 0,
+        lastMessageIndex: -1,
       };
     }
 
@@ -44,20 +47,58 @@ class Utils {
         data = JSON.stringify(data);
       }
 
-      data = `${now_k}.${counter_k} G2T→${data}`;
+      const messageContent = `G2T→${data}`;
 
-      l.memory[l.count] = data;
+      // Check if this is a duplicate of the last message
+      if (l.lastMessage === messageContent) {
+        // Update the existing entry with new timestamp and increment count
+        l.lastMessageCount++;
+        const lastTimestamp = l.memory[l.lastMessageIndex].split(' ')[0];
+        const newTimestamp = now_k;
+        l.memory[
+          l.lastMessageIndex
+        ] = `${lastTimestamp}...x${l.lastMessageCount}...${newTimestamp} ${messageContent}`;
+
+        if (l.debugMode) {
+          window.console.log(l.memory[l.lastMessageIndex]);
+        }
+        // Don't increment the counter for duplicates
+        return;
+      }
+
+      // New message - store it normally
+      const fullMessage = `${now_k}.${counter_k} ${messageContent}`;
+      l.memory[l.count] = fullMessage;
+
+      // Update duplicate tracking
+      l.lastMessage = messageContent;
+      l.lastMessageCount = 1;
+      l.lastMessageIndex = l.count;
+
       if (++l.count >= l.max) {
         l.count = 0;
       }
+
       if (l.debugMode) {
-        window.console.log(data);
+        window.console.log(fullMessage);
       }
     } else {
-      return (
-        l.memory.slice(l.count).join('\n') +
-        l.memory.slice(0, l.count).join('\n')
-      );
+      // Return log content with proper newlines
+      const afterCount = l.memory.slice(l.count);
+      const beforeCount = l.memory.slice(0, l.count);
+
+      // Join with newlines, ensuring proper separation
+      let result = '';
+      if (afterCount.length > 0) {
+        result += afterCount.join('\n');
+      }
+      if (beforeCount.length > 0) {
+        if (result) {
+          result += '\n';
+        }
+        result += beforeCount.join('\n');
+      }
+      return result;
     }
   }
 
@@ -76,7 +117,7 @@ class Utils {
   /**
    * Load data from chrome storage
    */
-  loadFromChromeStorage(keyId, fire_on_done = '') {
+  loadFromChromeStorage(keyId, emit_on_done = '') {
     this.app.chrome.storageSyncGet(keyId, response => {
       const jsonData = response?.[keyId];
       const result = jsonData ? JSON.parse(jsonData) : '';
@@ -86,8 +127,8 @@ class Utils {
         this.app.persist.storageHashes[keyId] = this.djb2Hash(jsonData);
       }
 
-      if (fire_on_done) {
-        this.app.events.fire(fire_on_done, result);
+      if (emit_on_done) {
+        this.app.events.emit(emit_on_done, result);
       }
     });
   }
@@ -99,6 +140,18 @@ class Utils {
     // Stringify once and reuse
     const jsonData = JSON.stringify(data);
     const dataHash = this.djb2Hash(jsonData);
+    const dataSize = jsonData.length;
+
+    // Log data size for debugging
+    this.log(`saveToChromeStorage: ${keyId} size=${dataSize} bytes`);
+
+    // Check if data is too large (Chrome sync storage limit is ~8KB per item)
+    if (dataSize > 7000) {
+      this.log(
+        `WARNING: Data too large (${dataSize} bytes) for ${keyId}, skipping save`
+      );
+      return;
+    }
 
     // Check if we have a stored hash for this key
     const storedHash = this.app.persist.storageHashes[keyId];
@@ -320,7 +373,9 @@ class Utils {
     if (nodeName && context.element_meets_min_length) {
       const headerLevelText = nodeName.substr(-1);
       const headerLevel = parseInt(headerLevelText, 10);
-      const headerMarkdown = `\n\n${'#'.repeat(headerLevel)} ${context.element_text}\n\n`;
+      const headerMarkdown = `\n\n${'#'.repeat(headerLevel)} ${
+        context.element_text
+      }\n\n`;
       context.toProcess[context.element_text.toLowerCase()] = headerMarkdown; // Intentionally overwrites duplicates
     }
   }
