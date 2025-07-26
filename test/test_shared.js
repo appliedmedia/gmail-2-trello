@@ -249,38 +249,61 @@ const DEFAULT_HTML_ELEMENTS = [
 ];
 
 /**
+ * Helper function to extract HTML content from various input types
+ * @param {any} input - Input that might contain HTML content
+ * @returns {string} - HTML content string
+ */
+function extractHtmlContent(input) {
+  if (typeof input === 'string') {
+    return input;
+  }
+  
+  if (input && typeof input === 'object') {
+    // Handle objects with html() method (like jQuery objects or test mocks)
+    if (typeof input.html === 'function') {
+      return input.html();
+    }
+    
+    // Handle objects with html property
+    if (input.html !== undefined) {
+      return input.html;
+    }
+    
+    // Handle objects with innerHTML property
+    if (input.innerHTML !== undefined) {
+      return input.innerHTML;
+    }
+  }
+  
+  return '';
+}
+
+/**
  * Helper function to create a mock jQuery object
  * @param {string|Array} htmlOrElements - HTML content string or array of element objects
  * @param {Array} customElements - Optional custom elements to add or replace defaults
  * @returns {Object} - Mock jQuery object
  */
 function createMockJQuery(htmlOrElements = '', customElements = []) {
-  // Determine if we're getting HTML string, element array, or object with html method
+  // Extract HTML content from various input types
+  const htmlContent = extractHtmlContent(htmlOrElements);
+  
+  // Determine the input type for processing
   const isHTMLString = typeof htmlOrElements === 'string';
   const isObjectWithHtml = htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function';
+  const isElementArray = Array.isArray(htmlOrElements);
   
   // Build the element list
   let elements = [];
-  let htmlContent = '';
   
-  if (isHTMLString) {
-    // If it's an HTML string, use defaults but filter based on content
-    htmlContent = htmlOrElements;
-    elements = DEFAULT_HTML_ELEMENTS.filter(element => 
-      htmlOrElements.includes(`<${element.tagName.toLowerCase()}`)
-    );
-  } else if (isObjectWithHtml) {
-    // If it's an object with html method, extract the HTML content
-    htmlContent = htmlOrElements.html();
+  if (isHTMLString || isObjectWithHtml) {
+    // For HTML strings or objects with html method, use defaults but filter based on content
     elements = DEFAULT_HTML_ELEMENTS.filter(element => 
       htmlContent.includes(`<${element.tagName.toLowerCase()}`)
     );
-  } else if (Array.isArray(htmlOrElements)) {
+  } else if (isElementArray) {
     // If it's an array, use it directly
     elements = htmlOrElements;
-    htmlContent = elements.map(el => 
-      `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
-    ).join('');
   }
   
   // Add or replace with custom elements
@@ -297,9 +320,12 @@ function createMockJQuery(htmlOrElements = '', customElements = []) {
   const mockJQuery = {
     html: () => {
       if (isHTMLString || isObjectWithHtml) return htmlContent;
-      return elements.map(el => 
-        `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
-      ).join('');
+      if (isElementArray) {
+        return elements.map(el => 
+          `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
+        ).join('');
+      }
+      return htmlContent;
     },
     length: elements.length,
     find: jest.fn(() => createMockJQuery()),

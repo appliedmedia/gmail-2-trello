@@ -91,7 +91,7 @@ describe('Utils.markdownify', () => {
     });
 
     test('should handle simple text without HTML', () => {
-      const $simple = { html: () => 'Simple text content' };
+      const $simple = createMockJQuery('Simple text content');
       const result = utils.markdownify($simple);
       expect(result).toBe('Simple text content');
     });
