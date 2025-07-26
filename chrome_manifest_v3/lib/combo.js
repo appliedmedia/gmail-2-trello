@@ -137,7 +137,6 @@
     },
 
     _destroy: function () {
-      debugger;
       if (this.wrapper && this.element) {
         this.wrapper.remove();
         this.element.show();

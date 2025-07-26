@@ -261,10 +261,6 @@ class PopupView {
       'onPopupVisible',
       this.handlePopupVisible.bind(this)
     );
-    this.app.events.addListener(
-      'periodicChecks',
-      this.handlePeriodicChecks.bind(this)
-    );
 
     this.app.events.addListener(
       'detectButton',
@@ -276,21 +272,14 @@ class PopupView {
       'onBeforeAuthorize',
       this.handleBeforeAuthorize.bind(this)
     );
-    this.app.events.addListener(
-      'checkTrelloAuthorized_failed',
-      this.handleAuthorizeFail.bind(this)
-    );
-    this.app.events.addListener(
-      'checkTrelloAuthorized_success',
-      this.handleCheckTrelloAuthorized_success.bind(this)
-    );
+
     this.app.events.addListener(
       'onBeforeLoadTrello',
       this.handleBeforeLoadTrello.bind(this)
     );
     this.app.events.addListener(
       'trelloUserAndBoardsReady',
-      this.handleTrelloDataReady.bind(this)
+      this.handleTrelloUserAndBoardsReady.bind(this)
     );
   }
 
@@ -480,16 +469,17 @@ class PopupView {
   handlePopupVisible() {
     this.form.reset();
 
+    // Load model data when popup is shown (starts Trello authentication)
+    this.app.model.load();
+
     const user_k = this.app.persist.user || {};
     const fullName = user_k?.fullName || '';
 
     this.app.gmailView.parsingData = false;
     this.app.model.gmail = this.app.gmailView.parseData({ fullName });
     this.form.bindGmailData(this.app.model.gmail);
-    this.app.events.emit('periodicChecks');
-  }
 
-  handlePeriodicChecks() {
+    // Check for version updates after a delay
     setTimeout(() => {
       this.periodicChecks();
     }, 3000);
@@ -503,25 +493,20 @@ class PopupView {
   }
 
   handleBeforeAuthorize() {
-    this.form.bindData(''); // Intentionally blank
+    this.form.bindData(); // No longer need to pass data parameter
     this.form.showMessage(this.app, 'Authorizing...');
-  }
-
-  handleCheckTrelloAuthorized_success() {
-    this.$popupContent.show();
-    this.form.hideMessage();
-    // Load Trello data after successful authorization
-    this.app.model.loadTrelloUser();
   }
 
   handleBeforeLoadTrello() {
     this.form.showMessage(this.app, 'Loading Trello data...');
   }
 
-  handleTrelloDataReady() {
+  handleTrelloUserAndBoardsReady() {
+    // Now show the popup with all data ready
     this.$popupContent.show();
     this.form.hideMessage();
-    this.form.bindData(this.app.model);
+    this.form.bindData(); // No longer need to pass data parameter
+    this.form.updateBoards(); // Populate the boards dropdown
   }
 
   handleRuntimeMessage(request, sender, sendResponse) {

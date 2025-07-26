@@ -261,12 +261,18 @@ class Model {
       parent: this,
       app: this.app,
     });
+    this.initialized = false;
   }
 
   init() {
     // State is loaded centrally by app
     this.bindEvents();
-    this.initTrello();
+    this.initialized = true;
+  }
+
+  load() {
+    // Start Trello authentication and data loading
+    this.trelloLoad();
   }
 
   uploadAttachments(data = {}) {
@@ -301,11 +307,8 @@ class Model {
     this.app.events.emit('APIFail', { data });
   }
 
-  initTrello() {
-    this.app.utils.log(
-      'Initializing Trello with API key:',
-      this.app.trelloApiKey
-    );
+  trelloLoad() {
+    this.app.utils.log('Loading Trello with API key:', this.app.trelloApiKey);
     Trello.setKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
   }
@@ -320,6 +323,7 @@ class Model {
       url: data?.url,
     });
 
+    this.app.utils.log('Emitting checkTrelloAuthorized_success');
     this.app.events.emit('checkTrelloAuthorized_success', { data });
   }
 
@@ -369,7 +373,9 @@ class Model {
   }
 
   loadTrelloUser_success(data) {
+    this.app.utils.log('loadTrelloUser_success called with data:', data);
     this.app.persist.user = data;
+    this.app.utils.log('Emitting trelloUserReady');
     this.app.events.emit('trelloUserReady');
   }
 
@@ -392,9 +398,11 @@ class Model {
   }
 
   loadTrelloBoards_success(data) {
+    this.app.utils.log('loadTrelloBoards_success called with data:', data);
     if (data) {
       this.app.temp.boards = data;
     }
+    this.app.utils.log('Emitting trelloUserAndBoardsReady');
     this.app.events.emit('trelloUserAndBoardsReady');
   }
 
@@ -418,7 +426,7 @@ class Model {
 
   loadTrelloLists_success(data) {
     this.app.temp.lists = data;
-    this.app.events.emit('loadTrelloListSuccess', { data });
+    this.app.events.emit('loadTrelloLists_success', { data });
   }
 
   loadTrelloLists_failure(data) {
@@ -441,7 +449,7 @@ class Model {
 
   loadTrelloCards_success(data) {
     this.app.temp.cards = data;
-    this.app.events.emit('loadTrelloCardsSuccess', { data });
+    this.app.events.emit('loadTrelloCards_success', { data });
   }
 
   loadTrelloCards_failure(data) {
@@ -464,7 +472,7 @@ class Model {
 
   loadTrelloMembers_success(data) {
     this.app.temp.members = data;
-    this.app.events.emit('loadTrelloMembersSuccess', { data });
+    this.app.events.emit('loadTrelloMembers_success', { data });
   }
 
   loadTrelloMembers_failure(data) {
@@ -487,7 +495,7 @@ class Model {
 
   loadTrelloLabels_success(data) {
     this.app.temp.labels = data;
-    this.app.events.emit('loadTrelloLabelsSuccess', { data });
+    this.app.events.emit('loadTrelloLabels_success', { data });
   }
 
   loadTrelloLabels_failure(data) {
@@ -670,10 +678,25 @@ class Model {
       'trelloUserReady',
       this.handleTrelloUserReady.bind(this)
     );
+
+    // Listen to authorization success to start data loading
+    this.app.events.addListener(
+      'checkTrelloAuthorized_success',
+      this.handleCheckTrelloAuthorized_success.bind(this)
+    );
   }
 
   handleTrelloUserReady() {
+    this.app.utils.log('handleTrelloUserReady called, loading boards');
     this.loadTrelloBoards();
+  }
+
+  handleCheckTrelloAuthorized_success() {
+    // Load Trello data after successful authorization (don't show popup yet)
+    this.app.utils.log(
+      'handleCheckTrelloAuthorized_success called, loading user data'
+    );
+    this.loadTrelloUser();
   }
 }
 

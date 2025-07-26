@@ -36,20 +36,20 @@ class PopupForm {
       this.handleRequestDeauthorizeTrello.bind(this)
     );
     this.app.events.addListener(
-      'loadTrelloListSuccess',
-      this.handleLoadTrelloListSuccess.bind(this)
+      'loadTrelloLists_success',
+      this.handleLoadTrelloLists_success.bind(this)
     );
     this.app.events.addListener(
-      'loadTrelloCardsSuccess',
-      this.handleLoadTrelloCardsSuccess.bind(this)
+      'loadTrelloCards_success',
+      this.handleLoadTrelloCards_success.bind(this)
     );
     this.app.events.addListener(
-      'loadTrelloLabelsSuccess',
-      this.handleLoadTrelloLabelsSuccess.bind(this)
+      'loadTrelloLabels_success',
+      this.handleLoadTrelloLabels_success.bind(this)
     );
     this.app.events.addListener(
-      'loadTrelloMembersSuccess',
-      this.handleLoadTrelloMembersSuccess.bind(this)
+      'loadTrelloMembers_success',
+      this.handleLoadTrelloMembers_success.bind(this)
     );
     this.app.events.addListener('APIFail', this.handleAPIFail.bind(this));
     this.app.events.addListener(
@@ -163,15 +163,12 @@ class PopupForm {
       this.parent.handleChromeAPIError(error, 'bindData');
     }
 
-    if (!data) {
-      this.app.utils.log("bindData shouldn't continue without data!");
-      return;
-    }
+    // No longer need to check for data since we access app state directly
 
     // State is managed centrally by app.persist - no need to set this.parent.state
 
-    // bind trello data
-    const me = data?.trello?.user || {}; // First member is always this user
+    // bind trello data - user data is now in app.persist.user
+    const me = this.app.persist.user || {}; // First member is always this user
 
     const avatarUrl = me.avatarUrl || '';
     const avatarSrc = this.app.utils.makeAvatarUrl({ avatarUrl });
@@ -208,12 +205,15 @@ class PopupForm {
       .attr('href', me.url)
       .text(me.username || '?');
 
-    if (data?.useBackLink !== undefined) {
-      $('#chkBackLink', this.parent.$popup).prop('checked', data.useBackLink);
+    if (this.app.persist.useBackLink !== undefined) {
+      $('#chkBackLink', this.parent.$popup).prop(
+        'checked',
+        this.app.persist.useBackLink
+      );
     }
 
-    if (data?.addCC !== undefined) {
-      $('#chkCC', this.parent.$popup).prop('checked', data.addCC);
+    if (this.app.persist.addCC !== undefined) {
+      $('#chkCC', this.parent.$popup).prop('checked', this.app.persist.addCC);
     }
 
     $(document).on('keyup', '.g2t-checkbox', evt => {
@@ -227,17 +227,8 @@ class PopupForm {
       }
     });
 
-    if (data?.markdown !== undefined) {
-      $('#chkMarkdown', this.parent.$popup).prop('checked', data.markdown);
-    }
-
-    if (data?.dueDate !== undefined) {
-      $('#g2tDue_Date', this.parent.$popup).val(data.dueDate);
-    }
-
-    if (data?.dueTime !== undefined) {
-      $('#g2tDue_Time', this.parent.$popup).val(data.dueTime);
-    }
+    // Note: markdown, dueDate, dueTime are not currently in app.persist
+    // They may need to be added if they should be persisted
 
     // Attach reportError function to report id if in text:
     $('#report', this.parent.$popup).on('click', () => {
@@ -965,22 +956,22 @@ class PopupForm {
     this.clearBoard();
   }
 
-  handleLoadTrelloListSuccess() {
+  handleLoadTrelloLists_success() {
     this.updateLists();
     this.validateData();
   }
 
-  handleLoadTrelloCardsSuccess() {
+  handleLoadTrelloCards_success() {
     this.updateCards();
     this.validateData();
   }
 
-  handleLoadTrelloLabelsSuccess() {
+  handleLoadTrelloLabels_success() {
     this.updateLabels();
     this.validateData();
   }
 
-  handleLoadTrelloMembersSuccess() {
+  handleLoadTrelloMembers_success() {
     this.updateMembers();
     this.validateData();
   }
