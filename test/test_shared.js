@@ -36,16 +36,8 @@ global.console = {
   warn: jest.fn()
 };
 
-// Mock G2T global object and its classes
-global.G2T = {
-  Chrome: jest.fn(),
-  EventTarget: jest.fn(),
-  Model: jest.fn(),
-  GmailView: jest.fn(),
-  PopupView: jest.fn(),
-  Utils: jest.fn(),
-  App: jest.fn()
-};
+// Initialize G2T global object
+global.G2T = global.G2T || {};
 
 // Mock document object
 global.document = {

@@ -13,6 +13,12 @@ setupG2TMocks(mockInstances);
 // Make mockInstances available to tests
 global.mockInstances = mockInstances;
 
+// Debug: Check if G2T.Chrome is defined
+console.log('Before loading App class:');
+console.log('G2T exists:', typeof global.G2T !== 'undefined');
+console.log('G2T.Chrome exists:', typeof global.G2T.Chrome !== 'undefined');
+console.log('G2T.Chrome is constructor:', typeof global.G2T.Chrome === 'function');
+
 // Load the App class using eval (for Chrome extension compatibility)
 const appCode = loadClassFile('chrome_manifest_v3/class_app.js');
 eval(appCode);
