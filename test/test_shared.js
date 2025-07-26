@@ -43,9 +43,17 @@ global.G2T = global.G2T || {};
 global.document = {
   createElement: jest.fn((tagName) => {
     if (tagName === 'textarea') {
+      let innerHTML = '';
+      let value = '';
       return {
-        innerHTML: '',
-        value: '',
+        get innerHTML() { return innerHTML; },
+        set innerHTML(val) { 
+          innerHTML = val; 
+          // Simulate how textarea.innerHTML affects value
+          value = val.replace(/<[^>]*>/g, '');
+        },
+        get value() { return value; },
+        set value(val) { value = val; },
         style: {
           cssText: ''
         },
@@ -285,70 +293,112 @@ function extractHtmlContent(input) {
  * @returns {Object} - Mock jQuery object
  */
 function createMockJQuery(htmlOrElements = '', customElements = []) {
-  // Extract HTML content from various input types
-  const htmlContent = extractHtmlContent(htmlOrElements);
+  // Simple approach: when someone asks jQuery for html, they expect simple "<tag>Content</tag>" structures
   
-  // Determine the input type for processing
-  const isHTMLString = typeof htmlOrElements === 'string';
-  const isObjectWithHtml = htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function';
-  const isElementArray = Array.isArray(htmlOrElements);
-  
-  // Build the element list
-  let elements = [];
-  
-  if (isHTMLString || isObjectWithHtml) {
-    // For HTML strings or objects with html method, use defaults but filter based on content
-    elements = DEFAULT_HTML_ELEMENTS.filter(element => 
-      htmlContent.includes(`<${element.tagName.toLowerCase()}`)
-    );
-  } else if (isElementArray) {
-    // If it's an array, use it directly
-    elements = htmlOrElements;
+  // If it's a string, use it directly as HTML
+  if (typeof htmlOrElements === 'string') {
+    const mockJQuery = {
+      html: () => htmlOrElements,
+      length: 1,
+      find: jest.fn(() => createMockJQuery()),
+      each: jest.fn((callback) => {
+        // Create a simple element representation
+        const element = { tagName: 'DIV', textContent: htmlOrElements };
+        callback.call({ text: () => element.textContent }, 0, element);
+        return mockJQuery;
+      }),
+      text: jest.fn(() => htmlOrElements.replace(/<[^>]*>/g, '')),
+      attr: jest.fn(() => undefined),
+      addClass: jest.fn(),
+      removeClass: jest.fn(),
+      val: jest.fn(),
+      prop: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      append: jest.fn(),
+      prepend: jest.fn(),
+      empty: jest.fn(),
+      remove: jest.fn()
+    };
+    return mockJQuery;
   }
   
-  // Add or replace with custom elements
-  if (customElements.length > 0) {
-    if (isHTMLString || isObjectWithHtml) {
-      // For HTML strings or objects with html, add custom elements
-      elements = [...elements, ...customElements];
-    } else {
-      // For element arrays, replace with custom elements
-      elements = customElements;
-    }
+  // If it's an object with html() method, extract the content
+  if (htmlOrElements && typeof htmlOrElements === 'object' && typeof htmlOrElements.html === 'function') {
+    const content = htmlOrElements.html();
+    const mockJQuery = {
+      html: () => content,
+      length: 1,
+      find: jest.fn(() => createMockJQuery()),
+      each: jest.fn((callback) => {
+        const element = { tagName: 'DIV', textContent: content };
+        callback.call({ text: () => element.textContent }, 0, element);
+        return mockJQuery;
+      }),
+      text: jest.fn(() => content.replace(/<[^>]*>/g, '')),
+      attr: jest.fn(() => undefined),
+      addClass: jest.fn(),
+      removeClass: jest.fn(),
+      val: jest.fn(),
+      prop: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      append: jest.fn(),
+      prepend: jest.fn(),
+      empty: jest.fn(),
+      remove: jest.fn()
+    };
+    return mockJQuery;
   }
   
+  // If it's an array of elements, convert to HTML
+  if (Array.isArray(htmlOrElements)) {
+    const elements = [...htmlOrElements, ...customElements];
+    const htmlContent = elements.map(el => `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`).join('');
+    
+    const mockJQuery = {
+      html: () => htmlContent,
+      length: elements.length,
+      find: jest.fn(() => createMockJQuery()),
+      each: jest.fn((callback) => {
+        elements.forEach((element, index) => {
+          const $element = createMockJQuery([element]);
+          $element.text = jest.fn(() => element.textContent);
+          $element.attr = jest.fn((attr) => element.attributes[attr]);
+          callback.call($element, index, element);
+        });
+        return mockJQuery;
+      }),
+      text: jest.fn(() => elements.map(el => el.textContent).join('')),
+      attr: jest.fn((attr) => {
+        if (elements.length === 1) return elements[0].attributes[attr];
+        return undefined;
+      }),
+      addClass: jest.fn(),
+      removeClass: jest.fn(),
+      val: jest.fn(),
+      prop: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      append: jest.fn(),
+      prepend: jest.fn(),
+      empty: jest.fn(),
+      remove: jest.fn()
+    };
+    return mockJQuery;
+  }
+  
+  // Default fallback
   const mockJQuery = {
-    html: () => {
-      if (isHTMLString || isObjectWithHtml) return htmlContent;
-      if (isElementArray) {
-        return elements.map(el => 
-          `<${el.tagName.toLowerCase()}>${el.textContent}</${el.tagName.toLowerCase()}>`
-        ).join('');
-      }
-      return htmlContent;
-    },
-    length: elements.length,
+    html: () => '',
+    length: 0,
     find: jest.fn(() => createMockJQuery()),
-    each: jest.fn((callback) => {
-      elements.forEach((element, index) => {
-        const $element = createMockJQuery([element]);
-        $element.text = jest.fn(() => element.textContent);
-        $element.attr = jest.fn((attr) => element.attributes[attr]);
-        callback.call($element, index, element);
-      });
-      return mockJQuery;
-    }),
+    each: jest.fn(() => mockJQuery),
+    text: jest.fn(() => ''),
+    attr: jest.fn(() => undefined),
     addClass: jest.fn(),
     removeClass: jest.fn(),
-    text: jest.fn(() => {
-      if (isHTMLString || isObjectWithHtml) return htmlContent;
-      return elements.map(el => el.textContent).join('');
-    }),
     val: jest.fn(),
-    attr: jest.fn((attr) => {
-      if (elements.length === 1) return elements[0].attributes[attr];
-      return undefined;
-    }),
     prop: jest.fn(),
     show: jest.fn(),
     hide: jest.fn(),
@@ -357,7 +407,6 @@ function createMockJQuery(htmlOrElements = '', customElements = []) {
     empty: jest.fn(),
     remove: jest.fn()
   };
-  
   return mockJQuery;
 }
 
