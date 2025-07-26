@@ -171,6 +171,22 @@ function createMockInstances() {
 }
 
 /**
+ * Helper function to create a constructor function for a G2T class
+ * @param {Object} mockInstance - Mock instance object
+ * @param {string} className - Name of the class
+ * @returns {Function} - Constructor function
+ */
+function createG2TConstructor(mockInstance, className) {
+  return function(args) {
+    if (!(this instanceof G2T[className])) {
+      return new G2T[className](args);
+    }
+    Object.assign(this, mockInstance);
+    return this;
+  };
+}
+
+/**
  * Helper function to setup G2T class mocks
  * @param {Object} mockInstances - Object containing mock instances
  */
@@ -185,48 +201,12 @@ function setupG2TMocks(mockInstances) {
   } = mockInstances;
 
   // Create actual constructor functions that can be called with 'new'
-  G2T.Chrome = function(args) {
-    if (!(this instanceof G2T.Chrome)) {
-      return new G2T.Chrome(args);
-    }
-    Object.assign(this, mockChrome);
-    return this;
-  };
-  G2T.EventTarget = function(args) {
-    if (!(this instanceof G2T.EventTarget)) {
-      return new G2T.EventTarget(args);
-    }
-    Object.assign(this, mockEventTarget);
-    return this;
-  };
-  G2T.Model = function(args) {
-    if (!(this instanceof G2T.Model)) {
-      return new G2T.Model(args);
-    }
-    Object.assign(this, mockModel);
-    return this;
-  };
-  G2T.GmailView = function(args) {
-    if (!(this instanceof G2T.GmailView)) {
-      return new G2T.GmailView(args);
-    }
-    Object.assign(this, mockGmailView);
-    return this;
-  };
-  G2T.PopupView = function(args) {
-    if (!(this instanceof G2T.PopupView)) {
-      return new G2T.PopupView(args);
-    }
-    Object.assign(this, mockPopupView);
-    return this;
-  };
-  G2T.Utils = function(args) {
-    if (!(this instanceof G2T.Utils)) {
-      return new G2T.Utils(args);
-    }
-    Object.assign(this, mockUtils);
-    return this;
-  };
+  G2T.Chrome = createG2TConstructor(mockChrome, 'Chrome');
+  G2T.EventTarget = createG2TConstructor(mockEventTarget, 'EventTarget');
+  G2T.Model = createG2TConstructor(mockModel, 'Model');
+  G2T.GmailView = createG2TConstructor(mockGmailView, 'GmailView');
+  G2T.PopupView = createG2TConstructor(mockPopupView, 'PopupView');
+  G2T.Utils = createG2TConstructor(mockUtils, 'Utils');
 }
 
 /**
@@ -326,48 +306,12 @@ function createG2TNamespace(mockInstances) {
 
   // Create actual constructor functions that can be called with 'new'
   const G2T = {
-    Chrome: function(args) {
-      if (!(this instanceof G2T.Chrome)) {
-        return new G2T.Chrome(args);
-      }
-      Object.assign(this, mockChrome);
-      return this;
-    },
-    EventTarget: function(args) {
-      if (!(this instanceof G2T.EventTarget)) {
-        return new G2T.EventTarget(args);
-      }
-      Object.assign(this, mockEventTarget);
-      return this;
-    },
-    Model: function(args) {
-      if (!(this instanceof G2T.Model)) {
-        return new G2T.Model(args);
-      }
-      Object.assign(this, mockModel);
-      return this;
-    },
-    GmailView: function(args) {
-      if (!(this instanceof G2T.GmailView)) {
-        return new G2T.GmailView(args);
-      }
-      Object.assign(this, mockGmailView);
-      return this;
-    },
-    PopupView: function(args) {
-      if (!(this instanceof G2T.PopupView)) {
-        return new G2T.PopupView(args);
-      }
-      Object.assign(this, mockPopupView);
-      return this;
-    },
-    Utils: function(args) {
-      if (!(this instanceof G2T.Utils)) {
-        return new G2T.Utils(args);
-      }
-      Object.assign(this, mockUtils);
-      return this;
-    }
+    Chrome: createG2TConstructor(mockChrome, 'Chrome'),
+    EventTarget: createG2TConstructor(mockEventTarget, 'EventTarget'),
+    Model: createG2TConstructor(mockModel, 'Model'),
+    GmailView: createG2TConstructor(mockGmailView, 'GmailView'),
+    PopupView: createG2TConstructor(mockPopupView, 'PopupView'),
+    Utils: createG2TConstructor(mockUtils, 'Utils')
   };
 
   return G2T;

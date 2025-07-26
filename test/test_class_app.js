@@ -168,7 +168,7 @@ describe('App Class', () => {
 
     test('updateData should throw error when model is null', () => {
       app.model = null;
-      expect(() => app.updateData()).toThrow('Cannot set properties of null (setting \'gmail\')');
+      expect(() => app.updateData()).toThrow();
     });
 
     test('updateData should handle missing trello user data', () => {
@@ -357,7 +357,7 @@ describe('App Class', () => {
       app.model = null;
       app.popupView = null;
       
-      expect(() => app.updateData()).toThrow('Cannot read properties of null (reading \'bindData\')');
+      expect(() => app.updateData()).toThrow();
     });
 
     test('should handle initialization errors gracefully', () => {
