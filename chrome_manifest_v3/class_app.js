@@ -36,12 +36,7 @@ class App {
       // Model state
       trelloAuthorized: false,
       // Trello data (flattened)
-      trelloUser: null,
-      trelloBoards: [],
-      trelloLists: [],
-      trelloCards: [],
-      trelloMembers: [],
-      trelloLabels: [],
+      user: null,
       emailBoardListCardMap: [],
       // PopupView state
       popupWidth: 700,
@@ -74,8 +69,14 @@ class App {
       // Personal data (not persisted)
       description: '',
       title: '',
-      attachments: [],
-      images: [],
+      attachment: [],
+      image: [],
+      // Trello data (not persisted - reloaded from API)
+      boards: [],
+      lists: [],
+      cards: [],
+      members: [],
+      labels: [],
     };
 
     // App initialization flag (local, not persisted)
@@ -104,10 +105,11 @@ class App {
   }
 
   // Event handlers
-  handleClassAppStateLoaded(event, params) {
-    if (params) {
-      this.persist = { ...this.persist, ...params };
-    }
+  handleClassAppStateLoaded(event, params = {}) {
+    // Merge loaded data into persist state
+    Object.assign(this.persist, params);
+
+    this.initialized = true;
   }
 
   // Handle Gmail navigation changes
@@ -115,8 +117,8 @@ class App {
     this.utils.log('App: Gmail navigation detected, triggering redraw');
     // Force a complete redraw to ensure the button appears in the new view
     this.gmailView.forceRedraw();
-    // Also fire the force redraw event for the popup view
-    this.events.fire('forceRedraw');
+    // Also emit the force redraw event for the popup view
+    this.events.emit('forceRedraw');
   }
 
   handleGmailHashChange() {
@@ -128,7 +130,7 @@ class App {
   bindEvents() {
     this.events.addListener(
       'classAppStateLoaded',
-      this.handleClassAppStateLoaded.bind(this)
+      this.handleClassAppStateLoaded.bind(this),
     );
   }
 

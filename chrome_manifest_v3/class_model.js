@@ -11,7 +11,6 @@ class Uploader {
     this.itemsForUpload = [];
   }
 
-
   init() {
     this.bindEvents();
   }
@@ -20,8 +19,8 @@ class Uploader {
     // Uploader-specific event bindings (if any)
   }
 
-  get attachments() {
-    return 'attachments';
+  get attachment() {
+    return 'attachment';
   }
 
   add(args) {
@@ -61,7 +60,7 @@ class Uploader {
     const trello_url_k = 'https://api.trello.com/1/';
     const param_k = upload1.value;
 
-    // NOTE (Ace, 2020-02-15): We have a funny problem with embedded images so breaking this up:
+    // NOTE (Ace, 2020-02-15): We have a funny problem with embedded image so breaking this up:
     // Was: const filename_k = (param_k.split('/').pop().split('#')[0].split('?')[0]) || upload1.name || param_k || 'unknown_filename'; // Removes # or ? after filename
     // Remove # or ? afer filename. Could do this as a regex, but this is a bit faster and more resiliant:
     const slash_split_k = param_k.split('/'); // First split by directory slashes
@@ -99,7 +98,7 @@ class Uploader {
       let keysAndValues = [];
       Object.entries(object).forEach(([key, value]) => {
         keysAndValues.push(
-          `${key}=${value || ''} (${(value || '').toString().length})`
+          `${key}=${value || ''} (${(value || '').toString().length})`,
         );
       });
       return keysAndValues.sort().join(' ');
@@ -107,7 +106,7 @@ class Uploader {
     let upload1 = self.itemsForUpload.shift();
     if (!upload1) {
       // All attachment uploads complete
-      self.app.events.fire('newCardUploadsComplete', { data });
+      self.app.events.emit('newCardUploadsComplete', { data });
     } else {
       const dict_k = { cardId: this.cardId || '' };
 
@@ -116,7 +115,7 @@ class Uploader {
       upload1.method = undefined;
       upload1.property = undefined;
 
-      const fn_k = property.endsWith(self.attachments)
+      const fn_k = property.endsWith(self.attachment)
         ? self.attach
         : Trello.rest;
 
@@ -140,8 +139,8 @@ class Uploader {
             keys: generateKeysAndValues(upload1),
             emailId: self.emailId,
           });
-          self.app.events.fire('onAPIFailure', { data });
-        }
+          self.app.events.emit('APIFail', { data });
+        },
       );
     }
   }
@@ -165,9 +164,7 @@ class EmailBoardListCardMap {
   constructor(args) {
     this.parent = args.parent;
     this.app = args.app;
-    this.maxSize = 100;
-  }
-
+    this.maxSize = 50; // Reduced from 100 to prevent storage quota issues
   }
 
   add(args = {}) {
@@ -183,7 +180,7 @@ class EmailBoardListCardMap {
   }
 
   find(key_value = {}) {
-    return this.state.find(entry => {
+    return this.app.persist.emailBoardListCardMap.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
     });
   }
@@ -194,11 +191,11 @@ class EmailBoardListCardMap {
   }
 
   makeRoom(index = -1) {
-    if (this.state.length >= this.maxSize) {
+    if (this.app.persist.emailBoardListCardMap.length >= this.maxSize) {
       if (index === -1) {
-        this.state.shift(); // Remove oldest
+        this.app.persist.emailBoardListCardMap.shift(); // Remove oldest
       } else {
-        this.state.splice(index, 1); // Remove specific index
+        this.app.persist.emailBoardListCardMap.splice(index, 1); // Remove specific index
       }
     }
   }
@@ -208,19 +205,19 @@ class EmailBoardListCardMap {
   }
 
   maxxed() {
-    return this.state.length >= this.maxSize;
+    return this.app.persist.emailBoardListCardMap.length >= this.maxSize;
   }
 
   oldest() {
-    if (this.state.length === 0) return null;
+    if (this.app.persist.emailBoardListCardMap.length === 0) return null;
 
-    let oldestEntry = this.state[0];
+    let oldestEntry = this.app.persist.emailBoardListCardMap[0];
     let oldestTime = oldestEntry.timestamp;
 
-    for (let i = 1; i < this.state.length; i++) {
-      if (this.state[i].timestamp < oldestTime) {
-        oldestTime = this.state[i].timestamp;
-        oldestEntry = this.state[i];
+    for (let i = 1; i < this.app.persist.emailBoardListCardMap.length; i++) {
+      if (this.app.persist.emailBoardListCardMap[i].timestamp < oldestTime) {
+        oldestTime = this.app.persist.emailBoardListCardMap[i].timestamp;
+        oldestEntry = this.app.persist.emailBoardListCardMap[i];
       }
     }
 
@@ -230,16 +227,14 @@ class EmailBoardListCardMap {
   push(entry = {}) {
     this.makeRoom();
     this.app.persist.emailBoardListCardMap.push(entry);
-    this.app.persistSave();
   }
 
   remove(index = -1) {
     if (index === -1) {
-      this.state.pop();
+      this.app.persist.emailBoardListCardMap.pop();
     } else {
       this.app.persist.emailBoardListCardMap.splice(index, 1);
     }
-    this.app.persistSave();
   }
 }
 
@@ -262,20 +257,31 @@ class Model {
     // Remove local state - use centralized app state
     this.emailBoardListCardMap = new EmailBoardListCardMap({
       parent: this,
-      app: this.app
+      app: this.app,
     });
+    this.initialized = false;
   }
-
 
   init() {
     // State is loaded centrally by app
     this.bindEvents();
-    this.initTrello();
+    this.initialized = true;
   }
 
-  uploadAttachments(data = {}) {
-    if (!data.attachments || data.attachments.length === 0) {
-      this.app.events.fire('newCardUploadsComplete', { data });
+  load() {
+    // Check if we already have the data we need
+    if (this.app.persist.trelloAuthorized && this.app.temp.boards?.length) {
+      // Data already loaded, just emit ready event
+      this.app.events.emit('trelloUserAndBoardsReady');
+    } else {
+      // Need to load data
+      this.trelloLoad();
+    }
+  }
+
+  uploadAttachment(data = {}) {
+    if (!data.attachment || data.attachment.length === 0) {
+      this.app.events.emit('newCardUploadsComplete', { data });
       return;
     }
 
@@ -288,10 +294,10 @@ class Model {
 
     uploader.init();
 
-    data.attachments.forEach(attachment => {
+    data.attachment.forEach(attachment => {
       uploader.add({
         method: 'post',
-        property: 'attachments',
+        property: 'attachment',
         value: attachment.url,
         name: attachment.name,
       });
@@ -300,77 +306,83 @@ class Model {
     uploader.upload(data);
   }
 
-  checkTrelloAuthorized_success(data) {
-    this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_success', { data });
-  }
-
-  checkTrelloAuthorized_failure(data) {
-    this.app.persist.trelloAuthorized = false;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_failed', { data });
-  }
-
-  checkTrelloAuthorized_popup_success(data) {
-    this.app.persist.trelloAuthorized = true;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_success', { data });
-  }
-
-  checkTrelloAuthorized_popup_failure(data) {
-    this.app.persist.trelloAuthorized = false;
-    this.app.persistSave(); // Save state after authorization change
-    this.app.events.fire('checkTrelloAuthorized_popup_failed', { data });
-  }
-
-  initTrello() {
+  trelloLoad() {
+    this.app.utils.log('Loading Trello with API key:', this.app.trelloApiKey);
     Trello.setKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
   }
 
-  checkTrelloAuthorized() {
-    Trello.rest(
-      'get',
-      'members/me',
-      {},
-      this.checkTrelloAuthorized_success.bind(this),
-      this.checkTrelloAuthorized_failure.bind(this)
+  checkTrelloAuthorized_success(data) {
+    this.app.persist.trelloAuthorized = true;
+
+    // Log successful authorization
+    this.app.utils.log('Trello authorization successful:', {
+      user: data?.username || data?.fullName || 'Unknown user',
+      id: data?.id,
+      url: data?.url,
+    });
+
+    this.app.utils.log('Emitting checkTrelloAuthorized_success');
+    this.app.events.emit('checkTrelloAuthorized_success', { data });
+  }
+
+  checkTrelloAuthorized_popup_failure(data) {
+    this.app.persist.trelloAuthorized = false;
+    this.app.events.emit('APIFail', { data });
+  }
+
+  checkTrelloAuthorized_failure(data) {
+    this.app.utils.log(
+      'Trello authorization with stored token failed, showing popup',
     );
+    if (!Trello.authorized()) {
+      // No valid token, show authorization popup
+      this.app.events.emit('onBeforeAuthorize');
+      Trello.authorize({
+        type: 'popup',
+        name: 'Gmail-2-Trello',
+        interactive: true,
+        persist: true,
+        scope: { read: true, write: true },
+        expiration: 'never',
+        success: this.checkTrelloAuthorized_success.bind(this),
+        error: this.checkTrelloAuthorized_popup_failure.bind(this),
+      });
+    } else {
+      // We have a token but the API call failed - this shouldn't happen
+      this.app.utils.log('Trello authorization failed with valid token');
+      this.app.events.emit('APIFail', { data });
+    }
+  }
+
+  checkTrelloAuthorized() {
+    // First, try to authorize with stored token (non-interactive)
+    Trello.authorize({
+      interactive: false,
+      success: this.checkTrelloAuthorized_success.bind(this),
+      error: this.checkTrelloAuthorized_failure.bind(this),
+    });
   }
 
   deauthorizeTrello() {
     this.app.persist.trelloAuthorized = false;
-    this.app.persist.trelloData = {};
-    this.app.persistSave(); // Save state after deauthorization
-    this.app.events.fire('deauthorizeTrello_success', {});
+    this.app.persist.user = {};
+    this.app.events.emit('deauthorizeTrello_success', {});
   }
 
-  loadTrelloData_user_success(data) {
-    this.app.persist.trelloUser = data;
-    this.app.persistSave(); // Save state after data load
-    this.loadTrelloData_boards_success();
+  loadTrelloUser_success(data) {
+    this.app.utils.log('loadTrelloUser_success called with data:', data);
+    this.app.persist.user = data;
+    this.app.utils.log('Emitting trelloUserReady');
+    this.app.events.emit('trelloUserReady');
   }
 
-  loadTrelloData_boards_success(data) {
-    if (data) {
-      this.app.persist.trelloBoards = data;
-      this.app.persistSave(); // Save state after data load
-    }
-    this.app.events.fire('loadTrelloData_success', {
-      data: {
-        user: this.app.persist.trelloUser,
-        boards: this.app.persist.trelloBoards,
-      },
-    });
+  loadTrelloUser_failure(data) {
+    this.app.events.emit('APIFail', { data });
   }
 
-  loadTrelloData_failure(data) {
-    this.app.events.fire('loadTrelloData_failed', { data });
-  }
-
-  loadTrelloData() {
-    if (!this.state.trelloAuthorized) {
+  loadTrelloUser() {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -378,39 +390,49 @@ class Model {
       'get',
       'members/me',
       {},
-      this.loadTrelloData_user_success.bind(this),
-      this.loadTrelloData_failure.bind(this)
+      this.loadTrelloUser_success.bind(this),
+      this.loadTrelloUser_failure.bind(this),
     );
+  }
+
+  loadTrelloBoards_success(data) {
+    this.app.utils.log('loadTrelloBoards_success called with data:', data);
+    if (data) {
+      this.app.temp.boards = data;
+    }
+    this.app.utils.log('Emitting trelloUserAndBoardsReady');
+    this.app.events.emit('trelloUserAndBoardsReady');
+  }
+
+  loadTrelloBoards_failure(data) {
+    this.app.events.emit('APIFail', { data });
+  }
+
+  loadTrelloBoards() {
+    if (!this.app.persist.trelloAuthorized) {
+      return;
+    }
 
     Trello.rest(
       'get',
       'members/me/boards',
       {},
-      this.loadTrelloData_boards_success.bind(this),
-      this.loadTrelloData_failure.bind(this)
-    );
-  }
-
-  checkTrelloDataReady() {
-    return (
-      this.state.trelloAuthorized &&
-      this.app.persist.trelloUser &&
-      this.app.persist.trelloBoards
+      this.loadTrelloBoards_success.bind(this),
+      this.loadTrelloBoards_failure.bind(this),
     );
   }
 
   loadTrelloLists_success(data) {
-    this.app.persist.trelloLists = data;
-    this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloListSuccess', { data });
+    this.app.temp.lists = data;
+    this.app.events.emit('loadTrelloLists_success', { data });
   }
 
   loadTrelloLists_failure(data) {
-    this.app.events.fire('loadTrelloListFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloLists(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -419,22 +441,21 @@ class Model {
       `boards/${boardId}/lists`,
       {},
       this.loadTrelloLists_success.bind(this),
-      this.loadTrelloLists_failure.bind(this)
+      this.loadTrelloLists_failure.bind(this),
     );
   }
 
   loadTrelloCards_success(data) {
-    this.app.persist.trelloCards = data;
-    this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloCardsSuccess', { data });
+    this.app.temp.cards = data;
+    this.app.events.emit('loadTrelloCards_success', { data });
   }
 
   loadTrelloCards_failure(data) {
-    this.app.events.fire('loadTrelloCardsFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloCards(listId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -443,22 +464,21 @@ class Model {
       `lists/${listId}/cards`,
       {},
       this.loadTrelloCards_success.bind(this),
-      this.loadTrelloCards_failure.bind(this)
+      this.loadTrelloCards_failure.bind(this),
     );
   }
 
   loadTrelloMembers_success(data) {
-    this.app.persist.trelloMembers = data;
-    this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloMembersSuccess', { data });
+    this.app.temp.members = data;
+    this.app.events.emit('loadTrelloMembers_success', { data });
   }
 
   loadTrelloMembers_failure(data) {
-    this.app.events.fire('loadTrelloMembersFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloMembers(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -467,22 +487,21 @@ class Model {
       `boards/${boardId}/members`,
       {},
       this.loadTrelloMembers_success.bind(this),
-      this.loadTrelloMembers_failure.bind(this)
+      this.loadTrelloMembers_failure.bind(this),
     );
   }
 
   loadTrelloLabels_success(data) {
-    this.app.persist.trelloLabels = data;
-    this.app.persistSave(); // Save state after data load
-    this.app.events.fire('loadTrelloLabelsSuccess', { data });
+    this.app.temp.labels = data;
+    this.app.events.emit('loadTrelloLabels_success', { data });
   }
 
   loadTrelloLabels_failure(data) {
-    this.app.events.fire('loadTrelloLabelsFailed', { data });
+    this.app.events.emit('APIFail', { data });
   }
 
   loadTrelloLabels(boardId) {
-    if (!this.state.trelloAuthorized) {
+    if (!this.app.persist.trelloAuthorized) {
       return;
     }
 
@@ -491,18 +510,18 @@ class Model {
       `boards/${boardId}/labels`,
       {},
       this.loadTrelloLabels_success.bind(this),
-      this.loadTrelloLabels_failure.bind(this)
+      this.loadTrelloLabels_failure.bind(this),
     );
   }
 
   submit(data) {
-    if (!this.state.trelloAuthorized) {
-      this.app.events.fire('checkTrelloAuthorized_failed', {});
+    if (!this.app.persist.trelloAuthorized) {
+      this.app.events.emit('APIFail', { data });
       return;
     }
 
     if (!data || !data.boardId || !data.listId) {
-      this.app.events.fire('invalidFormData', { data });
+      this.app.events.emit('invalidFormData', { data });
       return;
     }
 
@@ -537,42 +556,42 @@ class Model {
       response => {
         const cardId = response.id;
 
-        // Add attachments if any
-        if (data.attachments && data.attachments.length > 0) {
+        // Add attachment if any
+        if (data.attachment && data.attachment.length > 0) {
           data.cardId = cardId;
-          this.uploadAttachments(data);
+          this.uploadAttachment(data);
         } else {
-          this.app.events.fire('createCard_success', {
+          this.app.events.emit('createCard_success', {
             data: { ...data, cardId },
           });
         }
       },
       error => {
-        this.app.events.fire('createCard_failed', { data: error });
-      }
+        this.app.events.emit('createCard_failed', { data: error });
+      },
     );
   }
 
   emailBoardListCardMapLookup(key_value = {}) {
-    return this.state.emailBoardListCardMap?.lookup(key_value) || null;
+    return this.emailBoardListCardMap.lookup(key_value);
   }
 
   emailBoardListCardMapUpdate(key_value = {}) {
-    return this.state.emailBoardListCardMap?.add(key_value) || null;
+    return this.emailBoardListCardMap.add(key_value);
   }
 
   handleClassModelStateLoaded(event, params) {
     if (params) {
       // Only update specific state properties that were loaded
       if (params.trelloAuthorized !== undefined) {
-        this.state.trelloAuthorized = params.trelloAuthorized;
+        this.app.persist.trelloAuthorized = params.trelloAuthorized;
       }
       if (params.trelloData) {
-        this.state.trelloData = params.trelloData;
+        this.app.persist.trelloData = params.trelloData;
       }
 
       if (params.emailBoardListCardMap) {
-        this.state.emailBoardListCardMap = params.emailBoardListCardMap;
+        this.app.persist.emailBoardListCardMap = params.emailBoardListCardMap;
       }
     }
   }
@@ -581,7 +600,7 @@ class Model {
     const data = params.data;
 
     if (!data) {
-      this.app.events.fire('invalidFormData', { data });
+      this.app.events.emit('invalidFormData', { data });
       return;
     }
 
@@ -601,12 +620,11 @@ class Model {
       });
     }
 
-    this.app.persistSave(); // Save state after successful card creation
-    this.app.events.fire('cardCreationComplete', { data });
+    this.app.events.emit('cardCreationComplete', { data });
   }
 
   handlePostCardCreateUploadDisplayDone(target, params) {
-    this.app.events.fire('cardCreationComplete', { data: params.data });
+    this.app.events.emit('cardCreationComplete', { data: params.data });
   }
 
   // Form event handlers - moved from PopupView
@@ -627,30 +645,55 @@ class Model {
   bindEvents() {
     this.app.events.addListener(
       'classModelStateLoaded',
-      this.handleClassModelStateLoaded.bind(this)
+      this.handleClassModelStateLoaded.bind(this),
     );
     this.app.events.addListener(
       'submittedFormShownComplete',
-      this.handleSubmittedFormShownComplete.bind(this)
+      this.handleSubmittedFormShownComplete.bind(this),
     );
     this.app.events.addListener(
       'trelloCardCreateSuccess',
-      this.handleTrelloCardCreateSuccess.bind(this)
+      this.handleTrelloCardCreateSuccess.bind(this),
     );
     this.app.events.addListener(
       'postCardCreateUploadDisplayDone',
-      this.handlePostCardCreateUploadDisplayDone.bind(this)
+      this.handlePostCardCreateUploadDisplayDone.bind(this),
     );
 
     // Listen to board and list change events
     this.app.events.addListener(
       'boardChanged',
-      this.handleBoardChanged.bind(this)
+      this.handleBoardChanged.bind(this),
     );
     this.app.events.addListener(
       'listChanged',
-      this.handleListChanged.bind(this)
+      this.handleListChanged.bind(this),
     );
+
+    // Listen to Trello user ready event to load boards
+    this.app.events.addListener(
+      'trelloUserReady',
+      this.handleTrelloUserReady.bind(this),
+    );
+
+    // Listen to authorization success to start data loading
+    this.app.events.addListener(
+      'checkTrelloAuthorized_success',
+      this.handleCheckTrelloAuthorized_success.bind(this),
+    );
+  }
+
+  handleTrelloUserReady() {
+    this.app.utils.log('handleTrelloUserReady called, loading boards');
+    this.loadTrelloBoards();
+  }
+
+  handleCheckTrelloAuthorized_success() {
+    // Load Trello data after successful authorization (don't show popup yet)
+    this.app.utils.log(
+      'handleCheckTrelloAuthorized_success called, loading user data',
+    );
+    this.loadTrelloUser();
   }
 }
 

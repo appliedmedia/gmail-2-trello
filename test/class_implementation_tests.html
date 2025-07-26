@@ -219,7 +219,7 @@
                 };
                 
                 model.event.addListener('test', listener);
-                model.event.fire('test', { message: 'hello' });
+                model.event.emit('test', { message: 'hello' });
                 
                 if (eventFired) {
                     testResults += '✅ PASS: Basic event firing works\n';
@@ -237,7 +237,7 @@
                 
                 model.event.addListener('multi', listener1);
                 model.event.addListener('multi', listener2);
-                model.event.fire('multi', {});
+                model.event.emit('multi', {});
                 
                 if (listener1Called && listener2Called) {
                     testResults += '✅ PASS: Multiple listeners work\n';
@@ -252,7 +252,7 @@
                 
                 model.event.addListener('removal', removalListener);
                 model.event.removeListener('removal', removalListener);
-                model.event.fire('removal', {});
+                model.event.emit('removal', {});
                 
                 if (!removalTestFired) {
                     testResults += '✅ PASS: Listener removal works\n';
@@ -269,7 +269,7 @@
                 
                 const testData = { id: 123, message: 'test data' };
                 model.event.addListener('data', dataListener);
-                model.event.fire('data', testData);
+                model.event.emit('data', testData);
                 
                 if (receivedData && receivedData.id === 123) {
                     testResults += '✅ PASS: Event data passing works\n';

@@ -88,7 +88,7 @@ G2T.app.event.addListener('test', (event, data) => {
   eventData = data;
 });
 
-G2T.app.event.fire('test', { message: 'hello world' });
+G2T.app.event.emit('test', { message: 'hello world' });
 
 if (eventReceived && eventData && eventData.message === 'hello world') {
   console.log('✅ Events can be fired and received');
@@ -108,7 +108,7 @@ G2T.app.event.addListener('multi', () => {
   listener2Called = true;
 });
 
-G2T.app.event.fire('multi');
+G2T.app.event.emit('multi');
 
 if (listener1Called && listener2Called) {
   console.log('✅ Multiple listeners work correctly');
@@ -125,7 +125,7 @@ const testListener = () => {
 
 G2T.app.event.addListener('remove', testListener);
 G2T.app.event.removeListener('remove', testListener);
-G2T.app.event.fire('remove');
+G2T.app.event.emit('remove');
 
 if (!shouldNotBeCalled) {
   console.log('✅ Remove listener works correctly');
@@ -137,7 +137,7 @@ if (!shouldNotBeCalled) {
 console.log('\n🎉 All global event system tests passed!');
 console.log('\nArchitecture Summary:');
 console.log('- G2T.app.event provides global event system');
-console.log('- All components can use G2T.app.events.fire() to fire events');
+console.log('- All components can use G2T.app.events.emit() to fire events');
 console.log('- All components can use G2T.app.events.addListener() to listen');
 console.log('- No local event systems needed in components');
 console.log('- Clear separation between global and local concerns');

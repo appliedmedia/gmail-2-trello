@@ -11,25 +11,25 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
-    }
+      set: jest.fn(),
+    },
   },
   runtime: {
-    sendMessage: jest.fn()
-  }
+    sendMessage: jest.fn(),
+  },
 };
 
 // Mock console for testing
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Mock window object
 global.window = {
   addEventListener: jest.fn(),
-  removeEventListener: jest.fn()
+  removeEventListener: jest.fn(),
 };
 
 // Mock document object
@@ -37,7 +37,7 @@ global.document = {
   createElement: jest.fn(),
   querySelector: jest.fn(),
   querySelectorAll: jest.fn(),
-  getElementById: jest.fn()
+  getElementById: jest.fn(),
 };
 
 // Import the PopupForm class
@@ -53,18 +53,18 @@ describe('PopupForm Class', () => {
   beforeEach(() => {
     // Create mock instances
     mockEvents = {
-      addListener: jest.fn()
+      addListener: jest.fn(),
     };
 
     mockUtils = {
       log: jest.fn(),
       loadFromChromeStorage: jest.fn(),
-      saveToChromeStorage: jest.fn()
+      saveToChromeStorage: jest.fn(),
     };
 
     mockApp = {
       utils: mockUtils,
-      events: mockEvents
+      events: mockEvents,
     };
 
     mockParent = {
@@ -72,13 +72,13 @@ describe('PopupForm Class', () => {
         boardId: '',
         listId: '',
         cardName: '',
-        cardDescription: ''
-      }
+        cardDescription: '',
+      },
     };
 
     // Create a fresh PopupForm instance for each test
     popupForm = new PopupForm({ parent: mockParent, app: mockApp });
-    
+
     // Reset all mocks
     $.mockClear();
     chrome.storage.local.get.mockClear();
@@ -121,21 +121,48 @@ describe('PopupForm Class', () => {
 
     test('bindEvents should bind all event listeners', () => {
       popupForm.bindEvents();
-      
-      expect(mockEvents.addListener).toHaveBeenCalledWith('submit', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('checkTrelloAuthorized', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('requestDeauthorizeTrello', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloListSuccess', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloCardsSuccess', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloLabelsSuccess', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloMembersSuccess', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloListFailed', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloCardsFailed', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloLabelsFailed', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('loadTrelloMembersFailed', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('onAPIFailure', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('newCardUploadsComplete', expect.any(Function));
-      expect(mockEvents.addListener).toHaveBeenCalledWith('menuClick', expect.any(Function));
+
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'submit',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'checkTrelloAuthorized',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'requestDeauthorizeTrello',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'loadTrelloListSuccess',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'loadTrelloCardsSuccess',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'loadTrelloLabelsSuccess',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'loadTrelloMembersSuccess',
+        expect.any(Function)
+      );
+
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'APIFail',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'newCardUploadsComplete',
+        expect.any(Function)
+      );
+      expect(mockEvents.addListener).toHaveBeenCalledWith(
+        'menuClick',
+        expect.any(Function)
+      );
     });
   });
 
@@ -144,9 +171,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = '';
       mockParent.state.listId = 'list1';
       mockParent.state.cardName = 'Test Card';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Please select a board');
     });
 
@@ -154,9 +181,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = 'board1';
       mockParent.state.listId = '';
       mockParent.state.cardName = 'Test Card';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Please select a list');
     });
 
@@ -164,9 +191,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = 'board1';
       mockParent.state.listId = 'list1';
       mockParent.state.cardName = '';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Please enter a card name');
     });
 
@@ -174,9 +201,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = 'board1';
       mockParent.state.listId = 'list1';
       mockParent.state.cardName = '   ';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Please enter a card name');
     });
 
@@ -184,9 +211,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = 'board1';
       mockParent.state.listId = 'list1';
       mockParent.state.cardName = 'A'.repeat(16385);
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Card name is too long (max 16384 characters)');
     });
 
@@ -194,9 +221,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = 'board1';
       mockParent.state.listId = 'list1';
       mockParent.state.cardName = 'Test Card';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toEqual([]);
     });
 
@@ -204,9 +231,9 @@ describe('PopupForm Class', () => {
       mockParent.state.boardId = '';
       mockParent.state.listId = '';
       mockParent.state.cardName = '';
-      
+
       const errors = popupForm.validateData();
-      
+
       expect(errors).toContain('Please select a board');
       expect(errors).toContain('Please select a list');
       expect(errors).toContain('Please enter a card name');
@@ -221,9 +248,9 @@ describe('PopupForm Class', () => {
         lists: [{ id: 'list1', name: 'List 1' }],
         cards: [{ id: 'card1', name: 'Card 1' }],
         labels: [{ id: 'label1', name: 'Label 1' }],
-        members: [{ id: 'member1', name: 'Member 1' }]
+        members: [{ id: 'member1', name: 'Member 1' }],
       };
-      
+
       expect(() => popupForm.bindData(data)).not.toThrow();
     });
 
@@ -231,18 +258,18 @@ describe('PopupForm Class', () => {
       const data = {
         subject: 'Test Subject',
         body: 'Test Body',
-        attachments: []
+        attachments: [],
       };
-      
+
       expect(() => popupForm.bindGmailData(data)).not.toThrow();
     });
 
     test('updateBody should update body content', () => {
       const data = {
         description: 'Test description',
-        attachments: []
+        attachments: [],
       };
-      
+
       expect(() => popupForm.updateBody(data)).not.toThrow();
     });
   });
@@ -306,7 +333,7 @@ describe('PopupForm Class', () => {
     test('showMessage should display message', () => {
       const parent = document.createElement('div');
       const text = 'Test message';
-      
+
       expect(() => popupForm.showMessage(parent, text)).not.toThrow();
     });
 
@@ -372,16 +399,18 @@ describe('PopupForm Class', () => {
       expect(() => popupForm.handleLoadTrelloMembersSuccess()).not.toThrow();
     });
 
-    test('handleAPIFailure should handle API failures', () => {
+    test('handleAPIFail should handle API failures', () => {
       const target = document.createElement('div');
       const params = { error: 'API Error' };
-      expect(() => popupForm.handleAPIFailure(target, params)).not.toThrow();
+      expect(() => popupForm.handleAPIFail(target, params)).not.toThrow();
     });
 
     test('handleNewCardUploadsComplete should handle upload completion', () => {
       const target = document.createElement('div');
       const params = { uploads: [] };
-      expect(() => popupForm.handleNewCardUploadsComplete(target, params)).not.toThrow();
+      expect(() =>
+        popupForm.handleNewCardUploadsComplete(target, params)
+      ).not.toThrow();
     });
 
     test('handleOnMenuClick should handle menu clicks', () => {
@@ -402,7 +431,7 @@ describe('PopupForm Class', () => {
       const tag = 'test-tag';
       const isImage = false;
       const data = { name: 'test.txt', type: 'text/plain' };
-      
+
       expect(() => popupForm.mime_html(tag, isImage, data)).not.toThrow();
     });
   });
@@ -450,11 +479,26 @@ describe('PopupForm Class', () => {
   describe('Performance Tests', () => {
     test('should handle large data sets efficiently', () => {
       const largeData = {
-        boards: Array.from({ length: 100 }, (_, i) => ({ id: `board-${i}`, name: `Board ${i}` })),
-        lists: Array.from({ length: 100 }, (_, i) => ({ id: `list-${i}`, name: `List ${i}` })),
-        cards: Array.from({ length: 100 }, (_, i) => ({ id: `card-${i}`, name: `Card ${i}` })),
-        labels: Array.from({ length: 100 }, (_, i) => ({ id: `label-${i}`, name: `Label ${i}` })),
-        members: Array.from({ length: 100 }, (_, i) => ({ id: `member-${i}`, name: `Member ${i}` }))
+        boards: Array.from({ length: 100 }, (_, i) => ({
+          id: `board-${i}`,
+          name: `Board ${i}`,
+        })),
+        lists: Array.from({ length: 100 }, (_, i) => ({
+          id: `list-${i}`,
+          name: `List ${i}`,
+        })),
+        cards: Array.from({ length: 100 }, (_, i) => ({
+          id: `card-${i}`,
+          name: `Card ${i}`,
+        })),
+        labels: Array.from({ length: 100 }, (_, i) => ({
+          id: `label-${i}`,
+          name: `Label ${i}`,
+        })),
+        members: Array.from({ length: 100 }, (_, i) => ({
+          id: `member-${i}`,
+          name: `Member ${i}`,
+        })),
       };
 
       const startTime = Date.now();
