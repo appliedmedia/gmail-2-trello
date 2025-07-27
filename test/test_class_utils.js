@@ -527,4 +527,135 @@ describe('Utils Class', () => {
       expect(endTime - startTime).toBeLessThan(100);
     });
   });
+
+  describe('Additional Utility Methods', () => {
+    test('anchorMarkdownify should create markdown links', () => {
+      const result = utils.anchorMarkdownify('Link Text', 'https://example.com');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(result).toContain('Link Text');
+      expect(result).toContain('https://example.com');
+    });
+
+    test('anchorMarkdownify should handle same text and href', () => {
+      const result = utils.anchorMarkdownify('https://example.com', 'https://example.com');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+    });
+
+    test('anchorMarkdownify should handle mailto links', () => {
+      const result = utils.anchorMarkdownify('test@example.com', 'mailto:test@example.com');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+    });
+
+    test('anchorMarkdownify should handle empty inputs', () => {
+      const result = utils.anchorMarkdownify('', '');
+      expect(result).toBe('');
+    });
+
+    test('luminance should calculate color luminance', () => {
+      const result = utils.luminance('#ffffff');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+    });
+
+    test('luminance should handle different color formats', () => {
+      const whiteLuminance = utils.luminance('#ffffff');
+      const blackLuminance = utils.luminance('#000000');
+      expect(whiteLuminance).toBeDefined();
+      expect(blackLuminance).toBeDefined();
+    });
+
+    test('getSelectedText should return selected text', () => {
+      // Mock window.getSelection
+      const mockSelection = {
+        toString: jest.fn().mockReturnValue('Selected text'),
+        rangeCount: 1,
+        getRangeAt: jest.fn().mockReturnValue({
+          toString: jest.fn().mockReturnValue('Selected text')
+        })
+      };
+      Object.defineProperty(window, 'getSelection', {
+        value: jest.fn().mockReturnValue(mockSelection),
+        writable: true
+      });
+
+      const result = utils.getSelectedText();
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+    });
+
+    test('getSelectedText should handle no selection', () => {
+      const mockSelection = {
+        toString: jest.fn().mockReturnValue(''),
+        rangeCount: 0
+      };
+      Object.defineProperty(window, 'getSelection', {
+        value: jest.fn().mockReturnValue(mockSelection),
+        writable: true
+      });
+
+      const result = utils.getSelectedText();
+      expect(result).toBe('');
+    });
+
+    test('markdownify_sortByLength should sort by length', () => {
+      const result = utils.markdownify_sortByLength('short', 'longer');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('number');
+    });
+
+    test('markdownify_featureEnabled should check feature flags', () => {
+      const result = utils.markdownify_featureEnabled({ bold: true }, 'strong');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('boolean');
+    });
+
+    test('markdownify_featureEnabled should handle disabled features', () => {
+      const result = utils.markdownify_featureEnabled({ bold: false }, 'strong');
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('boolean');
+    });
+  });
+
+  describe('Integration Tests', () => {
+    test('should handle complex markdownify operations', () => {
+      // Test that markdownify method exists and is callable
+      expect(typeof utils.markdownify).toBe('function');
+      // Create a proper jQuery mock for markdownify
+      const $emailBody = {
+        html: () => '<p>Test</p>',
+        length: 1
+      };
+      expect(() => utils.markdownify($emailBody, {}, {})).not.toThrow();
+    });
+
+    test('should handle markdownify with features disabled', () => {
+      const $emailBody = {
+        html: () => '<p>Test</p>',
+        length: 1
+      };
+      const result = utils.markdownify($emailBody, false, {});
+      expect(result).toBeDefined();
+    });
+
+    test('should handle markdownify with selective features', () => {
+      const $emailBody = {
+        html: () => '<p>Test</p>',
+        length: 1
+      };
+      const result = utils.markdownify($emailBody, { bold: true, italic: false }, {});
+      expect(result).toBeDefined();
+    });
+
+    test('should handle markdownify preprocessing', () => {
+      const $emailBody = {
+        html: () => '<p>Test</p>',
+        length: 1
+      };
+      const result = utils.markdownify($emailBody, {}, { preprocess: true });
+      expect(result).toBeDefined();
+    });
+  });
 });

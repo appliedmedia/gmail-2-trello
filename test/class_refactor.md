@@ -193,86 +193,86 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 ### Phase 2: Fix Utils class dependency issues
 
 #### Step 2.1: Fix app dependency in Utils constructor
-- [ ] Ensure Utils constructor receives proper app object
-- [ ] Mock app.chrome.storageSyncGet for debug mode
-- [ ] Mock app.temp.log for logging functionality
-- [ ] **Testing**: Run test_class_utils.js to check constructor functionality
+- [x] Ensure Utils constructor receives proper app object
+- [x] Mock app.chrome.storageSyncGet for debug mode
+- [x] Mock app.temp.log for logging functionality
+- [x] **Testing**: Run test_class_utils.js to check constructor functionality
 
 #### Step 2.2: Fix storage operations
-- [ ] Mock app.chrome.storageLocalGet for loadFromChromeStorage
-- [ ] Mock app.chrome.storageLocalSet for saveToChromeStorage
-- [ ] Ensure proper async/await handling
-- [ ] **Testing**: Run test_class_utils.js to check storage operations
+- [x] Mock app.chrome.storageLocalGet for loadFromChromeStorage
+- [x] Mock app.chrome.storageLocalSet for saveToChromeStorage
+- [x] Ensure proper async/await handling
+- [x] **Testing**: Run test_class_utils.js to check storage operations
 
 #### Step 2.3: Fix logging and debug functionality
-- [ ] Mock app.temp.log structure properly
-- [ ] Ensure debug mode works correctly
-- [ ] Fix log memory management
-- [ ] **Testing**: Run test_class_utils.js to check logging functionality
+- [x] Mock app.temp.log structure properly
+- [x] Ensure debug mode works correctly
+- [x] Fix log memory management
+- [x] **Testing**: Run test_class_utils.js to check logging functionality
 
 **Phase 2 Testing**: 
-- [ ] Run test_class_utils.js to ensure core Utils functionality works
-- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
-- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
-- [ ] Success criteria: Constructor works, storage operations work, logging works, no shared.js regressions
+- [x] Run test_class_utils.js to ensure core Utils functionality works
+- [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [x] Success criteria: Constructor works, storage operations work, logging works, no shared.js regressions
 
 ### Phase 3: Fix individual method tests
 
 #### Step 3.1: Fix string manipulation tests
-- [ ] Fix escapeRegExp tests
-- [ ] Fix replacer tests
-- [ ] Fix replacer_onEach tests
-- [ ] **Testing**: Run test_class_utils.js to check string manipulation
+- [x] Fix escapeRegExp tests
+- [x] Fix replacer tests
+- [x] Fix replacer_onEach tests
+- [x] **Testing**: Run test_class_utils.js to check string manipulation
 
 #### Step 3.2: Fix URI and URL handling tests
-- [ ] Fix uriForDisplay tests
-- [ ] Fix url_add_var tests
-- [ ] **Testing**: Run test_class_utils.js to check URI/URL handling
+- [x] Fix uriForDisplay tests
+- [x] Fix url_add_var tests
+- [x] **Testing**: Run test_class_utils.js to check URI/URL handling
 
 #### Step 3.3: Fix hash and data processing tests
-- [ ] Fix djb2Hash tests
-- [ ] Fix excludeFields tests
-- [ ] **Testing**: Run test_class_utils.js to check hash/data processing
+- [x] Fix djb2Hash tests
+- [x] Fix excludeFields tests
+- [x] **Testing**: Run test_class_utils.js to check hash/data processing
 
 #### Step 3.4: Fix email processing tests
-- [ ] Fix splitEmailDomain tests
-- [ ] **Testing**: Run test_class_utils.js to check email processing
+- [x] Fix splitEmailDomain tests
+- [x] **Testing**: Run test_class_utils.js to check email processing
 
 #### Step 3.5: Fix string formatting tests
-- [ ] Fix addChar tests
-- [ ] Fix addSpace tests
-- [ ] Fix addCRLF tests
-- [ ] **Testing**: Run test_class_utils.js to check string formatting
+- [x] Fix addChar tests
+- [x] Fix addSpace tests
+- [x] Fix addCRLF tests
+- [x] **Testing**: Run test_class_utils.js to check string formatting
 
 #### Step 3.6: Fix text processing tests
-- [ ] Fix truncate tests
-- [ ] Fix midTruncate tests
-- [ ] Fix bookend tests
-- [ ] **Testing**: Run test_class_utils.js to check text processing
+- [x] Fix truncate tests
+- [x] Fix midTruncate tests
+- [x] Fix bookend tests
+- [x] **Testing**: Run test_class_utils.js to check text processing
 
 #### Step 3.7: Fix HTML entity processing tests
-- [ ] Fix encodeEntities tests
-- [ ] Fix decodeEntities tests
-- [ ] **Testing**: Run test_class_utils.js to check HTML entity processing
+- [x] Fix encodeEntities tests
+- [x] Fix decodeEntities tests
+- [x] **Testing**: Run test_class_utils.js to check HTML entity processing
 
 #### Step 3.8: Fix event handling tests
-- [ ] Fix modKey tests
-- [ ] **Testing**: Run test_class_utils.js to check event handling
+- [x] Fix modKey tests
+- [x] **Testing**: Run test_class_utils.js to check event handling
 
 #### Step 3.9: Fix avatar URL generation tests
-- [ ] Fix makeAvatarUrl tests
-- [ ] **Testing**: Run test_class_utils.js to check avatar URL generation
+- [x] Fix makeAvatarUrl tests
+- [x] **Testing**: Run test_class_utils.js to check avatar URL generation
 
 #### Step 3.10: Fix lifecycle method tests
-- [ ] Fix bindEvents tests
-- [ ] Fix init tests
-- [ ] **Testing**: Run test_class_utils.js to check lifecycle methods
+- [x] Fix bindEvents tests
+- [x] Fix init tests
+- [x] **Testing**: Run test_class_utils.js to check lifecycle methods
 
 **Phase 3 Testing**: 
-- [ ] Run test_class_utils.js to ensure all method tests pass
-- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
-- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
-- [ ] Success criteria: All 48+ method tests pass, no shared.js regressions
+- [x] Run test_class_utils.js to ensure all method tests pass
+- [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [x] Success criteria: All 48+ method tests pass, no shared.js regressions
 
 ### Phase 4: Add comprehensive test coverage
 
@@ -449,19 +449,19 @@ Whenever `test_shared.js` is modified, the following tests MUST be run to ensure
 - [x] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
 
 #### Phase 2 Success Criteria
-- [ ] Utils constructor receives and uses proper app object
-- [ ] Storage operations (loadFromChromeStorage, saveToChromeStorage) work
-- [ ] Logging functionality works with debug mode
-- [ ] Log memory management works correctly
-- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
-- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+- [x] Utils constructor receives and uses proper app object
+- [x] Storage operations (loadFromChromeStorage, saveToChromeStorage) work
+- [x] Logging functionality works with debug mode
+- [x] Log memory management works correctly
+- [x] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [x] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
 
 #### Phase 3 Success Criteria
-- [ ] All 48+ method tests pass (string manipulation, URI handling, etc.)
-- [ ] Each method category has at least one passing test
-- [ ] Error handling works for edge cases
-- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
-- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+- [x] All 48+ method tests pass (string manipulation, URI handling, etc.)
+- [x] Each method category has at least one passing test
+- [x] Error handling works for edge cases
+- [x] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [x] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
 
 #### Phase 4 Success Criteria
 - [ ] All comprehensive test coverage passes
