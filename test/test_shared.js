@@ -186,50 +186,8 @@ function setupUtilsForTesting() {
 
   // Ensure global $ is available for the Utils class
   if (!global.$) {
-    global.$ = (selectorOrElement, context) => {
-      // Case 1: $(element) - wrap a DOM element
-      if (selectorOrElement && selectorOrElement.nodeType) {
-        const element = selectorOrElement;
-        return {
-          text: () => element.textContent || '',
-          html: () => element.innerHTML || '',
-          attr: name => element.getAttribute(name) || '',
-          prop: name => {
-            if (name === 'nodeName') {
-              return element.nodeName || element.tagName || '';
-            }
-            return element[name] || '';
-          },
-        };
-      }
-
-      // Case 2: $(selector, context) - find elements in context
-      if (context && context.html) {
-        const selector = selectorOrElement;
-        const contextContent = context.html();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contextContent;
-        const elements = Array.from(tempDiv.querySelectorAll(selector));
-
-        return {
-          length: elements.length,
-          each: callback => {
-            elements.forEach((element, index) => {
-              callback(index, element);
-            });
-          },
-        };
-      }
-
-      // Default behavior for other cases
-      return {
-        length: 0,
-        each: () => {},
-        text: () => '',
-        html: () => '',
-        attr: () => '',
-      };
-    };
+    // global.$ should already be defined at the module level
+    throw new Error('Global $ mock not initialized');
   }
 
   // Load and evaluate the Utils class
@@ -479,6 +437,54 @@ function setupJSDOM() {
 
   // Set window.location.hash for App class initialization
   window.location.hash = '#test-hash';
+
+  // Ensure global $ is available for the test environment
+  if (!global.$) {
+    global.$ = (selectorOrElement, context) => {
+      // Case 1: $(element) - wrap a DOM element
+      if (selectorOrElement && selectorOrElement.nodeType) {
+        const element = selectorOrElement;
+        return {
+          text: () => element.textContent || '',
+          html: () => element.innerHTML || '',
+          attr: name => element.getAttribute(name) || '',
+          prop: name => {
+            if (name === 'nodeName') {
+              return element.nodeName || element.tagName || '';
+            }
+            return element[name] || '';
+          },
+        };
+      }
+
+      // Case 2: $(selector, context) - find elements in context
+      if (context && context.html) {
+        const selector = selectorOrElement;
+        const contextContent = context.html();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contextContent;
+        const elements = Array.from(tempDiv.querySelectorAll(selector));
+
+        return {
+          length: elements.length,
+          each: callback => {
+            elements.forEach((element, index) => {
+              callback(index, element);
+            });
+          },
+        };
+      }
+
+      // Default behavior for other cases
+      return {
+        length: 0,
+        each: () => {},
+        text: () => '',
+        html: () => '',
+        attr: () => '',
+      };
+    };
+  }
 
   return { dom, window, document: window.document };
 }
