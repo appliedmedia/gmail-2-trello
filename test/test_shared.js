@@ -3,6 +3,21 @@
  * Contains common mocks and utilities used across multiple test files
  */
 
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+
+// Test configuration following modern best practices
+const TEST_CONFIG = {
+  timeout: 10000, // Increased timeout for complex tests
+  jsdomOptions: {
+    url: 'http://localhost',
+    pretendToBeVisual: true,
+    resources: 'usable',
+    runScripts: 'dangerously',
+  },
+};
+
 // Mock jQuery for testing
 global.$ = jest.fn((selector, context) => {
   if (typeof selector === 'string' && context) {
