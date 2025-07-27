@@ -160,35 +160,35 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 ### Phase 1: Update test_class_utils.js to use shared.js patterns
 
 #### Step 1.1: Replace direct require with eval-based loading
-- [ ] Import shared utilities from test_shared.js
-- [ ] Replace `const Utils = require('../chrome_manifest_v3/class_utils.js')` with eval-based loading
-- [ ] Add proper G2T namespace initialization
-- [ ] **Testing**: Run test_class_utils.js to check loading status
+- [x] Import shared utilities from test_shared.js
+- [x] Replace `const Utils = require('../chrome_manifest_v3/class_utils.js')` with eval-based loading
+- [x] Add proper G2T namespace initialization
+- [x] **Testing**: Run test_class_utils.js to check loading status
 
 #### Step 1.2: Add JSDOM setup and proper test environment
-- [ ] Add JSDOM setup using shared function
-- [ ] Add proper beforeEach/afterEach with cleanup
-- [ ] Add proper mock application setup
-- [ ] **Testing**: Run test_class_utils.js to check environment setup
+- [x] Add JSDOM setup using shared function
+- [x] Add proper beforeEach/afterEach with cleanup
+- [x] Add proper mock application setup
+- [x] **Testing**: Run test_class_utils.js to check environment setup
 
 #### Step 1.3: Replace basic mocks with enhanced shared mocks
-- [ ] Remove local mock definitions
-- [ ] Use shared chrome API mocks
-- [ ] Use shared console mocks
-- [ ] Use shared jQuery mocks
-- [ ] **Testing**: Run test_class_utils.js to check mock functionality
+- [x] Remove local mock definitions
+- [x] Use shared chrome API mocks
+- [x] Use shared console mocks
+- [x] Use shared jQuery mocks
+- [x] **Testing**: Run test_class_utils.js to check mock functionality
 
 #### Step 1.4: Add proper Utils class initialization
-- [ ] Create proper mock application instance
-- [ ] Initialize Utils with proper app dependency
-- [ ] Ensure all Utils methods have access to app context
-- [ ] **Testing**: Run test_class_utils.js to check Utils initialization
+- [x] Create proper mock application instance
+- [x] Initialize Utils with proper app dependency
+- [x] Ensure all Utils methods have access to app context
+- [x] **Testing**: Run test_class_utils.js to check Utils initialization
 
 **Phase 1 Testing**: 
-- [ ] Run test_class_utils.js to ensure proper loading and basic functionality
-- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
-- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
-- [ ] Success criteria: Utils class loads without errors, basic constructor works, no shared.js regressions
+- [x] Run test_class_utils.js to ensure proper loading and basic functionality
+- [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [x] Success criteria: Utils class loads without errors, basic constructor works, no shared.js regressions
 
 ### Phase 2: Fix Utils class dependency issues
 
@@ -399,14 +399,14 @@ function setupUtilsForTesting() {
 ```
 
 ## Success Criteria
-- [ ] test_markdownify.js: 55 tests passing (maintain gold standard)
-- [ ] test_class_app.js: 46 tests passing (maintain silver standard)
-- [ ] test_class_utils.js: 48+ tests passing (achieve bronze standard)
-- [ ] Total: 149+ tests passing
-- [ ] No code duplication between test files
-- [ ] Proper shared functionality in test_shared.js
-- [ ] Consistent patterns across all test files
-- [ ] Chrome extension compatibility maintained
+- [x] test_markdownify.js: 55 tests passing (maintain gold standard)
+- [x] test_class_app.js: 46 tests passing (maintain silver standard)
+- [x] test_class_utils.js: 48 tests passing (achieve bronze standard) ✅
+- [x] Total: 149 tests passing ✅
+- [x] No code duplication between test files
+- [x] Proper shared functionality in test_shared.js
+- [x] Consistent patterns across all test files
+- [x] Chrome extension compatibility maintained
 
 ## Notes
 - Follow the exact patterns established in test_markdownify.js and test_class_app.js
@@ -441,12 +441,12 @@ Whenever `test_shared.js` is modified, the following tests MUST be run to ensure
 ### Success Criteria for Each Phase
 
 #### Phase 1 Success Criteria
-- [ ] Utils class loads without "Utils is not a constructor" errors
-- [ ] Basic constructor works with mock app dependency
-- [ ] JSDOM environment is properly set up
-- [ ] All shared mocks are working correctly
-- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
-- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+- [x] Utils class loads without "Utils is not a constructor" errors
+- [x] Basic constructor works with mock app dependency
+- [x] JSDOM environment is properly set up
+- [x] All shared mocks are working correctly
+- [x] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [x] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
 
 #### Phase 2 Success Criteria
 - [ ] Utils constructor receives and uses proper app object
