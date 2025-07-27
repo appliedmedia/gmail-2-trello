@@ -20,13 +20,13 @@ const {
 const mockInstances = createMockInstances();
 
 // Make mock objects globally available
-var mockChrome = mockInstances.mockChrome;
-var mockEventTarget = mockInstances.mockEventTarget;
-var mockModel = mockInstances.mockModel;
-var mockGmailView = mockInstances.mockGmailView;
-var mockPopupView = mockInstances.mockPopupView;
-var mockUtils = mockInstances.mockUtils;
-var analytics = global.analytics;
+const mockChrome = mockInstances.mockChrome;
+const mockEventTarget = mockInstances.mockEventTarget;
+const mockModel = mockInstances.mockModel;
+const mockGmailView = mockInstances.mockGmailView;
+const mockPopupView = mockInstances.mockPopupView;
+const mockUtils = mockInstances.mockUtils;
+const analytics = global.analytics;
 
 // Make mockInstances available to tests
 global.mockInstances = mockInstances;

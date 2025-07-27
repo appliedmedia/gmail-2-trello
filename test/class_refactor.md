@@ -126,7 +126,7 @@ The goal is to refactor `test_markdownify.js` (GOLD STANDARD) and `test_class_ap
 
 ---
 
-# Test Refactor Plan: Refactoring test_class_utils.js to Use Shared Code
+## Test Refactor Plan: Refactoring test_class_utils.js to Use Shared Code
 
 ## Overview
 The goal is to refactor `test_class_utils.js` to follow the same patterns as the successful refactors of `test_markdownify.js` (GOLD STANDARD) and `test_class_app.js` (SILVER STANDARD). Currently, `test_class_utils.js` has 48 failing tests out of 48 total due to improper class loading.
@@ -184,7 +184,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [x] Ensure all Utils methods have access to app context
 - [x] **Testing**: Run test_class_utils.js to check Utils initialization
 
-**Phase 1 Testing**: 
+**Phase 1 Testing**:
 - [x] Run test_class_utils.js to ensure proper loading and basic functionality
 - [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
 - [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
@@ -210,7 +210,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [x] Fix log memory management
 - [x] **Testing**: Run test_class_utils.js to check logging functionality
 
-**Phase 2 Testing**: 
+**Phase 2 Testing**:
 - [x] Run test_class_utils.js to ensure core Utils functionality works
 - [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
 - [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
@@ -268,7 +268,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [x] Fix init tests
 - [x] **Testing**: Run test_class_utils.js to check lifecycle methods
 
-**Phase 3 Testing**: 
+**Phase 3 Testing**:
 - [x] Run test_class_utils.js to ensure all method tests pass
 - [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
 - [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
@@ -291,7 +291,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [x] Test real-world scenarios
 - [x] **Testing**: Run test_class_utils.js to check integration
 
-**Phase 4 Testing**: 
+**Phase 4 Testing**:
 - [x] Run test_class_utils.js to ensure comprehensive coverage
 - [x] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
 - [x] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
@@ -311,7 +311,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [x] Ensure consistent patterns across all test files
 - [x] **Testing**: Code review and verification
 
-**Phase 5 Testing**: 
+**Phase 5 Testing**:
 - [x] Run all test suites to ensure all tests pass
 - [x] **CRITICAL**: Run test_markdownify.js to ensure all 55 tests still pass
 - [x] **CRITICAL**: Run test_class_app.js to ensure all 46 tests still pass
@@ -321,6 +321,7 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 ## Key Patterns to Follow
 
 ### Class Loading Pattern (from test_class_app.js)
+
 ```javascript
 // Load the Utils class using eval (for Chrome extension compatibility)
 const utilsCode = loadClassFile('chrome_manifest_v3/class_utils.js');
@@ -343,6 +344,7 @@ eval(injectedCode);
 ```
 
 ### Test Environment Setup Pattern (from test_markdownify.js)
+
 ```javascript
 describe('Utils Class', () => {
   let dom, window, utils, mockApp;
@@ -367,6 +369,7 @@ describe('Utils Class', () => {
 ```
 
 ### Mock Application Pattern (from test_shared.js)
+
 ```javascript
 function setupUtilsForTesting() {
   const mockApp = {
