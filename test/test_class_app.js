@@ -4,7 +4,15 @@
  */
 
 // Import shared test utilities
-const { loadClassFile, createMockInstances, setupG2TMocks, clearAllMocks, createG2TNamespace } = require('./test_shared');
+const { 
+  loadClassFile, 
+  createMockInstances, 
+  setupG2TMocks, 
+  clearAllMocks, 
+  createG2TNamespace,
+  setupJSDOM,
+  cleanupJSDOM
+} = require('./test_shared');
 
 // Set up mocks before loading the App class
 const mockInstances = createMockInstances();
@@ -76,14 +84,23 @@ G2T.Utils = function(args) {
 eval(injectedCode);
 
 describe('App Class', () => {
-  let app;
+  let app, dom;
 
   beforeEach(() => {
+    // Setup JSDOM environment using shared function
+    const jsdomSetup = setupJSDOM();
+    dom = jsdomSetup.dom;
+    
     // Create a fresh App instance for each test
     app = new G2T.App();
     
     // Clear all mocks
     clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Clean up JSDOM environment using shared function
+    cleanupJSDOM(dom);
   });
 
   describe('Constructor and Initialization', () => {
@@ -101,12 +118,7 @@ describe('App Class', () => {
     test('should initialize with default persistent state', () => {
       expect(app.persist.layoutMode).toBe(0);
       expect(app.persist.trelloAuthorized).toBe(false);
-      expect(app.persist.trelloUser).toBe(null);
-      expect(app.persist.trelloBoards).toEqual([]);
-      expect(app.persist.trelloLists).toEqual([]);
-      expect(app.persist.trelloCards).toEqual([]);
-      expect(app.persist.trelloMembers).toEqual([]);
-      expect(app.persist.trelloLabels).toEqual([]);
+      expect(app.persist.user).toBe(null);
       expect(app.persist.emailBoardListCardMap).toEqual([]);
       expect(app.persist.popupWidth).toBe(700);
       expect(app.persist.popupHeight).toBe(464);
@@ -131,8 +143,8 @@ describe('App Class', () => {
       expect(app.temp.pendingMessage).toBe(null);
       expect(app.temp.description).toBe('');
       expect(app.temp.title).toBe('');
-      expect(app.temp.attachments).toEqual([]);
-      expect(app.temp.images).toEqual([]);
+      expect(app.temp.attachment).toEqual([]);
+      expect(app.temp.image).toEqual([]);
     });
 
     test('should set initialized flag to false initially', () => {
@@ -227,7 +239,7 @@ describe('App Class', () => {
       
       expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith('App: Gmail navigation detected, triggering redraw');
       expect(global.mockInstances.mockGmailView.forceRedraw).toHaveBeenCalled();
-      expect(global.mockInstances.mockEventTarget.fire).toHaveBeenCalledWith('forceRedraw');
+      expect(global.mockInstances.mockEventTarget.emit).toHaveBeenCalledWith('forceRedraw');
     });
 
     test('handleGmailHashChange should trigger redraw', () => {

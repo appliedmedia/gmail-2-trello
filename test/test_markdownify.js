@@ -1,38 +1,13 @@
 /* eslint-env jest, node */
 
-const fs = require('fs');
-const path = require('path');
-const { JSDOM } = require('jsdom');
-
-// Test configuration following modern best practices
-const TEST_CONFIG = {
-  timeout: 10000, // Increased timeout for complex tests
-  jsdomOptions: {
-    url: 'http://localhost',
-    pretendToBeVisual: true,
-    resources: 'usable',
-    runScripts: 'dangerously',
-  },
-};
-
-/**
- * Mock jQuery object that mimics what markdownify expects
- */
-function createMockJQueryElement(htmlContent) {
-  // Ensure htmlContent is a string
-  const content = htmlContent || '';
-
-  return {
-    html: () => content,
-    length: content ? 1 : 0,
-    text: () => {
-      // Parse HTML and extract text content
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      return tempDiv.textContent || '';
-    },
-  };
-}
+// Import shared test utilities
+const { 
+  setupJSDOM, 
+  cleanupJSDOM, 
+  setupUtilsForTesting, 
+  createMockJQueryElement,
+  TEST_CONFIG 
+} = require('./test_shared');
 
 /**
  * Markdownify Function Tests
@@ -48,113 +23,21 @@ describe('Markdownify Function Tests', () => {
 
   // Setup test environment for each test
   beforeEach(() => {
-    // Create JSDOM instance with proper configuration
-    dom = new JSDOM(
-      '<!DOCTYPE html><html><body></body></html>',
-      TEST_CONFIG.jsdomOptions
-    );
-    window = dom.window;
+    // Setup JSDOM environment using shared function
+    const jsdomSetup = setupJSDOM();
+    dom = jsdomSetup.dom;
+    window = jsdomSetup.window;
 
-    // Set up globals for the test environment
-    global.window = window;
-    global.document = window.document;
-    global.navigator = window.navigator;
-
-    // Add global $ function that can work with our mocks
-    global.$ = (selectorOrElement, context) => {
-      // Case 1: $(element) - wrap a DOM element
-      if (selectorOrElement && selectorOrElement.nodeType) {
-        const element = selectorOrElement;
-        return {
-          text: () => element.textContent || '',
-          html: () => element.innerHTML || '',
-          attr: name => element.getAttribute(name) || '',
-          prop: name => {
-            if (name === 'nodeName') {
-              return element.nodeName || element.tagName || '';
-            }
-            return element[name] || '';
-          },
-        };
-      }
-
-      // Case 2: $(selector, context) - find elements in context
-      if (context && context.html) {
-        const selector = selectorOrElement;
-        const contextContent = context.html();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contextContent;
-        const elements = Array.from(tempDiv.querySelectorAll(selector));
-
-        return {
-          length: elements.length,
-          each: callback => {
-            elements.forEach((element, index) => {
-              callback(index, element);
-            });
-          },
-        };
-      }
-
-      // Default behavior for other cases
-      return {
-        length: 0,
-        each: () => {},
-        text: () => '',
-        html: () => '',
-        attr: () => '',
-      };
-    };
-
-    // Initialize G2T namespace for Utils class
-    global.G2T = {};
-
-    // Load and evaluate the Utils class
-    const utilsPath = path.join(
-      __dirname,
-      '../chrome_manifest_v3/class_utils.js'
-    );
-    const utilsCode = fs.readFileSync(utilsPath, 'utf8');
-
-    // Create local reference for eval scope
-    var G2T = global.G2T;
-    eval(utilsCode);
-
-    // Create mock application for Utils class
-    mockApp = {
-      utils: {
-        log: jest.fn(),
-      },
-      persist: {
-        storageHashes: {},
-      },
-      temp: {
-        log: {
-          debugMode: false,
-          memory: [],
-          count: 0,
-          max: 100,
-        },
-      },
-    };
-
-    // Create Utils instance
-    utils = new global.G2T.Utils({ app: mockApp });
+    // Setup Utils class using shared function
+    const utilsSetup = setupUtilsForTesting();
+    utils = utilsSetup.utils;
+    mockApp = utilsSetup.mockApp;
   });
 
   // Clean up after each test
   afterEach(() => {
-    // Close JSDOM
-    if (dom && dom.window) {
-      dom.window.close();
-    }
-
-    // Clean up globals
-    delete global.window;
-    delete global.document;
-    delete global.navigator;
-    delete global.$;
-    delete global.G2T;
+    // Clean up JSDOM environment using shared function
+    cleanupJSDOM(dom);
   });
 
   describe('Basic HTML to Markdown conversion', () => {
