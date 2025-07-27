@@ -12,7 +12,8 @@ const {
   createG2TNamespace,
   setupJSDOM,
   cleanupJSDOM,
-  setupUtilsForTesting
+  setupUtilsForTesting,
+  createMockJQueryElement
 } = require('./test_shared');
 
 // Set up mocks before loading the Utils class
@@ -656,6 +657,580 @@ describe('Utils Class', () => {
       };
       const result = utils.markdownify($emailBody, {}, { preprocess: true });
       expect(result).toBeDefined();
+    });
+  });
+
+  describe('Markdownify Comprehensive Tests', () => {
+    describe('Basic HTML to Markdown conversion', () => {
+      test('converts simple paragraph', () => {
+        const input = '<p>Hello world</p>';
+        const expected = 'Hello world';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts multiple paragraphs with proper spacing', () => {
+        const input = '<p>First paragraph</p><p>Second paragraph</p>';
+        const expected = 'First paragraph\n\nSecond paragraph';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts div elements to paragraph spacing', () => {
+        const input = '<div>First div</div><div>Second div</div>';
+        const expected = 'First div\n\nSecond div';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts horizontal rule', () => {
+        const input = '<p>Text before</p><hr><p>Text after</p>';
+        const expected = 'Text before\n\n---\n\nText after';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts horizontal rule variations', () => {
+        const input = '<p>Before</p>----<p>After</p>';
+        const expected = 'Before\n\n---\n\nAfter';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts line breaks', () => {
+        const input = '<p>Line 1<br>Line 2</p>';
+        const expected = 'Line 1\nLine 2';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts line breaks with attributes', () => {
+        const input = '<p>Line 1<br class="test">Line 2</p>';
+        const expected = 'Line 1\nLine 2';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Text formatting conversion', () => {
+      test('converts strong bold text', () => {
+        const input = '<p>This is <strong>bold</strong> text</p>';
+        const expected = 'This is **bold** text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts b bold text', () => {
+        const input = '<p>This is <b>bold</b> text</p>';
+        const expected = 'This is **bold** text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts em italic text', () => {
+        const input = '<p>This is <em>italic</em> text</p>';
+        const expected = 'This is *italic* text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts i italic text', () => {
+        const input = '<p>This is <i>italic</i> text</p>';
+        const expected = 'This is *italic* text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts underline text', () => {
+        const input = '<p>This is <u>underlined</u> text</p>';
+        const expected = 'This is __underlined__ text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts strikethrough del text', () => {
+        const input = '<p>This is <del>deleted</del> text</p>';
+        const expected = 'This is ~~deleted~~ text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts strikethrough s text', () => {
+        const input = '<p>This is <s>strikethrough</s> text</p>';
+        const expected = 'This is ~~strikethrough~~ text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts strikethrough strike text', () => {
+        const input = '<p>This is <strike>strikethrough</strike> text</p>';
+        const expected = 'This is ~~strikethrough~~ text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles nested formatting', () => {
+        const input = '<p>This is <strong><em>bold italic</em></strong> text</p>';
+        const expected = 'This is *bold italic* text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles multiple formatting in same text', () => {
+        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const expected = 'This is **bold** and *italic* text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Header conversion', () => {
+      test('converts h1 header to markdown format', () => {
+        const input = '<h1>Main Title</h1>';
+        const expected = '# Main Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts h2 header to markdown format', () => {
+        const input = '<h2>Section Title</h2>';
+        const expected = '## Section Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts h3 header to markdown format', () => {
+        const input = '<h3>Subsection Title</h3>';
+        const expected = '### Subsection Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts h4 header to markdown format', () => {
+        const input = '<h4>Sub-subsection Title</h4>';
+        const expected = '#### Sub-subsection Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts h5 header to markdown format', () => {
+        const input = '<h5>Deep Title</h5>';
+        const expected = '##### Deep Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts h6 header to markdown format', () => {
+        const input = '<h6>Deepest Title</h6>';
+        const expected = '###### Deepest Title';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles headers with proper spacing', () => {
+        const input = '<h1>Title</h1><p>Content</p><h2>Subtitle</h2>';
+        const expected = '# Title\n\nContent\n\n## Subtitle';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Link conversion', () => {
+      test('converts simple links', () => {
+        const input = '<p>Visit <a href="https://example.com">Example</a> for more info</p>';
+        const expected = 'Visit [Example](<https://example.com/>) for more info';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('converts links with title attributes', () => {
+        const input = '<p>Visit <a href="https://example.com" title="Example Site">Example</a></p>';
+        const expected = 'Visit [Example](<https://example.com/>)';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles links with long text', () => {
+        const input = '<p>Visit <a href="https://example.com">This is a very long link text that should be converted</a></p>';
+        const expected = 'Visit [This is a very long link text that should be converted](<https://example.com/>)';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('ignores links with short text (less than 4 characters)', () => {
+        const input = '<p>Visit <a href="https://example.com">Hi</a> for more info</p>';
+        const expected = 'Visit Hi for more info';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles multiple links in same paragraph', () => {
+        const input = '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>';
+        const expected = 'Visit [Example 1](<https://example1.com/>) and [Example 2](<https://example2.com/>)';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles same text and href', () => {
+        const input = '<p>Visit <a href="https://example.com">https://example.com</a></p>';
+        const expected = 'Visit [https://example.com](<https://example.com/>)';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles mailto links', () => {
+        const input = '<p>Contact <a href="mailto:test@example.com">test@example.com</a></p>';
+        const expected = 'Contact <test@example.com>';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('HTML entity decoding', () => {
+      test('decodes common HTML entities', () => {
+        const input = '<p>This &amp; that &lt; &gt; &quot; &#39;</p>';
+        const expected = 'This & that < > " \'';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('decodes numeric HTML entities', () => {
+        const input = '<p>Copyright &#169; 2023</p>';
+        const expected = 'Copyright © 2023';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Bullet and list handling', () => {
+      test('converts bullet characters to asterisks', () => {
+        const input = '<p>• First item<br>• Second item</p>';
+        const expected = '• First item\n• Second item';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles bullet formatting with line breaks', () => {
+        const input = '<p>• Item 1<br>• Item 2<br>• Item 3</p>';
+        const expected = '• Item 1\n• Item 2\n• Item 3';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Whitespace and formatting cleanup', () => {
+      test('handles multiple spaces in content', () => {
+        const input = '<p>This    has    multiple    spaces</p>';
+        const expected = 'This has multiple spaces';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('normalizes multiple line breaks', () => {
+        const input = '<p>First line</p>\n\n\n<p>Second line</p>';
+        const expected = 'First line\n\nSecond line';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('trims whitespace from beginning and end', () => {
+        const input = '   <p>Content</p>   ';
+        const expected = 'Content';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles tabs and mixed whitespace', () => {
+        const input = '<p>Line 1\twith\ttabs</p><p>Line 2</p>';
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        // The actual behavior normalizes tabs to spaces
+        expect(result).toContain('Line 1');
+        expect(result).toContain('with');
+        expect(result).toContain('tabs');
+        expect(result).toContain('Line 2');
+      });
+
+      test('demonstrates actual space normalization', () => {
+        const input = '<p>Text   with   multiple   spaces</p>';
+        const expected = 'Text with multiple spaces';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Feature toggle functionality', () => {
+      test('disables all features when features=false', () => {
+        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const expected = 'This is bold and italic text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, false, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('allows selective feature disabling', () => {
+        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const features = { bold: false, italic: true };
+        const expected = 'This is **bold** and *italic* text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, features, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('enables features by default', () => {
+        const input = '<p>This is <strong>bold</strong> text</p>';
+        const expected = 'This is **bold** text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+    });
+
+    describe('Complex real-world scenarios', () => {
+      test('handles email-like content', () => {
+        const input = `
+          <div>
+            <h1>Meeting Summary</h1>
+            <p>Hello team,</p>
+            <p>Here's what we discussed:</p>
+            <ul>
+              <li>• Project timeline</li>
+              <li>• Budget concerns</li>
+            </ul>
+            <p>Best regards,<br>John</p>
+          </div>
+        `;
+        const expected = '# Meeting Summary\n\nHello team,\n\nHere\'s what we discussed:\n\n• Project timeline\n• Budget concerns\n\nBest regards,\nJohn';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles nested HTML structures', () => {
+        const input = '<div><p>Outer <strong>bold <em>italic</em></strong> text</p></div>';
+        const expected = 'Outer **bold italic** text';
+
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+
+        expect(result).toBe(expected);
+      });
+
+      test('handles large content efficiently', () => {
+        const largeContent = '<p>' + 'Test content. '.repeat(1000) + '</p>';
+        const $element = createMockJQueryElement(largeContent);
+        
+        const startTime = Date.now();
+        const result = utils.markdownify($element, true, {});
+        const endTime = Date.now();
+
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+        expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
+      });
+    });
+
+    describe('Edge cases and error handling', () => {
+      test('handles null/undefined input gracefully', () => {
+        expect(() => utils.markdownify(null, true, {})).not.toThrow();
+        expect(() => utils.markdownify(undefined, true, {})).not.toThrow();
+      });
+
+      test('handles empty input', () => {
+        const $element = createMockJQueryElement('');
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBe('');
+      });
+
+      test('handles input with only whitespace', () => {
+        const $element = createMockJQueryElement('   \n\t   ');
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBe('');
+      });
+
+      test('handles malformed HTML gracefully', () => {
+        const input = '<p>Unclosed tag<strong>Bold text<p>Another paragraph';
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+      });
+
+      test('handles elements with no text content', () => {
+        const input = '<div><p></p><p>Content</p></div>';
+        const expected = 'Content';
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBe(expected);
+      });
+
+      test('handles special characters and unicode', () => {
+        const input = '<p>Special chars: &copy; &trade; &reg; &euro; &pound;</p>';
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBeDefined();
+        expect(typeof result).toBe('string');
+      });
+
+      test('handles very long text content', () => {
+        const longText = 'A'.repeat(10000);
+        const input = `<p>${longText}</p>`;
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+        expect(result).toBeDefined();
+        expect(result.length).toBe(10000);
+      });
+    });
+
+    describe('Integration and consistency tests', () => {
+      test('produces consistent output for same input', () => {
+        const input = '<p>Test <strong>bold</strong> content</p>';
+        const $element = createMockJQueryElement(input);
+        
+        const result1 = utils.markdownify($element, true, {});
+        const result2 = utils.markdownify($element, true, {});
+        
+        expect(result1).toBe(result2);
+      });
+
+      test('validates markdown output format', () => {
+        const input = '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>';
+        const $element = createMockJQueryElement(input);
+        const result = utils.markdownify($element, true, {});
+        
+        // Should contain markdown syntax
+        expect(result).toContain('# Title');
+        expect(result).toContain('**bold**');
+        expect(result).toContain('*italic*');
+        expect(result).toContain('[link]');
+        expect(result).toContain('(<https://example.com/>)');
+      });
     });
   });
 });

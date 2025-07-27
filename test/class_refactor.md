@@ -399,20 +399,23 @@ function setupUtilsForTesting() {
 ```
 
 ## Success Criteria
-- [x] test_markdownify.js: 55 tests passing (maintain gold standard)
-- [x] test_class_app.js: 46 tests passing (maintain silver standard)
-- [x] test_class_utils.js: 63 tests passing (achieve bronze standard) ✅
+- [x] test_markdownify.js: 55 tests passing (maintain gold standard) - **RETIRED** ✅
+- [x] test_class_app.js: 46 tests passing (maintain silver standard) ✅
+- [x] test_class_utils.js: 118 tests passing (achieve bronze standard + markdownify integration) ✅
 - [x] Total: 164 tests passing ✅
 - [x] No code duplication between test files
 - [x] Proper shared functionality in test_shared.js
 - [x] Consistent patterns across all test files
 - [x] Chrome extension compatibility maintained
+- [x] **NEW**: Markdownify functionality fully integrated into Utils tests ✅
 
 ## Notes
 - Follow the exact patterns established in test_markdownify.js and test_class_app.js
 - Never reduce any shared code, only add to it
-- **CRITICAL**: Always check that all old tests (markdownify, class_app) are completely passing at all times
-- **CRITICAL**: If shared.js is modified, immediately run test_markdownify.js and test_class_app.js to verify no regressions
+- **CRITICAL**: Always check that all old tests (class_app) are completely passing at all times
+- **CRITICAL**: If shared.js is modified, immediately run test_class_app.js to verify no regressions
+- **NEW**: Markdownify functionality has been fully integrated into test_class_utils.js (55 tests added)
+- **NEW**: test_markdownify.js can now be retired as all its functionality is covered in Utils tests
 - Maintain Chrome extension compatibility with eval-based loading
 - Preserve all existing functionality while improving code sharing
 - Use proper JSDOM setup for DOM-dependent tests
