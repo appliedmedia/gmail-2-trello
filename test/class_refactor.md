@@ -184,7 +184,11 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [ ] Ensure all Utils methods have access to app context
 - [ ] **Testing**: Run test_class_utils.js to check Utils initialization
 
-**Phase 1 Testing**: Run test_class_utils.js to ensure proper loading and basic functionality
+**Phase 1 Testing**: 
+- [ ] Run test_class_utils.js to ensure proper loading and basic functionality
+- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [ ] Success criteria: Utils class loads without errors, basic constructor works, no shared.js regressions
 
 ### Phase 2: Fix Utils class dependency issues
 
@@ -206,7 +210,11 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [ ] Fix log memory management
 - [ ] **Testing**: Run test_class_utils.js to check logging functionality
 
-**Phase 2 Testing**: Run test_class_utils.js to ensure core Utils functionality works
+**Phase 2 Testing**: 
+- [ ] Run test_class_utils.js to ensure core Utils functionality works
+- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [ ] Success criteria: Constructor works, storage operations work, logging works, no shared.js regressions
 
 ### Phase 3: Fix individual method tests
 
@@ -260,7 +268,11 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [ ] Fix init tests
 - [ ] **Testing**: Run test_class_utils.js to check lifecycle methods
 
-**Phase 3 Testing**: Run test_class_utils.js to ensure all method tests pass
+**Phase 3 Testing**: 
+- [ ] Run test_class_utils.js to ensure all method tests pass
+- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [ ] Success criteria: All 48+ method tests pass, no shared.js regressions
 
 ### Phase 4: Add comprehensive test coverage
 
@@ -279,7 +291,11 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [ ] Test real-world scenarios
 - [ ] **Testing**: Run test_class_utils.js to check integration
 
-**Phase 4 Testing**: Run test_class_utils.js to ensure comprehensive coverage
+**Phase 4 Testing**: 
+- [ ] Run test_class_utils.js to ensure comprehensive coverage
+- [ ] **CRITICAL**: If shared.js was modified, run test_markdownify.js to ensure all 55 tests still pass
+- [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
+- [ ] Success criteria: All comprehensive tests pass, no shared.js regressions
 
 ### Phase 5: Validation and cleanup
 
@@ -295,7 +311,12 @@ The goal is to refactor `test_class_utils.js` to follow the same patterns as the
 - [ ] Ensure consistent patterns across all test files
 - [ ] **Testing**: Code review and verification
 
-**Phase 5 Testing**: Run all test suites to ensure all tests pass
+**Phase 5 Testing**: 
+- [ ] Run all test suites to ensure all tests pass
+- [ ] **CRITICAL**: Run test_markdownify.js to ensure all 55 tests still pass
+- [ ] **CRITICAL**: Run test_class_app.js to ensure all 46 tests still pass
+- [ ] **CRITICAL**: Run test_class_utils.js to ensure all 48+ tests pass
+- [ ] Success criteria: All 149+ tests pass across all test suites, no regressions
 
 ## Key Patterns to Follow
 
@@ -390,8 +411,71 @@ function setupUtilsForTesting() {
 ## Notes
 - Follow the exact patterns established in test_markdownify.js and test_class_app.js
 - Never reduce any shared code, only add to it
-- Always check that all old tests (markdownify, class_app) are completely passing at all times
+- **CRITICAL**: Always check that all old tests (markdownify, class_app) are completely passing at all times
+- **CRITICAL**: If shared.js is modified, immediately run test_markdownify.js and test_class_app.js to verify no regressions
 - Maintain Chrome extension compatibility with eval-based loading
 - Preserve all existing functionality while improving code sharing
 - Use proper JSDOM setup for DOM-dependent tests
 - Create HTML elements directly for testing when needed
+
+## Testing Requirements When Modifying Shared Code
+
+### Mandatory Test Execution After Shared.js Changes
+Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
+
+1. **test_markdownify.js** (GOLD STANDARD)
+   - Command: `npm test -- test/test_markdownify.js`
+   - Expected: All 55 tests passing
+   - Purpose: Ensure gold standard functionality is preserved
+
+2. **test_class_app.js** (SILVER STANDARD)
+   - Command: `npm test -- test/test_class_app.js`
+   - Expected: All 46 tests passing
+   - Purpose: Ensure silver standard functionality is preserved
+
+3. **test_class_utils.js** (BRONZE STANDARD - when applicable)
+   - Command: `npm test -- test/test_class_utils.js`
+   - Expected: All 48+ tests passing (after refactor)
+   - Purpose: Ensure bronze standard functionality works
+
+### Success Criteria for Each Phase
+
+#### Phase 1 Success Criteria
+- [ ] Utils class loads without "Utils is not a constructor" errors
+- [ ] Basic constructor works with mock app dependency
+- [ ] JSDOM environment is properly set up
+- [ ] All shared mocks are working correctly
+- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+
+#### Phase 2 Success Criteria
+- [ ] Utils constructor receives and uses proper app object
+- [ ] Storage operations (loadFromChromeStorage, saveToChromeStorage) work
+- [ ] Logging functionality works with debug mode
+- [ ] Log memory management works correctly
+- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+
+#### Phase 3 Success Criteria
+- [ ] All 48+ method tests pass (string manipulation, URI handling, etc.)
+- [ ] Each method category has at least one passing test
+- [ ] Error handling works for edge cases
+- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+
+#### Phase 4 Success Criteria
+- [ ] All comprehensive test coverage passes
+- [ ] Error handling tests pass
+- [ ] Performance tests pass
+- [ ] Integration tests pass
+- [ ] **CRITICAL**: No regressions in test_markdownify.js (55 tests pass)
+- [ ] **CRITICAL**: No regressions in test_class_app.js (46 tests pass)
+
+#### Phase 5 Success Criteria
+- [ ] All 149+ tests pass across all test suites
+- [ ] No code duplication between test files
+- [ ] Consistent patterns across all test files
+- [ ] Chrome extension compatibility maintained
+- [ ] **CRITICAL**: test_markdownify.js: 55 tests passing (gold standard maintained)
+- [ ] **CRITICAL**: test_class_app.js: 46 tests passing (silver standard maintained)
+- [ ] **CRITICAL**: test_class_utils.js: 48+ tests passing (bronze standard achieved)
