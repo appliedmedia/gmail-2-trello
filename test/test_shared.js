@@ -3,14 +3,85 @@
  * Contains common mocks and utilities used across multiple test files
  */
 
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+
+// Test configuration following modern best practices
+const TEST_CONFIG = {
+  timeout: 10000, // Increased timeout for complex tests
+  jsdomOptions: {
+    url: 'http://localhost',
+    pretendToBeVisual: true,
+    resources: 'usable',
+    runScripts: 'dangerously',
+  },
+};
+
+/**
+ * Mock jQuery object that mimics what markdownify expects
+ */
+function createMockJQueryElement(htmlContent) {
+  // Ensure htmlContent is a string
+  const content = htmlContent || '';
+
+  return {
+    html: () => content,
+    length: content ? 1 : 0,
+    text: () => {
+      // Parse HTML and extract text content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      return tempDiv.textContent || '';
+    },
+  };
+}
+
 // Mock jQuery for testing
-global.$ = jest.fn((selector, context) => {
-  if (typeof selector === 'string' && context) {
-    // Handle $(selector, context) pattern used in markdownify
-    return createMockJQuery(context.html ? context.html() : '');
+global.$ = (selectorOrElement, context) => {
+  // Case 1: $(element) - wrap a DOM element
+  if (selectorOrElement && selectorOrElement.nodeType) {
+    const element = selectorOrElement;
+    return {
+      text: () => element.textContent || '',
+      html: () => element.innerHTML || '',
+      attr: name => element.getAttribute(name) || '',
+      prop: name => {
+        if (name === 'nodeName') {
+          return element.nodeName || element.tagName || '';
+        }
+        return element[name] || '';
+      },
+    };
   }
-  return createMockJQuery('');
-});
+
+  // Case 2: $(selector, context) - find elements in context
+  if (context && context.html) {
+    const selector = selectorOrElement;
+    const contextContent = context.html();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = contextContent;
+    const elements = Array.from(tempDiv.querySelectorAll(selector));
+
+    return {
+      length: elements.length,
+      each: callback => {
+        elements.forEach((element, index) => {
+          callback(index, element);
+        });
+      },
+    };
+  }
+
+  // Default behavior for other cases
+  return {
+    length: 0,
+    each: () => {},
+    text: () => '',
+    html: () => '',
+    attr: () => '',
+  };
+};
 
 // Mock chrome API
 global.chrome = {
@@ -106,6 +177,55 @@ function loadClassFile(filePath) {
 }
 
 /**
+ * Helper function to load and setup Utils class for testing
+ * @returns {Object} - Object containing utils instance and mockApp
+ */
+function setupUtilsForTesting() {
+  // Initialize G2T namespace for Utils class
+  global.G2T = {};
+
+  // Ensure global $ is available for the Utils class
+  if (!global.$) {
+    // global.$ should already be defined at the module level
+    throw new Error('Global $ mock not initialized');
+  }
+
+  // Load and evaluate the Utils class
+  const utilsPath = path.join(
+    __dirname,
+    '../chrome_manifest_v3/class_utils.js'
+  );
+  const utilsCode = fs.readFileSync(utilsPath, 'utf8');
+
+  // Create local reference for eval scope
+  var G2T = global.G2T;
+  eval(utilsCode);
+
+  // Create mock application for Utils class
+  const mockApp = {
+    utils: {
+      log: jest.fn(),
+    },
+    persist: {
+      storageHashes: {},
+    },
+    temp: {
+      log: {
+        debugMode: false,
+        memory: [],
+        count: 0,
+        max: 100,
+      },
+    },
+  };
+
+  // Create Utils instance
+  const utils = new global.G2T.Utils({ app: mockApp });
+
+  return { utils, mockApp };
+}
+
+/**
  * Helper function to create mock instances for G2T classes
  * @returns {Object} - Object containing mock instances
  */
@@ -122,7 +242,8 @@ function createMockInstances() {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
     addListener: jest.fn(),
-    fire: jest.fn()
+    fire: jest.fn(),
+    emit: jest.fn()
   };
 
   const mockModel = {
@@ -213,7 +334,8 @@ function setupG2TMocks(mockInstances) {
  * Helper function to clear all mocks
  */
 function clearAllMocks() {
-  $.mockClear();
+  // Note: $ is not a Jest mock function, so we don't clear it
+  // $.mockClear();
   chrome.storage.local.get.mockClear();
   chrome.storage.local.set.mockClear();
   chrome.storage.sync.get.mockClear();
@@ -222,8 +344,11 @@ function clearAllMocks() {
   console.log.mockClear();
   console.error.mockClear();
   console.warn.mockClear();
-  window.addEventListener.mockClear();
-  window.removeEventListener.mockClear();
+  
+  // Note: window event listeners are real DOM methods when using JSDOM, not mocks
+  // window.addEventListener.mockClear();
+  // window.removeEventListener.mockClear();
+  
   if (global.analytics) {
     global.analytics.track.mockClear();
     global.analytics.getService.mockClear();
@@ -290,6 +415,99 @@ function createMockJQuery(html = '') {
 }
 
 /**
+ * Setup JSDOM environment for testing
+ * @returns {Object} - Object containing dom, window, document
+ */
+function setupJSDOM() {
+  // Create JSDOM instance with proper configuration
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html><body></body></html>',
+    TEST_CONFIG.jsdomOptions
+  );
+  const window = dom.window;
+
+  // Set up globals for the test environment
+  global.window = window;
+  global.document = window.document;
+  global.navigator = window.navigator;
+
+  // Mock window event listeners for testing
+  window.addEventListener = jest.fn();
+  window.removeEventListener = jest.fn();
+
+  // Set window.location.hash for App class initialization
+  window.location.hash = '#test-hash';
+
+  // Ensure global $ is available for the test environment
+  if (!global.$) {
+    global.$ = (selectorOrElement, context) => {
+      // Case 1: $(element) - wrap a DOM element
+      if (selectorOrElement && selectorOrElement.nodeType) {
+        const element = selectorOrElement;
+        return {
+          text: () => element.textContent || '',
+          html: () => element.innerHTML || '',
+          attr: name => element.getAttribute(name) || '',
+          prop: name => {
+            if (name === 'nodeName') {
+              return element.nodeName || element.tagName || '';
+            }
+            return element[name] || '';
+          },
+        };
+      }
+
+      // Case 2: $(selector, context) - find elements in context
+      if (context && context.html) {
+        const selector = selectorOrElement;
+        const contextContent = context.html();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contextContent;
+        const elements = Array.from(tempDiv.querySelectorAll(selector));
+
+        return {
+          length: elements.length,
+          each: callback => {
+            elements.forEach((element, index) => {
+              callback(index, element);
+            });
+          },
+        };
+      }
+
+      // Default behavior for other cases
+      return {
+        length: 0,
+        each: () => {},
+        text: () => '',
+        html: () => '',
+        attr: () => '',
+      };
+    };
+  }
+
+  return { dom, window, document: window.document };
+}
+
+/**
+ * Clean up JSDOM environment after testing
+ * @param {Object} dom - JSDOM instance
+ */
+function cleanupJSDOM(dom) {
+  // Close JSDOM
+  if (dom && dom.window) {
+    dom.window.close();
+  }
+
+  // Clean up globals
+  delete global.window;
+  delete global.document;
+  delete global.navigator;
+  delete global.$;
+  delete global.G2T;
+}
+
+/**
  * Helper function to create a G2T namespace with proper constructors
  * @param {Object} mockInstances - Mock instances object
  * @returns {Object} - G2T namespace object
@@ -323,5 +541,10 @@ module.exports = {
   setupG2TMocks,
   clearAllMocks,
   createMockJQuery,
-  createG2TNamespace
+  createG2TNamespace,
+  setupJSDOM,
+  cleanupJSDOM,
+  setupUtilsForTesting,
+  createMockJQueryElement,
+  TEST_CONFIG
 };
