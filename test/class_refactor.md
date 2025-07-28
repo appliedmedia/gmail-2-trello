@@ -16,9 +16,23 @@
 
 ## Overview
 
-The goal is to refactor `test_class_model.js` to follow the same patterns as the successful refactors of `test_class_utils.js` (GOLD STANDARD), `test_class_app.js` (SILVER STANDARD), and `test_class_goog.js` (BRONZE STANDARD). Currently, `test_class_model.js` has 60 failing tests out of 60 total due to improper class loading.
+{latest} = "gmailView"
 
-## Current State Analysis
+The goal is to refactor `test_class_{latest}.js` to follow the same patterns as the successful refactors of `test_class_utils.js` (GOLD STANDARD), `test_class_app.js` (SILVER STANDARD), and `test_class_goog.js` (BRONZE STANDARD).
+
+The current file is in `obsolete_class_{latest}.js`, git mv that back to `test_class_{latest}.js` and then evaluate.
+
+# Current State Analysis.
+
+### test_class_gmail.js (NEEDS COMPLETE REFACTOR) ❌
+
+- [ ] All tests failing (needs assessment)
+- [ ] Uses direct require() which doesn't work with Chrome extension classes
+- [ ] Missing proper JSDOM setup
+- [ ] Missing proper G2T namespace initialization
+- [ ] Missing proper mock application setup
+- [ ] Uses basic mocks instead of shared enhanced mocks
+- [ ] Missing proper Gmail API mocking
 
 ### test_class_model.js (COMPLETE REFACTOR) ✅
 
@@ -54,23 +68,23 @@ The goal is to refactor `test_class_model.js` to follow the same patterns as the
 - [x] Uses enhanced shared mocks and utilities
 - [x] Proper mock constructor injection pattern
 
-## Refactoring Plan for test_class_model.js
+## Refactoring Plan for test_class_gmail.js
 
-### Phase 1: Update test_class_model.js to use shared.js patterns
+### Phase 1: Update test_class_gmail.js to use shared.js patterns
 
 #### Step 1.1: Replace direct require with eval-based loading
 
 - [ ] Import shared utilities from test_shared.js
-- [ ] Replace `const Model = require('../chrome_manifest_v3/class_model.js')` with eval-based loading
+- [ ] Replace `const Gmail = require('../chrome_manifest_v3/class_gmail.js')` with eval-based loading
 - [ ] Add proper G2T namespace initialization
-- [ ] **Testing**: Run test_class_model.js to check loading status
+- [ ] **Testing**: Run test_class_gmail.js to check loading status
 
 #### Step 1.2: Add JSDOM setup and proper test environment
 
 - [ ] Add JSDOM setup using shared function
 - [ ] Add proper beforeEach/afterEach with cleanup
 - [ ] Add proper mock application setup
-- [ ] **Testing**: Run test_class_model.js to check environment setup
+- [ ] **Testing**: Run test_class_gmail.js to check environment setup
 
 #### Step 1.3: Replace basic mocks with enhanced shared mocks
 
@@ -78,167 +92,164 @@ The goal is to refactor `test_class_model.js` to follow the same patterns as the
 - [ ] Use shared chrome API mocks
 - [ ] Use shared console mocks
 - [ ] Use shared jQuery mocks
-- [ ] Add proper Trello API mocks
-- [ ] Add proper EventTarget mocks
-- [ ] **Testing**: Run test_class_model.js to check mock functionality
+- [ ] Add proper Gmail API mocks
+- [ ] Add proper DOM manipulation mocks
+- [ ] **Testing**: Run test_class_gmail.js to check mock functionality
 
-#### Step 1.4: Add proper Model class initialization
+#### Step 1.4: Add proper Gmail class initialization
 
 - [ ] Create proper mock application instance
-- [ ] Initialize Model with proper app dependency
-- [ ] Ensure all Model methods have access to app context
-- [ ] **Testing**: Run test_class_model.js to check Model initialization
+- [ ] Initialize Gmail with proper app dependency
+- [ ] Ensure all Gmail methods have access to app context
+- [ ] **Testing**: Run test_class_gmail.js to check Gmail initialization
 
 **Phase 1 Testing**:
 
-- [ ] Run test_class_model.js to ensure proper loading and basic functionality
+- [ ] Run test_class_gmail.js to ensure proper loading and basic functionality
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_utils.js to ensure all 118 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_goog.js to ensure all 39+ tests still pass
-- [ ] Success criteria: Model class loads without errors, basic constructor works, no shared.js regressions
+- [ ] Success criteria: Gmail class loads without errors, basic constructor works, no shared.js regressions
 
-### Phase 2: Fix Model class dependency issues
+### Phase 2: Fix Gmail class dependency issues
 
-#### Step 2.1: Fix app dependency in Model constructor
+#### Step 2.1: Fix app dependency in Gmail constructor
 
-- [ ] Ensure Model constructor receives proper app object
+- [ ] Ensure Gmail constructor receives proper app object
 - [ ] Mock app.utils.log for logging functionality
 - [ ] Mock app.events.emit for event handling
 - [ ] Mock app.persist for state management
 - [ ] Mock app.temp for temporary data
-- [ ] **Testing**: Run test_class_model.js to check constructor functionality
+- [ ] **Testing**: Run test_class_gmail.js to check constructor functionality
 
-#### Step 2.2: Fix Trello API integration
+#### Step 2.2: Fix Gmail API integration
 
-- [ ] Mock Trello.setKey for API key management
-- [ ] Mock Trello.authorize for authorization
-- [ ] Mock Trello.rest for API calls
-- [ ] Mock Trello.authorized for authorization status
-- [ ] **Testing**: Run test_class_model.js to check Trello integration
+- [ ] Mock Gmail API for email retrieval
+- [ ] Mock Gmail DOM manipulation
+- [ ] Mock Gmail message parsing
+- [ ] Mock Gmail attachment handling
+- [ ] **Testing**: Run test_class_gmail.js to check Gmail integration
 
-#### Step 2.3: Fix EventTarget integration
+#### Step 2.3: Fix DOM integration
 
-- [ ] Mock EventTarget for event handling
-- [ ] Mock addEventListener for event binding
-- [ ] Mock removeEventListener for event cleanup
-- [ ] Mock dispatchEvent for event emission
-- [ ] **Testing**: Run test_class_model.js to check EventTarget integration
+- [ ] Mock DOM manipulation for Gmail interface
+- [ ] Mock event listeners for Gmail interactions
+- [ ] Mock element selection and modification
+- [ ] Mock Gmail-specific DOM operations
+- [ ] **Testing**: Run test_class_gmail.js to check DOM integration
 
 **Phase 2 Testing**:
 
-- [ ] Run test_class_model.js to ensure core Model functionality works
+- [ ] Run test_class_gmail.js to ensure core Gmail functionality works
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_utils.js to ensure all 118 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_goog.js to ensure all 39+ tests still pass
-- [ ] Success criteria: Constructor works, Trello integration works, EventTarget works, no shared.js regressions
+- [ ] Success criteria: Constructor works, Gmail integration works, DOM integration works, no shared.js regressions
 
 ### Phase 3: Fix individual method tests
 
 #### Step 3.1: Fix constructor and initialization tests
 
-- [ ] Fix Model instance creation tests
+- [ ] Fix Gmail instance creation tests
 - [ ] Fix static ck getter tests
 - [ ] Fix instance ck getter tests
 - [ ] Fix init method tests
-- [ ] **Testing**: Run test_class_model.js to check constructor tests
+- [ ] **Testing**: Run test_class_gmail.js to check constructor tests
 
-#### Step 3.2: Fix Trello authorization tests
+#### Step 3.2: Fix Gmail interface tests
 
-- [ ] Fix checkTrelloAuthorized tests
-- [ ] Fix checkTrelloAuthorized_success tests
-- [ ] Fix checkTrelloAuthorized_failure tests
-- [ ] Fix checkTrelloAuthorized_popup_success tests
-- [ ] Fix checkTrelloAuthorized_popup_failure tests
-- [ ] Fix trelloLoad tests
-- [ ] Fix deauthorizeTrello tests
-- [ ] **Testing**: Run test_class_model.js to check authorization tests
+- [ ] Fix Gmail interface detection tests
+- [ ] Fix Gmail DOM structure tests
+- [ ] Fix Gmail message parsing tests
+- [ ] Fix Gmail attachment detection tests
+- [ ] Fix Gmail navigation tests
+- [ ] **Testing**: Run test_class_gmail.js to check interface tests
 
-#### Step 3.3: Fix Trello data loading tests
+#### Step 3.3: Fix Gmail data extraction tests
 
-- [ ] Fix loadTrelloUser tests
-- [ ] Fix loadTrelloUser_success tests
-- [ ] Fix loadTrelloUser_failure tests
-- [ ] Fix loadTrelloBoards tests
-- [ ] Fix loadTrelloBoards_success tests
-- [ ] Fix loadTrelloBoards_failure tests
-- [ ] Fix handleTrelloUserReady tests
-- [ ] **Testing**: Run test_class_model.js to check data loading tests
+- [ ] Fix extractEmailData tests
+- [ ] Fix extractEmailSubject tests
+- [ ] Fix extractEmailBody tests
+- [ ] Fix extractEmailAttachments tests
+- [ ] Fix extractEmailMetadata tests
+- [ ] Fix handleEmailDataReady tests
+- [ ] **Testing**: Run test_class_gmail.js to check data extraction tests
 
-#### Step 3.4: Fix Trello lists and cards tests
+#### Step 3.4: Fix Gmail DOM manipulation tests
 
-- [ ] Fix loadTrelloLists tests
-- [ ] Fix loadTrelloLists_success tests
-- [ ] Fix loadTrelloLists_failure tests
-- [ ] Fix loadTrelloCards tests
-- [ ] Fix loadTrelloCards_success tests
-- [ ] Fix loadTrelloCards_failure tests
-- [ ] **Testing**: Run test_class_model.js to check lists/cards tests
+- [ ] Fix findGmailElements tests
+- [ ] Fix findGmailElements_success tests
+- [ ] Fix findGmailElements_failure tests
+- [ ] Fix updateGmailInterface tests
+- [ ] Fix updateGmailInterface_success tests
+- [ ] Fix updateGmailInterface_failure tests
+- [ ] **Testing**: Run test_class_gmail.js to check DOM manipulation tests
 
-#### Step 3.5: Fix Trello members and labels tests
+#### Step 3.5: Fix Gmail event handling tests
 
-- [ ] Fix loadTrelloMembers tests
-- [ ] Fix loadTrelloMembers_success tests
-- [ ] Fix loadTrelloMembers_failure tests
-- [ ] Fix loadTrelloLabels tests
-- [ ] Fix loadTrelloLabels_success tests
-- [ ] Fix loadTrelloLabels_failure tests
-- [ ] **Testing**: Run test_class_model.js to check members/labels tests
+- [ ] Fix handleGmailNavigation tests
+- [ ] Fix handleGmailNavigation_success tests
+- [ ] Fix handleGmailNavigation_failure tests
+- [ ] Fix handleGmailMessageOpen tests
+- [ ] Fix handleGmailMessageOpen_success tests
+- [ ] Fix handleGmailMessageOpen_failure tests
+- [ ] **Testing**: Run test_class_gmail.js to check event handling tests
 
-#### Step 3.6: Fix card creation and submission tests
+#### Step 3.6: Fix email sending and submission tests
 
-- [ ] Fix submit tests
-- [ ] Fix createCard tests
+- [ ] Fix sendEmail tests
+- [ ] Fix createDraft tests
 - [ ] Fix uploadAttachment tests
-- [ ] **Testing**: Run test_class_model.js to check card creation tests
+- [ ] **Testing**: Run test_class_gmail.js to check email sending tests
 
-#### Step 3.7: Fix email mapping tests
+#### Step 3.7: Fix label/category mapping tests
 
-- [ ] Fix emailBoardListCardMapLookup tests
-- [ ] Fix emailBoardListCardMapUpdate tests
-- [ ] **Testing**: Run test_class_model.js to check email mapping tests
+- [ ] Fix labelCategoryMapLookup tests
+- [ ] Fix labelCategoryMapUpdate tests
+- [ ] **Testing**: Run test_class_gmail.js to check label/category mapping tests
 
-#### Step 3.8: Fix event handling tests
+#### Step 3.8: Fix Gmail event handling tests
 
-- [ ] Fix handleClassModelStateLoaded tests
-- [ ] Fix handleSubmittedFormShownComplete tests
-- [ ] Fix handleTrelloCardCreateSuccess tests
-- [ ] Fix handlePostCardCreateUploadDisplayDone tests
-- [ ] Fix handleBoardChanged tests
-- [ ] Fix handleListChanged tests
+- [ ] Fix handleGmailStateLoaded tests
+- [ ] Fix handleSentMailShownComplete tests
+- [ ] Fix handleGmailSendSuccess tests
+- [ ] Fix handlePostSendUploadDisplayDone tests
+- [ ] Fix handleLabelChanged tests
+- [ ] Fix handleCategoryChanged tests
 - [ ] Fix bindEvents tests
-- [ ] **Testing**: Run test_class_model.js to check event handling tests
+- [ ] **Testing**: Run test_class_gmail.js to check event handling tests
 
-#### Step 3.9: Fix Uploader class tests
+#### Step 3.9: Fix AttachmentHandler class tests
 
-- [ ] Fix Uploader instance creation tests
-- [ ] Fix Uploader initialization tests
-- [ ] Fix Uploader add method tests
-- [ ] Fix Uploader attach method tests
-- [ ] Fix Uploader upload method tests
-- [ ] **Testing**: Run test_class_model.js to check Uploader tests
+- [ ] Fix AttachmentHandler instance creation tests
+- [ ] Fix AttachmentHandler initialization tests
+- [ ] Fix AttachmentHandler add method tests
+- [ ] Fix AttachmentHandler attach method tests
+- [ ] Fix AttachmentHandler upload method tests
+- [ ] **Testing**: Run test_class_gmail.js to check AttachmentHandler tests
 
-#### Step 3.10: Fix EmailBoardListCardMap class tests
+#### Step 3.10: Fix GmailLabelMap class tests
 
-- [ ] Fix EmailBoardListCardMap instance creation tests
-- [ ] Fix EmailBoardListCardMap ck getter tests
-- [ ] Fix EmailBoardListCardMap constructor tests
-- [ ] **Testing**: Run test_class_model.js to check EmailBoardListCardMap tests
+- [ ] Fix GmailLabelMap instance creation tests
+- [ ] Fix GmailLabelMap ck getter tests
+- [ ] Fix GmailLabelMap constructor tests
+- [ ] **Testing**: Run test_class_gmail.js to check GmailLabelMap tests
 
 #### Step 3.11: Fix error handling tests
 
 - [ ] Fix null/undefined input handling tests
 - [ ] Fix empty data object handling tests
-- [ ] **Testing**: Run test_class_model.js to check error handling tests
+- [ ] **Testing**: Run test_class_gmail.js to check error handling tests
 
 #### Step 3.12: Fix performance tests
 
 - [ ] Fix large data set handling tests
 - [ ] Fix many event handler handling tests
-- [ ] **Testing**: Run test_class_model.js to check performance tests
+- [ ] **Testing**: Run test_class_gmail.js to check performance tests
 
 **Phase 3 Testing**:
 
-- [ ] Run test_class_model.js to ensure all method tests pass
+- [ ] Run test_class_gmail.js to ensure all method tests pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_utils.js to ensure all 118 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_goog.js to ensure all 39+ tests still pass
@@ -249,27 +260,27 @@ The goal is to refactor `test_class_model.js` to follow the same patterns as the
 #### Step 4.1: Add error handling tests
 
 - [ ] Test null/undefined input handling
-- [ ] Test edge cases in Trello API operations
+- [ ] Test edge cases in Gmail API operations
 - [ ] Test network error handling
-- [ ] **Testing**: Run test_class_model.js to check error handling
+- [ ] **Testing**: Run test_class_gmail.js to check error handling
 
 #### Step 4.2: Add performance tests
 
 - [ ] Test large data handling
 - [ ] Test multiple API calls
 - [ ] Test memory management
-- [ ] **Testing**: Run test_class_model.js to check performance
+- [ ] **Testing**: Run test_class_gmail.js to check performance
 
 #### Step 4.3: Add integration tests
 
 - [ ] Test method interactions
 - [ ] Test real-world scenarios
 - [ ] Test complete workflow
-- [ ] **Testing**: Run test_class_model.js to check integration
+- [ ] **Testing**: Run test_class_gmail.js to check integration
 
 **Phase 4 Testing**:
 
-- [ ] Run test_class_model.js to ensure comprehensive coverage
+- [ ] Run test_class_gmail.js to ensure comprehensive coverage
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_utils.js to ensure all 118 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_app.js to ensure all 46 tests still pass
 - [ ] **CRITICAL**: If shared.js was modified, run test_class_goog.js to ensure all 39+ tests still pass
