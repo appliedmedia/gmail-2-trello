@@ -93,10 +93,14 @@ global.chrome = {
     sync: {
       get: jest.fn(),
       set: jest.fn()
+    },
+    onChanged: {
+      addListener: jest.fn()
     }
   },
   runtime: {
-    sendMessage: jest.fn()
+    sendMessage: jest.fn(),
+    getURL: jest.fn()
   }
 };
 
@@ -146,13 +150,17 @@ global.document = {
 // Mock window object
 global.window = {
   location: {
-    hash: '#test-hash'
+    hash: '#test-hash',
+    reload: jest.fn()
   },
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   console: global.console,
   document: global.document
 };
+
+// Mock confirm function
+global.confirm = jest.fn();
 
 // Mock analytics
 global.analytics = {
@@ -336,14 +344,58 @@ function setupG2TMocks(mockInstances) {
 function clearAllMocks() {
   // Note: $ is not a Jest mock function, so we don't clear it
   // $.mockClear();
-  chrome.storage.local.get.mockClear();
-  chrome.storage.local.set.mockClear();
-  chrome.storage.sync.get.mockClear();
-  chrome.storage.sync.set.mockClear();
-  chrome.runtime.sendMessage.mockClear();
+  
+  // Clear global chrome mocks
+  if (chrome && chrome.storage) {
+    chrome.storage.local.get.mockClear();
+    chrome.storage.local.set.mockClear();
+    chrome.storage.sync.get.mockClear();
+    chrome.storage.sync.set.mockClear();
+    chrome.storage.onChanged.addListener.mockClear();
+  }
+  if (chrome && chrome.runtime) {
+    chrome.runtime.sendMessage.mockClear();
+    chrome.runtime.getURL.mockClear();
+  }
+  
+  // Clear global console mocks
   console.log.mockClear();
   console.error.mockClear();
   console.warn.mockClear();
+  
+  // Clear window-specific mocks (from JSDOM setup)
+  if (window && window.chrome && window.chrome.storage) {
+    window.chrome.storage.local.get.mockClear();
+    window.chrome.storage.local.set.mockClear();
+    window.chrome.storage.sync.get.mockClear();
+    window.chrome.storage.sync.set.mockClear();
+    window.chrome.storage.onChanged.addListener.mockClear();
+  }
+  if (window && window.chrome && window.chrome.runtime) {
+    window.chrome.runtime.sendMessage.mockClear();
+    window.chrome.runtime.getURL.mockClear();
+  }
+  if (window && window.console) {
+    window.console.log.mockClear();
+    window.console.error.mockClear();
+    window.console.warn.mockClear();
+  }
+  if (window && window.location && window.location.reload && typeof window.location.reload.mockClear === 'function') {
+    window.location.reload.mockClear();
+  }
+  if (window && window.confirm && typeof window.confirm.mockClear === 'function') {
+    window.confirm.mockClear();
+  }
+  
+  // Only clear global window.location.reload if it's a mock function
+  if (window.location.reload && typeof window.location.reload.mockClear === 'function') {
+    window.location.reload.mockClear();
+  }
+  
+  // Only clear global confirm if it's a mock function
+  if (confirm && typeof confirm.mockClear === 'function') {
+    confirm.mockClear();
+  }
   
   // Note: window event listeners are real DOM methods when using JSDOM, not mocks
   // window.addEventListener.mockClear();
@@ -437,6 +489,43 @@ function setupJSDOM() {
 
   // Set window.location.hash for App class initialization
   window.location.hash = '#test-hash';
+
+  // Mock window.location.reload for Chrome class testing
+  window.location.reload = jest.fn();
+
+  // Mock window.console for Chrome class testing
+  window.console = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn()
+  };
+
+  // Mock confirm function for Chrome class testing
+  window.confirm = jest.fn();
+
+  // Mock chrome API for Chrome class testing
+  window.chrome = {
+    storage: {
+      local: {
+        get: jest.fn(),
+        set: jest.fn()
+      },
+      sync: {
+        get: jest.fn(),
+        set: jest.fn()
+      },
+      onChanged: {
+        addListener: jest.fn()
+      }
+    },
+    runtime: {
+      sendMessage: jest.fn(),
+      getURL: jest.fn()
+    }
+  };
+
+  // Also set global chrome for Chrome class compatibility
+  global.chrome = window.chrome;
 
   // Ensure global $ is available for the test environment
   if (!global.$) {
