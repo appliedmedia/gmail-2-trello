@@ -611,7 +611,7 @@ class Model {
       this.handleSubmittedFormShownComplete.bind(this),
     );
     this.app.events.addListener(
-      'trelloCardCreateSuccess',
+      'createCard_success',
       this.handleTrelloCardCreateSuccess.bind(this),
     );
     this.app.events.addListener(

@@ -499,7 +499,7 @@ class Trel {
     const cardId = response.id;
 
     // Emit the event that Model expects
-    this.app.events.emit('trelloCardCreateSuccess', {
+    this.app.events.emit('createCard_success', {
       data: { ...originalData, cardId },
     });
   }
@@ -512,7 +512,7 @@ class Trel {
     this.app.utils.log(
       `${this.ck.errorPrefix} Failed to create card: ${JSON.stringify(error)}`,
     );
-    this.app.events.emit('trelloCardCreate_failed', { data: error });
+    this.app.events.emit('createCard_failed', { data: error });
   }
 }
 
