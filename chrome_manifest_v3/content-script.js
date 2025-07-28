@@ -22,7 +22,7 @@ let globalInit = false;
 function extensionInvalidConfirmReload() {
   if (
     confirm(
-      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
     )
   ) {
     window.location.reload();
@@ -90,7 +90,7 @@ try {
   chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
 } catch (error) {
   console.error(
-    `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
+    `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`,
   );
   // Handle context invalidation if app isn't ready yet
   extensionInvalidConfirmReload();

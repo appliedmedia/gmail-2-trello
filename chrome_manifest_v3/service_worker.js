@@ -17,7 +17,7 @@ function logbs(data) {
       });
     } catch (error) {
       window.console.log(
-        `logbs ERROR: extension context invalidated - failed "chrome.storage.sync.get"`
+        `logbs ERROR: extension context invalidated - failed "chrome.storage.sync.get"`,
       );
     }
   }
@@ -39,7 +39,7 @@ try {
   });
 } catch (error) {
   logbs(
-    `service_worker ERROR: extension context invalidated - failed "chrome.tabs.onUpdated.addListener"`
+    `service_worker ERROR: extension context invalidated - failed "chrome.tabs.onUpdated.addListener"`,
   );
 }
 
@@ -54,23 +54,23 @@ try {
           chrome.tabs.sendMessage(
             tabs[0].id,
             { message: 'g2t_keyboard_shortcut' },
-            function (response) {}
+            function (response) {},
           );
         } catch (error) {
           logbs(
-            `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`
+            `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`,
           );
         }
       });
     } catch (error) {
       logbs(
-        `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.query"`
+        `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.tabs.query"`,
       );
     }
   });
 } catch (error) {
   logbs(
-    `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.commands.onCommand.addListener"`
+    `keyboard_shortcut ERROR: extension context invalidated - failed "chrome.commands.onCommand.addListener"`,
   );
 }
 
@@ -102,7 +102,7 @@ function g2t_clearExtensionBrowsingData(callback) {
       () => {
         logbs('clearExtensionBrowsingData: completed successfully');
         if (callback) callback();
-      }
+      },
     );
   } else {
     logbs('clearExtensionBrowsingData: browsingData invalid!');
@@ -120,7 +120,7 @@ function g2t_checkForValidUrl(tab) {
     chrome.action.disable(tab.id);
   } catch (error) {
     logbs(
-      `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.disable"`
+      `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.disable"`,
     );
   }
 
@@ -129,7 +129,7 @@ function g2t_checkForValidUrl(tab) {
       chrome.action.enable(tab.id);
     } catch (error) {
       logbs(
-        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.enable"`
+        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.action.enable"`,
       );
     }
 
@@ -141,11 +141,11 @@ function g2t_checkForValidUrl(tab) {
         //Selected tab id
         tab.id,
         //Params inside a object data
-        { message: 'g2t_initialize' }
+        { message: 'g2t_initialize' },
       );
     } catch (error) {
       logbs(
-        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`
+        `checkForValidUrl ERROR: extension context invalidated - failed "chrome.tabs.sendMessage"`,
       );
     }
   }
@@ -181,7 +181,7 @@ function g2t_uploadAttach(args, callback) {
       callback(data);
     } else {
       logbs(
-        `ERROR: g2t_uploadAttach callback failed data:${JSON.stringify(data)}`
+        `ERROR: g2t_uploadAttach callback failed data:${JSON.stringify(data)}`,
       );
     }
   };
@@ -245,19 +245,16 @@ function g2t_uploadAttach(args, callback) {
  * Manage content script activities that for security reasons and otherwise need to beh andled in background script:
  */
 try {
-  chrome.runtime.onMessage.addListener(function (
-    request,
-    sender,
-    sendResponse
-  ) {
-    // Was: chrome.extension.onMessage.addListener
-    // local storage request
-    if (!request) {
-      // Intentionally blank, don't do anything in this case
-    } else if (request?.storage) {
-      // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
-      // Commented out as this code path is not used and localStorage is not available in service workers
-      /*
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      // Was: chrome.extension.onMessage.addListener
+      // local storage request
+      if (!request) {
+        // Intentionally blank, don't do anything in this case
+      } else if (request?.storage) {
+        // OBSOLETE (Ace@2017.08.31): Not sure this is ever called anymore:
+        // Commented out as this code path is not used and localStorage is not available in service workers
+        /*
       if (typeof request.value !== 'undefined') {
         chrome.storage.local.set(
           { [request.storage]: request.value },
@@ -271,23 +268,24 @@ try {
     });
     return true; // Asynchronous
     */
-      logbs(
-        'backgroundOnMessage: storage requested! (deprecated - no longer supported)'
-      );
-      sendResponse({ storage: null });
-    } else if (request?.[CLEAR_EXT_BROWSING_DATA]) {
-      g2t_clearExtensionBrowsingData(sendResponse);
-      return true; // Asynchronous
-    } else if (request?.[UPLOAD_ATTACH] != null) {
-      g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
-      return true; // Asynchronous
-    } else {
-      sendResponse({});
-    }
-  });
+        logbs(
+          'backgroundOnMessage: storage requested! (deprecated - no longer supported)',
+        );
+        sendResponse({ storage: null });
+      } else if (request?.[CLEAR_EXT_BROWSING_DATA]) {
+        g2t_clearExtensionBrowsingData(sendResponse);
+        return true; // Asynchronous
+      } else if (request?.[UPLOAD_ATTACH] != null) {
+        g2t_uploadAttach(request[UPLOAD_ATTACH], sendResponse);
+        return true; // Asynchronous
+      } else {
+        sendResponse({});
+      }
+    },
+  );
 } catch (error) {
   logbs(
-    `onMessage ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`
+    `onMessage ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`,
   );
 }
 

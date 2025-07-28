@@ -41,25 +41,35 @@
   "homepage": "https://g2t.support",
   "devDependencies": {
     "eslint": "latest",
-    "prettier": "latest",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
     "jest": "latest",
+    "jquery": "latest",
     "jsdom": "latest",
-    "jquery": "latest"
+    "prettier": "latest"
   },
   "jest": {
     "testEnvironment": "node",
     "testMatch": [
       "**/test/test_class_model.js",
-      "**/test/test_class_utils.js", 
+      "**/test/test_class_utils.js",
       "**/test/test_class_app.js",
       "**/test/test_class_trel.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,
     "coverageDirectory": "coverage",
-    "coverageReporters": ["text", "lcov", "html"],
-    "modulePathIgnorePatterns": ["<rootDir>/Ω_archives_ignore/"],
-    "watchPathIgnorePatterns": ["<rootDir>/Ω_archives_ignore/"]
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/Ω_archives_ignore/"
+    ],
+    "watchPathIgnorePatterns": [
+      "<rootDir>/Ω_archives_ignore/"
+    ]
   },
   "dependencies": {
     "archiver": "latest",

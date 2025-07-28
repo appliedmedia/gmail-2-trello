@@ -498,16 +498,10 @@ class Trel {
     this.app.utils.log(`${this.ck.apiCallPrefix} Card created successfully`);
     const cardId = response.id;
 
-    // Add attachment if any
-    if (originalData.attachment && originalData.attachment.length > 0) {
-      originalData.cardId = cardId;
-      this.uploadAttachment(originalData);
-    } else {
-      // Emit the event that Model expects
-      this.app.events.emit('trelloCardCreateSuccess', {
-        data: { ...originalData, cardId },
-      });
-    }
+    // Emit the event that Model expects
+    this.app.events.emit('trelloCardCreateSuccess', {
+      data: { ...originalData, cardId },
+    });
   }
 
   /**
@@ -519,59 +513,6 @@ class Trel {
       `${this.ck.errorPrefix} Failed to create card: ${JSON.stringify(error)}`,
     );
     this.app.events.emit('createCard_failed', { data: error });
-  }
-
-  /**
-   * Uploads an attachment to a Trello card
-   * @param {object} attachmentData - Attachment data including cardId, attachment array, etc.
-   */
-  uploadAttachment(attachmentData) {
-    if (
-      !attachmentData.cardId ||
-      !attachmentData.attachment ||
-      attachmentData.attachment.length === 0
-    ) {
-      this.app.utils.log(`${this.ck.errorPrefix} Invalid attachment data`);
-      this.app.events.emit('APIFail', {
-        data: { error: 'Invalid attachment data' },
-      });
-      return;
-    }
-
-    // Create uploader instance for handling attachments
-    const uploader = new Uploader({
-      app: this.app,
-      cardId: attachmentData.cardId,
-      emailId: attachmentData.emailId,
-      itemsForUpload: attachmentData.attachment,
-      trel: this, // Pass the Trel instance to the uploader
-    });
-
-    uploader.upload(attachmentData);
-  }
-
-  /**
-   * Handles successful attachment upload
-   * @param {object} data - Upload response data
-   */
-  uploadAttachment_success(data) {
-    this.app.utils.log(
-      `${this.ck.apiCallPrefix} Attachment uploaded successfully`,
-    );
-    this.app.events.emit('uploadAttachment_success', { data });
-  }
-
-  /**
-   * Handles failed attachment upload
-   * @param {object} error - Upload error data
-   */
-  uploadAttachment_failure(error) {
-    this.app.utils.log(
-      `${this.ck.errorPrefix} Failed to upload attachment: ${JSON.stringify(
-        error,
-      )}`,
-    );
-    this.app.events.emit('APIFail', { data: error });
   }
 }
 

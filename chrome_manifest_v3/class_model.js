@@ -55,6 +55,7 @@ class Uploader {
     )
       return;
 
+    // Use original implementation - background script handles file uploads
     const UPLOAD_ATTACH = 'g2t_upload_attach';
     const UPLOAD_ATTACH_RESULTS = 'g2t_upload_attach_results';
     const trello_url_k = 'https://api.trello.com/1/';
@@ -89,7 +90,7 @@ class Uploader {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    this.app.chrome.runtimeSendMessage(dict, callback);
+    this.app.chrome.runtimeSendMessage(dict, callback); // Background script handles file uploads
   }
 
   upload(data) {
@@ -115,33 +116,89 @@ class Uploader {
       upload1.method = undefined;
       upload1.property = undefined;
 
-      const fn_k = property.endsWith(self.attachment)
-        ? self.attach
-        : Trello.rest;
+      // Use class_trel if available, otherwise fall back to direct Trello calls
+      if (this.trel) {
+        if (property.endsWith(self.attachment)) {
+          // Use attach method for attachments
+          self.attach(
+            method,
+            property,
+            upload1,
+            function success(data) {
+              Object.assign(data, {
+                method: `${method} ${property}`,
+                keys: generateKeysAndValues(upload1),
+                emailId: self.emailId,
+              });
+              if (self.itemsForUpload?.length > 0) {
+                self.upload();
+              }
+            },
+            function failure(data) {
+              Object.assign(data, {
+                method: `${method} ${property}`,
+                keys: generateKeysAndValues(upload1),
+                emailId: self.emailId,
+              });
+              self.app.events.emit('APIFail', { data });
+            },
+          );
+        } else {
+          // Use class_trel for non-attachment calls
+          this.trel.wrapApiCall(
+            method,
+            property,
+            upload1,
+            function success(data) {
+              Object.assign(data, {
+                method: `${method} ${property}`,
+                keys: generateKeysAndValues(upload1),
+                emailId: self.emailId,
+              });
+              if (self.itemsForUpload?.length > 0) {
+                self.upload();
+              }
+            },
+            function failure(data) {
+              Object.assign(data, {
+                method: `${method} ${property}`,
+                keys: generateKeysAndValues(upload1),
+                emailId: self.emailId,
+              });
+              self.app.events.emit('APIFail', { data });
+            },
+          );
+        }
+      } else {
+        // Fall back to original implementation
+        const fn_k = property.endsWith(self.attachment)
+          ? self.attach
+          : Trello.rest;
 
-      fn_k(
-        method,
-        property,
-        upload1,
-        function success(data) {
-          Object.assign(data, {
-            method: `${method} ${property}`,
-            keys: generateKeysAndValues(upload1),
-            emailId: self.emailId,
-          });
-          if (self.itemsForUpload?.length > 0) {
-            self.upload();
-          }
-        },
-        function failure(data) {
-          Object.assign(data, {
-            method: `${method} ${property}`,
-            keys: generateKeysAndValues(upload1),
-            emailId: self.emailId,
-          });
-          self.app.events.emit('APIFail', { data });
-        },
-      );
+        fn_k(
+          method,
+          property,
+          upload1,
+          function success(data) {
+            Object.assign(data, {
+              method: `${method} ${property}`,
+              keys: generateKeysAndValues(upload1),
+              emailId: self.emailId,
+            });
+            if (self.itemsForUpload?.length > 0) {
+              self.upload();
+            }
+          },
+          function failure(data) {
+            Object.assign(data, {
+              method: `${method} ${property}`,
+              keys: generateKeysAndValues(upload1),
+              emailId: self.emailId,
+            });
+            self.app.events.emit('APIFail', { data });
+          },
+        );
+      }
     }
   }
 }
@@ -292,6 +349,7 @@ class Model {
       app: this.app,
       cardId: data.cardId,
       emailId: data.emailId,
+      trel: this.trel, // Pass the Trel instance to the uploader
     });
 
     uploader.init();
