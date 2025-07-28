@@ -88,19 +88,67 @@ global.chrome = {
   storage: {
     local: {
       get: jest.fn(),
-      set: jest.fn()
+      set: jest.fn(),
     },
     sync: {
       get: jest.fn(),
-      set: jest.fn()
+      set: jest.fn(),
     },
     onChanged: {
-      addListener: jest.fn()
-    }
+      addListener: jest.fn(),
+    },
   },
   runtime: {
     sendMessage: jest.fn(),
-    getURL: jest.fn()
+    getURL: jest.fn(),
+  },
+};
+
+// Mock Trello API
+global.Trello = {
+  key: jest.fn(() => 'test-key'),
+  token: jest.fn(() => 'test-token'),
+  setKey: jest.fn(),
+  setToken: jest.fn(),
+  authorize: jest.fn(),
+  deauthorize: jest.fn(),
+  authorized: jest.fn(() => false),
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+  rest: jest.fn(),
+};
+
+// Mock EventTarget
+global.EventTarget = class EventTarget {
+  constructor() {
+    this.listeners = new Map();
+  }
+
+  addEventListener(type, listener, options) {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, []);
+    }
+    this.listeners.get(type).push(listener);
+  }
+
+  removeEventListener(type, listener) {
+    if (this.listeners.has(type)) {
+      const listeners = this.listeners.get(type);
+      const index = listeners.indexOf(listener);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    }
+  }
+
+  dispatchEvent(event) {
+    if (this.listeners.has(event.type)) {
+      this.listeners.get(event.type).forEach(listener => {
+        listener(event);
+      });
+    }
   }
 };
 
@@ -108,7 +156,7 @@ global.chrome = {
 global.console = {
   log: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 // Initialize G2T global object
@@ -116,18 +164,18 @@ global.G2T = global.G2T || {};
 
 // Mock document object
 global.document = {
-  createElement: jest.fn((tagName) => {
+  createElement: jest.fn(tagName => {
     if (tagName === 'textarea') {
       return {
         innerHTML: '',
         value: '',
         style: {
-          cssText: ''
+          cssText: '',
         },
         setAttribute: jest.fn(),
         getAttribute: jest.fn(),
         appendChild: jest.fn(),
-        removeChild: jest.fn()
+        removeChild: jest.fn(),
       };
     }
     return {
@@ -136,27 +184,27 @@ global.document = {
       setAttribute: jest.fn(),
       getAttribute: jest.fn(),
       appendChild: jest.fn(),
-      removeChild: jest.fn()
+      removeChild: jest.fn(),
     };
   }),
-  createTextNode: jest.fn((text) => ({ textContent: text })),
+  createTextNode: jest.fn(text => ({ textContent: text })),
   getElementById: jest.fn(),
   querySelector: jest.fn(),
   querySelectorAll: jest.fn(() => []),
   addEventListener: jest.fn(),
-  removeEventListener: jest.fn()
+  removeEventListener: jest.fn(),
 };
 
 // Mock window object
 global.window = {
   location: {
     hash: '#test-hash',
-    reload: jest.fn()
+    reload: jest.fn(),
   },
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   console: global.console,
-  document: global.document
+  document: global.document,
 };
 
 // Mock confirm function
@@ -167,9 +215,9 @@ global.analytics = {
   track: jest.fn(),
   getService: jest.fn(() => ({
     getTracker: jest.fn(() => ({
-      sendAppView: jest.fn()
-    }))
-  }))
+      sendAppView: jest.fn(),
+    })),
+  })),
 };
 
 /**
@@ -201,7 +249,7 @@ function setupUtilsForTesting() {
   // Load and evaluate the Utils class
   const utilsPath = path.join(
     __dirname,
-    '../chrome_manifest_v3/class_utils.js'
+    '../chrome_manifest_v3/class_utils.js',
   );
   const utilsCode = fs.readFileSync(utilsPath, 'utf8');
 
@@ -242,7 +290,7 @@ function createMockInstances() {
     init: jest.fn(),
     runtimeSendMessage: jest.fn(),
     storageSyncGet: jest.fn(),
-    storageSyncSet: jest.fn()
+    storageSyncSet: jest.fn(),
   };
 
   const mockEventTarget = {
@@ -251,15 +299,15 @@ function createMockInstances() {
     dispatchEvent: jest.fn(),
     addListener: jest.fn(),
     fire: jest.fn(),
-    emit: jest.fn()
+    emit: jest.fn(),
   };
 
   const mockModel = {
     init: jest.fn(),
     trello: {
-      user: { fullName: 'Test User' }
+      user: { fullName: 'Test User' },
     },
-    gmail: {}
+    gmail: {},
   };
 
   const mockGmailView = {
@@ -267,13 +315,13 @@ function createMockInstances() {
     bindData: jest.fn(),
     parseData: jest.fn(() => ({})),
     forceRedraw: jest.fn(),
-    parsingData: false
+    parsingData: false,
   };
 
   const mockPopupView = {
     init: jest.fn(),
     bindData: jest.fn(),
-    bindGmailData: jest.fn()
+    bindGmailData: jest.fn(),
   };
 
   const mockUtils = {
@@ -286,7 +334,7 @@ function createMockInstances() {
     anchorMarkdownify: jest.fn(),
     markdownify: jest.fn(),
     markdownify_sortByLength: jest.fn(),
-    markdownify_featureEnabled: jest.fn()
+    markdownify_featureEnabled: jest.fn(),
   };
 
   return {
@@ -295,7 +343,7 @@ function createMockInstances() {
     mockModel,
     mockGmailView,
     mockPopupView,
-    mockUtils
+    mockUtils,
   };
 }
 
@@ -306,7 +354,7 @@ function createMockInstances() {
  * @returns {Function} - Constructor function
  */
 function createG2TConstructor(mockInstance, className) {
-  return function(args) {
+  return function (args) {
     if (!(this instanceof G2T[className])) {
       return new G2T[className](args);
     }
@@ -326,7 +374,7 @@ function setupG2TMocks(mockInstances) {
     mockModel,
     mockGmailView,
     mockPopupView,
-    mockUtils
+    mockUtils,
   } = mockInstances;
 
   // Create actual constructor functions that can be called with 'new'
@@ -344,7 +392,7 @@ function setupG2TMocks(mockInstances) {
 function clearAllMocks() {
   // Note: $ is not a Jest mock function, so we don't clear it
   // $.mockClear();
-  
+
   // Clear global chrome mocks
   if (chrome && chrome.storage) {
     chrome.storage.local.get.mockClear();
@@ -357,12 +405,12 @@ function clearAllMocks() {
     chrome.runtime.sendMessage.mockClear();
     chrome.runtime.getURL.mockClear();
   }
-  
+
   // Clear global console mocks
   console.log.mockClear();
   console.error.mockClear();
   console.warn.mockClear();
-  
+
   // Clear window-specific mocks (from JSDOM setup)
   if (window && window.chrome && window.chrome.storage) {
     window.chrome.storage.local.get.mockClear();
@@ -380,27 +428,39 @@ function clearAllMocks() {
     window.console.error.mockClear();
     window.console.warn.mockClear();
   }
-  if (window && window.location && window.location.reload && typeof window.location.reload.mockClear === 'function') {
+  if (
+    window &&
+    window.location &&
+    window.location.reload &&
+    typeof window.location.reload.mockClear === 'function'
+  ) {
     window.location.reload.mockClear();
   }
-  if (window && window.confirm && typeof window.confirm.mockClear === 'function') {
+  if (
+    window &&
+    window.confirm &&
+    typeof window.confirm.mockClear === 'function'
+  ) {
     window.confirm.mockClear();
   }
-  
+
   // Only clear global window.location.reload if it's a mock function
-  if (window.location.reload && typeof window.location.reload.mockClear === 'function') {
+  if (
+    window.location.reload &&
+    typeof window.location.reload.mockClear === 'function'
+  ) {
     window.location.reload.mockClear();
   }
-  
+
   // Only clear global confirm if it's a mock function
   if (confirm && typeof confirm.mockClear === 'function') {
     confirm.mockClear();
   }
-  
+
   // Note: window event listeners are real DOM methods when using JSDOM, not mocks
   // window.addEventListener.mockClear();
   // window.removeEventListener.mockClear();
-  
+
   if (global.analytics) {
     global.analytics.track.mockClear();
     global.analytics.getService.mockClear();
@@ -417,7 +477,7 @@ function createMockJQuery(html = '') {
     html: () => html,
     length: html ? 1 : 0,
     find: jest.fn(() => createMockJQuery()),
-    each: jest.fn((callback) => {
+    each: jest.fn(callback => {
       // Simulate jQuery each behavior
       if (html && html.includes('<')) {
         // If there's HTML content, simulate finding elements
@@ -434,13 +494,16 @@ function createMockJQuery(html = '') {
         if (html.includes('<h2>')) elements.push({ tagName: 'H2' });
         if (html.includes('<h3>')) elements.push({ tagName: 'H3' });
         if (html.includes('<a ')) elements.push({ tagName: 'A' });
-        
+
         elements.forEach((element, index) => {
           const $element = createMockJQuery(html);
           $element.text = jest.fn(() => {
             // Extract text content based on tag
             const tagName = element.tagName.toLowerCase();
-            const regex = new RegExp(`<${tagName}[^>]*>(.*?)</${tagName}>`, 'i');
+            const regex = new RegExp(
+              `<${tagName}[^>]*>(.*?)</${tagName}>`,
+              'i',
+            );
             const match = html.match(regex);
             return match ? match[1] : '';
           });
@@ -460,9 +523,9 @@ function createMockJQuery(html = '') {
     append: jest.fn(),
     prepend: jest.fn(),
     empty: jest.fn(),
-    remove: jest.fn()
+    remove: jest.fn(),
   };
-  
+
   return mockJQuery;
 }
 
@@ -474,7 +537,7 @@ function setupJSDOM() {
   // Create JSDOM instance with proper configuration
   const dom = new JSDOM(
     '<!DOCTYPE html><html><body></body></html>',
-    TEST_CONFIG.jsdomOptions
+    TEST_CONFIG.jsdomOptions,
   );
   const window = dom.window;
 
@@ -497,7 +560,7 @@ function setupJSDOM() {
   window.console = {
     log: jest.fn(),
     error: jest.fn(),
-    warn: jest.fn()
+    warn: jest.fn(),
   };
 
   // Mock confirm function for Chrome class testing
@@ -508,20 +571,20 @@ function setupJSDOM() {
     storage: {
       local: {
         get: jest.fn(),
-        set: jest.fn()
+        set: jest.fn(),
       },
       sync: {
         get: jest.fn(),
-        set: jest.fn()
+        set: jest.fn(),
       },
       onChanged: {
-        addListener: jest.fn()
-      }
+        addListener: jest.fn(),
+      },
     },
     runtime: {
       sendMessage: jest.fn(),
-      getURL: jest.fn()
-    }
+      getURL: jest.fn(),
+    },
   };
 
   // Also set global chrome for Chrome class compatibility
@@ -608,7 +671,7 @@ function createG2TNamespace(mockInstances) {
     mockModel,
     mockGmailView,
     mockPopupView,
-    mockUtils
+    mockUtils,
   } = mockInstances;
 
   // Create actual constructor functions that can be called with 'new'
@@ -618,10 +681,66 @@ function createG2TNamespace(mockInstances) {
     Model: createG2TConstructor(mockModel, 'Model'),
     GmailView: createG2TConstructor(mockGmailView, 'GmailView'),
     PopupView: createG2TConstructor(mockPopupView, 'PopupView'),
-    Utils: createG2TConstructor(mockUtils, 'Utils')
+    Utils: createG2TConstructor(mockUtils, 'Utils'),
   };
 
   return G2T;
+}
+
+/**
+ * Setup Model class for testing with proper mock application
+ * @returns {Object} - Object containing model instance and mock app
+ */
+function setupModelForTesting() {
+  const mockApp = {
+    utils: {
+      log: jest.fn(),
+    },
+    events: {
+      emit: jest.fn(),
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+    persist: {
+      trelloAuthorized: false,
+      trelloData: null,
+      user: null,
+      emailBoardListCardMap: [],
+    },
+    temp: {
+      boards: [],
+      lists: [],
+      cards: [],
+      members: [],
+      labels: [],
+    },
+    trelloApiKey: 'test-api-key',
+    chrome: {
+      runtimeSendMessage: jest.fn(),
+    },
+  };
+
+  // Load and evaluate Model class with mock app
+  const modelCode = loadClassFile('chrome_manifest_v3/class_model.js');
+  eval(modelCode);
+
+  // Create a mock parent object
+  const mockParent = {
+    id: 'test-parent',
+  };
+
+  const model = new G2T.Model({ parent: mockParent, app: mockApp });
+
+  // Initialize model properties to match expected state
+  model.trelloAuthorized = false;
+  model.trelloDataReady = false;
+  model.boards = [];
+  model.lists = [];
+  model.cards = [];
+  model.members = [];
+  model.labels = [];
+
+  return { model, mockApp };
 }
 
 module.exports = {
@@ -634,6 +753,7 @@ module.exports = {
   setupJSDOM,
   cleanupJSDOM,
   setupUtilsForTesting,
+  setupModelForTesting,
   createMockJQueryElement,
-  TEST_CONFIG
+  TEST_CONFIG,
 };
