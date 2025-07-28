@@ -720,6 +720,10 @@ function setupModelForTesting() {
     },
   };
 
+  // Load and evaluate Trel class first (Model depends on it)
+  const trelCode = loadClassFile('chrome_manifest_v3/class_trel.js');
+  eval(trelCode);
+
   // Load and evaluate Model class with mock app
   const modelCode = loadClassFile('chrome_manifest_v3/class_model.js');
   eval(modelCode);
