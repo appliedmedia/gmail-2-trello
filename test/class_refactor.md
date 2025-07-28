@@ -18,7 +18,7 @@
 
 {latest} = "gmailView"
 
-The goal is to refactor `test_class_{latest}.js` to follow the same patterns as the successful refactors of `test_class_utils.js` (GOLD STANDARD), `test_class_app.js` (SILVER STANDARD), and `test_class_goog.js` (BRONZE STANDARD).
+The goal is to refactor `test_class_{latest}.js` to follow the same patterns as the successful refactors of `test_class_utils.js` (PLATINUM STANDARD), `test_class_app.js` (GOLD STANDARD), `test_class_goog.js` (SILVER STANDARD), and `test_class_trel.js` (BRONZE STANDARD).
 
 The current file is in `obsolete_class_{latest}.js`, git mv that back to `test_class_{latest}.js` and then evaluate.
 
