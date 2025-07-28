@@ -61,6 +61,9 @@ describe('Trel Class', () => {
     };
 
     // Load and evaluate Trel class
+    // NOTE: eval() is required here because this project uses a non-module architecture
+    // where classes are defined in global namespace (G2T) rather than using import/export.
+    // This is the standard pattern used across all test files in this project.
     const trelCode = require('fs').readFileSync(
       'chrome_manifest_v3/class_trel.js',
       'utf8',
