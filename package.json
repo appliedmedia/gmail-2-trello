@@ -54,7 +54,8 @@
       "**/test/test_class_model.js",
       "**/test/test_class_utils.js",
       "**/test/test_class_app.js",
-      "**/test/test_class_trel.js"
+      "**/test/test_class_trel.js",
+      "**/test/test_class_gmailView.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,
