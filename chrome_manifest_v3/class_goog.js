@@ -1,11 +1,11 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
-class Chrome {
+class Goog {
   static get ck() {
     // class keys here to assure they're treated like consts
     const ck = {
-      id: 'g2t_chrome',
-      errorPrefix: 'Chrome API Error:',
+      id: 'g2t_goog',
+      errorPrefix: 'Error:',
       contextInvalidError: 'Extension context invalidated',
       reloadMessage: 'Extension needs to be reloaded.',
     };
@@ -13,7 +13,7 @@ class Chrome {
   }
 
   get ck() {
-    return Chrome.ck;
+    return Goog.ck;
   }
 
   constructor({ app } = {}) {
@@ -24,7 +24,7 @@ class Chrome {
   bindEvents() {
     // Listen for storage changes to refresh debug mode
     chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (namespace === 'sync' && changes.debugMode) {
+      if (namespace === 'sync' && changes?.debugMode && this.app?.utils?.refreshDebugMode) {
         // Debug mode changed, refresh the state
         this.app.utils.refreshDebugMode();
       }
@@ -37,7 +37,7 @@ class Chrome {
    * @param {string} operation - Description of the operation for logging
    * @param {Function} callback - Optional callback for the result
    */
-  wrapApiCall(apiCall, operation = 'Chrome API call', callback) {
+  wrapApiCall(apiCall, operation = 'Goog API call', callback) {
     try {
       return apiCall(callback);
     } catch (error) {
@@ -166,4 +166,4 @@ class Chrome {
 }
 
 // Assign class to namespace
-G2T.Chrome = Chrome;
+G2T.Goog = Goog;
