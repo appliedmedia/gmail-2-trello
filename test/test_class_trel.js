@@ -68,7 +68,7 @@ describe('Trel Class', () => {
       'chrome_manifest_v3/class_trel.js',
       'utf8',
     );
-    eval(trelCode);
+    eval(trelCode); // Required: non-module architecture uses global namespace
 
     // Create a fresh Trel instance for each test
     trel = new G2T.Trel({ app: mockApp });
