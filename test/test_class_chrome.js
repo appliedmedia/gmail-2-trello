@@ -14,10 +14,10 @@ const {
 } = require('./test_shared.js');
 
 // Load the Chrome class using eval (for Chrome extension compatibility)
-const chromeCode = loadClassFile('chrome_manifest_v3/class_chrome.js');
+const googCode = loadClassFile('chrome_manifest_v3/class_goog.js');
 
-describe('Chrome Class', () => {
-  let dom, window, chromeInstance, mockApp;
+describe('Goog Class', () => {
+      let dom, window, googInstance, mockApp;
   let mockChrome, mockEventTarget, mockModel, mockGmailView, mockPopupView, mockUtils;
 
   beforeEach(() => {
@@ -40,17 +40,17 @@ describe('Chrome Class', () => {
     // Initialize G2T namespace
     global.G2T = global.G2T || {};
 
-    // Load and evaluate Chrome class with G2T namespace
+    // Load and evaluate Goog class with G2T namespace
     // Use Function constructor to ensure proper scope with chrome object
-    const ChromeClass = new Function('G2T', 'chrome', chromeCode + '; return G2T.ChromeAPI;');
-    const Chrome = ChromeClass(global.G2T, global.chrome);
-    global.G2T.ChromeAPI = Chrome;
+    const GoogClass = new Function('G2T', 'chrome', googCode + '; return G2T.Goog;');
+    const Goog = GoogClass(global.G2T, global.chrome);
+    global.G2T.Goog = Goog;
 
-    // Create a fresh Chrome instance for each test
-    chromeInstance = new G2T.ChromeAPI({ app: mockApp });
+    // Create a fresh Goog instance for each test
+    googInstance = new G2T.Goog({ app: mockApp });
     
     // Manually call bindEvents to ensure storage listener is registered
-    chromeInstance.bindEvents();
+    googInstance.bindEvents();
     
     // Reset all mocks
     clearAllMocks();
@@ -62,15 +62,15 @@ describe('Chrome Class', () => {
   });
 
   describe('Constructor and Initialization', () => {
-    test('should create Chrome instance with app dependency', () => {
-      expect(chromeInstance).toBeInstanceOf(G2T.ChromeAPI);
-      expect(chromeInstance.app).toBe(mockApp);
+    test('should create Goog instance with app dependency', () => {
+      expect(googInstance).toBeInstanceOf(G2T.Goog);
+      expect(googInstance.app).toBe(mockApp);
     });
 
-    test('should handle constructor with no arguments', () => {
-          const defaultChrome = new G2T.ChromeAPI();
-    expect(defaultChrome).toBeInstanceOf(G2T.ChromeAPI);
-      expect(defaultChrome.app).toBeUndefined();
+          test('should handle constructor with no arguments', () => {
+          const defaultGoog = new G2T.Goog();
+    expect(defaultGoog).toBeInstanceOf(G2T.Goog);
+      expect(defaultGoog.app).toBeUndefined();
     });
 
           test('should bind events on construction', () => {
@@ -78,18 +78,18 @@ describe('Chrome Class', () => {
       });
 
     test('ck static getter should return correct value', () => {
-      expect(G2T.ChromeAPI.ck).toEqual({
-        id: 'g2t_chrome',
-        errorPrefix: 'Chrome API Error:',
+      expect(G2T.Goog.ck).toEqual({
+        id: 'g2t_goog',
+        errorPrefix: 'Goog API Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
     });
 
     test('ck getter should return correct value', () => {
-      expect(chromeInstance.ck).toEqual({
-        id: 'g2t_chrome',
-        errorPrefix: 'Chrome API Error:',
+      expect(googInstance.ck).toEqual({
+        id: 'g2t_goog',
+        errorPrefix: 'Goog API Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
@@ -145,7 +145,7 @@ describe('Chrome Class', () => {
       });
       const callback = jest.fn();
       
-      const result = chromeInstance.wrapApiCall(apiCall, 'test operation', callback);
+      const result = googInstance.wrapApiCall(apiCall, 'test operation', callback);
       
       expect(apiCall).toHaveBeenCalledWith(callback);
       expect(callback).toHaveBeenCalledWith('success');
@@ -158,7 +158,7 @@ describe('Chrome Class', () => {
       });
       
       expect(() => {
-        chromeInstance.wrapApiCall(apiCall, 'test operation');
+        googInstance.wrapApiCall(apiCall, 'test operation');
       }).toThrow('API Error');
       
       expect(window.console.log).toHaveBeenCalledWith(
