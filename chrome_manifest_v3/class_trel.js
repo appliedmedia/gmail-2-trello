@@ -512,7 +512,7 @@ class Trel {
     this.app.utils.log(
       `${this.ck.errorPrefix} Failed to create card: ${JSON.stringify(error)}`,
     );
-    this.app.events.emit('createCard_failed', { data: error });
+    this.app.events.emit('trelloCardCreateFailed', { data: error });
   }
 }
 

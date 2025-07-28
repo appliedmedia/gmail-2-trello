@@ -116,6 +116,27 @@ class Uploader {
       upload1.method = undefined;
       upload1.property = undefined;
 
+      // Extract success and failure handlers to avoid duplication
+      const successHandler = data => {
+        Object.assign(data, {
+          method: `${method} ${property}`,
+          keys: generateKeysAndValues(upload1),
+          emailId: self.emailId,
+        });
+        if (self.itemsForUpload?.length > 0) {
+          self.upload();
+        }
+      };
+
+      const failureHandler = data => {
+        Object.assign(data, {
+          method: `${method} ${property}`,
+          keys: generateKeysAndValues(upload1),
+          emailId: self.emailId,
+        });
+        self.app.events.emit('APIFail', { data });
+      };
+
       // Use class_trel if available, otherwise fall back to direct Trello calls
       if (this.trel) {
         if (property.endsWith(self.attachment)) {
@@ -124,24 +145,8 @@ class Uploader {
             method,
             property,
             upload1,
-            function success(data) {
-              Object.assign(data, {
-                method: `${method} ${property}`,
-                keys: generateKeysAndValues(upload1),
-                emailId: self.emailId,
-              });
-              if (self.itemsForUpload?.length > 0) {
-                self.upload();
-              }
-            },
-            function failure(data) {
-              Object.assign(data, {
-                method: `${method} ${property}`,
-                keys: generateKeysAndValues(upload1),
-                emailId: self.emailId,
-              });
-              self.app.events.emit('APIFail', { data });
-            },
+            successHandler,
+            failureHandler,
           );
         } else {
           // Use class_trel for non-attachment calls
@@ -149,24 +154,8 @@ class Uploader {
             method,
             property,
             upload1,
-            function success(data) {
-              Object.assign(data, {
-                method: `${method} ${property}`,
-                keys: generateKeysAndValues(upload1),
-                emailId: self.emailId,
-              });
-              if (self.itemsForUpload?.length > 0) {
-                self.upload();
-              }
-            },
-            function failure(data) {
-              Object.assign(data, {
-                method: `${method} ${property}`,
-                keys: generateKeysAndValues(upload1),
-                emailId: self.emailId,
-              });
-              self.app.events.emit('APIFail', { data });
-            },
+            successHandler,
+            failureHandler,
           );
         }
       } else {
@@ -175,29 +164,7 @@ class Uploader {
           ? self.attach
           : Trello.rest;
 
-        fn_k(
-          method,
-          property,
-          upload1,
-          function success(data) {
-            Object.assign(data, {
-              method: `${method} ${property}`,
-              keys: generateKeysAndValues(upload1),
-              emailId: self.emailId,
-            });
-            if (self.itemsForUpload?.length > 0) {
-              self.upload();
-            }
-          },
-          function failure(data) {
-            Object.assign(data, {
-              method: `${method} ${property}`,
-              keys: generateKeysAndValues(upload1),
-              emailId: self.emailId,
-            });
-            self.app.events.emit('APIFail', { data });
-          },
-        );
+        fn_k(method, property, upload1, successHandler, failureHandler);
       }
     }
   }

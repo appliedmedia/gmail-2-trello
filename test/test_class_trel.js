@@ -60,12 +60,10 @@ describe('Trel Class', () => {
       trelloApiKey: 'test-api-key',
     };
 
-    // Load and evaluate Trel class
-    const trelCode = require('fs').readFileSync(
-      'chrome_manifest_v3/class_trel.js',
-      'utf8',
-    );
-    eval(trelCode);
+    // Mock the namespace if not already defined
+    global.G2T = global.G2T || {};
+    // Use Jest's require with proper module resolution
+    require('../chrome_manifest_v3/class_trel.js');
 
     // Create a fresh Trel instance for each test
     trel = new G2T.Trel({ app: mockApp });
