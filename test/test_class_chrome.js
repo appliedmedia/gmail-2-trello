@@ -77,7 +77,7 @@ describe('Goog Class', () => {
     test('ck static getter should return correct value', () => {
       expect(G2T.Goog.ck).toEqual({
         id: 'g2t_goog',
-        errorPrefix: 'Goog API Error:',
+        errorPrefix: 'Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
@@ -86,7 +86,7 @@ describe('Goog Class', () => {
     test('ck getter should return correct value', () => {
       expect(googInstance.ck).toEqual({
         id: 'g2t_goog',
-        errorPrefix: 'Goog API Error:',
+        errorPrefix: 'Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
@@ -162,7 +162,7 @@ describe('Goog Class', () => {
       }).toThrow('API Error');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Goog API Error: test operation failed: API Error'
+        'Error: test operation failed: API Error'
       );
     });
 
@@ -184,7 +184,7 @@ describe('Goog Class', () => {
         googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Goog API Error: Context invalidated during test operation. Extension needs to be reloaded.'
+          'Error: Context invalidated during test operation. Extension needs to be reloaded.'
         );
         expect(confirm).toHaveBeenCalledWith(
           'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
@@ -213,7 +213,7 @@ describe('Goog Class', () => {
         googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Goog API Error: test operation failed: Other API Error'
+          'Error: test operation failed: Other API Error'
         );
         expect(confirm).not.toHaveBeenCalled();
         // Skip window.location.reload check for now as it's not a Jest mock in JSDOM
@@ -226,7 +226,7 @@ describe('Goog Class', () => {
       googInstance.handleChromeError(error, 'test operation');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Goog API Error: test operation failed: Unknown error'
+        'Error: test operation failed: Unknown error'
       );
     });
   });
@@ -395,14 +395,14 @@ describe('Goog Class', () => {
       test('should handle null error in handleChromeError', () => {
         expect(() => googInstance.handleChromeError(null, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Goog API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 
       test('should handle undefined error in handleChromeError', () => {
         expect(() => googInstance.handleChromeError(undefined, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Goog API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 
@@ -412,7 +412,7 @@ describe('Goog Class', () => {
         googInstance.handleChromeError(error, 'test');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Goog API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 

@@ -5,7 +5,7 @@ class Goog {
     // class keys here to assure they're treated like consts
     const ck = {
       id: 'g2t_goog',
-      errorPrefix: 'Goog API Error:',
+      errorPrefix: 'Error:',
       contextInvalidError: 'Extension context invalidated',
       reloadMessage: 'Extension needs to be reloaded.',
     };
