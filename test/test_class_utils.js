@@ -39,10 +39,10 @@ const injectedCode = utilsCode.replace(
   'var G2T = G2T || {}; // must be var to guarantee correct scope',
   `var G2T = G2T || {}; // must be var to guarantee correct scope
 // Inject mock constructors for testing
-G2T.Chrome = function(args) {
-  if (!(this instanceof G2T.Chrome)) {
-    return new G2T.Chrome(args);
-  }
+  G2T.ChromeAPI = function(args) {
+    if (!(this instanceof G2T.ChromeAPI)) {
+      return new G2T.ChromeAPI(args);
+    }
   Object.assign(this, mockChrome);
   return this;
 };

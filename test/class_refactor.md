@@ -284,7 +284,7 @@ function setupChromeForTesting() {
   const chromeCode = loadClassFile('chrome_manifest_v3/class_chrome.js');
   eval(chromeCode);
   
-  const chromeInstance = new G2T.Chrome({ app: mockApp });
+  const chromeInstance = new G2T.ChromeAPI({ app: mockApp });
   
   return { chromeInstance, mockApp };
 }

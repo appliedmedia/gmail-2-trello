@@ -7,11 +7,11 @@ console.log('🧪 Testing Chrome Middleware...');
 function testChromeClassAvailability() {
   console.log('📋 Test 1: Chrome class availability');
 
-  if (typeof G2T !== 'undefined' && G2T.Chrome) {
-    console.log('✅ G2T.Chrome class exists');
+  if (typeof G2T !== 'undefined' && G2T.ChromeAPI) {
+    console.log('✅ G2T.ChromeAPI class exists');
     return true;
   } else {
-    console.log('❌ G2T.Chrome class not found');
+    console.log('❌ G2T.ChromeAPI class not found');
     return false;
   }
 }

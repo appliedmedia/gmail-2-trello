@@ -54,7 +54,7 @@ function testChromeClassStructure() {
     hasStorageSyncSet: content.includes('storageSyncSet'),
     hasRuntimeSendMessage: content.includes('runtimeSendMessage'),
     hasRuntimeGetURL: content.includes('runtimeGetURL'),
-    hasG2TNamespace: content.includes('G2T.Chrome = Chrome'),
+    hasG2TNamespace: content.includes('G2T.ChromeAPI = ChromeAPI'),
     hasContextInvalidError: content.includes('Extension context invalidated'),
     hasReloadMessage: content.includes('Please reload the extension'),
     hasErrorPrefix: content.includes('Chrome API Error:'),
@@ -117,7 +117,7 @@ function testAppIncludesChrome() {
   }
 
   const checks = {
-    hasChromeInstance: content.includes('this.chrome = new G2T.Chrome'),
+    hasChromeInstance: content.includes('this.chrome = new G2T.ChromeAPI'),
     hasChromeInit: content.includes('this.chrome.init()') === false, // Should be removed
     hasChromeReference: content.includes('this.chrome'),
   };

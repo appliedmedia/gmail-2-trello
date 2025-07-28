@@ -1,6 +1,6 @@
 var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 
-class Chrome {
+class ChromeAPI {
   static get ck() {
     // class keys here to assure they're treated like consts
     const ck = {
@@ -13,7 +13,7 @@ class Chrome {
   }
 
   get ck() {
-    return Chrome.ck;
+    return ChromeAPI.ck;
   }
 
   constructor({ app } = {}) {
@@ -166,4 +166,4 @@ class Chrome {
 }
 
 // Assign class to namespace
-G2T.Chrome = Chrome;
+G2T.ChromeAPI = ChromeAPI;

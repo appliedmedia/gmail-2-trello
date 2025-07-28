@@ -42,12 +42,12 @@ describe('Chrome Class', () => {
 
     // Load and evaluate Chrome class with G2T namespace
     // Use Function constructor to ensure proper scope with chrome object
-    const ChromeClass = new Function('G2T', 'chrome', chromeCode + '; return G2T.Chrome;');
+    const ChromeClass = new Function('G2T', 'chrome', chromeCode + '; return G2T.ChromeAPI;');
     const Chrome = ChromeClass(global.G2T, global.chrome);
-    global.G2T.Chrome = Chrome;
+    global.G2T.ChromeAPI = Chrome;
 
     // Create a fresh Chrome instance for each test
-    chromeInstance = new G2T.Chrome({ app: mockApp });
+    chromeInstance = new G2T.ChromeAPI({ app: mockApp });
     
     // Manually call bindEvents to ensure storage listener is registered
     chromeInstance.bindEvents();
@@ -63,13 +63,13 @@ describe('Chrome Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create Chrome instance with app dependency', () => {
-      expect(chromeInstance).toBeInstanceOf(G2T.Chrome);
+      expect(chromeInstance).toBeInstanceOf(G2T.ChromeAPI);
       expect(chromeInstance.app).toBe(mockApp);
     });
 
     test('should handle constructor with no arguments', () => {
-      const defaultChrome = new G2T.Chrome();
-      expect(defaultChrome).toBeInstanceOf(G2T.Chrome);
+          const defaultChrome = new G2T.ChromeAPI();
+    expect(defaultChrome).toBeInstanceOf(G2T.ChromeAPI);
       expect(defaultChrome.app).toBeUndefined();
     });
 
@@ -78,7 +78,7 @@ describe('Chrome Class', () => {
       });
 
     test('ck static getter should return correct value', () => {
-      expect(G2T.Chrome.ck).toEqual({
+      expect(G2T.ChromeAPI.ck).toEqual({
         id: 'g2t_chrome',
         errorPrefix: 'Chrome API Error:',
         contextInvalidError: 'Extension context invalidated',
