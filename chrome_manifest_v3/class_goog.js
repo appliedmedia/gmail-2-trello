@@ -24,7 +24,11 @@ class Goog {
   bindEvents() {
     // Listen for storage changes to refresh debug mode
     chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (namespace === 'sync' && changes?.debugMode && this.app?.utils?.refreshDebugMode) {
+      if (
+        namespace === 'sync' &&
+        changes?.debugMode &&
+        this.app?.utils?.refreshDebugMode
+      ) {
         // Debug mode changed, refresh the state
         this.app.utils.refreshDebugMode();
       }
@@ -42,7 +46,7 @@ class Goog {
       return apiCall(callback);
     } catch (error) {
       window.console.log(
-        `${this.ck.errorPrefix} ${operation} failed: ${error.message}`
+        `${this.ck.errorPrefix} ${operation} failed: ${error.message}`,
       );
       throw error;
     }
@@ -59,12 +63,12 @@ class Goog {
     // Check for context invalidation
     if (errorMessage.includes(this.ck.contextInvalidError)) {
       window.console.log(
-        `${this.ck.errorPrefix} Context invalidated during ${operation}. ${this.ck.reloadMessage}`
+        `${this.ck.errorPrefix} Context invalidated during ${operation}. ${this.ck.reloadMessage}`,
       );
       // Show alert directly instead of firing event that might not be handled
       if (
         confirm(
-          'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+          'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
         )
       ) {
         window.location.reload();
@@ -74,7 +78,7 @@ class Goog {
 
     // Log other Chrome API errors
     window.console.log(
-      `${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`
+      `${this.ck.errorPrefix} ${operation} failed: ${errorMessage}`,
     );
   }
 
@@ -136,7 +140,7 @@ class Goog {
     return this.wrapApiCall(
       cb => chrome.storage.sync.get(keys, cb),
       `storage.sync.get(${JSON.stringify(keys)})`,
-      callback
+      callback,
     );
   }
 
@@ -144,7 +148,7 @@ class Goog {
     return this.wrapApiCall(
       cb => chrome.storage.sync.set(items, cb),
       `storage.sync.set(${JSON.stringify(Object.keys(items))})`,
-      callback
+      callback,
     );
   }
 
@@ -153,14 +157,14 @@ class Goog {
     return this.wrapApiCall(
       cb => chrome.runtime.sendMessage(message, cb),
       `runtime.sendMessage(${JSON.stringify(message)})`,
-      callback
+      callback,
     );
   }
 
   runtimeGetURL(path) {
     return this.wrapApiCall(
       () => chrome.runtime.getURL(path),
-      `runtime.getURL(${path})`
+      `runtime.getURL(${path})`,
     );
   }
 }

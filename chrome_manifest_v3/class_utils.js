@@ -39,7 +39,7 @@ class Utils {
     if (data) {
       const count_size_k = l.max.toString().length;
       const counter_k = ('0'.repeat(count_size_k) + l.count.toString()).slice(
-        -count_size_k
+        -count_size_k,
       );
       const now_k = new Date().toISOString();
 
@@ -55,9 +55,8 @@ class Utils {
         l.lastMessageCount++;
         const lastTimestamp = l.memory[l.lastMessageIndex].split(' ')[0];
         const newTimestamp = now_k;
-        l.memory[
-          l.lastMessageIndex
-        ] = `${lastTimestamp}...x${l.lastMessageCount}...${newTimestamp} ${messageContent}`;
+        l.memory[l.lastMessageIndex] =
+          `${lastTimestamp}...x${l.lastMessageCount}...${newTimestamp} ${messageContent}`;
 
         if (l.debugMode) {
           window.console.log(l.memory[l.lastMessageIndex]);
@@ -148,7 +147,7 @@ class Utils {
     // Check if data is too large (Chrome sync storage limit is ~8KB per item)
     if (dataSize > 7000) {
       this.log(
-        `WARNING: Data too large (${dataSize} bytes) for ${keyId}, skipping save`
+        `WARNING: Data too large (${dataSize} bytes) for ${keyId}, skipping save`,
       );
       return;
     }
@@ -406,7 +405,7 @@ class Utils {
       Object.keys(context.toProcess)
         .sort(context.self.markdownify_sortByLength.bind(context.self))
         .forEach(
-          context.self.markdownify_onSortEach.bind(context.self, context)
+          context.self.markdownify_onSortEach.bind(context.self, context),
         );
     }
   }
@@ -752,7 +751,7 @@ class Utils {
       sourceText = this.decodeEntities_onEach(sourceText, value, key);
     });
     try {
-      new_s = decodeURIComponent(sourceText);
+      const new_s = decodeURIComponent(sourceText);
       sourceText = new_s;
     } catch (e) {
       // Didn't work. Ignore.

@@ -87,7 +87,7 @@ function restore_options() {
 function extensionInvalidConfirmReload() {
   if (
     confirm(
-      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
+      'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
     )
   ) {
     window.location.reload();
