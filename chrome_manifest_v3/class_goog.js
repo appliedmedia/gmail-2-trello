@@ -24,7 +24,7 @@ class Goog {
   bindEvents() {
     // Listen for storage changes to refresh debug mode
     chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (namespace === 'sync' && changes.debugMode) {
+      if (namespace === 'sync' && changes?.debugMode && this.app?.utils?.refreshDebugMode) {
         // Debug mode changed, refresh the state
         this.app.utils.refreshDebugMode();
       }

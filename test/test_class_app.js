@@ -37,9 +37,9 @@ const injectedCode = appCode.replace(
   'var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope',
   `var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
 // Inject mock constructors for testing
-  G2T.ChromeAPI = function(args) {
-    if (!(this instanceof G2T.ChromeAPI)) {
-      return new G2T.ChromeAPI(args);
+  G2T.Goog = function(args) {
+    if (!(this instanceof G2T.Goog)) {
+      return new G2T.Goog(args);
     }
   Object.assign(this, mockChrome);
   return this;
@@ -107,7 +107,7 @@ describe('App Class', () => {
     test('should create App instance with all dependencies', () => {
       expect(app).toBeInstanceOf(G2T.App);
       expect(app.trelloApiKey).toBe('21b411b1b5b549c54bd32f0e90738b41');
-      expect(app.chrome).toEqual(global.mockInstances.mockChrome);
+      expect(app.goog).toEqual(global.mockInstances.mockChrome);
       expect(app.events).toEqual(global.mockInstances.mockEventTarget);
       expect(app.model).toEqual(global.mockInstances.mockModel);
       expect(app.gmailView).toEqual(global.mockInstances.mockGmailView);
@@ -348,8 +348,8 @@ describe('App Class', () => {
   });
 
   describe('Component Integration', () => {
-    test('should properly integrate with Chrome component', () => {
-      expect(app.chrome).toEqual(global.mockInstances.mockChrome);
+    test('should properly integrate with Goog component', () => {
+      expect(app.goog).toEqual(global.mockInstances.mockChrome);
     });
 
     test('should properly integrate with EventTarget component', () => {

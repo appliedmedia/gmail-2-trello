@@ -51,9 +51,6 @@ describe('Goog Class', () => {
     
     // Manually call bindEvents to ensure storage listener is registered
     googInstance.bindEvents();
-    
-    // Reset all mocks
-    clearAllMocks();
   });
 
   afterEach(() => {
@@ -137,6 +134,9 @@ describe('Goog Class', () => {
       });
     });
 
+    // Clear mocks after event binding tests
+    clearAllMocks();
+
   describe('API Call Wrapping', () => {
     test('wrapApiCall should execute successful API calls', () => {
       const apiCall = jest.fn((callback) => {
@@ -162,14 +162,14 @@ describe('Goog Class', () => {
       }).toThrow('API Error');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Chrome API Error: test operation failed: API Error'
+        'Goog API Error: test operation failed: API Error'
       );
     });
 
     test('wrapApiCall should handle API calls without callback', () => {
       const apiCall = jest.fn(() => 'result');
       
-      const result = chromeInstance.wrapApiCall(apiCall, 'test operation');
+      const result = googInstance.wrapApiCall(apiCall, 'test operation');
       
       expect(apiCall).toHaveBeenCalledWith(undefined);
       expect(result).toBe('result');
@@ -181,10 +181,10 @@ describe('Goog Class', () => {
         const error = new Error('Extension context invalidated');
         confirm.mockReturnValue(true);
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: Context invalidated during test operation. Extension needs to be reloaded.'
+          'Goog API Error: Context invalidated during test operation. Extension needs to be reloaded.'
         );
         expect(confirm).toHaveBeenCalledWith(
           'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
@@ -197,7 +197,7 @@ describe('Goog Class', () => {
         const error = new Error('Extension context invalidated');
         confirm.mockReturnValue(false);
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(confirm).toHaveBeenCalled();
         // Skip window.location.reload check for now as it's not a Jest mock in JSDOM
@@ -207,30 +207,33 @@ describe('Goog Class', () => {
       test('handleChromeError should handle other errors', () => {
         const error = new Error('Other API Error');
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        // Reset confirm mock to ensure it's not called
+        confirm.mockReset();
+        
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test operation failed: Other API Error'
+          'Goog API Error: test operation failed: Other API Error'
         );
         expect(confirm).not.toHaveBeenCalled();
         // Skip window.location.reload check for now as it's not a Jest mock in JSDOM
         // TODO: Fix window.location.reload mocking in JSDOM environment
       });
 
-    test('handleChromeError should handle errors without message', () => {
+          test('handleChromeError should handle errors without message', () => {
       const error = {};
       
-      chromeInstance.handleChromeError(error, 'test operation');
+      googInstance.handleChromeError(error, 'test operation');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Chrome API Error: test operation failed: Unknown error'
+        'Goog API Error: test operation failed: Unknown error'
       );
     });
   });
 
       describe('Context Invalid Message Display', () => {
       test('showContextInvalidMessage should use popup view when available', () => {
-        chromeInstance.showContextInvalidMessage();
+        googInstance.showContextInvalidMessage();
         
         expect(mockApp.popupView.displayExtensionInvalidReload).toHaveBeenCalled();
       });
@@ -253,7 +256,7 @@ describe('Goog Class', () => {
         const keys = ['key1', 'key2'];
         const callback = jest.fn();
         
-        chromeInstance.storageSyncGet(keys, callback);
+        googInstance.storageSyncGet(keys, callback);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, callback);
       });
@@ -262,7 +265,7 @@ describe('Goog Class', () => {
         const items = { key1: 'value1', key2: 'value2' };
         const callback = jest.fn();
         
-        chromeInstance.storageSyncSet(items, callback);
+        googInstance.storageSyncSet(items, callback);
         
         expect(window.chrome.storage.sync.set).toHaveBeenCalledWith(items, callback);
       });
@@ -270,7 +273,7 @@ describe('Goog Class', () => {
       test('storageSyncGet should handle missing callback', () => {
         const keys = ['key1'];
         
-        chromeInstance.storageSyncGet(keys);
+        googInstance.storageSyncGet(keys);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, undefined);
       });
@@ -278,7 +281,7 @@ describe('Goog Class', () => {
       test('storageSyncSet should handle missing callback', () => {
         const items = { key1: 'value1' };
         
-        chromeInstance.storageSyncSet(items);
+        googInstance.storageSyncSet(items);
         
         expect(window.chrome.storage.sync.set).toHaveBeenCalledWith(items, undefined);
       });
@@ -289,7 +292,7 @@ describe('Goog Class', () => {
         const message = { type: 'test', data: 'test data' };
         const callback = jest.fn();
         
-        chromeInstance.runtimeSendMessage(message, callback);
+        googInstance.runtimeSendMessage(message, callback);
         
         expect(window.chrome.runtime.sendMessage).toHaveBeenCalledWith(message, callback);
       });
@@ -297,7 +300,7 @@ describe('Goog Class', () => {
       test('runtimeGetURL should call chrome.runtime.getURL', () => {
         const path = 'test/path.html';
         
-        chromeInstance.runtimeGetURL(path);
+        googInstance.runtimeGetURL(path);
         
         expect(window.chrome.runtime.getURL).toHaveBeenCalledWith(path);
       });
@@ -305,7 +308,7 @@ describe('Goog Class', () => {
       test('runtimeSendMessage should handle missing callback', () => {
         const message = { type: 'test' };
         
-        chromeInstance.runtimeSendMessage(message);
+        googInstance.runtimeSendMessage(message);
         
         expect(window.chrome.runtime.sendMessage).toHaveBeenCalledWith(message, undefined);
       });
@@ -313,19 +316,19 @@ describe('Goog Class', () => {
 
       describe('Error Recovery', () => {
       test('should handle missing app gracefully', () => {
-        chromeInstance.app = null;
+        googInstance.app = null;
         
-        expect(() => chromeInstance.showContextInvalidMessage()).not.toThrow();
+        expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
       });
 
       test('should handle missing popup view gracefully', () => {
-        chromeInstance.app.popupView = null;
+        googInstance.app.popupView = null;
         
-        expect(() => chromeInstance.showContextInvalidMessage()).not.toThrow();
+        expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
       });
 
       test('should handle missing utils gracefully', () => {
-        chromeInstance.app.utils = null;
+        googInstance.app.utils = null;
         
         const listener = window.chrome.storage.onChanged.addListener.mock.calls[0][0];
         const changes = { debugMode: { newValue: true } };
@@ -347,7 +350,7 @@ describe('Goog Class', () => {
       });
 
       test('should integrate with popup view correctly', () => {
-        chromeInstance.showContextInvalidMessage();
+        googInstance.showContextInvalidMessage();
         
         expect(mockApp.popupView.displayExtensionInvalidReload).toHaveBeenCalled();
       });
@@ -356,7 +359,7 @@ describe('Goog Class', () => {
         const keys = ['test'];
         const callback = jest.fn();
         
-        chromeInstance.storageSyncGet(keys, callback);
+        googInstance.storageSyncGet(keys, callback);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, callback);
       });
@@ -368,7 +371,7 @@ describe('Goog Class', () => {
       
       const startTime = Date.now();
       for (let i = 0; i < 100; i++) {
-        chromeInstance.wrapApiCall(apiCall, 'test');
+        googInstance.wrapApiCall(apiCall, 'test');
       }
       const endTime = Date.now();
       
@@ -380,7 +383,7 @@ describe('Goog Class', () => {
       
       const startTime = Date.now();
       for (let i = 0; i < 100; i++) {
-        chromeInstance.handleChromeError(error, 'test');
+        googInstance.handleChromeError(error, 'test');
       }
       const endTime = Date.now();
       
@@ -390,26 +393,26 @@ describe('Goog Class', () => {
 
       describe('Edge Cases', () => {
       test('should handle null error in handleChromeError', () => {
-        expect(() => chromeInstance.handleChromeError(null, 'test')).not.toThrow();
+        expect(() => googInstance.handleChromeError(null, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Goog API Error: test failed: Unknown error'
         );
       });
 
       test('should handle undefined error in handleChromeError', () => {
-        expect(() => chromeInstance.handleChromeError(undefined, 'test')).not.toThrow();
+        expect(() => googInstance.handleChromeError(undefined, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Goog API Error: test failed: Unknown error'
         );
       });
 
       test('should handle empty error message', () => {
         const error = { message: '' };
         
-        chromeInstance.handleChromeError(error, 'test');
+        googInstance.handleChromeError(error, 'test');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Goog API Error: test failed: Unknown error'
         );
       });
 
