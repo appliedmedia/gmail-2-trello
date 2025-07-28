@@ -259,6 +259,8 @@ class Model {
       parent: this,
       app: this.app,
     });
+    // Initialize Trello API abstraction
+    this.trel = new G2T.Trel({ app: this.app });
     this.initialized = false;
   }
 
@@ -308,7 +310,8 @@ class Model {
 
   trelloLoad() {
     this.app.utils.log('Loading Trello with API key:', this.app.trelloApiKey);
-    Trello.setKey(this.app.trelloApiKey);
+    // Use class_trel for API key management
+    this.trel.setApiKey(this.app.trelloApiKey);
     this.checkTrelloAuthorized();
   }
 
@@ -386,13 +389,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      'members/me',
-      {},
-      this.loadTrelloUser_success.bind(this),
-      this.loadTrelloUser_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getUser();
   }
 
   loadTrelloBoards_success(data) {
@@ -413,13 +411,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      'members/me/boards',
-      {},
-      this.loadTrelloBoards_success.bind(this),
-      this.loadTrelloBoards_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getBoards();
   }
 
   loadTrelloLists_success(data) {
@@ -436,13 +429,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      `boards/${boardId}/lists`,
-      {},
-      this.loadTrelloLists_success.bind(this),
-      this.loadTrelloLists_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getLists(boardId);
   }
 
   loadTrelloCards_success(data) {
@@ -459,13 +447,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      `lists/${listId}/cards`,
-      {},
-      this.loadTrelloCards_success.bind(this),
-      this.loadTrelloCards_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getCards(listId);
   }
 
   loadTrelloMembers_success(data) {
@@ -482,13 +465,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      `boards/${boardId}/members`,
-      {},
-      this.loadTrelloMembers_success.bind(this),
-      this.loadTrelloMembers_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getMembers(boardId);
   }
 
   loadTrelloLabels_success(data) {
@@ -505,13 +483,8 @@ class Model {
       return;
     }
 
-    Trello.rest(
-      'get',
-      `boards/${boardId}/labels`,
-      {},
-      this.loadTrelloLabels_success.bind(this),
-      this.loadTrelloLabels_failure.bind(this),
-    );
+    // Use class_trel for API call
+    this.trel.getLabels(boardId);
   }
 
   submit(data) {
@@ -529,47 +502,8 @@ class Model {
   }
 
   createCard(data) {
-    const cardData = {
-      name: data.subject || 'No Subject',
-      desc: data.body || '',
-      idList: data.listId,
-      idBoard: data.boardId,
-      pos: 'top',
-    };
-
-    if (data.labels && data.labels.length > 0) {
-      cardData.idLabels = data.labels;
-    }
-
-    if (data.members && data.members.length > 0) {
-      cardData.idMembers = data.members;
-    }
-
-    if (data.dueDate) {
-      cardData.due = data.dueDate;
-    }
-
-    Trello.rest(
-      'post',
-      'cards',
-      cardData,
-      response => {
-        const cardId = response.id;
-
-        // Add attachment if any
-        if (data.attachment && data.attachment.length > 0) {
-          data.cardId = cardId;
-          this.uploadAttachment(data);
-        } else {
-          this.app.events.emit('createCard_success', {
-            data: { ...data, cardId },
-          });
-        }
-      },
-      error => {
-        this.app.events.emit('createCard_failed', { data: error });
-      },
-    );
+    // Use class_trel for card creation
+    this.trel.createCard(data);
   }
 
   emailBoardListCardMapLookup(key_value = {}) {
