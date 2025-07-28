@@ -60,26 +60,12 @@ describe('Trel Class', () => {
       trelloApiKey: 'test-api-key',
     };
 
-    // Load and evaluate Trel class using vm module for security
-    const fs = require('fs');
-    const vm = require('vm');
-
-    const trelCode = fs.readFileSync(
+    // Load and evaluate Trel class
+    const trelCode = require('fs').readFileSync(
       'chrome_manifest_v3/class_trel.js',
       'utf8',
     );
-    const context = vm.createContext({
-      ...global,
-      G2T: global.G2T || {},
-      console: global.console,
-      setTimeout: global.setTimeout,
-      clearTimeout: global.clearTimeout,
-      setInterval: global.setInterval,
-      clearInterval: global.clearInterval,
-    });
-
-    vm.runInContext(trelCode, context);
-    global.G2T = context.G2T;
+    eval(trelCode);
 
     // Create a fresh Trel instance for each test
     trel = new G2T.Trel({ app: mockApp });
