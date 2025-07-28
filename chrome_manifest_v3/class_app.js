@@ -22,7 +22,7 @@ class App {
     // Trello API key is not a secure key - it's meant to be public and is locked to this extension
     // This is the prescribed usage pattern for Trello API keys in client-side applications
     this.trelloApiKey = '21b411b1b5b549c54bd32f0e90738b41'; // Was: "c50413b23ee49ca49a5c75ccf32d0459"
-    this.chrome = new G2T.Chrome({ app: this });
+    this.goog = new G2T.Goog({ app: this });
     this.events = new G2T.EventTarget({ app: this });
     this.model = new G2T.Model({ app: this });
     this.gmailView = new G2T.GmailView({ app: this });

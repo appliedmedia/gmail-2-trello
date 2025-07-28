@@ -14,10 +14,10 @@ const {
 } = require('./test_shared.js');
 
 // Load the Chrome class using eval (for Chrome extension compatibility)
-const chromeCode = loadClassFile('chrome_manifest_v3/class_chrome.js');
+const googCode = loadClassFile('chrome_manifest_v3/class_goog.js');
 
-describe('Chrome Class', () => {
-  let dom, window, chromeInstance, mockApp;
+describe('Goog Class', () => {
+      let dom, window, googInstance, mockApp;
   let mockChrome, mockEventTarget, mockModel, mockGmailView, mockPopupView, mockUtils;
 
   beforeEach(() => {
@@ -40,20 +40,17 @@ describe('Chrome Class', () => {
     // Initialize G2T namespace
     global.G2T = global.G2T || {};
 
-    // Load and evaluate Chrome class with G2T namespace
+    // Load and evaluate Goog class with G2T namespace
     // Use Function constructor to ensure proper scope with chrome object
-    const ChromeClass = new Function('G2T', 'chrome', chromeCode + '; return G2T.Chrome;');
-    const Chrome = ChromeClass(global.G2T, global.chrome);
-    global.G2T.Chrome = Chrome;
+    const GoogClass = new Function('G2T', 'chrome', googCode + '; return G2T.Goog;');
+    const Goog = GoogClass(global.G2T, global.chrome);
+    global.G2T.Goog = Goog;
 
-    // Create a fresh Chrome instance for each test
-    chromeInstance = new G2T.Chrome({ app: mockApp });
+    // Create a fresh Goog instance for each test
+    googInstance = new G2T.Goog({ app: mockApp });
     
     // Manually call bindEvents to ensure storage listener is registered
-    chromeInstance.bindEvents();
-    
-    // Reset all mocks
-    clearAllMocks();
+    googInstance.bindEvents();
   });
 
   afterEach(() => {
@@ -62,15 +59,15 @@ describe('Chrome Class', () => {
   });
 
   describe('Constructor and Initialization', () => {
-    test('should create Chrome instance with app dependency', () => {
-      expect(chromeInstance).toBeInstanceOf(G2T.Chrome);
-      expect(chromeInstance.app).toBe(mockApp);
+    test('should create Goog instance with app dependency', () => {
+      expect(googInstance).toBeInstanceOf(G2T.Goog);
+      expect(googInstance.app).toBe(mockApp);
     });
 
-    test('should handle constructor with no arguments', () => {
-      const defaultChrome = new G2T.Chrome();
-      expect(defaultChrome).toBeInstanceOf(G2T.Chrome);
-      expect(defaultChrome.app).toBeUndefined();
+          test('should handle constructor with no arguments', () => {
+          const defaultGoog = new G2T.Goog();
+    expect(defaultGoog).toBeInstanceOf(G2T.Goog);
+      expect(defaultGoog.app).toBeUndefined();
     });
 
           test('should bind events on construction', () => {
@@ -78,18 +75,18 @@ describe('Chrome Class', () => {
       });
 
     test('ck static getter should return correct value', () => {
-      expect(G2T.Chrome.ck).toEqual({
-        id: 'g2t_chrome',
-        errorPrefix: 'Chrome API Error:',
+      expect(G2T.Goog.ck).toEqual({
+        id: 'g2t_goog',
+        errorPrefix: 'Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
     });
 
     test('ck getter should return correct value', () => {
-      expect(chromeInstance.ck).toEqual({
-        id: 'g2t_chrome',
-        errorPrefix: 'Chrome API Error:',
+      expect(googInstance.ck).toEqual({
+        id: 'g2t_goog',
+        errorPrefix: 'Error:',
         contextInvalidError: 'Extension context invalidated',
         reloadMessage: 'Extension needs to be reloaded.'
       });
@@ -137,6 +134,9 @@ describe('Chrome Class', () => {
       });
     });
 
+    // Clear mocks after event binding tests
+    clearAllMocks();
+
   describe('API Call Wrapping', () => {
     test('wrapApiCall should execute successful API calls', () => {
       const apiCall = jest.fn((callback) => {
@@ -145,7 +145,7 @@ describe('Chrome Class', () => {
       });
       const callback = jest.fn();
       
-      const result = chromeInstance.wrapApiCall(apiCall, 'test operation', callback);
+      const result = googInstance.wrapApiCall(apiCall, 'test operation', callback);
       
       expect(apiCall).toHaveBeenCalledWith(callback);
       expect(callback).toHaveBeenCalledWith('success');
@@ -158,18 +158,18 @@ describe('Chrome Class', () => {
       });
       
       expect(() => {
-        chromeInstance.wrapApiCall(apiCall, 'test operation');
+        googInstance.wrapApiCall(apiCall, 'test operation');
       }).toThrow('API Error');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Chrome API Error: test operation failed: API Error'
+        'Error: test operation failed: API Error'
       );
     });
 
     test('wrapApiCall should handle API calls without callback', () => {
       const apiCall = jest.fn(() => 'result');
       
-      const result = chromeInstance.wrapApiCall(apiCall, 'test operation');
+      const result = googInstance.wrapApiCall(apiCall, 'test operation');
       
       expect(apiCall).toHaveBeenCalledWith(undefined);
       expect(result).toBe('result');
@@ -181,10 +181,10 @@ describe('Chrome Class', () => {
         const error = new Error('Extension context invalidated');
         confirm.mockReturnValue(true);
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: Context invalidated during test operation. Extension needs to be reloaded.'
+          'Error: Context invalidated during test operation. Extension needs to be reloaded.'
         );
         expect(confirm).toHaveBeenCalledWith(
           'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?'
@@ -197,7 +197,7 @@ describe('Chrome Class', () => {
         const error = new Error('Extension context invalidated');
         confirm.mockReturnValue(false);
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(confirm).toHaveBeenCalled();
         // Skip window.location.reload check for now as it's not a Jest mock in JSDOM
@@ -207,30 +207,33 @@ describe('Chrome Class', () => {
       test('handleChromeError should handle other errors', () => {
         const error = new Error('Other API Error');
         
-        chromeInstance.handleChromeError(error, 'test operation');
+        // Reset confirm mock to ensure it's not called
+        confirm.mockReset();
+        
+        googInstance.handleChromeError(error, 'test operation');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test operation failed: Other API Error'
+          'Error: test operation failed: Other API Error'
         );
         expect(confirm).not.toHaveBeenCalled();
         // Skip window.location.reload check for now as it's not a Jest mock in JSDOM
         // TODO: Fix window.location.reload mocking in JSDOM environment
       });
 
-    test('handleChromeError should handle errors without message', () => {
+          test('handleChromeError should handle errors without message', () => {
       const error = {};
       
-      chromeInstance.handleChromeError(error, 'test operation');
+      googInstance.handleChromeError(error, 'test operation');
       
       expect(window.console.log).toHaveBeenCalledWith(
-        'Chrome API Error: test operation failed: Unknown error'
+        'Error: test operation failed: Unknown error'
       );
     });
   });
 
       describe('Context Invalid Message Display', () => {
       test('showContextInvalidMessage should use popup view when available', () => {
-        chromeInstance.showContextInvalidMessage();
+        googInstance.showContextInvalidMessage();
         
         expect(mockApp.popupView.displayExtensionInvalidReload).toHaveBeenCalled();
       });
@@ -253,7 +256,7 @@ describe('Chrome Class', () => {
         const keys = ['key1', 'key2'];
         const callback = jest.fn();
         
-        chromeInstance.storageSyncGet(keys, callback);
+        googInstance.storageSyncGet(keys, callback);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, callback);
       });
@@ -262,7 +265,7 @@ describe('Chrome Class', () => {
         const items = { key1: 'value1', key2: 'value2' };
         const callback = jest.fn();
         
-        chromeInstance.storageSyncSet(items, callback);
+        googInstance.storageSyncSet(items, callback);
         
         expect(window.chrome.storage.sync.set).toHaveBeenCalledWith(items, callback);
       });
@@ -270,7 +273,7 @@ describe('Chrome Class', () => {
       test('storageSyncGet should handle missing callback', () => {
         const keys = ['key1'];
         
-        chromeInstance.storageSyncGet(keys);
+        googInstance.storageSyncGet(keys);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, undefined);
       });
@@ -278,7 +281,7 @@ describe('Chrome Class', () => {
       test('storageSyncSet should handle missing callback', () => {
         const items = { key1: 'value1' };
         
-        chromeInstance.storageSyncSet(items);
+        googInstance.storageSyncSet(items);
         
         expect(window.chrome.storage.sync.set).toHaveBeenCalledWith(items, undefined);
       });
@@ -289,7 +292,7 @@ describe('Chrome Class', () => {
         const message = { type: 'test', data: 'test data' };
         const callback = jest.fn();
         
-        chromeInstance.runtimeSendMessage(message, callback);
+        googInstance.runtimeSendMessage(message, callback);
         
         expect(window.chrome.runtime.sendMessage).toHaveBeenCalledWith(message, callback);
       });
@@ -297,7 +300,7 @@ describe('Chrome Class', () => {
       test('runtimeGetURL should call chrome.runtime.getURL', () => {
         const path = 'test/path.html';
         
-        chromeInstance.runtimeGetURL(path);
+        googInstance.runtimeGetURL(path);
         
         expect(window.chrome.runtime.getURL).toHaveBeenCalledWith(path);
       });
@@ -305,7 +308,7 @@ describe('Chrome Class', () => {
       test('runtimeSendMessage should handle missing callback', () => {
         const message = { type: 'test' };
         
-        chromeInstance.runtimeSendMessage(message);
+        googInstance.runtimeSendMessage(message);
         
         expect(window.chrome.runtime.sendMessage).toHaveBeenCalledWith(message, undefined);
       });
@@ -313,19 +316,19 @@ describe('Chrome Class', () => {
 
       describe('Error Recovery', () => {
       test('should handle missing app gracefully', () => {
-        chromeInstance.app = null;
+        googInstance.app = null;
         
-        expect(() => chromeInstance.showContextInvalidMessage()).not.toThrow();
+        expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
       });
 
       test('should handle missing popup view gracefully', () => {
-        chromeInstance.app.popupView = null;
+        googInstance.app.popupView = null;
         
-        expect(() => chromeInstance.showContextInvalidMessage()).not.toThrow();
+        expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
       });
 
       test('should handle missing utils gracefully', () => {
-        chromeInstance.app.utils = null;
+        googInstance.app.utils = null;
         
         const listener = window.chrome.storage.onChanged.addListener.mock.calls[0][0];
         const changes = { debugMode: { newValue: true } };
@@ -347,7 +350,7 @@ describe('Chrome Class', () => {
       });
 
       test('should integrate with popup view correctly', () => {
-        chromeInstance.showContextInvalidMessage();
+        googInstance.showContextInvalidMessage();
         
         expect(mockApp.popupView.displayExtensionInvalidReload).toHaveBeenCalled();
       });
@@ -356,7 +359,7 @@ describe('Chrome Class', () => {
         const keys = ['test'];
         const callback = jest.fn();
         
-        chromeInstance.storageSyncGet(keys, callback);
+        googInstance.storageSyncGet(keys, callback);
         
         expect(window.chrome.storage.sync.get).toHaveBeenCalledWith(keys, callback);
       });
@@ -368,7 +371,7 @@ describe('Chrome Class', () => {
       
       const startTime = Date.now();
       for (let i = 0; i < 100; i++) {
-        chromeInstance.wrapApiCall(apiCall, 'test');
+        googInstance.wrapApiCall(apiCall, 'test');
       }
       const endTime = Date.now();
       
@@ -380,7 +383,7 @@ describe('Chrome Class', () => {
       
       const startTime = Date.now();
       for (let i = 0; i < 100; i++) {
-        chromeInstance.handleChromeError(error, 'test');
+        googInstance.handleChromeError(error, 'test');
       }
       const endTime = Date.now();
       
@@ -390,26 +393,26 @@ describe('Chrome Class', () => {
 
       describe('Edge Cases', () => {
       test('should handle null error in handleChromeError', () => {
-        expect(() => chromeInstance.handleChromeError(null, 'test')).not.toThrow();
+        expect(() => googInstance.handleChromeError(null, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 
       test('should handle undefined error in handleChromeError', () => {
-        expect(() => chromeInstance.handleChromeError(undefined, 'test')).not.toThrow();
+        expect(() => googInstance.handleChromeError(undefined, 'test')).not.toThrow();
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 
       test('should handle empty error message', () => {
         const error = { message: '' };
         
-        chromeInstance.handleChromeError(error, 'test');
+        googInstance.handleChromeError(error, 'test');
         
         expect(window.console.log).toHaveBeenCalledWith(
-          'Chrome API Error: test failed: Unknown error'
+          'Error: test failed: Unknown error'
         );
       });
 

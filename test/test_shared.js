@@ -330,7 +330,7 @@ function setupG2TMocks(mockInstances) {
   } = mockInstances;
 
   // Create actual constructor functions that can be called with 'new'
-  G2T.Chrome = createG2TConstructor(mockChrome, 'Chrome');
+  G2T.ChromeAPI = createG2TConstructor(mockChrome, 'ChromeAPI');
   G2T.EventTarget = createG2TConstructor(mockEventTarget, 'EventTarget');
   G2T.Model = createG2TConstructor(mockModel, 'Model');
   G2T.GmailView = createG2TConstructor(mockGmailView, 'GmailView');
