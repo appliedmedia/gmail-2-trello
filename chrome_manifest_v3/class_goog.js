@@ -92,47 +92,14 @@ class Goog {
       return;
     }
 
-    // Fallback: Create notification element if popup not available
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #ff6b6b;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 10000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      max-width: 300px;
-      word-wrap: break-word;
-    `;
-
-    notification.innerHTML = `
-      <div style="font-weight: bold; margin-bottom: 8px;">Extension Error</div>
-      <div>${this.ck.reloadMessage}</div>
-      <button onclick="this.parentElement.remove()" style="
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        margin-top: 10px;
-        cursor: pointer;
-        font-size: 12px;
-      ">Dismiss</button>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Auto-remove after 10 seconds
-    setTimeout(() => {
-      if (notification.parentElement) {
-        notification.remove();
-      }
-    }, 10000);
+    // Fallback: Use confirm dialog like other parts of the extension
+    if (
+      confirm(
+        'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
+      )
+    ) {
+      window.location.reload();
+    }
   }
 
   // Chrome Storage API wrappers (sync storage used in this project)

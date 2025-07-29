@@ -7,37 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-// Test configuration following modern best practices
-const TEST_CONFIG = {
-  timeout: 10000, // Increased timeout for complex tests
-  jsdomOptions: {
-    url: 'http://localhost',
-    pretendToBeVisual: true,
-    resources: 'usable',
-    runScripts: 'dangerously',
-  },
-};
-
-/**
- * Mock jQuery object that mimics what markdownify expects
- */
-function createMockJQueryElement(htmlContent) {
-  // Ensure htmlContent is a string
-  const content = htmlContent || '';
-
-  return {
-    html: () => content,
-    length: content ? 1 : 0,
-    text: () => {
-      // Parse HTML and extract text content
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      return tempDiv.textContent || '';
-    },
-  };
-}
-
-// Mock jQuery for testing
+// Set up global jQuery mock at module level
 global.$ = (selectorOrElement, context) => {
   // Case 1: $(element) - wrap a DOM element
   if (selectorOrElement && selectorOrElement.nodeType) {
@@ -52,6 +22,17 @@ global.$ = (selectorOrElement, context) => {
         }
         return element[name] || '';
       },
+      offset: jest.fn(() => ({ top: 1, left: 2 })),
+      nextAll: jest.fn(() => ({
+        find: jest.fn(() => ({
+          first: jest.fn(() => ({
+            attr: jest.fn(() => 'Download attachment test.png'),
+          })),
+        })),
+      })),
+      each: jest.fn(callback => {
+        callback(0, element);
+      }),
     };
   }
 
@@ -80,8 +61,207 @@ global.$ = (selectorOrElement, context) => {
     text: () => '',
     html: () => '',
     attr: () => '',
+    offset: jest.fn(() => ({ top: 1, left: 2 })),
   };
 };
+
+// Add $.extend method
+global.$.extend = jest.fn((target, ...sources) => {
+  // Simple extend implementation
+  sources.forEach(source => {
+    if (source) {
+      Object.keys(source).forEach(key => {
+        target[key] = source[key];
+      });
+    }
+  });
+  return target;
+});
+
+// Test configuration following modern best practices
+const TEST_CONFIG = {
+  timeout: 10000, // Increased timeout for complex tests
+  jsdomOptions: {
+    url: 'http://localhost',
+    pretendToBeVisual: true,
+    resources: 'usable',
+    runScripts: 'dangerously',
+  },
+};
+
+/**
+ * Create a comprehensive mock element with all functionality any test might need
+ * @param {string} htmlContent - HTML content to mock
+ * @returns {Object} - Complete mock element with all jQuery methods
+ */
+function elementSuperSet(htmlContent = '') {
+  // Ensure htmlContent is a string
+  const content = htmlContent || '';
+
+  return {
+    // Basic properties
+    length: content ? 1 : 0,
+    textContent: 'mock text',
+    innerHTML: content || '<div>mock html</div>',
+    nodeType: 1,
+    tagName: 'DIV',
+
+    // jQuery methods
+    html: () => content,
+    text: () => {
+      // Parse HTML and extract text content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      return tempDiv.textContent || '';
+    },
+    attr: jest.fn(name => {
+      const attrs = {
+        name: 'Test User',
+        email: 'test@example.com',
+        download_url: 'text/plain:test.txt:https://example.com/test.txt',
+        title: '2024-01-01 12:00:00',
+        'data-thread-id': 'thread-123',
+        'aria-label': 'Download attachment test.png',
+      };
+      return attrs[name] || 'mock-attr';
+    }),
+    prop: jest.fn(name => {
+      const props = {
+        src: 'https://example.com/image.png',
+        alt: 'Test Image',
+        type: 'image/png',
+        nodeName: 'DIV',
+      };
+      return props[name] || 'mock-prop';
+    }),
+    offset: jest.fn(() => ({ top: 1, left: 2 })),
+    getAttribute: jest.fn(name => {
+      const attrs = {
+        name: 'Test User',
+        email: 'test@example.com',
+        download_url: 'text/plain:test.txt:https://example.com/test.txt',
+        title: '2024-01-01 12:00:00',
+        'data-thread-id': 'thread-123',
+        'aria-label': 'Download attachment test.png',
+      };
+      return attrs[name] || 'mock-attr';
+    }),
+
+    // DOM traversal methods
+    find: jest.fn(() => elementSuperSet()),
+    first: jest.fn(() => elementSuperSet()),
+    nextAll: jest.fn(() => ({
+      find: jest.fn(() => ({
+        first: jest.fn(() => ({
+          attr: jest.fn(() => 'Download attachment test.png'),
+        })),
+      })),
+    })),
+    children: jest.fn(() => ({
+      length: 2,
+      each: jest.fn(callback => {
+        callback(0, elementSuperSet('child1'));
+        callback(1, elementSuperSet('child2'));
+      }),
+    })),
+
+    // Iteration methods
+    each: jest.fn(callback => {
+      callback(0, elementSuperSet());
+    }),
+
+    // Utility methods
+    addClass: jest.fn(),
+    removeClass: jest.fn(),
+    val: jest.fn(),
+    show: jest.fn(),
+    hide: jest.fn(),
+    append: jest.fn(),
+    prepend: jest.fn(),
+    empty: jest.fn(),
+    remove: jest.fn(),
+  };
+}
+
+/**
+ * Mock jQuery object that mimics what markdownify expects
+ */
+function createMockJQueryElement(htmlContent) {
+  // Ensure htmlContent is a string
+  const content = htmlContent || '';
+
+  return {
+    html: () => content,
+    length: content ? 1 : 0,
+    text: () => {
+      // Parse HTML and extract text content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      return tempDiv.textContent || '';
+    },
+  };
+}
+
+// Mock jQuery for testing using elementSuperSet for consistent behavior
+global.$ = (selectorOrElement, context) => {
+  // Case 1: $(element) - wrap a DOM element
+  if (
+    selectorOrElement &&
+    (selectorOrElement.nodeType || selectorOrElement.getAttribute)
+  ) {
+    const element = selectorOrElement;
+    // Use elementSuperSet for consistent element wrapping
+    return elementSuperSet(element.innerHTML || element.textContent || '');
+  }
+
+  // Case 2: $(selector, context) - find elements in context
+  if (context && context.html) {
+    const selector = selectorOrElement;
+    const contextContent = context.html();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = contextContent;
+    const elements = Array.from(tempDiv.querySelectorAll(selector));
+
+    return {
+      length: elements.length,
+      each: callback => {
+        elements.forEach((element, index) => {
+          callback(
+            index,
+            elementSuperSet(element.innerHTML || element.textContent || ''),
+          );
+        });
+      },
+      first: () => elementSuperSet(),
+      offset: () => ({ top: 1, left: 2 }),
+      find: () => elementSuperSet(),
+      nextAll: () => elementSuperSet(),
+      children: () => elementSuperSet(),
+    };
+  }
+
+  // Case 3: $(selector) - find elements by selector (most common case)
+  if (typeof selectorOrElement === 'string') {
+    // Use elementSuperSet for consistent mock element behavior
+    return elementSuperSet();
+  }
+
+  // Default behavior for other cases
+  return elementSuperSet();
+};
+
+// Add $.extend as a static method
+global.$.extend = jest.fn((target, ...sources) => {
+  // Simple extend implementation
+  sources.forEach(source => {
+    if (source) {
+      Object.keys(source).forEach(key => {
+        target[key] = source[key];
+      });
+    }
+  });
+  return target;
+});
 
 // Mock chrome API
 global.chrome = {
@@ -282,6 +462,103 @@ function setupUtilsForTesting() {
 }
 
 /**
+ * Helper function to create real Utils methods for testing
+ * This provides actual Utils implementations for string processing methods
+ * instead of mocked versions, making tests more realistic
+ * @param {Object} mockApp - Mock application object
+ * @returns {Object} - Object with real Utils methods bound to the mock app
+ */
+function createRealUtilsMethods(mockApp) {
+  // Create a simple test app for Utils initialization
+  const utilsTestApp = {
+    utils: {
+      log: jest.fn(),
+    },
+    persist: {
+      storageHashes: {},
+    },
+    temp: {
+      log: {
+        debugMode: false,
+        memory: [],
+        count: 0,
+        max: 100,
+      },
+    },
+  };
+
+  // Load and evaluate the Utils class directly
+  const utilsPath = path.join(
+    __dirname,
+    '../chrome_manifest_v3/class_utils.js',
+  );
+  const utilsCode = fs.readFileSync(utilsPath, 'utf8');
+
+  // Create local reference for eval scope
+  var G2T = global.G2T || {};
+  eval(utilsCode);
+
+  // Create Utils instance
+  const realUtils = new G2T.Utils({ app: utilsTestApp });
+
+  // Return an object with real Utils methods bound to the instance
+  return {
+    // String processing methods - use real implementations
+    anchorMarkdownify: realUtils.anchorMarkdownify.bind(realUtils),
+    replacer: realUtils.replacer.bind(realUtils),
+    replacer_onEach: realUtils.replacer_onEach.bind(realUtils),
+    escapeRegExp: realUtils.escapeRegExp.bind(realUtils),
+    uriForDisplay: realUtils.uriForDisplay.bind(realUtils),
+    djb2Hash: realUtils.djb2Hash.bind(realUtils),
+    excludeFields: realUtils.excludeFields.bind(realUtils),
+    splitEmailDomain: realUtils.splitEmailDomain.bind(realUtils),
+    addChar: realUtils.addChar.bind(realUtils),
+    addSpace: realUtils.addSpace.bind(realUtils),
+    addCRLF: realUtils.addCRLF.bind(realUtils),
+    truncate: realUtils.truncate.bind(realUtils),
+    midTruncate: realUtils.midTruncate.bind(realUtils),
+    encodeEntities: realUtils.encodeEntities.bind(realUtils),
+    decodeEntities: realUtils.decodeEntities.bind(realUtils),
+    decodeEntities_onEach: realUtils.decodeEntities_onEach.bind(realUtils),
+    modKey: realUtils.modKey.bind(realUtils),
+    url_add_var: realUtils.url_add_var.bind(realUtils),
+    makeAvatarUrl: realUtils.makeAvatarUrl.bind(realUtils),
+    bookend: realUtils.bookend.bind(realUtils),
+    getSelectedText: realUtils.getSelectedText.bind(realUtils),
+    luminance: realUtils.luminance.bind(realUtils),
+
+    // Markdown processing methods - use real implementations
+    markdownify: realUtils.markdownify.bind(realUtils),
+    markdownify_sortByLength:
+      realUtils.markdownify_sortByLength.bind(realUtils),
+    markdownify_onSortEach: realUtils.markdownify_onSortEach.bind(realUtils),
+    markdownify_onElementEach:
+      realUtils.markdownify_onElementEach.bind(realUtils),
+    markdownify_onHeaderEach:
+      realUtils.markdownify_onHeaderEach.bind(realUtils),
+    markdownify_onLinkEach: realUtils.markdownify_onLinkEach.bind(realUtils),
+    markdownify_featureEnabled:
+      realUtils.markdownify_featureEnabled.bind(realUtils),
+    markdownify_sortAndPlaceholderize:
+      realUtils.markdownify_sortAndPlaceholderize.bind(realUtils),
+    markdownify_processMarkdown:
+      realUtils.markdownify_processMarkdown.bind(realUtils),
+    markdownify_repeatReplace:
+      realUtils.markdownify_repeatReplace.bind(realUtils),
+
+    // Storage and lifecycle methods - these can be mocked as they have side effects
+    loadFromChromeStorage: jest.fn(),
+    saveToChromeStorage: jest.fn(),
+    refreshDebugMode: jest.fn(),
+    bindEvents: jest.fn(),
+    init: jest.fn(),
+
+    // Logging - can be mocked as it has side effects
+    log: jest.fn(),
+  };
+}
+
+/**
  * Helper function to create mock instances for G2T classes
  * @returns {Object} - Object containing mock instances
  */
@@ -337,6 +614,11 @@ function createMockInstances() {
     markdownify_featureEnabled: jest.fn(),
   };
 
+  const waitCounter = {
+    start: jest.fn(),
+    stop: jest.fn(),
+  };
+
   return {
     mockChrome,
     mockEventTarget,
@@ -344,6 +626,7 @@ function createMockInstances() {
     mockGmailView,
     mockPopupView,
     mockUtils,
+    waitCounter,
   };
 }
 
@@ -412,23 +695,37 @@ function clearAllMocks() {
   console.warn.mockClear();
 
   // Clear window-specific mocks (from JSDOM setup)
-  if (window && window.chrome && window.chrome.storage) {
+  if (
+    typeof window !== 'undefined' &&
+    window &&
+    window.chrome &&
+    window.chrome.storage
+  ) {
     window.chrome.storage.local.get.mockClear();
     window.chrome.storage.local.set.mockClear();
     window.chrome.storage.sync.get.mockClear();
     window.chrome.storage.sync.set.mockClear();
     window.chrome.storage.onChanged.addListener.mockClear();
+    if (window.chrome.storage.onChanged.removeListener) {
+      window.chrome.storage.onChanged.removeListener.mockClear();
+    }
   }
-  if (window && window.chrome && window.chrome.runtime) {
+  if (
+    typeof window !== 'undefined' &&
+    window &&
+    window.chrome &&
+    window.chrome.runtime
+  ) {
     window.chrome.runtime.sendMessage.mockClear();
     window.chrome.runtime.getURL.mockClear();
   }
-  if (window && window.console) {
+  if (typeof window !== 'undefined' && window && window.console) {
     window.console.log.mockClear();
     window.console.error.mockClear();
     window.console.warn.mockClear();
   }
   if (
+    typeof window !== 'undefined' &&
     window &&
     window.location &&
     window.location.reload &&
@@ -437,6 +734,7 @@ function clearAllMocks() {
     window.location.reload.mockClear();
   }
   if (
+    typeof window !== 'undefined' &&
     window &&
     window.confirm &&
     typeof window.confirm.mockClear === 'function'
@@ -446,6 +744,7 @@ function clearAllMocks() {
 
   // Only clear global window.location.reload if it's a mock function
   if (
+    typeof window !== 'undefined' &&
     window.location.reload &&
     typeof window.location.reload.mockClear === 'function'
   ) {
@@ -453,7 +752,11 @@ function clearAllMocks() {
   }
 
   // Only clear global confirm if it's a mock function
-  if (confirm && typeof confirm.mockClear === 'function') {
+  if (
+    typeof confirm !== 'undefined' &&
+    confirm &&
+    typeof confirm.mockClear === 'function'
+  ) {
     confirm.mockClear();
   }
 
@@ -579,6 +882,7 @@ function setupJSDOM() {
       },
       onChanged: {
         addListener: jest.fn(),
+        removeListener: jest.fn(),
       },
     },
     runtime: {
@@ -590,53 +894,7 @@ function setupJSDOM() {
   // Also set global chrome for Chrome class compatibility
   global.chrome = window.chrome;
 
-  // Ensure global $ is available for the test environment
-  if (!global.$) {
-    global.$ = (selectorOrElement, context) => {
-      // Case 1: $(element) - wrap a DOM element
-      if (selectorOrElement && selectorOrElement.nodeType) {
-        const element = selectorOrElement;
-        return {
-          text: () => element.textContent || '',
-          html: () => element.innerHTML || '',
-          attr: name => element.getAttribute(name) || '',
-          prop: name => {
-            if (name === 'nodeName') {
-              return element.nodeName || element.tagName || '';
-            }
-            return element[name] || '';
-          },
-        };
-      }
-
-      // Case 2: $(selector, context) - find elements in context
-      if (context && context.html) {
-        const selector = selectorOrElement;
-        const contextContent = context.html();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = contextContent;
-        const elements = Array.from(tempDiv.querySelectorAll(selector));
-
-        return {
-          length: elements.length,
-          each: callback => {
-            elements.forEach((element, index) => {
-              callback(index, element);
-            });
-          },
-        };
-      }
-
-      // Default behavior for other cases
-      return {
-        length: 0,
-        each: () => {},
-        text: () => '',
-        html: () => '',
-        attr: () => '',
-      };
-    };
-  }
+  // Global $ is already set up at module level, no need to check
 
   return { dom, window, document: window.document };
 }
@@ -757,7 +1015,9 @@ module.exports = {
   setupJSDOM,
   cleanupJSDOM,
   setupUtilsForTesting,
+  createRealUtilsMethods,
   setupModelForTesting,
   createMockJQueryElement,
+  elementSuperSet,
   TEST_CONFIG,
 };
