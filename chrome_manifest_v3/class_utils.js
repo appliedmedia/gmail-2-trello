@@ -8,15 +8,6 @@ class Utils {
   }
 
   /**
-   * Refresh debug mode from Chrome storage
-   */
-  refreshDebugMode() {
-    this.app.chrome.storageSyncGet('debugMode', response => {
-      this.app.temp.log.debugMode = response?.debugMode || false;
-    });
-  }
-
-  /**
    * Log function. A wrapper for console.log, depends on logEnabled flag
    * @param  {any} data data to write log
    */
@@ -117,7 +108,7 @@ class Utils {
    * Load data from chrome storage
    */
   loadFromChromeStorage(keyId, emit_on_done = '') {
-    this.app.chrome.storageSyncGet(keyId, response => {
+    this.app.goog.storageSyncGet(keyId, response => {
       const jsonData = response?.[keyId];
       const result = jsonData ? JSON.parse(jsonData) : '';
 
@@ -161,7 +152,7 @@ class Utils {
     // Update stored hash and save data
     this.app.persist.storageHashes[keyId] = dataHash;
 
-    this.app.chrome.storageSyncSet({ [keyId]: jsonData });
+    this.app.goog.storageSyncSet({ [keyId]: jsonData });
   }
 
   /**

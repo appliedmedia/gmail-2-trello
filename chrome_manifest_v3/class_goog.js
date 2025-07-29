@@ -21,16 +21,21 @@ class Goog {
     this.bindEvents();
   }
 
+  /**
+   * Handle debug mode changes from Chrome storage
+   */
+  handleDebugModeChange(newDebugMode = null) {
+    if (typeof newDebugMode === 'boolean') {
+      this.app.temp.log.debugMode = newDebugMode;
+    }
+  }
+
   bindEvents() {
     // Listen for storage changes to refresh debug mode
     chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (
-        namespace === 'sync' &&
-        changes?.debugMode &&
-        this.app?.utils?.refreshDebugMode
-      ) {
-        // Debug mode changed, refresh the state
-        this.app.utils.refreshDebugMode();
+      if (namespace === 'sync' && changes?.debugMode !== undefined) {
+        const newDebugMode = changes.debugMode.newValue;
+        this.handleDebugModeChange(newDebugMode);
       }
     });
   }
