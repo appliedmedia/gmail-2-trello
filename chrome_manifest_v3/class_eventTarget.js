@@ -1,7 +1,7 @@
 //Copyright (c) 2010 Nicholas C. Zakas. All rights reserved.
 //MIT License
 
-var G2T = G2T || {}; // Namespace initialization
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
 
 class EventTarget {
   static get ck() {

@@ -1,4 +1,4 @@
-var G2T = G2T || {}; // must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
 
 class Utils {
   constructor(args) {
@@ -464,7 +464,7 @@ class Utils {
       // State variables
       count: 0,
       replacer_dict: {},
-      $html: $emailBody || '',
+      $html: $emailBody,
       body: $emailBody.html() || '',
       toProcess: {},
 

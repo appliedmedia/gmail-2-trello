@@ -3,7 +3,7 @@
 
 /* global analytics */ // Declare analytics as global from Google Analytics library
 
-var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
 
 class App {
   static get ck() {

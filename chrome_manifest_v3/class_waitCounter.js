@@ -1,5 +1,5 @@
 // Ensure namespace is declared before any use
-var G2T = G2T || {}; // must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
 
 /**
  * WaitCounter - ES6 Class Version

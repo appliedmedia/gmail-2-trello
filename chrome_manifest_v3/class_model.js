@@ -1,4 +1,4 @@
-var G2T = G2T || {}; // must be var to guarantee correct scope
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
 
 // Uploader class for handling attachment uploads
 class Uploader {
