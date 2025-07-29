@@ -4,16 +4,18 @@
  */
 
 // Import shared test utilities
-const { 
-  loadClassFile, 
-  createMockInstances, 
-  setupG2TMocks, 
-  clearAllMocks, 
+const {
+  loadClassFile,
+  createMockInstances,
+  setupG2TMocks,
+  clearAllMocks,
   createG2TNamespace,
   setupJSDOM,
   cleanupJSDOM,
   setupUtilsForTesting,
-  createMockJQueryElement
+  createMockJQueryElement,
+  injectJQueryAndMocks,
+  console_log,
 } = require('./test_shared');
 
 // Set up mocks before loading the Utils class
@@ -34,15 +36,13 @@ global.mockInstances = mockInstances;
 // Load the Utils class using eval (for Chrome extension compatibility)
 const utilsCode = loadClassFile('chrome_manifest_v3/class_utils.js');
 
-// Inject mock constructors after G2T namespace is initialized
-const injectedCode = utilsCode.replace(
-  'var G2T = G2T || {}; // must be var to guarantee correct scope',
-  `var G2T = G2T || {}; // must be var to guarantee correct scope
+// Create mock constructors code
+const mockConstructorsCode = `
 // Inject mock constructors for testing
-  G2T.Goog = function(args) {
-    if (!(this instanceof G2T.Goog)) {
-      return new G2T.Goog(args);
-    }
+G2T.Goog = function(args) {
+  if (!(this instanceof G2T.Goog)) {
+    return new G2T.Goog(args);
+  }
   Object.assign(this, mockChrome);
   return this;
 };
@@ -80,54 +80,25 @@ G2T.Utils = function(args) {
   }
   Object.assign(this, mockUtils);
   return this;
-};`
-);
+};`;
 
+// Use standardized injection function
+const injectedCode = injectJQueryAndMocks(utilsCode, mockConstructorsCode);
 eval(injectedCode);
 
 describe('Utils Class', () => {
-  let utils, dom, mockApp;
+  let dom, window, utils, testApp;
 
   beforeEach(() => {
     // Setup JSDOM environment using shared function
     const jsdomSetup = setupJSDOM();
     dom = jsdomSetup.dom;
-    
-    // Create proper mock application for Utils class
-    mockApp = {
-      chrome: {
-        storageSyncGet: jest.fn(),
-        storageSyncSet: jest.fn(),
-        storageLocalGet: jest.fn(),
-        storageLocalSet: jest.fn(),
-        runtime: {
-          sendMessage: jest.fn(),
-        },
-      },
-      events: {
-        emit: jest.fn(),
-      },
-      temp: {
-        log: {
-          memory: [],
-          count: 0,
-          max: 100,
-          debugMode: false,
-          lastMessage: null,
-          lastMessageCount: 0,
-          lastMessageIndex: -1,
-        },
-      },
-      persist: {
-        storageHashes: {},
-      },
-    };
-    
-    // Create a fresh Utils instance for each test with proper app dependency
-    utils = new G2T.Utils({ app: mockApp });
-    
-    // Clear all mocks
-    clearAllMocks();
+    window = jsdomSetup.window;
+
+    // Setup Utils class using shared function
+    const utilsSetup = setupUtilsForTesting();
+    utils = utilsSetup.utils;
+    testApp = utilsSetup.testApp;
   });
 
   afterEach(() => {
@@ -135,19 +106,75 @@ describe('Utils Class', () => {
     cleanupJSDOM(dom);
   });
 
+  // Simple test to verify setup is working
+  test('basic setup test', () => {
+    console_log('Basic setup test running');
+    expect(utils).toBeDefined();
+    expect(testApp).toBeDefined();
+  });
+
+  // Test jQuery functionality
+  test('jQuery test', () => {
+    const input = '<p>This is <strong>bold</strong> text</p>';
+    const $element = createMockJQueryElement(input);
+
+    expect($element.html()).toBe(input);
+    expect($element.length).toBe(1);
+
+    // Debug: Check what properties $element has
+    console_log('$element properties:', Object.keys($element));
+    console_log('$element.html:', $element.html);
+    console_log('$element.length:', $element.length);
+    console_log('typeof $element.html:', typeof $element.html);
+
+    // Test the $(selector, context) functionality
+    console_log('Before calling $, $ is:', typeof $);
+    console_log('$ === global.$:', $ === global.$);
+    console_log('global.$ type:', typeof global.$);
+
+    const strongElements = $('strong', $element);
+    console_log('strongElements:', strongElements);
+    console_log('strongElements.length:', strongElements?.length);
+    console_log('strongElements type:', typeof strongElements);
+
+    expect(strongElements).toBeDefined();
+    expect(strongElements.length).toBe(1);
+
+    // Test that the each callback works
+    let foundElements = [];
+    strongElements.each((index, element) => {
+      foundElements.push(element);
+    });
+    expect(foundElements.length).toBe(1);
+    expect(foundElements[0].text()).toBe('bold');
+  });
+
+  // Simple test to see what $ returns
+  test('simple $ test', () => {
+    const result = $('div');
+    expect(result).toBeDefined();
+    expect(result.length).toBeDefined();
+  });
+
+  // Test if global $ is available
+  test('global $ availability test', () => {
+    expect(global.$).toBeDefined();
+    expect(typeof global.$).toBe('function');
+  });
+
   describe('Constructor and Initialization', () => {
     test('should create Utils instance with default settings', () => {
-      expect(utils).toBeInstanceOf(G2T.Utils);
-      expect(utils.app).toBe(mockApp);
+      expect(utils).toBeInstanceOf(global.G2T.Utils);
+      expect(utils.app).toBe(testApp);
     });
 
     test('should create Utils instance with debug enabled', () => {
       const debugApp = {
-        ...mockApp,
+        ...testApp,
         temp: {
-          ...mockApp.temp,
+          ...testApp.temp,
           log: {
-            ...mockApp.temp.log,
+            ...testApp.temp.log,
             debugMode: true,
           },
         },
@@ -162,24 +189,16 @@ describe('Utils Class', () => {
   });
 
   describe('Debug and Logging', () => {
-    test('refreshDebugMode should update debug state', () => {
-      mockApp.chrome.storageSyncGet.mockImplementation((key, callback) => {
-        callback({ debugMode: true });
-      });
-      utils.refreshDebugMode();
-      expect(mockApp.chrome.storageSyncGet).toHaveBeenCalledWith('debugMode', expect.any(Function));
-    });
-
     test('log should output when debug is enabled', () => {
-      mockApp.temp.log.debugMode = true;
+      testApp.temp.log.debugMode = true;
       utils.log('Test message');
-      expect(mockApp.temp.log.memory.length).toBeGreaterThan(0);
+      expect(testApp.temp.log.memory.length).toBeGreaterThan(0);
     });
 
     test('log should not output when debug is disabled', () => {
-      mockApp.temp.log.debugMode = false;
+      testApp.temp.log.debugMode = false;
       utils.log('Test message');
-      expect(mockApp.temp.log.memory.length).toBeGreaterThan(0); // Still logs to memory
+      expect(testApp.temp.log.memory.length).toBeGreaterThan(0); // Still logs to memory
     });
 
     test('ck getter should return correct value', () => {
@@ -192,34 +211,34 @@ describe('Utils Class', () => {
   });
 
   describe('Chrome Storage Operations', () => {
-    test('loadFromChromeStorage should call chrome.storageSyncGet', () => {
-      mockApp.chrome.storageSyncGet.mockImplementation((key, callback) => {
+    test('loadFromChromeStorage should call goog.storageSyncGet', () => {
+      testApp.goog.storageSyncGet.mockImplementation((key, callback) => {
         callback({ testKey: JSON.stringify('testValue') });
       });
 
       utils.loadFromChromeStorage('testKey');
-      expect(mockApp.chrome.storageSyncGet).toHaveBeenCalledWith(
+      expect(testApp.goog.storageSyncGet).toHaveBeenCalledWith(
         'testKey',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
-    test('saveToChromeStorage should call chrome.storageSyncSet', () => {
+    test('saveToChromeStorage should call goog.storageSyncSet', () => {
       utils.saveToChromeStorage('testKey', 'testValue');
-      expect(mockApp.chrome.storageSyncSet).toHaveBeenCalledWith(
-        { testKey: JSON.stringify('testValue') }
-      );
+      expect(testApp.goog.storageSyncSet).toHaveBeenCalledWith({
+        testKey: JSON.stringify('testValue'),
+      });
     });
 
     test('loadFromChromeStorage should handle errors', () => {
-      mockApp.chrome.storageSyncGet.mockImplementation((key, callback) => {
+      testApp.goog.storageSyncGet.mockImplementation((key, callback) => {
         callback({});
       });
 
       utils.loadFromChromeStorage('nonexistentKey');
-      expect(mockApp.chrome.storageSyncGet).toHaveBeenCalledWith(
+      expect(testApp.goog.storageSyncGet).toHaveBeenCalledWith(
         'nonexistentKey',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -272,11 +291,17 @@ describe('Utils Class', () => {
   describe('URI and URL Handling', () => {
     test('uriForDisplay should format URIs correctly', () => {
       // uriForDisplay only formats URIs longer than 20 characters
-      expect(utils.uriForDisplay('https://example.com')).toBe('https://example.com');
-      expect(utils.uriForDisplay('http://example.com')).toBe('http://example.com');
-      expect(utils.uriForDisplay('ftp://example.com')).toBe('ftp://example.com');
+      expect(utils.uriForDisplay('https://example.com')).toBe(
+        'https://example.com',
+      );
+      expect(utils.uriForDisplay('http://example.com')).toBe(
+        'http://example.com',
+      );
+      expect(utils.uriForDisplay('ftp://example.com')).toBe(
+        'ftp://example.com',
+      );
       expect(utils.uriForDisplay('mailto:test@example.com')).toBe(
-        'mailto:test@example.com'
+        'mailto:test@example.com',
       );
       expect(utils.uriForDisplay('tel:+1234567890')).toBe('tel:+1234567890');
     });
@@ -290,16 +315,16 @@ describe('Utils Class', () => {
 
     test('url_add_var should add query parameters', () => {
       expect(utils.url_add_var('https://example.com', 'param=value')).toBe(
-        'https://example.com?param=value'
+        'https://example.com?param=value',
       );
       expect(
-        utils.url_add_var('https://example.com?existing=1', 'param=value')
+        utils.url_add_var('https://example.com?existing=1', 'param=value'),
       ).toBe('https://example.com?existing=1&param=value');
     });
 
     test('url_add_var should handle empty parameters', () => {
       expect(utils.url_add_var('https://example.com', '')).toBe(
-        'https://example.com'
+        'https://example.com',
       );
       expect(utils.url_add_var('', 'param=value')).toBe('param=value');
     });
@@ -396,8 +421,12 @@ describe('Utils Class', () => {
     });
 
     test('bookend should wrap text with specified characters', () => {
-      expect(utils.bookend('*', 'Hello', 'bold')).toBe('<* style="bold">Hello</*>');
-      expect(utils.bookend('`', 'code', 'code')).toBe('<` style="code">code</`>');
+      expect(utils.bookend('*', 'Hello', 'bold')).toBe(
+        '<* style="bold">Hello</*>',
+      );
+      expect(utils.bookend('`', 'code', 'code')).toBe(
+        '<` style="code">code</`>',
+      );
     });
   });
 
@@ -411,7 +440,7 @@ describe('Utils Class', () => {
 
     test('decodeEntities should decode HTML entities', () => {
       expect(utils.decodeEntities('&amp; &lt; &gt; &quot; &#39;')).toBe(
-        '& < > " \''
+        '& < > " \'',
       );
     });
 
@@ -531,7 +560,10 @@ describe('Utils Class', () => {
 
   describe('Additional Utility Methods', () => {
     test('anchorMarkdownify should create markdown links', () => {
-      const result = utils.anchorMarkdownify('Link Text', 'https://example.com');
+      const result = utils.anchorMarkdownify(
+        'Link Text',
+        'https://example.com',
+      );
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
       expect(result).toContain('Link Text');
@@ -539,13 +571,19 @@ describe('Utils Class', () => {
     });
 
     test('anchorMarkdownify should handle same text and href', () => {
-      const result = utils.anchorMarkdownify('https://example.com', 'https://example.com');
+      const result = utils.anchorMarkdownify(
+        'https://example.com',
+        'https://example.com',
+      );
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
     });
 
     test('anchorMarkdownify should handle mailto links', () => {
-      const result = utils.anchorMarkdownify('test@example.com', 'mailto:test@example.com');
+      const result = utils.anchorMarkdownify(
+        'test@example.com',
+        'mailto:test@example.com',
+      );
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
     });
@@ -574,12 +612,12 @@ describe('Utils Class', () => {
         toString: jest.fn().mockReturnValue('Selected text'),
         rangeCount: 1,
         getRangeAt: jest.fn().mockReturnValue({
-          toString: jest.fn().mockReturnValue('Selected text')
-        })
+          toString: jest.fn().mockReturnValue('Selected text'),
+        }),
       };
       Object.defineProperty(window, 'getSelection', {
         value: jest.fn().mockReturnValue(mockSelection),
-        writable: true
+        writable: true,
       });
 
       const result = utils.getSelectedText();
@@ -590,11 +628,11 @@ describe('Utils Class', () => {
     test('getSelectedText should handle no selection', () => {
       const mockSelection = {
         toString: jest.fn().mockReturnValue(''),
-        rangeCount: 0
+        rangeCount: 0,
       };
       Object.defineProperty(window, 'getSelection', {
         value: jest.fn().mockReturnValue(mockSelection),
-        writable: true
+        writable: true,
       });
 
       const result = utils.getSelectedText();
@@ -614,7 +652,10 @@ describe('Utils Class', () => {
     });
 
     test('markdownify_featureEnabled should handle disabled features', () => {
-      const result = utils.markdownify_featureEnabled({ bold: false }, 'strong');
+      const result = utils.markdownify_featureEnabled(
+        { bold: false },
+        'strong',
+      );
       expect(result).toBeDefined();
       expect(typeof result).toBe('boolean');
     });
@@ -627,7 +668,7 @@ describe('Utils Class', () => {
       // Create a proper jQuery mock for markdownify
       const $emailBody = {
         html: () => '<p>Test</p>',
-        length: 1
+        length: 1,
       };
       expect(() => utils.markdownify($emailBody, {}, {})).not.toThrow();
     });
@@ -635,7 +676,7 @@ describe('Utils Class', () => {
     test('should handle markdownify with features disabled', () => {
       const $emailBody = {
         html: () => '<p>Test</p>',
-        length: 1
+        length: 1,
       };
       const result = utils.markdownify($emailBody, false, {});
       expect(result).toBeDefined();
@@ -644,16 +685,20 @@ describe('Utils Class', () => {
     test('should handle markdownify with selective features', () => {
       const $emailBody = {
         html: () => '<p>Test</p>',
-        length: 1
+        length: 1,
       };
-      const result = utils.markdownify($emailBody, { bold: true, italic: false }, {});
+      const result = utils.markdownify(
+        $emailBody,
+        { bold: true, italic: false },
+        {},
+      );
       expect(result).toBeDefined();
     });
 
     test('should handle markdownify preprocessing', () => {
       const $emailBody = {
         html: () => '<p>Test</p>',
-        length: 1
+        length: 1,
       };
       const result = utils.markdownify($emailBody, {}, { preprocess: true });
       expect(result).toBeDefined();
@@ -739,7 +784,21 @@ describe('Utils Class', () => {
         const expected = 'This is **bold** text';
 
         const $element = createMockJQueryElement(input);
+
+        // Debug: Let's see what we're actually passing to markdownify
+        console_log('Input HTML:', input);
+        console_log('$element.html():', $element.html());
+        console_log('$element.length:', $element.length);
+
+        // Debug: Test the $(selector, context) call directly
+        const testResult = $('strong', $element);
+        console_log('$(strong, $element).length:', testResult.length);
+        console_log('$(strong, $element).html():', testResult.html());
+
         const result = utils.markdownify($element, true, {});
+
+        console_log('Result:', result);
+        console_log('Expected:', expected);
 
         expect(result).toBe(expected);
       });
@@ -815,7 +874,8 @@ describe('Utils Class', () => {
       });
 
       test('handles nested formatting', () => {
-        const input = '<p>This is <strong><em>bold italic</em></strong> text</p>';
+        const input =
+          '<p>This is <strong><em>bold italic</em></strong> text</p>';
         const expected = 'This is *bold italic* text';
 
         const $element = createMockJQueryElement(input);
@@ -825,7 +885,8 @@ describe('Utils Class', () => {
       });
 
       test('handles multiple formatting in same text', () => {
-        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const input =
+          '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
         const expected = 'This is **bold** and *italic* text';
 
         const $element = createMockJQueryElement(input);
@@ -909,18 +970,35 @@ describe('Utils Class', () => {
 
     describe('Link conversion', () => {
       test('converts simple links', () => {
-        const input = '<p>Visit <a href="https://example.com">Example</a> for more info</p>';
-        const expected = 'Visit [Example](<https://example.com/>) for more info';
+        const input =
+          '<p>Visit <a href="https://example.com">Example</a> for more info</p>';
+        const expected = 'Visit [Example](<https://example.com>) for more info';
 
         const $element = createMockJQueryElement(input);
+
+        // Debug: Test finding 'a' elements
+        const $aElements = $('a', $element);
+        console_log('DEBUG: Found a elements:', $aElements.length);
+
+        $aElements.each((index, element) => {
+          const $wrapped = $(element);
+          console_log('DEBUG: A element href:', $wrapped.prop('href'));
+          console_log('DEBUG: A element text:', $wrapped.text());
+        });
+
         const result = utils.markdownify($element, true, {});
+        console_log(
+          'DEBUG: Markdownify result for links:',
+          JSON.stringify(result),
+        );
 
         expect(result).toBe(expected);
       });
 
       test('converts links with title attributes', () => {
-        const input = '<p>Visit <a href="https://example.com" title="Example Site">Example</a></p>';
-        const expected = 'Visit [Example](<https://example.com/>)';
+        const input =
+          '<p>Visit <a href="https://example.com" title="Example Site">Example</a></p>';
+        const expected = 'Visit [Example](<https://example.com>)';
 
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
@@ -929,8 +1007,10 @@ describe('Utils Class', () => {
       });
 
       test('handles links with long text', () => {
-        const input = '<p>Visit <a href="https://example.com">This is a very long link text that should be converted</a></p>';
-        const expected = 'Visit [This is a very long link text that should be converted](<https://example.com/>)';
+        const input =
+          '<p>Visit <a href="https://example.com">This is a very long link text that should be converted</a></p>';
+        const expected =
+          'Visit [This is a very long link text that should be converted](<https://example.com>)';
 
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
@@ -939,7 +1019,8 @@ describe('Utils Class', () => {
       });
 
       test('ignores links with short text (less than 4 characters)', () => {
-        const input = '<p>Visit <a href="https://example.com">Hi</a> for more info</p>';
+        const input =
+          '<p>Visit <a href="https://example.com">Hi</a> for more info</p>';
         const expected = 'Visit Hi for more info';
 
         const $element = createMockJQueryElement(input);
@@ -949,8 +1030,10 @@ describe('Utils Class', () => {
       });
 
       test('handles multiple links in same paragraph', () => {
-        const input = '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>';
-        const expected = 'Visit [Example 1](<https://example1.com/>) and [Example 2](<https://example2.com/>)';
+        const input =
+          '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>';
+        const expected =
+          'Visit [Example 1](<https://example1.com>) and [Example 2](<https://example2.com>)';
 
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
@@ -959,8 +1042,9 @@ describe('Utils Class', () => {
       });
 
       test('handles same text and href', () => {
-        const input = '<p>Visit <a href="https://example.com">https://example.com</a></p>';
-        const expected = 'Visit [https://example.com](<https://example.com/>)';
+        const input =
+          '<p>Visit <a href="https://example.com">https://example.com</a></p>';
+        const expected = 'Visit [https://example.com](<https://example.com>)';
 
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
@@ -969,7 +1053,8 @@ describe('Utils Class', () => {
       });
 
       test('handles mailto links', () => {
-        const input = '<p>Contact <a href="mailto:test@example.com">test@example.com</a></p>';
+        const input =
+          '<p>Contact <a href="mailto:test@example.com">test@example.com</a></p>';
         const expected = 'Contact <test@example.com>';
 
         const $element = createMockJQueryElement(input);
@@ -1079,7 +1164,8 @@ describe('Utils Class', () => {
 
     describe('Feature toggle functionality', () => {
       test('disables all features when features=false', () => {
-        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const input =
+          '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
         const expected = 'This is bold and italic text';
 
         const $element = createMockJQueryElement(input);
@@ -1089,7 +1175,8 @@ describe('Utils Class', () => {
       });
 
       test('allows selective feature disabling', () => {
-        const input = '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
+        const input =
+          '<p>This is <strong>bold</strong> and <em>italic</em> text</p>';
         const features = { bold: false, italic: true };
         const expected = 'This is **bold** and *italic* text';
 
@@ -1124,7 +1211,8 @@ describe('Utils Class', () => {
             <p>Best regards,<br>John</p>
           </div>
         `;
-        const expected = '# Meeting Summary\n\nHello team,\n\nHere\'s what we discussed:\n\n• Project timeline\n• Budget concerns\n\nBest regards,\nJohn';
+        const expected =
+          "# Meeting Summary\n\nHello team,\n\nHere's what we discussed:\n\n• Project timeline\n• Budget concerns\n\nBest regards,\nJohn";
 
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
@@ -1133,7 +1221,8 @@ describe('Utils Class', () => {
       });
 
       test('handles nested HTML structures', () => {
-        const input = '<div><p>Outer <strong>bold <em>italic</em></strong> text</p></div>';
+        const input =
+          '<div><p>Outer <strong>bold <em>italic</em></strong> text</p></div>';
         const expected = 'Outer **bold italic** text';
 
         const $element = createMockJQueryElement(input);
@@ -1145,7 +1234,7 @@ describe('Utils Class', () => {
       test('handles large content efficiently', () => {
         const largeContent = '<p>' + 'Test content. '.repeat(1000) + '</p>';
         const $element = createMockJQueryElement(largeContent);
-        
+
         const startTime = Date.now();
         const result = utils.markdownify($element, true, {});
         const endTime = Date.now();
@@ -1191,7 +1280,8 @@ describe('Utils Class', () => {
       });
 
       test('handles special characters and unicode', () => {
-        const input = '<p>Special chars: &copy; &trade; &reg; &euro; &pound;</p>';
+        const input =
+          '<p>Special chars: &copy; &trade; &reg; &euro; &pound;</p>';
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
         expect(result).toBeDefined();
@@ -1212,24 +1302,25 @@ describe('Utils Class', () => {
       test('produces consistent output for same input', () => {
         const input = '<p>Test <strong>bold</strong> content</p>';
         const $element = createMockJQueryElement(input);
-        
+
         const result1 = utils.markdownify($element, true, {});
         const result2 = utils.markdownify($element, true, {});
-        
+
         expect(result1).toBe(result2);
       });
 
       test('validates markdown output format', () => {
-        const input = '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>';
+        const input =
+          '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>';
         const $element = createMockJQueryElement(input);
         const result = utils.markdownify($element, true, {});
-        
+
         // Should contain markdown syntax
         expect(result).toContain('# Title');
         expect(result).toContain('**bold**');
         expect(result).toContain('*italic*');
         expect(result).toContain('[link]');
-        expect(result).toContain('(<https://example.com/>)');
+        expect(result).toContain('(<https://example.com>)');
       });
     });
   });

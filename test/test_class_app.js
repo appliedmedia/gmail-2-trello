@@ -4,14 +4,15 @@
  */
 
 // Import shared test utilities
-const { 
-  loadClassFile, 
-  createMockInstances, 
-  setupG2TMocks, 
-  clearAllMocks, 
+const {
+  loadClassFile,
+  createMockInstances,
+  setupG2TMocks,
+  clearAllMocks,
   createG2TNamespace,
   setupJSDOM,
-  cleanupJSDOM
+  cleanupJSDOM,
+  injectJQueryAndMocks,
 } = require('./test_shared');
 
 // Set up mocks before loading the App class
@@ -32,15 +33,13 @@ global.mockInstances = mockInstances;
 // Load the App class using eval (for Chrome extension compatibility)
 const appCode = loadClassFile('chrome_manifest_v3/class_app.js');
 
-// Inject mock constructors after G2T namespace is initialized
-const injectedCode = appCode.replace(
-  'var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope',
-  `var G2T = G2T || {}; // Namespace initialization - must be var to guarantee correct scope
+// Create mock constructors code
+const mockConstructorsCode = `
 // Inject mock constructors for testing
-  G2T.Goog = function(args) {
-    if (!(this instanceof G2T.Goog)) {
-      return new G2T.Goog(args);
-    }
+G2T.Goog = function(args) {
+  if (!(this instanceof G2T.Goog)) {
+    return new G2T.Goog(args);
+  }
   Object.assign(this, mockChrome);
   return this;
 };
@@ -78,9 +77,10 @@ G2T.Utils = function(args) {
   }
   Object.assign(this, mockUtils);
   return this;
-};`
-);
+};`;
 
+// Use standardized injection function
+const injectedCode = injectJQueryAndMocks(appCode, mockConstructorsCode);
 eval(injectedCode);
 
 describe('App Class', () => {
@@ -90,10 +90,10 @@ describe('App Class', () => {
     // Setup JSDOM environment using shared function
     const jsdomSetup = setupJSDOM();
     dom = jsdomSetup.dom;
-    
+
     // Create a fresh App instance for each test
     app = new G2T.App();
-    
+
     // Clear all mocks
     clearAllMocks();
   });
@@ -163,19 +163,25 @@ describe('App Class', () => {
   describe('Persistence Operations', () => {
     test('persistLoad should load data from chrome storage', () => {
       app.persistLoad();
-      expect(global.mockInstances.mockUtils.loadFromChromeStorage).toHaveBeenCalledWith('g2t_app', 'classAppStateLoaded');
+      expect(
+        global.mockInstances.mockUtils.loadFromChromeStorage,
+      ).toHaveBeenCalledWith('g2t_app', 'classAppStateLoaded');
     });
 
     test('persistSave should save data to chrome storage', () => {
       app.persistSave();
-      expect(global.mockInstances.mockUtils.saveToChromeStorage).toHaveBeenCalledWith('g2t_app', app.persist);
+      expect(
+        global.mockInstances.mockUtils.saveToChromeStorage,
+      ).toHaveBeenCalledWith('g2t_app', app.persist);
     });
   });
 
   describe('Data Updates', () => {
     test('updateData should update popup view with model data', () => {
       app.updateData();
-      expect(global.mockInstances.mockPopupView.bindData).toHaveBeenCalledWith(global.mockInstances.mockModel);
+      expect(global.mockInstances.mockPopupView.bindData).toHaveBeenCalledWith(
+        global.mockInstances.mockModel,
+      );
     });
 
     test('updateData should throw error when model is null', () => {
@@ -190,12 +196,18 @@ describe('App Class', () => {
 
     test('updateData should parse Gmail data and bind to popup view', () => {
       const mockGmailData = { subject: 'Test Email', body: 'Test content' };
-      global.mockInstances.mockGmailView.parseData.mockReturnValue(mockGmailData);
-      
+      global.mockInstances.mockGmailView.parseData.mockReturnValue(
+        mockGmailData,
+      );
+
       app.updateData();
-      
-      expect(global.mockInstances.mockGmailView.parseData).toHaveBeenCalledWith({ fullName: 'Test User' });
-      expect(global.mockInstances.mockPopupView.bindGmailData).toHaveBeenCalledWith(mockGmailData);
+
+      expect(global.mockInstances.mockGmailView.parseData).toHaveBeenCalledWith(
+        { fullName: 'Test User' },
+      );
+      expect(
+        global.mockInstances.mockPopupView.bindGmailData,
+      ).toHaveBeenCalledWith(mockGmailData);
       expect(app.gmailView.parsingData).toBe(false);
     });
   });
@@ -203,14 +215,14 @@ describe('App Class', () => {
   describe('Event Handling', () => {
     test('handleClassAppStateLoaded should handle state loaded event', () => {
       const event = { type: 'stateLoaded' };
-      const params = { 
-        trelloAuthorized: true, 
+      const params = {
+        trelloAuthorized: true,
         boardId: 'test-board',
-        listId: 'test-list' 
+        listId: 'test-list',
       };
-      
+
       app.handleClassAppStateLoaded(event, params);
-      
+
       expect(app.persist.trelloAuthorized).toBe(true);
       expect(app.persist.boardId).toBe('test-board');
       expect(app.persist.listId).toBe('test-list');
@@ -219,9 +231,9 @@ describe('App Class', () => {
     test('handleClassAppStateLoaded should handle empty params', () => {
       const event = { type: 'stateLoaded' };
       const originalState = { ...app.persist };
-      
+
       app.handleClassAppStateLoaded(event, null);
-      
+
       expect(app.persist).toEqual(originalState);
     });
 
@@ -231,50 +243,64 @@ describe('App Class', () => {
 
     test('handleClassAppStateLoaded should handle events missing type property', () => {
       const eventWithoutType = { data: {} };
-      expect(() => app.handleClassAppStateLoaded(eventWithoutType, {})).not.toThrow();
+      expect(() =>
+        app.handleClassAppStateLoaded(eventWithoutType, {}),
+      ).not.toThrow();
     });
 
     test('handleGmailNavigation should trigger redraw and fire event', () => {
       app.handleGmailNavigation();
-      
-      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith('App: Gmail navigation detected, triggering redraw');
+
+      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith(
+        'App: Gmail navigation detected, triggering redraw',
+      );
       expect(global.mockInstances.mockGmailView.forceRedraw).toHaveBeenCalled();
-      expect(global.mockInstances.mockEventTarget.emit).toHaveBeenCalledWith('forceRedraw');
+      expect(global.mockInstances.mockEventTarget.emit).toHaveBeenCalledWith(
+        'forceRedraw',
+      );
     });
 
     test('handleGmailHashChange should trigger redraw', () => {
       app.handleGmailHashChange();
-      
-      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith('App: Gmail view change detected via hashchange');
+
+      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith(
+        'App: Gmail view change detected via hashchange',
+      );
       expect(global.mockInstances.mockGmailView.forceRedraw).toHaveBeenCalled();
     });
 
     test('bindEvents should bind event listeners', () => {
       app.bindEvents();
-      
-      expect(global.mockInstances.mockEventTarget.addListener).toHaveBeenCalledWith(
-        'classAppStateLoaded',
-        expect.any(Function)
-      );
+
+      expect(
+        global.mockInstances.mockEventTarget.addListener,
+      ).toHaveBeenCalledWith('classAppStateLoaded', expect.any(Function));
     });
 
     test('bindGmailNavigationEvents should bind navigation events', () => {
       app.bindGmailNavigationEvents();
-      
-      expect(window.addEventListener).toHaveBeenCalledWith('hashchange', expect.any(Function));
+
+      expect(window.addEventListener).toHaveBeenCalledWith(
+        'hashchange',
+        expect.any(Function),
+      );
     });
   });
 
   describe('Initialization', () => {
     test('init should initialize all components', () => {
       app.init();
-      
-      expect(global.mockInstances.mockEventTarget.addListener).toHaveBeenCalled();
+
+      expect(
+        global.mockInstances.mockEventTarget.addListener,
+      ).toHaveBeenCalled();
       expect(global.mockInstances.mockModel.init).toHaveBeenCalled();
       expect(global.mockInstances.mockGmailView.init).toHaveBeenCalled();
       expect(global.mockInstances.mockPopupView.init).toHaveBeenCalled();
       expect(global.mockInstances.mockUtils.init).toHaveBeenCalled();
-      expect(global.mockInstances.mockUtils.loadFromChromeStorage).toHaveBeenCalled();
+      expect(
+        global.mockInstances.mockUtils.loadFromChromeStorage,
+      ).toHaveBeenCalled();
       expect(window.addEventListener).toHaveBeenCalled();
       // Note: App class doesn't set initialized flag, so we don't test for it
     });
@@ -284,9 +310,9 @@ describe('App Class', () => {
       global.mockInstances.mockModel.init.mockClear();
       global.mockInstances.mockGmailView.init.mockClear();
       global.mockInstances.mockPopupView.init.mockClear();
-      
+
       app.init();
-      
+
       expect(global.mockInstances.mockModel.init).toHaveBeenCalled();
       expect(global.mockInstances.mockGmailView.init).toHaveBeenCalled();
       expect(global.mockInstances.mockPopupView.init).toHaveBeenCalled();
@@ -294,7 +320,7 @@ describe('App Class', () => {
 
     test('init should handle Google Analytics when available', () => {
       app.init();
-      
+
       expect(analytics.getService).toHaveBeenCalledWith('gmail-2-trello');
     });
 
@@ -302,9 +328,12 @@ describe('App Class', () => {
       analytics.getService.mockImplementation(() => {
         throw new Error('Analytics service not available');
       });
-      
+
       expect(() => app.init()).not.toThrow();
-      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith('Google Analytics failed:', expect.any(Error));
+      expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith(
+        'Google Analytics failed:',
+        expect.any(Error),
+      );
     });
 
     // Note: Google Analytics missing test removed due to scope issues with eval()
@@ -316,7 +345,7 @@ describe('App Class', () => {
       app.persist.trelloAuthorized = true;
       app.persist.boardId = 'test-board';
       app.persist.listId = 'test-list';
-      
+
       expect(app.persist.trelloAuthorized).toBe(true);
       expect(app.persist.boardId).toBe('test-board');
       expect(app.persist.listId).toBe('test-list');
@@ -326,7 +355,7 @@ describe('App Class', () => {
       app.temp.description = 'Test description';
       app.temp.title = 'Test title';
       app.temp.attachments = [{ name: 'test.txt', value: 'content' }];
-      
+
       expect(app.temp.description).toBe('Test description');
       expect(app.temp.title).toBe('Test title');
       expect(app.temp.attachments).toHaveLength(1);
@@ -336,11 +365,11 @@ describe('App Class', () => {
       const newState = {
         trelloAuthorized: true,
         boardId: 'new-board',
-        listId: 'new-list'
+        listId: 'new-list',
       };
-      
+
       Object.assign(app.persist, newState);
-      
+
       expect(app.persist.trelloAuthorized).toBe(true);
       expect(app.persist.boardId).toBe('new-board');
       expect(app.persist.listId).toBe('new-list');
@@ -377,7 +406,7 @@ describe('App Class', () => {
     test('should throw error when dependencies are null', () => {
       app.model = null;
       app.popupView = null;
-      
+
       expect(() => app.updateData()).toThrow();
     });
 
@@ -385,15 +414,17 @@ describe('App Class', () => {
       global.mockInstances.mockChrome.init.mockImplementation(() => {
         throw new Error('Chrome init failed');
       });
-      
+
       expect(() => app.init()).not.toThrow();
     });
 
     test('should throw error when storage fails', () => {
-      global.mockInstances.mockUtils.loadFromChromeStorage.mockImplementation(() => {
-        throw new Error('Storage load failed');
-      });
-      
+      global.mockInstances.mockUtils.loadFromChromeStorage.mockImplementation(
+        () => {
+          throw new Error('Storage load failed');
+        },
+      );
+
       expect(() => app.persistLoad()).toThrow('Storage load failed');
     });
   });
@@ -402,25 +433,34 @@ describe('App Class', () => {
     test('should initialize efficiently', () => {
       // Reset the mock to avoid storage error from previous test
       global.mockInstances.mockUtils.loadFromChromeStorage.mockReset();
-      
+
       const startTime = Date.now();
       app.init();
       const endTime = Date.now();
-      
+
       expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
     });
 
     test('should handle large state updates efficiently', () => {
       const largeState = {
-        trelloBoards: Array.from({ length: 100 }, (_, i) => ({ id: `board-${i}`, name: `Board ${i}` })),
-        trelloLists: Array.from({ length: 100 }, (_, i) => ({ id: `list-${i}`, name: `List ${i}` })),
-        trelloCards: Array.from({ length: 100 }, (_, i) => ({ id: `card-${i}`, name: `Card ${i}` }))
+        trelloBoards: Array.from({ length: 100 }, (_, i) => ({
+          id: `board-${i}`,
+          name: `Board ${i}`,
+        })),
+        trelloLists: Array.from({ length: 100 }, (_, i) => ({
+          id: `list-${i}`,
+          name: `List ${i}`,
+        })),
+        trelloCards: Array.from({ length: 100 }, (_, i) => ({
+          id: `card-${i}`,
+          name: `Card ${i}`,
+        })),
       };
-      
+
       const startTime = Date.now();
       Object.assign(app.persist, largeState);
       const endTime = Date.now();
-      
+
       expect(app.persist.trelloBoards).toHaveLength(100);
       expect(endTime - startTime).toBeLessThan(100);
     });
@@ -452,22 +492,25 @@ describe('App Class', () => {
         app.temp.log.memory.push(`log entry ${i}`);
         app.temp.log.count++;
       }
-      
+
       // App class doesn't automatically limit memory, so it can exceed max
       expect(app.temp.log.memory.length).toBe(150);
       expect(app.temp.log.count).toBe(150);
     });
 
     test('should handle memory cleanup', () => {
-      app.temp.log.memory = Array.from({ length: 200 }, (_, i) => `log entry ${i}`);
+      app.temp.log.memory = Array.from(
+        { length: 200 },
+        (_, i) => `log entry ${i}`,
+      );
       app.temp.log.count = 200;
-      
+
       // Simulate memory cleanup
       if (app.temp.log.memory.length > app.temp.log.max) {
         app.temp.log.memory = app.temp.log.memory.slice(-app.temp.log.max);
         app.temp.log.count = app.temp.log.memory.length;
       }
-      
+
       expect(app.temp.log.memory.length).toBeLessThanOrEqual(app.temp.log.max);
     });
   });
@@ -476,20 +519,24 @@ describe('App Class', () => {
     test('should handle hash changes correctly', () => {
       const mockEvent = {
         oldURL: 'https://mail.google.com/mail/u/0/#inbox',
-        newURL: 'https://mail.google.com/mail/u/0/#sent'
+        newURL: 'https://mail.google.com/mail/u/0/#sent',
       };
-      
+
       // Find the hashchange event listener
       const hashChangeCall = window.addEventListener.mock.calls.find(
-        call => call[0] === 'hashchange'
+        call => call[0] === 'hashchange',
       );
-      
+
       if (hashChangeCall) {
         const hashChangeHandler = hashChangeCall[1];
         hashChangeHandler(mockEvent);
-        
-        expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith('App: Gmail view change detected via hashchange');
-        expect(global.mockInstances.mockGmailView.forceRedraw).toHaveBeenCalled();
+
+        expect(global.mockInstances.mockUtils.log).toHaveBeenCalledWith(
+          'App: Gmail view change detected via hashchange',
+        );
+        expect(
+          global.mockInstances.mockGmailView.forceRedraw,
+        ).toHaveBeenCalled();
         expect(app.temp.lastHash).toBe('sent');
       } else {
         // If no hashchange listener found, skip this test
@@ -500,19 +547,21 @@ describe('App Class', () => {
     test('should not trigger redraw for same hash', () => {
       const mockEvent = {
         oldURL: 'https://mail.google.com/mail/u/0/#inbox',
-        newURL: 'https://mail.google.com/mail/u/0/#inbox'
+        newURL: 'https://mail.google.com/mail/u/0/#inbox',
       };
-      
+
       // Find the hashchange event listener
       const hashChangeCall = window.addEventListener.mock.calls.find(
-        call => call[0] === 'hashchange'
+        call => call[0] === 'hashchange',
       );
-      
+
       if (hashChangeCall) {
         const hashChangeHandler = hashChangeCall[1];
         hashChangeHandler(mockEvent);
-        
-        expect(global.mockInstances.mockGmailView.forceRedraw).not.toHaveBeenCalled();
+
+        expect(
+          global.mockInstances.mockGmailView.forceRedraw,
+        ).not.toHaveBeenCalled();
       } else {
         // If no hashchange listener found, skip this test
         expect(true).toBe(true);

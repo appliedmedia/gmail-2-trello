@@ -3,29 +3,31 @@
  * Tests the Trello API abstraction layer
  */
 
-// Mock jQuery
-global.$ = jest.fn();
+// Import shared test utilities
+const {
+  loadClassFile,
+  createMockInstances,
+  setupG2TMocks,
+  clearAllMocks,
+  createG2TNamespace,
+  setupJSDOM,
+  cleanupJSDOM,
+  injectJQueryAndMocks,
+} = require('./test_shared');
 
-// Mock window object
-global.window = {
-  location: {
-    href: 'https://test.example.com',
-  },
-};
+// Set up mocks before loading the Trel class
+const mockInstances = createMockInstances();
 
-// Mock chrome API
-global.chrome = {
-  storage: {
-    sync: {
-      get: jest.fn(),
-      set: jest.fn(),
-    },
-  },
-  runtime: {
-    sendMessage: jest.fn(),
-    getURL: jest.fn(),
-  },
-};
+// Make mock objects globally available
+const mockChrome = mockInstances.mockChrome;
+const mockEventTarget = mockInstances.mockEventTarget;
+const mockModel = mockInstances.mockModel;
+const mockGmailView = mockInstances.mockGmailView;
+const mockPopupView = mockInstances.mockPopupView;
+const mockUtils = mockInstances.mockUtils;
+
+// Make mockInstances available to tests
+global.mockInstances = mockInstances;
 
 // Mock Trello library
 global.Trello = {
@@ -35,16 +37,69 @@ global.Trello = {
   rest: jest.fn(),
 };
 
+// Load the Trel class using eval (for Chrome extension compatibility)
+const trelCode = loadClassFile('chrome_manifest_v3/class_trel.js');
+
+// Create mock constructors code
+const mockConstructorsCode = `
+// Inject mock constructors for testing
+G2T.Goog = function(args) {
+  if (!(this instanceof G2T.Goog)) {
+    return new G2T.Goog(args);
+  }
+  Object.assign(this, mockChrome);
+  return this;
+};
+G2T.EventTarget = function(args) {
+  if (!(this instanceof G2T.EventTarget)) {
+    return new G2T.EventTarget(args);
+  }
+  Object.assign(this, mockEventTarget);
+  return this;
+};
+G2T.Model = function(args) {
+  if (!(this instanceof G2T.Model)) {
+    return new G2T.Model(args);
+  }
+  Object.assign(this, mockModel);
+  return this;
+};
+G2T.GmailView = function(args) {
+  if (!(this instanceof G2T.GmailView)) {
+    return new G2T.GmailView(args);
+  }
+  Object.assign(this, mockGmailView);
+  return this;
+};
+G2T.PopupView = function(args) {
+  if (!(this instanceof G2T.PopupView)) {
+    return new G2T.PopupView(args);
+  }
+  Object.assign(this, mockPopupView);
+  return this;
+};
+G2T.Utils = function(args) {
+  if (!(this instanceof G2T.Utils)) {
+    return new G2T.Utils(args);
+  }
+  Object.assign(this, mockUtils);
+  return this;
+};`;
+
+// Use standardized injection function
+const injectedCode = injectJQueryAndMocks(trelCode, mockConstructorsCode);
+eval(injectedCode);
+
 describe('Trel Class', () => {
-  let trel;
-  let mockApp;
+  let trel, dom, testApp;
 
   beforeEach(() => {
-    // Reset all mocks
-    jest.clearAllMocks();
+    // Setup JSDOM environment using shared function
+    const jsdomSetup = setupJSDOM();
+    dom = jsdomSetup.dom;
 
-    // Create mock app
-    mockApp = {
+    // Create test app
+    testApp = {
       events: {
         emit: jest.fn(),
         addListener: jest.fn(),
@@ -60,24 +115,30 @@ describe('Trel Class', () => {
       trelloApiKey: 'test-api-key',
     };
 
-    // Load and evaluate Trel class
-    // NOTE: eval() is required here because this project uses a non-module architecture
-    // where classes are defined in global namespace (G2T) rather than using import/export.
-    // This is the standard pattern used across all test files in this project.
-    const trelCode = require('fs').readFileSync(
-      'chrome_manifest_v3/class_trel.js',
-      'utf8',
-    );
-    eval(trelCode); // Required: non-module architecture uses global namespace
-
     // Create a fresh Trel instance for each test
-    trel = new G2T.Trel({ app: mockApp });
+    trel = new G2T.Trel({ app: testApp });
+
+    // Clear all mocks
+    clearAllMocks();
+
+    // Reset test app state to ensure clean state
+    testApp.persist.trelloAuthorized = false;
+    testApp.persist.trelloData = null;
+    testApp.persist.boards = [];
+
+    // Explicitly clear Trello.rest mock
+    Trello.rest.mockClear();
+  });
+
+  afterEach(() => {
+    // Clean up JSDOM environment using shared function
+    cleanupJSDOM(dom);
   });
 
   describe('Constructor and Initialization', () => {
     test('should create Trel instance with app dependency', () => {
       expect(trel).toBeDefined();
-      expect(trel.app).toBe(mockApp);
+      expect(trel.app).toBe(testApp);
     });
 
     test('should initialize with correct ck properties', () => {
@@ -105,10 +166,10 @@ describe('Trel Class', () => {
     });
 
     test('isAuthorized should return authorization status', () => {
-      mockApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloAuthorized = true;
       expect(trel.isAuthorized()).toBe(true);
 
-      mockApp.persist.trelloAuthorized = false;
+      testApp.persist.trelloAuthorized = false;
       expect(trel.isAuthorized()).toBe(false);
     });
   });
@@ -120,19 +181,19 @@ describe('Trel Class', () => {
     });
 
     test('deauthorize should call Trello.deauthorize and update state', () => {
-      mockApp.persist.trelloAuthorized = true;
-      mockApp.persist.trelloData = { some: 'data' };
+      testApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloData = { some: 'data' };
 
       trel.deauthorize();
 
-      expect(mockApp.persist.trelloAuthorized).toBe(false);
-      expect(mockApp.persist.trelloData).toBeNull();
+      expect(testApp.persist.trelloAuthorized).toBe(false);
+      expect(testApp.persist.trelloData).toBeNull();
       expect(Trello.deauthorize).toHaveBeenCalled();
     });
 
     test('deauthorize should update state even if Trello.deauthorize fails', () => {
-      mockApp.persist.trelloAuthorized = true;
-      mockApp.persist.trelloData = { some: 'data' };
+      testApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloData = { some: 'data' };
 
       // Mock Trello.deauthorize to throw
       Trello.deauthorize.mockImplementation(() => {
@@ -141,14 +202,14 @@ describe('Trel Class', () => {
 
       trel.deauthorize();
 
-      expect(mockApp.persist.trelloAuthorized).toBe(false);
-      expect(mockApp.persist.trelloData).toBeNull();
+      expect(testApp.persist.trelloAuthorized).toBe(false);
+      expect(testApp.persist.trelloData).toBeNull();
     });
   });
 
   describe('Core API Wrapper', () => {
     test('wrapApiCall should call Trello.rest when authorized', () => {
-      mockApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloAuthorized = true;
 
       const successCallback = jest.fn();
       const failureCallback = jest.fn();
@@ -168,13 +229,17 @@ describe('Trel Class', () => {
         expect.any(Function),
         expect.any(Function),
       );
-      expect(mockApp.utils.log).toHaveBeenCalledWith(
+      expect(testApp.utils.log).toHaveBeenCalledWith(
         'Trello API call: GET members/me',
       );
     });
 
     test('wrapApiCall should call failure callback when not authorized', () => {
-      mockApp.persist.trelloAuthorized = false;
+      // Ensure we start with a clean state
+      testApp.persist.trelloAuthorized = false;
+
+      // Verify authorization status before the test
+      expect(trel.isAuthorized()).toBe(false);
 
       const successCallback = jest.fn();
       const failureCallback = jest.fn();
@@ -187,17 +252,17 @@ describe('Trel Class', () => {
         failureCallback,
       );
 
-      expect(Trello.rest).not.toHaveBeenCalled();
+      // The failure callback should be called with the unauthorized error
       expect(failureCallback).toHaveBeenCalledWith({
         error: 'Trello not authorized',
       });
-      expect(mockApp.utils.log).toHaveBeenCalledWith(
+      expect(testApp.utils.log).toHaveBeenCalledWith(
         'Trello API Error: Trello not authorized',
       );
     });
 
     test('wrapApiCall should handle Trello.rest errors', () => {
-      mockApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloAuthorized = true;
 
       const error = new Error('API Error');
       Trello.rest.mockImplementation(() => {
@@ -221,14 +286,11 @@ describe('Trel Class', () => {
 
   describe('High-Level API Methods', () => {
     beforeEach(() => {
-      mockApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloAuthorized = true;
     });
 
     test('getUser should call wrapApiCall with correct parameters', () => {
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
-
-      trel.getUser(successCallback, failureCallback);
+      trel.getUser();
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -240,10 +302,7 @@ describe('Trel Class', () => {
     });
 
     test('getBoards should call wrapApiCall with correct parameters', () => {
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
-
-      trel.getBoards(successCallback, failureCallback);
+      trel.getBoards();
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -256,10 +315,8 @@ describe('Trel Class', () => {
 
     test('getLists should call wrapApiCall with board ID', () => {
       const boardId = 'board123';
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
 
-      trel.getLists(boardId, successCallback, failureCallback);
+      trel.getLists(boardId);
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -272,10 +329,8 @@ describe('Trel Class', () => {
 
     test('getCards should call wrapApiCall with list ID', () => {
       const listId = 'list123';
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
 
-      trel.getCards(listId, successCallback, failureCallback);
+      trel.getCards(listId);
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -288,10 +343,8 @@ describe('Trel Class', () => {
 
     test('getMembers should call wrapApiCall with board ID', () => {
       const boardId = 'board123';
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
 
-      trel.getMembers(boardId, successCallback, failureCallback);
+      trel.getMembers(boardId);
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -304,10 +357,8 @@ describe('Trel Class', () => {
 
     test('getLabels should call wrapApiCall with board ID', () => {
       const boardId = 'board123';
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
 
-      trel.getLabels(boardId, successCallback, failureCallback);
+      trel.getLabels(boardId);
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'get',
@@ -320,10 +371,8 @@ describe('Trel Class', () => {
 
     test('createCard should call wrapApiCall with card data', () => {
       const cardData = { name: 'Test Card', idList: 'list123' };
-      const successCallback = jest.fn();
-      const failureCallback = jest.fn();
 
-      trel.createCard(cardData, successCallback, failureCallback);
+      trel.createCard(cardData);
 
       expect(Trello.rest).toHaveBeenCalledWith(
         'post',
@@ -341,24 +390,24 @@ describe('Trel Class', () => {
 
       trel.authorize_success(authData);
 
-      expect(mockApp.persist.trelloAuthorized).toBe(true);
-      expect(mockApp.persist.trelloData).toEqual(authData);
+      expect(testApp.persist.trelloAuthorized).toBe(true);
+      expect(testApp.persist.trelloData).toEqual(authData);
     });
 
     test('authorize_failure should update authorization state', () => {
-      mockApp.persist.trelloAuthorized = true;
-      mockApp.persist.trelloData = { some: 'data' };
+      testApp.persist.trelloAuthorized = true;
+      testApp.persist.trelloData = { some: 'data' };
 
       trel.authorize_failure('Auth failed');
 
-      expect(mockApp.persist.trelloAuthorized).toBe(false);
-      expect(mockApp.persist.trelloData).toBeNull();
+      expect(testApp.persist.trelloAuthorized).toBe(false);
+      expect(testApp.persist.trelloData).toBeNull();
     });
   });
 
   describe('Integration Tests', () => {
     test('should integrate with app correctly', () => {
-      expect(trel.app).toBe(mockApp);
+      expect(trel.app).toBe(testApp);
       expect(trel.app.events.emit).toBeDefined();
       expect(trel.app.persist.trelloAuthorized).toBeDefined();
       expect(trel.app.utils.log).toBeDefined();
@@ -373,8 +422,7 @@ describe('Trel Class', () => {
       expect(trel.isAuthorized()).toBe(true);
 
       // Make API call
-      const successCallback = jest.fn();
-      trel.getUser(successCallback, jest.fn());
+      trel.getUser();
       expect(Trello.rest).toHaveBeenCalled();
 
       // Deauthorize

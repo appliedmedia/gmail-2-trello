@@ -9,25 +9,102 @@ const {
   cleanupJSDOM,
   loadClassFile,
   setupModelForTesting,
+  createMockInstances,
+  clearAllMocks,
+  injectJQueryAndMocks,
 } = require('./test_shared.js');
+
+// Set up mocks before loading the Model class
+const mockInstances = createMockInstances();
+
+// Make mock objects globally available
+const mockChrome = mockInstances.mockChrome;
+const mockEventTarget = mockInstances.mockEventTarget;
+const mockModel = mockInstances.mockModel;
+const mockGmailView = mockInstances.mockGmailView;
+const mockPopupView = mockInstances.mockPopupView;
+const mockUtils = mockInstances.mockUtils;
+
+// Make mockInstances available to tests
+global.mockInstances = mockInstances;
 
 // Load the Model class using eval (for Chrome extension compatibility)
 const modelCode = loadClassFile('chrome_manifest_v3/class_model.js');
 
-// Inject mock constructors after G2T namespace is initialized
-const injectedCode = modelCode.replace(
-  'var G2T = G2T || {}; // must be var to guarantee correct scope',
-  `var G2T = G2T || {}; // must be var to guarantee correct scope
+// Create mock constructors code
+const mockConstructorsCode = `
 // Inject mock constructors for testing
-G2T.App = function(args) {
-  if (!(this instanceof G2T.App)) {
-    return new G2T.App(args);
+G2T.Goog = function(args) {
+  if (!(this instanceof G2T.Goog)) {
+    return new G2T.Goog(args);
   }
-  Object.assign(this, mockApp);
+  Object.assign(this, mockChrome);
   return this;
-};`,
-);
+};
+G2T.EventTarget = function(args) {
+  if (!(this instanceof G2T.EventTarget)) {
+    return new G2T.EventTarget(args);
+  }
+  Object.assign(this, mockEventTarget);
+  return this;
+};
+G2T.Model = function(args) {
+  if (!(this instanceof G2T.Model)) {
+    return new G2T.Model(args);
+  }
+  Object.assign(this, mockModel);
+  return this;
+};
+G2T.GmailView = function(args) {
+  if (!(this instanceof G2T.GmailView)) {
+    return new G2T.GmailView(args);
+  }
+  Object.assign(this, mockGmailView);
+  return this;
+};
+G2T.PopupView = function(args) {
+  if (!(this instanceof G2T.PopupView)) {
+    return new G2T.PopupView(args);
+  }
+  Object.assign(this, mockPopupView);
+  return this;
+};
+G2T.Utils = function(args) {
+  if (!(this instanceof G2T.Utils)) {
+    return new G2T.Utils(args);
+  }
+  Object.assign(this, mockUtils);
+  return this;
+};
+G2T.Trel = function(args) {
+  if (!(this instanceof G2T.Trel)) {
+    return new G2T.Trel(args);
+  }
+  // Create a basic mock Trel instance
+  const mockTrel = {
+    app: args?.app,
+    setApiKey: jest.fn(),
+    getApiKey: jest.fn(),
+    isAuthorized: jest.fn(),
+    authorize: jest.fn(),
+    deauthorize: jest.fn(),
+    wrapApiCall: jest.fn(),
+    getUser: jest.fn(),
+    getBoards: jest.fn(),
+    getLists: jest.fn(),
+    getCards: jest.fn(),
+    getMembers: jest.fn(),
+    getLabels: jest.fn(),
+    createCard: jest.fn(),
+    authorize_success: jest.fn(),
+    authorize_failure: jest.fn(),
+  };
+  Object.assign(this, mockTrel);
+  return this;
+};`;
 
+// Use standardized injection function
+const injectedCode = injectJQueryAndMocks(modelCode, mockConstructorsCode);
 eval(injectedCode);
 
 describe('Model Class', () => {
@@ -39,10 +116,39 @@ describe('Model Class', () => {
     dom = jsdomSetup.dom;
     window = jsdomSetup.window;
 
-    // Setup Model class using shared function
-    const modelSetup = setupModelForTesting();
-    model = modelSetup.model;
-    mockApp = modelSetup.mockApp;
+    // Create proper mock application for Model class
+    mockApp = {
+      utils: {
+        log: jest.fn(),
+      },
+      events: {
+        emit: jest.fn(),
+        addListener: jest.fn(),
+      },
+      persist: {
+        trelloAuthorized: false,
+        trelloData: null,
+        user: null,
+        emailBoardListCardMap: [],
+      },
+      temp: {
+        boards: [],
+        lists: [],
+        cards: [],
+        members: [],
+        labels: [],
+      },
+      trelloApiKey: 'test-api-key',
+      chrome: {
+        runtimeSendMessage: jest.fn(),
+      },
+    };
+
+    // Create a fresh Model instance for each test
+    model = new G2T.Model({ parent: {}, app: mockApp });
+
+    // Clear all mocks
+    clearAllMocks();
   });
 
   afterEach(() => {
@@ -58,13 +164,12 @@ describe('Model Class', () => {
     });
 
     test('should initialize with default state', () => {
-      expect(model.trelloAuthorized).toBe(false);
-      expect(model.trelloDataReady).toBe(false);
-      expect(model.boards).toEqual([]);
-      expect(model.lists).toEqual([]);
-      expect(model.cards).toEqual([]);
-      expect(model.members).toEqual([]);
-      expect(model.labels).toEqual([]);
+      expect(model.app.persist.trelloAuthorized).toBe(false);
+      expect(model.app.temp.boards).toEqual([]);
+      expect(model.app.temp.lists).toEqual([]);
+      expect(model.app.temp.cards).toEqual([]);
+      expect(model.app.temp.members).toEqual([]);
+      expect(model.app.temp.labels).toEqual([]);
     });
 
     test('init should initialize the model', () => {

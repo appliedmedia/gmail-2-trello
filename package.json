@@ -50,6 +50,8 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "verbose": false,
+    "silent": false,
     "testMatch": [
       "**/test/test_class_model.js",
       "**/test/test_class_utils.js",

@@ -13,6 +13,7 @@ const {
   setupJSDOM,
   cleanupJSDOM,
   createMockJQueryElement,
+  injectJQueryAndMocks,
 } = require('./test_shared');
 
 // Set up mocks before loading the Goog class
@@ -32,15 +33,13 @@ global.mockInstances = mockInstances;
 // Load the Goog class using eval (for Chrome extension compatibility)
 const googCode = loadClassFile('chrome_manifest_v3/class_goog.js');
 
-// Inject mock constructors after G2T namespace is initialized
-const injectedCode = googCode.replace(
-  'var G2T = G2T || {}; // must be var to guarantee correct scope',
-  `var G2T = G2T || {}; // must be var to guarantee correct scope
+// Create mock constructors code
+const mockConstructorsCode = `
 // Inject mock constructors for testing
-  G2T.Goog = function(args) {
-    if (!(this instanceof G2T.Goog)) {
-      return new G2T.Goog(args);
-    }
+G2T.Goog = function(args) {
+  if (!(this instanceof G2T.Goog)) {
+    return new G2T.Goog(args);
+  }
   Object.assign(this, mockChrome);
   return this;
 };
@@ -78,9 +77,10 @@ G2T.Utils = function(args) {
   }
   Object.assign(this, mockUtils);
   return this;
-};`,
-);
+};`;
 
+// Use standardized injection function
+const injectedCode = injectJQueryAndMocks(googCode, mockConstructorsCode);
 eval(injectedCode);
 
 describe('Goog Class', () => {
@@ -163,9 +163,11 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'sync';
 
+      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+
       listener(changes, namespace);
 
-      expect(mockApp.utils.refreshDebugMode).toHaveBeenCalled();
+      expect(mockApp.temp.log.debugMode).toBe(true); // Should be set to true
     });
 
     test('storage change listener should ignore non-sync namespace', () => {
@@ -175,9 +177,11 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'local';
 
+      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+
       listener(changes, namespace);
 
-      expect(mockApp.utils.refreshDebugMode).not.toHaveBeenCalled();
+      expect(mockApp.temp.log.debugMode).toBe(false); // Should remain unchanged
     });
 
     test('storage change listener should ignore non-debugMode changes', () => {
@@ -187,9 +191,11 @@ describe('Goog Class', () => {
       const changes = { otherSetting: { newValue: true } };
       const namespace = 'sync';
 
+      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+
       listener(changes, namespace);
 
-      expect(mockApp.utils.refreshDebugMode).not.toHaveBeenCalled();
+      expect(mockApp.temp.log.debugMode).toBe(false); // Should remain unchanged
     });
   });
 
@@ -455,9 +461,11 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'sync';
 
+      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+
       listener(changes, namespace);
 
-      expect(mockApp.utils.refreshDebugMode).toHaveBeenCalled();
+      expect(mockApp.temp.log.debugMode).toBe(true); // Should be set correctly
     });
 
     test('should integrate with popup view correctly', () => {

@@ -7,62 +7,124 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
+// Import console log for debugging
+const { log: console_log } = require('console');
+
 // Set up global jQuery mock at module level
 global.$ = (selectorOrElement, context) => {
-  // Case 1: $(element) - wrap a DOM element
-  if (selectorOrElement && selectorOrElement.nodeType) {
+  // Case 1: $(element) - wrap a single DOM element
+  if (
+    selectorOrElement &&
+    (selectorOrElement.nodeType || selectorOrElement.textContent !== undefined)
+  ) {
     const element = selectorOrElement;
-    return {
-      text: () => element.textContent || '',
-      html: () => element.innerHTML || '',
-      attr: name => element.getAttribute(name) || '',
-      prop: name => {
-        if (name === 'nodeName') {
-          return element.nodeName || element.tagName || '';
-        }
-        return element[name] || '';
-      },
-      offset: jest.fn(() => ({ top: 1, left: 2 })),
-      nextAll: jest.fn(() => ({
-        find: jest.fn(() => ({
-          first: jest.fn(() => ({
-            attr: jest.fn(() => 'Download attachment test.png'),
-          })),
-        })),
-      })),
-      each: jest.fn(callback => {
-        callback(0, element);
-      }),
-    };
+    // Just pass the single element as an array to elementSuperSet - let it handle everything
+    return elementSuperSet(element.innerHTML || element.outerHTML || '', [
+      element,
+    ]);
   }
 
   // Case 2: $(selector, context) - find elements in context
-  if (context && context.html) {
+  if (
+    context &&
+    (typeof context.html === 'function' || context.length !== undefined)
+  ) {
     const selector = selectorOrElement;
-    const contextContent = context.html();
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = contextContent;
-    const elements = Array.from(tempDiv.querySelectorAll(selector));
+    let contextContent = '';
 
-    return {
-      length: elements.length,
-      each: callback => {
-        elements.forEach((element, index) => {
-          callback(index, element);
-        });
-      },
-    };
+    // Get the HTML content from the context
+    if (typeof context.html === 'function') {
+      contextContent = context.html();
+    } else if (context.innerHTML) {
+      contextContent = context.innerHTML;
+    } else if (context.length !== undefined && context.length > 0) {
+      // If context is a jQuery collection, try to get HTML from first element
+      contextContent = context[0]?.innerHTML || context.html?.() || '';
+    }
+
+    // Create a temporary DOM element for parsing
+    let elements = [];
+
+    try {
+      // Use JSDOM's document if available, otherwise use regex fallback
+      if (typeof document !== 'undefined' && document.createElement) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = contextContent;
+        elements = Array.from(tempDiv.querySelectorAll(selector));
+      } else {
+        // Fallback: simple regex-based element matching
+        const tagMatch = selector.match(/^([a-zA-Z]+)$/);
+        if (tagMatch) {
+          const tag = tagMatch[1];
+          const regex = new RegExp(`<${tag}[^>]*>(.*?)</${tag}>`, 'gi');
+          let match;
+          while ((match = regex.exec(contextContent)) !== null) {
+            elements.push({
+              tagName: tag.toUpperCase(),
+              textContent: match[1].replace(/<[^>]*>/g, ''), // Strip inner HTML tags
+              innerHTML: match[1],
+              outerHTML: match[0],
+              getAttribute: attr => {
+                if (attr === 'href') {
+                  const hrefMatch = match[0].match(/href=['"]([^'"]*)['"]/);
+                  return hrefMatch ? hrefMatch[1] : '';
+                }
+                return '';
+              },
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // If DOM operations fail, use regex fallback
+      const tagMatch = selector.match(/^([a-zA-Z]+)$/);
+      if (tagMatch) {
+        const tag = tagMatch[1];
+        const regex = new RegExp(`<${tag}[^>]*>(.*?)</${tag}>`, 'gi');
+        let match;
+        while ((match = regex.exec(contextContent)) !== null) {
+          elements.push({
+            tagName: tag.toUpperCase(),
+            textContent: match[1].replace(/<[^>]*>/g, ''), // Strip inner HTML tags
+            innerHTML: match[1],
+            outerHTML: match[0],
+            getAttribute: attr => {
+              if (attr === 'href') {
+                const hrefMatch = match[0].match(/href=['"]([^'"]*)['"]/);
+                return hrefMatch ? hrefMatch[1] : '';
+              }
+              return '';
+            },
+          });
+        }
+      }
+    }
+
+    // Use elementSuperSet with the elements array - it handles everything now!
+    return elementSuperSet(
+      elements.length > 0
+        ? elements[0].outerHTML || elements[0].innerHTML || ''
+        : '',
+      elements,
+    );
   }
 
-  // Default behavior for other cases
-  return {
-    length: 0,
-    each: () => {},
-    text: () => '',
-    html: () => '',
-    attr: () => '',
-    offset: jest.fn(() => ({ top: 1, left: 2 })),
-  };
+  // Case 3: $(selector) - find elements by selector (most common case)
+  if (typeof selectorOrElement === 'string') {
+    // Use elementSuperSet for consistent mock element behavior
+    return elementSuperSet();
+  }
+
+  // Default behavior for other cases - ALWAYS return object with length
+  const defaultResult = elementSuperSet();
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('GLOBAL $ DEFAULT CASE:', {
+      selector: selectorOrElement,
+      hasContext: !!context,
+      resultLength: defaultResult.length,
+    });
+  }
+  return defaultResult;
 };
 
 // Add $.extend method
@@ -90,31 +152,116 @@ const TEST_CONFIG = {
 };
 
 /**
- * Create a comprehensive mock element with all functionality any test might need
- * @param {string} htmlContent - HTML content to mock
- * @returns {Object} - Complete mock element with all jQuery methods
+ * Standardized function to inject jQuery and mock constructors into eval'd class code
+ * This ensures all classes have access to jQuery ($) regardless of whether they use it
+ * @param {string} classCode - The original class code to inject into
+ * @param {string} mockConstructorsCode - The mock constructors code to inject
+ * @returns {string} - The injected code ready for eval()
  */
-function elementSuperSet(htmlContent = '') {
+function injectJQueryAndMocks(classCode, mockConstructorsCode) {
+  return `
+// Use the same jQuery mock that's defined globally (with all methods already attached)
+var $ = global.$;
+${classCode.replace(
+  'var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line',
+  `var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
+${mockConstructorsCode}`,
+)}`;
+}
+
+/**
+ * Create a comprehensive mock element with all functionality any test might need
+ * Supports both single elements and collections of elements
+ * @param {string} htmlContent - HTML content to mock for the primary element
+ * @param {Array} elementsArray - Optional array of DOM elements for collection behavior
+ * @returns {Object} - Complete mock element with all jQuery methods and proper length
+ */
+function elementSuperSet(htmlContent = '', elementsArray = []) {
   // Ensure htmlContent is a string
   const content = htmlContent || '';
 
-  return {
-    // Basic properties
-    length: content ? 1 : 0,
-    textContent: 'mock text',
-    innerHTML: content || '<div>mock html</div>',
-    nodeType: 1,
-    tagName: 'DIV',
+  // If we have an elements array, use its length, otherwise default to 1
+  const actualLength = elementsArray.length > 0 ? elementsArray.length : 1;
 
-    // jQuery methods
-    html: () => content,
-    text: () => {
-      // Parse HTML and extract text content
+  // Parse the HTML content to extract tag name, attributes, and text content
+  let parsedTagName = 'DIV';
+  let parsedAttributes = {};
+  let parsedTextContent = 'mock text';
+
+  // Debug logging for content parsing
+  console_log('DEBUG: elementSuperSet content:', content);
+
+  if (content) {
+    // Extract tag name from HTML content
+    const tagMatch = content.match(/^<([a-zA-Z][a-zA-Z0-9]*)/);
+    if (tagMatch) {
+      parsedTagName = tagMatch[1].toUpperCase();
+    }
+    console_log('DEBUG: parsedTagName:', parsedTagName);
+
+    // Extract attributes from HTML content
+    const attrRegex = /(\w+)=['"]([^'"]*)['"]/g;
+    let attrMatch;
+    while ((attrMatch = attrRegex.exec(content)) !== null) {
+      console_log('DEBUG: found attribute:', attrMatch[1], '=', attrMatch[2]);
+      parsedAttributes[attrMatch[1]] = attrMatch[2];
+    }
+    console_log('DEBUG: final parsedAttributes:', parsedAttributes);
+
+    // Extract text content using JSDOM parsing
+    try {
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = content;
-      return tempDiv.textContent || '';
+      parsedTextContent = tempDiv.textContent || '';
+    } catch (e) {
+      // Fallback: simple regex to extract text between tags
+      const textMatch = content.match(/>([^<]*)</);
+      parsedTextContent = textMatch ? textMatch[1] : '';
+    }
+  }
+
+  return {
+    // Basic properties - always have at least length 1
+    length: actualLength,
+    textContent:
+      elementsArray.length > 0
+        ? elementsArray[0].textContent || ''
+        : parsedTextContent,
+    innerHTML: content || '<div>mock html</div>',
+    nodeType: 1,
+    tagName:
+      elementsArray.length > 0
+        ? elementsArray[0].tagName || elementsArray[0].nodeName || ''
+        : parsedTagName,
+
+    // Make parsed data available as properties so they survive Object.assign
+    parsedAttributes: parsedAttributes,
+    parsedTagName: parsedTagName,
+    parsedTextContent: parsedTextContent,
+
+    // jQuery methods
+    html: () => {
+      if (elementsArray.length > 0) {
+        return elementsArray[0].innerHTML || '';
+      }
+      return content;
+    },
+    text: () => {
+      if (elementsArray.length > 0) {
+        return elementsArray[0].textContent || '';
+      }
+      // Return the already-parsed text content
+      return parsedTextContent;
     },
     attr: jest.fn(name => {
+      if (elementsArray.length > 0 && elementsArray[0].getAttribute) {
+        return elementsArray[0].getAttribute(name) || '';
+      }
+      // First check parsed attributes from HTML content
+      if (parsedAttributes[name]) {
+        return parsedAttributes[name];
+      }
+      // Fallback to default attributes
       const attrs = {
         name: 'Test User',
         email: 'test@example.com',
@@ -125,17 +272,65 @@ function elementSuperSet(htmlContent = '') {
       };
       return attrs[name] || 'mock-attr';
     }),
-    prop: jest.fn(name => {
+    prop: jest.fn(function (name) {
+      // Debug logging for href property access
+      if (name === 'href') {
+        console_log('DEBUG: prop(href) called');
+        console_log('DEBUG: this.parsedAttributes:', this.parsedAttributes);
+        console_log('DEBUG: elementsArray.length:', elementsArray.length);
+      }
+
+      // First try static parsed attributes (these survive Object.assign)
+      if (this.parsedAttributes && this.parsedAttributes[name]) {
+        console_log(
+          'DEBUG: using this.parsedAttributes[' + name + ']:',
+          this.parsedAttributes[name],
+        );
+        return this.parsedAttributes[name];
+      }
+
+      // If we have actual DOM elements, use the first one's properties
+      if (elementsArray.length > 0) {
+        const element = elementsArray[0];
+
+        if (name === 'nodeName') {
+          return element.nodeName || element.tagName || '';
+        }
+        if (name === 'href') {
+          // Safely get href from real DOM elements
+          try {
+            const href =
+              element.href ||
+              (element.getAttribute && element.getAttribute('href')) ||
+              '';
+            console_log('DEBUG: final href result from element:', href);
+            return href;
+          } catch (e) {
+            console_log('DEBUG: exception in href extraction:', e);
+            return element.href || '';
+          }
+        }
+        // Fall back to element properties
+        return element[name] || '';
+      }
+
+      // Fallback to default properties
       const props = {
         src: 'https://example.com/image.png',
         alt: 'Test Image',
         type: 'image/png',
-        nodeName: 'DIV',
+        nodeName: this.parsedTagName || 'DIV',
+        href: 'https://example.com',
       };
       return props[name] || 'mock-prop';
     }),
     offset: jest.fn(() => ({ top: 1, left: 2 })),
-    getAttribute: jest.fn(name => {
+    getAttribute: jest.fn(function (name) {
+      // First check static parsed attributes (these survive Object.assign)
+      if (this.parsedAttributes && this.parsedAttributes[name]) {
+        return this.parsedAttributes[name];
+      }
+      // Fallback to default attributes
       const attrs = {
         name: 'Test User',
         email: 'test@example.com',
@@ -166,8 +361,28 @@ function elementSuperSet(htmlContent = '') {
     })),
 
     // Iteration methods
-    each: jest.fn(callback => {
-      callback(0, elementSuperSet());
+    each: jest.fn(function (callback) {
+      if (elementsArray.length > 0) {
+        // Use the actual elements if provided
+        elementsArray.forEach((element, index) => {
+          // Just use THIS object (the working elementSuperSet) with element-specific properties
+          // Since parsedAttributes is now a static property, Object.assign preserves it automatically
+          const elementForCallback = Object.assign({}, this, {
+            textContent: element.textContent || '',
+            innerHTML: element.innerHTML || '',
+            outerHTML: element.outerHTML || '',
+            tagName: element.tagName || '',
+            nodeType: 1,
+          });
+          console_log(
+            'DEBUG: reusing existing elementSuperSet with element overlay',
+          );
+          callback(index, elementForCallback);
+        });
+      } else {
+        // Default single element behavior - just use this object
+        callback(0, this);
+      }
     }),
 
     // Utility methods
@@ -190,78 +405,175 @@ function createMockJQueryElement(htmlContent) {
   // Ensure htmlContent is a string
   const content = htmlContent || '';
 
+  // Create a real DOM element for proper HTML parsing
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = content;
+
+  // Return a jQuery-like object that wraps the real DOM element
   return {
     html: () => content,
     length: content ? 1 : 0,
     text: () => {
-      // Parse HTML and extract text content
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
       return tempDiv.textContent || '';
+    },
+    // Add methods that markdownify might need
+    find: selector => {
+      const elements = Array.from(tempDiv.querySelectorAll(selector));
+      return {
+        length: elements.length,
+        each: callback => {
+          elements.forEach((element, index) => {
+            callback(index, createMockJQueryElement(element.outerHTML));
+          });
+        },
+        first: () =>
+          elements.length > 0
+            ? createMockJQueryElement(elements[0].outerHTML)
+            : createMockJQueryElement(''),
+        attr: attrName =>
+          elements.length > 0 ? elements[0].getAttribute(attrName) || '' : '',
+        prop: propName =>
+          elements.length > 0 ? elements[0][propName] || '' : '',
+        text: () => (elements.length > 0 ? elements[0].textContent || '' : ''),
+        html: () => (elements.length > 0 ? elements[0].innerHTML || '' : ''),
+      };
+    },
+    children: () => {
+      const children = Array.from(tempDiv.children);
+      return {
+        length: children.length,
+        each: callback => {
+          children.forEach((child, index) => {
+            callback(index, createMockJQueryElement(child.outerHTML));
+          });
+        },
+        first: () =>
+          children.length > 0
+            ? createMockJQueryElement(children[0].outerHTML)
+            : createMockJQueryElement(''),
+      };
+    },
+    each: callback => {
+      // If we have content, call the callback with the element
+      if (content) {
+        callback(0, createMockJQueryElement(content));
+      }
+    },
+    first: () => createMockJQueryElement(content),
+    attr: attrName => tempDiv.getAttribute(attrName) || '',
+    prop: propName => tempDiv[propName] || '',
+    // Add support for traversing the DOM tree
+    parent: () => createMockJQueryElement(''),
+    next: () => createMockJQueryElement(''),
+    prev: () => createMockJQueryElement(''),
+    siblings: () => createMockJQueryElement(''),
+    // Add support for element creation
+    append: content => {
+      tempDiv.innerHTML += content;
+      return createMockJQueryElement(tempDiv.innerHTML);
+    },
+    prepend: content => {
+      tempDiv.innerHTML = content + tempDiv.innerHTML;
+      return createMockJQueryElement(tempDiv.innerHTML);
+    },
+    // Add support for element manipulation
+    remove: () => {},
+    empty: () => {
+      tempDiv.innerHTML = '';
+      return createMockJQueryElement('');
+    },
+    // Add support for CSS classes
+    addClass: className => {
+      tempDiv.classList.add(className);
+      return createMockJQueryElement(tempDiv.outerHTML);
+    },
+    removeClass: className => {
+      tempDiv.classList.remove(className);
+      return createMockJQueryElement(tempDiv.outerHTML);
+    },
+    hasClass: className => tempDiv.classList.contains(className),
+    // Add support for element visibility
+    show: () => createMockJQueryElement(tempDiv.outerHTML),
+    hide: () => createMockJQueryElement(tempDiv.outerHTML),
+    is: selector => {
+      // Simple selector matching
+      if (selector === ':visible') return true;
+      if (selector === ':hidden') return false;
+      return tempDiv.matches ? tempDiv.matches(selector) : false;
+    },
+    // Add support for element dimensions
+    width: () => 100,
+    height: () => 100,
+    offset: () => ({ top: 1, left: 2 }),
+    position: () => ({ top: 0, left: 0 }),
+    // Add support for element data
+    data: (key, value) => {
+      if (value !== undefined) {
+        tempDiv.dataset[key] = value;
+        return createMockJQueryElement(tempDiv.outerHTML);
+      }
+      return tempDiv.dataset[key] || '';
+    },
+    // Add support for element events (stubs)
+    on: () => createMockJQueryElement(tempDiv.outerHTML),
+    off: () => createMockJQueryElement(tempDiv.outerHTML),
+    trigger: () => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element cloning
+    clone: () => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element replacement
+    replaceWith: content => createMockJQueryElement(content),
+    replaceAll: content => createMockJQueryElement(content),
+    // Add support for element wrapping
+    wrap: content => createMockJQueryElement(content),
+    wrapAll: content => createMockJQueryElement(content),
+    wrapInner: content => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element unwrapping
+    unwrap: () => createMockJQueryElement(tempDiv.innerHTML),
+    // Add support for element insertion
+    insertAfter: content => createMockJQueryElement(tempDiv.outerHTML),
+    insertBefore: content => createMockJQueryElement(tempDiv.outerHTML),
+    after: content => createMockJQueryElement(tempDiv.outerHTML),
+    before: content => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element filtering
+    filter: selector => createMockJQueryElement(tempDiv.outerHTML),
+    not: selector => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element indexing
+    index: () => 0,
+    eq: index => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element content
+    contents: () => createMockJQueryElement(tempDiv.innerHTML),
+    // Add support for element attributes
+    removeAttr: attrName => {
+      tempDiv.removeAttribute(attrName);
+      return createMockJQueryElement(tempDiv.outerHTML);
+    },
+    // Add support for element properties
+    removeProp: propName => createMockJQueryElement(tempDiv.outerHTML),
+    // Add support for element values
+    val: value => {
+      if (value !== undefined) {
+        tempDiv.value = value;
+        return createMockJQueryElement(tempDiv.outerHTML);
+      }
+      return tempDiv.value || '';
+    },
+    // Add support for element scrolling
+    scrollTop: value => {
+      if (value !== undefined) {
+        tempDiv.scrollTop = value;
+        return createMockJQueryElement(tempDiv.outerHTML);
+      }
+      return tempDiv.scrollTop || 0;
+    },
+    scrollLeft: value => {
+      if (value !== undefined) {
+        tempDiv.scrollLeft = value;
+        return createMockJQueryElement(tempDiv.outerHTML);
+      }
+      return tempDiv.scrollLeft || 0;
     },
   };
 }
-
-// Mock jQuery for testing using elementSuperSet for consistent behavior
-global.$ = (selectorOrElement, context) => {
-  // Case 1: $(element) - wrap a DOM element
-  if (
-    selectorOrElement &&
-    (selectorOrElement.nodeType || selectorOrElement.getAttribute)
-  ) {
-    const element = selectorOrElement;
-    // Use elementSuperSet for consistent element wrapping
-    return elementSuperSet(element.innerHTML || element.textContent || '');
-  }
-
-  // Case 2: $(selector, context) - find elements in context
-  if (context && context.html) {
-    const selector = selectorOrElement;
-    const contextContent = context.html();
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = contextContent;
-    const elements = Array.from(tempDiv.querySelectorAll(selector));
-
-    return {
-      length: elements.length,
-      each: callback => {
-        elements.forEach((element, index) => {
-          callback(
-            index,
-            elementSuperSet(element.innerHTML || element.textContent || ''),
-          );
-        });
-      },
-      first: () => elementSuperSet(),
-      offset: () => ({ top: 1, left: 2 }),
-      find: () => elementSuperSet(),
-      nextAll: () => elementSuperSet(),
-      children: () => elementSuperSet(),
-    };
-  }
-
-  // Case 3: $(selector) - find elements by selector (most common case)
-  if (typeof selectorOrElement === 'string') {
-    // Use elementSuperSet for consistent mock element behavior
-    return elementSuperSet();
-  }
-
-  // Default behavior for other cases
-  return elementSuperSet();
-};
-
-// Add $.extend as a static method
-global.$.extend = jest.fn((target, ...sources) => {
-  // Simple extend implementation
-  sources.forEach(source => {
-    if (source) {
-      Object.keys(source).forEach(key => {
-        target[key] = source[key];
-      });
-    }
-  });
-  return target;
-});
 
 // Mock chrome API
 global.chrome = {
@@ -437,8 +749,11 @@ function setupUtilsForTesting() {
   var G2T = global.G2T;
   eval(utilsCode);
 
-  // Create mock application for Utils class
-  const mockApp = {
+  // Make sure G2T.Utils is available globally for instanceof checks
+  global.G2T = G2T;
+
+  // Create test application for Utils class
+  const testApp = {
     utils: {
       log: jest.fn(),
     },
@@ -453,12 +768,16 @@ function setupUtilsForTesting() {
         max: 100,
       },
     },
+    goog: {
+      storageSyncGet: jest.fn(),
+      storageSyncSet: jest.fn(),
+    },
   };
 
   // Create Utils instance
-  const utils = new global.G2T.Utils({ app: mockApp });
+  const utils = new global.G2T.Utils({ app: testApp });
 
-  return { utils, mockApp };
+  return { utils, testApp };
 }
 
 /**
@@ -779,7 +1098,31 @@ function createMockJQuery(html = '') {
   const mockJQuery = {
     html: () => html,
     length: html ? 1 : 0,
-    find: jest.fn(() => createMockJQuery()),
+    find: jest.fn(selector => {
+      // Handle complex CSS selectors by returning a mock that can handle the chain
+      const mockResult = createMockJQuery();
+
+      // Add methods that might be called on the result
+      mockResult.first = jest.fn(() => mockResult);
+      mockResult.attr = jest.fn(attr => {
+        // Return appropriate mock values based on the attribute
+        if (attr === 'aria-label') return 'Download attachment test-file.png';
+        if (attr === 'name') return 'Test User';
+        if (attr === 'email') return 'test@example.com';
+        if (attr === 'title') return 'Test Title';
+        if (attr === 'alt') return 'Test Alt';
+        return '';
+      });
+      mockResult.prop = jest.fn(prop => {
+        if (prop === 'src') return 'test-image.jpg';
+        if (prop === 'alt') return 'Test Image';
+        if (prop === 'type') return 'text/link';
+        return '';
+      });
+      mockResult.nextAll = jest.fn(() => mockResult);
+
+      return mockResult;
+    }),
     each: jest.fn(callback => {
       // Simulate jQuery each behavior
       if (html && html.includes('<')) {
@@ -819,14 +1162,29 @@ function createMockJQuery(html = '') {
     removeClass: jest.fn(),
     text: jest.fn(() => html),
     val: jest.fn(),
-    attr: jest.fn(),
-    prop: jest.fn(),
+    attr: jest.fn(attr => {
+      // Return appropriate mock values based on the attribute
+      if (attr === 'aria-label') return 'Download attachment test-file.png';
+      if (attr === 'name') return 'Test User';
+      if (attr === 'email') return 'test@example.com';
+      if (attr === 'title') return 'Test Title';
+      if (attr === 'alt') return 'Test Alt';
+      return '';
+    }),
+    prop: jest.fn(prop => {
+      if (prop === 'src') return 'test-image.jpg';
+      if (prop === 'alt') return 'Test Image';
+      if (prop === 'type') return 'text/link';
+      return '';
+    }),
     show: jest.fn(),
     hide: jest.fn(),
     append: jest.fn(),
     prepend: jest.fn(),
     empty: jest.fn(),
     remove: jest.fn(),
+    nextAll: jest.fn(() => createMockJQuery()),
+    first: jest.fn(() => createMockJQuery()),
   };
 
   return mockJQuery;
@@ -894,7 +1252,8 @@ function setupJSDOM() {
   // Also set global chrome for Chrome class compatibility
   global.chrome = window.chrome;
 
-  // Global $ is already set up at module level, no need to check
+  // Make global reference available in window context for eval'd code
+  global.window = window;
 
   return { dom, window, document: window.document };
 }
@@ -913,7 +1272,7 @@ function cleanupJSDOM(dom) {
   delete global.window;
   delete global.document;
   delete global.navigator;
-  delete global.$;
+  // Note: Don't delete global.$ as it's needed across tests
   delete global.G2T;
 }
 
@@ -1019,5 +1378,7 @@ module.exports = {
   setupModelForTesting,
   createMockJQueryElement,
   elementSuperSet,
+  injectJQueryAndMocks,
+  console_log,
   TEST_CONFIG,
 };
