@@ -33,112 +33,131 @@ function elementSuperSet(content = '', elementsArray = []) {
 **REPLACE WITH**:
 
 ```javascript
-const elementSuperSet = {
+const g2t_test_element = {
   common: {
-    // Standard properties that work for most tests
-    length: 1,
-    textContent: 'Example',
-    innerHTML:
-      '<p>Visit <a href="https://example.com">Example</a> for more info</p>',
-    nodeType: 1,
-    tagName: 'P',
+    p: {
+      length: 1,
+      textContent: 'Paragraph content',
+      innerHTML: '<p>Paragraph content</p>',
+      nodeType: 1,
+      tagName: 'P',
 
-    // Make parsed data available as static properties
-    parsedAttributes: { href: 'https://example.com' },
-    parsedTagName: 'P',
-    parsedTextContent: 'Example',
+      // Expected test results co-located with element definition
+      expected: {
+        markdownify: 'Paragraph content',
+      },
 
-    // Expected test results co-located with element definition
-    expected: {
-      markdownify: 'Visit [Example](<https://example.com>) for more info',
+      // jQuery methods
+      html: jest.fn(() => '<p>Paragraph content</p>'),
+      text: jest.fn(() => 'Paragraph content'),
+      attr: jest.fn(name => {
+        const attrs = {
+          name: 'Test User',
+          email: 'test@example.com',
+        };
+        return attrs[name] || 'mock-attr';
+      }),
+      prop: jest.fn(name => {
+        const props = {
+          nodeName: 'P',
+          tagName: 'P',
+        };
+        return props[name] || 'mock-prop';
+      }),
+      getAttribute: jest.fn(name => {
+        return this.attr(name);
+      }),
+      offset: jest.fn(() => ({ top: 1, left: 2 })),
+
+      // DOM traversal methods
+      find: jest.fn(() => g2t_test_element.common.p),
+      first: jest.fn(() => g2t_test_element.common.p),
+      children: jest.fn(() => ({
+        length: 0,
+        each: jest.fn(callback => {}),
+      })),
+
+      // Iteration methods
+      each: jest.fn(function (callback) {
+        callback(0, this);
+      }),
+
+      // Utility methods
+      addClass: jest.fn(),
+      removeClass: jest.fn(),
+      val: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      append: jest.fn(),
+      prepend: jest.fn(),
+      empty: jest.fn(),
+      remove: jest.fn(),
     },
 
-    // jQuery methods
-    html: jest.fn(
-      () =>
-        '<p>Visit <a href="https://example.com">Example</a> for more info</p>',
-    ),
-    text: jest.fn(() => 'Example'),
-    attr: jest.fn(name => {
-      const attrs = {
-        href: 'https://example.com',
-        name: 'Test User',
-        email: 'test@example.com',
-      };
-      return attrs[name] || 'mock-attr';
-    }),
-    prop: jest.fn(function (name) {
-      if (this.parsedAttributes && this.parsedAttributes[name]) {
-        return this.parsedAttributes[name];
-      }
-      const props = {
-        href: 'https://example.com',
-        src: 'https://example.com/image.png',
-        alt: 'Test Image',
-        nodeName: this.parsedTagName || 'P',
-      };
-      return props[name] || 'mock-prop';
-    }),
-    getAttribute: jest.fn(function (name) {
-      if (this.parsedAttributes && this.parsedAttributes[name]) {
-        return this.parsedAttributes[name];
-      }
-      return this.attr(name);
-    }),
-    offset: jest.fn(() => ({ top: 1, left: 2 })),
+    a: {
+      length: 1,
+      href: 'https://example.com',
+      textContent: 'Example',
+      innerHTML: '<a href="https://example.com">Example</a>',
+      nodeType: 1,
+      tagName: 'A',
 
-    // DOM traversal methods
-    find: jest.fn(() => elementSuperSet.common),
-    first: jest.fn(() => elementSuperSet.common),
-    children: jest.fn(() => ({
-      length: 2,
-      each: jest.fn(callback => {
-        callback(0, elementSuperSet.common);
-        callback(1, elementSuperSet.common);
+      expected: {
+        markdownify: '[Example](<https://example.com>)',
+      },
+
+      // jQuery methods (same as above but with A-specific values)
+      html: jest.fn(() => '<a href="https://example.com">Example</a>'),
+      text: jest.fn(() => 'Example'),
+      attr: jest.fn(name => {
+        const attrs = {
+          href: 'https://example.com',
+          name: 'Test User',
+          email: 'test@example.com',
+        };
+        return attrs[name] || 'mock-attr';
       }),
-    })),
+      prop: jest.fn(name => {
+        const props = {
+          href: 'https://example.com',
+          nodeName: 'A',
+          tagName: 'A',
+        };
+        return props[name] || 'mock-prop';
+      }),
+      // ... other methods same as p
+    },
 
-    // Iteration methods
-    each: jest.fn(function (callback) {
-      // Just use THIS object with element-specific properties
-      const elementForCallback = Object.assign({}, this, {
-        textContent: 'Example',
-        innerHTML: '<a href="https://example.com">Example</a>',
-        outerHTML: '<a href="https://example.com">Example</a>',
-        tagName: 'A',
-        nodeType: 1,
-      });
-      callback(0, elementForCallback);
-    }),
+    h1: {
+      length: 1,
+      textContent: 'Main Title',
+      innerHTML: '<h1>Main Title</h1>',
+      nodeType: 1,
+      tagName: 'H1',
 
-    // Utility methods
-    addClass: jest.fn(),
-    removeClass: jest.fn(),
-    val: jest.fn(),
-    show: jest.fn(),
-    hide: jest.fn(),
-    append: jest.fn(),
-    prepend: jest.fn(),
-    empty: jest.fn(),
-    remove: jest.fn(),
+      expected: {
+        markdownify: '# Main Title',
+      },
+      // ... jQuery methods same pattern as above
+    },
+
+    mailto: {
+      length: 1,
+      href: 'mailto:test@example.com',
+      textContent: 'Contact us',
+      innerHTML: '<a href="mailto:test@example.com">Contact us</a>',
+      nodeType: 1,
+      tagName: 'A',
+
+      expected: {
+        markdownify: 'Contact us <test@example.com>',
+      },
+      // ... jQuery methods same pattern as above
+    },
   },
 
   // Add specific variants only when common doesn't work
-  mailtoLink: {
-    // Inherit from common but override specific properties
-    get common() {
-      return elementSuperSet.common;
-    },
-    ...elementSuperSet.common,
-    parsedAttributes: { href: 'mailto:test@example.com' },
-    expected: {
-      markdownify: 'Contact <test@example.com>',
-    },
-    prop: jest.fn(function (name) {
-      if (name === 'href') return 'mailto:test@example.com';
-      return this.common.prop.call(this, name);
-    }),
-  },
+  // (to be added as needed during testing)
 };
 ```
 
@@ -156,9 +175,9 @@ function createMockJQueryElement(htmlContent) {
 
 ```javascript
 function createMockJQueryElement(htmlContent) {
-  // Legacy function - just return common element for now
+  // Legacy function - just return common paragraph element for now
   // TODO: Eventually remove this function entirely
-  return elementSuperSet.common;
+  return g2t_test_element.common.p;
 }
 ```
 
@@ -187,8 +206,8 @@ test('converts simple links', () => {
 
 ```javascript
 test('converts simple links', () => {
-  const result = utils.markdownify(elementSuperSet.common, true, {});
-  expect(result).toBe(elementSuperSet.common.expected.markdownify);
+  const result = utils.markdownify(g2t_test_element.common.a, true, {});
+  expect(result).toBe(g2t_test_element.common.a.expected.markdownify);
 });
 ```
 
@@ -196,25 +215,27 @@ test('converts simple links', () => {
 
 **AUDIT** all failing markdownify tests in `test_class_utils.js`:
 
-- `converts simple links` → use `elementSuperSet.common`
-- `converts links with title attributes` → might need `elementSuperSet.linkWithTitle`
-- `handles mailto links` → use `elementSuperSet.mailtoLink`
-- `converts h1 header to markdown format` → might need `elementSuperSet.h1Header`
+- `converts simple links` → use `g2t_test_element.common.a`
+- `converts links with title attributes` → might need variant or extend `g2t_test_element.common.a`
+- `handles mailto links` → use `g2t_test_element.common.mailto`
+- `converts h1 header to markdown format` → use `g2t_test_element.common.h1`
 
 #### Step 2.3: Create Specific Elements as Needed
 
 **EXAMPLE** - If a test needs H1 header:
 
 ```javascript
-// Add to elementSuperSet object:
-h1Header: {
-  ...elementSuperSet.common,
-  tagName: 'H1',
-  innerHTML: '<h1>Main Title</h1>',
-  text: jest.fn(() => 'Main Title'),
+// Add to g2t_test_element.common or create variant:
+h2: {
+  length: 1,
+  textContent: 'Subtitle',
+  innerHTML: '<h2>Subtitle</h2>',
+  nodeType: 1,
+  tagName: 'H2',
   expected: {
-    markdownify: '# Main Title'
-  }
+    markdownify: '## Subtitle'
+  },
+  // ... jQuery methods following same pattern
 }
 ```
 
@@ -289,9 +310,8 @@ If tests fail:
 ```javascript
 // BEFORE (complex and fragile):
 test('converts simple links', () => {
-  const input =
-    '<p>Visit <a href="https://example.com">Example</a> for more info</p>';
-  const expected = 'Visit [Example](<https://example.com>) for more info';
+  const input = '<a href="https://example.com">Example</a>';
+  const expected = '[Example](<https://example.com>)';
   const $element = createMockJQueryElement(input);
   const result = utils.markdownify($element, true, {});
   expect(result).toBe(expected);
@@ -299,12 +319,12 @@ test('converts simple links', () => {
 
 // AFTER (simple and reliable):
 test('converts simple links', () => {
-  const result = utils.markdownify(elementSuperSet.common, true, {});
-  expect(result).toBe(elementSuperSet.common.expected.markdownify);
+  const result = utils.markdownify(g2t_test_element.common.a, true, {});
+  expect(result).toBe(g2t_test_element.common.a.expected.markdownify);
 });
 ```
 
-**ADVANTAGE**: Change the link URL? Update it once in `elementSuperSet.common` and both the element properties AND expected result change together!
+**ADVANTAGE**: Change the link URL? Update it once in `g2t_test_element.common.a` and both the element properties AND expected result change together!
 
 ---
 
@@ -946,19 +966,16 @@ function setupModelForTesting() {
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
 1. **test_class_utils.js** (GOLD STANDARD)
-
    - Command: `npm test -- test/test_class_utils.js`
    - Expected: All 118 tests passing
    - Purpose: Ensure gold standard functionality is preserved
 
 2. **test_class_app.js** (SILVER STANDARD)
-
    - Command: `npm test -- test/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
 
 3. **test_class_goog.js** (BRONZE STANDARD)
-
    - Command: `npm test -- test/test_class_goog.js`
    - Expected: All 39+ tests passing
    - Purpose: Ensure bronze standard functionality is preserved
@@ -1373,13 +1390,11 @@ function setupChromeForTesting() {
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
 1. **test_class_app.js** (SILVER STANDARD)
-
    - Command: `npm test -- test/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
 
 2. **test_class_utils.js** (BRONZE STANDARD)
-
    - Command: `npm test -- test/test_class_utils.js`
    - Expected: All 118 tests passing
    - Purpose: Ensure bronze standard functionality is preserved
@@ -1923,13 +1938,11 @@ function setupUtilsForTesting() {
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
 1. **test_markdownify.js** (GOLD STANDARD)
-
    - Command: `npm test -- test/test_markdownify.js`
    - Expected: All 55 tests passing
    - Purpose: Ensure gold standard functionality is preserved
 
 2. **test_class_app.js** (SILVER STANDARD)
-
    - Command: `npm test -- test/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
