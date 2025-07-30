@@ -10,8 +10,36 @@ const { JSDOM } = require('jsdom');
 // Import console log for debugging
 const { log: console_log } = require('console');
 
+// Create shared JSDOM instance for all test elements
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+const document = dom.window.document;
+
 // Set up global jQuery mock at module level
 global.$ = (selectorOrElement, context) => {
+  console_log(
+    'DEBUG: global $ called with:',
+    typeof selectorOrElement,
+    !!selectorOrElement?._domElement,
+  );
+  if (selectorOrElement && typeof selectorOrElement === 'object') {
+    console_log(
+      'DEBUG: object keys:',
+      Object.keys(selectorOrElement).slice(0, 5),
+    );
+    console_log('DEBUG: has outerHTML:', !!selectorOrElement.outerHTML);
+    console_log('DEBUG: has nodeType:', !!selectorOrElement.nodeType);
+  }
+
+  // PRIORITY CASE: $(g2t_element) - catch our _element proxy first
+  if (
+    selectorOrElement &&
+    typeof selectorOrElement === 'object' &&
+    selectorOrElement.outerHTML &&
+    typeof selectorOrElement.expected === 'object' // This is unique to our g2t_element objects
+  ) {
+    console_log('DEBUG: Returning _element proxy directly!');
+    return selectorOrElement; // Return the _element proxy directly
+  }
   // Case 1: $(element) - wrap a single DOM element
   if (
     selectorOrElement &&
@@ -22,6 +50,43 @@ global.$ = (selectorOrElement, context) => {
     return elementSuperSet(element.innerHTML || element.outerHTML || '', [
       element,
     ]);
+  }
+
+  // Case 3: $(g2t_element) - element with outerHTML property (fallback)
+  if (selectorOrElement && selectorOrElement.outerHTML) {
+    const htmlContent = selectorOrElement.outerHTML;
+    try {
+      // Create real DOM elements using JSDOM
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      const elements = Array.from(tempDiv.children);
+
+      // If no child elements, use the tempDiv itself
+      const domElements = elements.length > 0 ? elements : [tempDiv];
+
+      // Return simple jQuery-like object with real DOM elements
+      return {
+        length: domElements.length,
+        html: jest.fn(() => domElements[0]?.innerHTML || ''),
+        text: jest.fn(() => domElements[0]?.textContent || ''),
+        attr: jest.fn(name => domElements[0]?.getAttribute(name) || ''),
+        prop: jest.fn(name => {
+          if (name === 'href') {
+            return domElements[0]?.getAttribute('href') || '';
+          }
+          return domElements[0]?.[name] || '';
+        }),
+      };
+    } catch (e) {
+      // Fallback to empty jQuery-like object
+      return {
+        length: 0,
+        html: jest.fn(() => ''),
+        text: jest.fn(() => ''),
+        attr: jest.fn(() => ''),
+        prop: jest.fn(() => ''),
+      };
+    }
   }
 
   // Case 2: $(selector, context) - find elements in context
@@ -56,17 +121,23 @@ global.$ = (selectorOrElement, context) => {
         const tagMatch = selector.match(/^([a-zA-Z]+)$/);
         if (tagMatch) {
           const tag = tagMatch[1];
+
           const regex = new RegExp(`<${tag}[^>]*>(.*?)</${tag}>`, 'gi');
           let match;
           while ((match = regex.exec(contextContent)) !== null) {
+            // Capture the match for this specific element to avoid closure issues
+            const currentMatch = match;
+
             elements.push({
               tagName: tag.toUpperCase(),
-              textContent: match[1].replace(/<[^>]*>/g, ''), // Strip inner HTML tags
-              innerHTML: match[1],
-              outerHTML: match[0],
+              textContent: currentMatch[1].replace(/<[^>]*>/g, ''), // Strip inner HTML tags
+              innerHTML: currentMatch[1],
+              outerHTML: currentMatch[0],
               getAttribute: attr => {
                 if (attr === 'href') {
-                  const hrefMatch = match[0].match(/href=['"]([^'"]*)['"]/);
+                  const hrefMatch = currentMatch[0].match(
+                    /href=['"]([^'"]*)['"]/,
+                  );
                   return hrefMatch ? hrefMatch[1] : '';
                 }
                 return '';
@@ -100,31 +171,92 @@ global.$ = (selectorOrElement, context) => {
       }
     }
 
-    // Use elementSuperSet with the elements array - it handles everything now!
-    return elementSuperSet(
-      elements.length > 0
-        ? elements[0].outerHTML || elements[0].innerHTML || ''
-        : '',
-      elements,
-    );
+    // Return a simple jQuery-like object using real JSDOM elements
+    return {
+      length: elements.length,
+      each: jest.fn(callback => {
+        elements.forEach((element, index) => {
+          // Create a comprehensive jQuery-like wrapper for each element
+          const elementWrapper = {
+            attr: jest.fn(name => {
+              const result = element.getAttribute(name) || '';
+              console_log(`DEBUG: elementWrapper.attr(${name}) = ${result}`);
+              return result;
+            }),
+            prop: jest.fn(name => {
+              if (name === 'href') {
+                // Check both attribute and property
+                const attrResult = element.getAttribute('href') || '';
+                const propResult = element[name] || '';
+                console_log(
+                  `DEBUG: elementWrapper.prop(href) - getAttribute: ${attrResult}, element.href: ${propResult}`,
+                );
+                return attrResult; // Use getAttribute to avoid URL normalization
+              }
+              const result = element[name] || '';
+              console_log(`DEBUG: elementWrapper.prop(${name}) = ${result}`);
+              return result;
+            }),
+            text: jest.fn(() => {
+              const result = element.textContent;
+              console_log(`DEBUG: elementWrapper.text() = ${result}`);
+              return result;
+            }),
+            html: jest.fn(() => element.innerHTML),
+            length: 1,
+            outerHTML: element.outerHTML,
+            tagName: element.tagName,
+          };
+          callback(index, elementWrapper);
+        });
+      }),
+      first: jest.fn(() => {
+        if (elements.length > 0) {
+          const element = elements[0];
+          return {
+            attr: jest.fn(name => element.getAttribute(name) || ''),
+            prop: jest.fn(name => {
+              if (name === 'href') {
+                return element.getAttribute('href') || '';
+              }
+              return element[name] || '';
+            }),
+            text: jest.fn(() => element.textContent),
+            html: jest.fn(() => element.innerHTML),
+          };
+        }
+        return {
+          attr: jest.fn(() => ''),
+          prop: jest.fn(() => ''),
+          text: jest.fn(() => ''),
+          html: jest.fn(() => ''),
+        };
+      }),
+    };
   }
 
   // Case 3: $(selector) - find elements by selector (most common case)
   if (typeof selectorOrElement === 'string') {
-    // Use elementSuperSet for consistent mock element behavior
-    return elementSuperSet();
+    // Return empty jQuery-like object for string selectors
+    return {
+      length: 0,
+      each: jest.fn(),
+      attr: jest.fn(() => ''),
+      prop: jest.fn(() => ''),
+      text: jest.fn(() => ''),
+      html: jest.fn(() => ''),
+    };
   }
 
-  // Default behavior for other cases - ALWAYS return object with length
-  const defaultResult = elementSuperSet();
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('GLOBAL $ DEFAULT CASE:', {
-      selector: selectorOrElement,
-      hasContext: !!context,
-      resultLength: defaultResult.length,
-    });
-  }
-  return defaultResult;
+  // Default behavior for other cases - return empty jQuery-like object
+  return {
+    length: 0,
+    each: jest.fn(),
+    attr: jest.fn(() => ''),
+    prop: jest.fn(() => ''),
+    text: jest.fn(() => ''),
+    html: jest.fn(() => ''),
+  };
 };
 
 // Add $.extend method
@@ -177,6 +309,11 @@ ${mockConstructorsCode}`,
  * @returns {Object} - Complete mock element with all jQuery methods and proper length
  */
 function elementSuperSet(htmlContent = '', elementsArray = []) {
+  // DISABLED: Force everything to use _element proxy instead
+  throw new Error(
+    'elementSuperSet disabled - use _element proxy with JSDOM instead',
+  );
+
   // Ensure htmlContent is a string
   const content = htmlContent || '';
 
@@ -189,7 +326,6 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
   let parsedTextContent = 'mock text';
 
   // Debug logging for content parsing
-  console_log('DEBUG: elementSuperSet content:', content);
 
   if (content) {
     // Extract tag name from HTML content
@@ -197,16 +333,13 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
     if (tagMatch) {
       parsedTagName = tagMatch[1].toUpperCase();
     }
-    console_log('DEBUG: parsedTagName:', parsedTagName);
 
     // Extract attributes from HTML content
     const attrRegex = /(\w+)=['"]([^'"]*)['"]/g;
     let attrMatch;
     while ((attrMatch = attrRegex.exec(content)) !== null) {
-      console_log('DEBUG: found attribute:', attrMatch[1], '=', attrMatch[2]);
       parsedAttributes[attrMatch[1]] = attrMatch[2];
     }
-    console_log('DEBUG: final parsedAttributes:', parsedAttributes);
 
     // Extract text content using JSDOM parsing
     try {
@@ -240,19 +373,19 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
     parsedTextContent: parsedTextContent,
 
     // jQuery methods
-    html: () => {
+    html: jest.fn(function () {
       if (elementsArray.length > 0) {
         return elementsArray[0].innerHTML || '';
       }
       return content;
-    },
-    text: () => {
+    }),
+    text: jest.fn(function () {
       if (elementsArray.length > 0) {
         return elementsArray[0].textContent || '';
       }
       // Return the already-parsed text content
       return parsedTextContent;
-    },
+    }),
     attr: jest.fn(name => {
       if (elementsArray.length > 0 && elementsArray[0].getAttribute) {
         return elementsArray[0].getAttribute(name) || '';
@@ -273,22 +406,6 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
       return attrs[name] || 'mock-attr';
     }),
     prop: jest.fn(function (name) {
-      // Debug logging for href property access
-      if (name === 'href') {
-        console_log('DEBUG: prop(href) called');
-        console_log('DEBUG: this.parsedAttributes:', this.parsedAttributes);
-        console_log('DEBUG: elementsArray.length:', elementsArray.length);
-      }
-
-      // First try static parsed attributes (these survive Object.assign)
-      if (this.parsedAttributes && this.parsedAttributes[name]) {
-        console_log(
-          'DEBUG: using this.parsedAttributes[' + name + ']:',
-          this.parsedAttributes[name],
-        );
-        return this.parsedAttributes[name];
-      }
-
       // If we have actual DOM elements, use the first one's properties
       if (elementsArray.length > 0) {
         const element = elementsArray[0];
@@ -303,15 +420,15 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
               element.href ||
               (element.getAttribute && element.getAttribute('href')) ||
               '';
-            console_log('DEBUG: final href result from element:', href);
             return href;
           } catch (e) {
-            console_log('DEBUG: exception in href extraction:', e);
             return element.href || '';
           }
         }
         // Fall back to element properties
         return element[name] || '';
+      } else if (this.parsedAttributes && this.parsedAttributes[name]) {
+        return this.parsedAttributes[name];
       }
 
       // Fallback to default properties
@@ -326,7 +443,18 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
     }),
     offset: jest.fn(() => ({ top: 1, left: 2 })),
     getAttribute: jest.fn(function (name) {
-      // First check static parsed attributes (these survive Object.assign)
+      // If we have actual DOM elements, use the first one's getAttribute
+      if (elementsArray.length > 0) {
+        const element = elementsArray[0];
+        if (
+          element.getAttribute &&
+          typeof element.getAttribute === 'function'
+        ) {
+          return element.getAttribute(name);
+        }
+      }
+
+      // Check static parsed attributes (these survive Object.assign)
       if (this.parsedAttributes && this.parsedAttributes[name]) {
         return this.parsedAttributes[name];
       }
@@ -374,9 +502,7 @@ function elementSuperSet(htmlContent = '', elementsArray = []) {
             tagName: element.tagName || '',
             nodeType: 1,
           });
-          console_log(
-            'DEBUG: reusing existing elementSuperSet with element overlay',
-          );
+
           callback(index, elementForCallback);
         });
       } else {
@@ -525,21 +651,21 @@ function createMockJQueryElement(htmlContent) {
     replaceAll: content => createMockJQueryElement(content),
     // Add support for element wrapping
     wrap: content => createMockJQueryElement(content),
-    wrapAll: content => createMockJQueryElement(content),
-    wrapInner: content => createMockJQueryElement(tempDiv.outerHTML),
+    wrapAll: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
+    wrapInner: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
     // Add support for element unwrapping
     unwrap: () => createMockJQueryElement(tempDiv.innerHTML),
     // Add support for element insertion
-    insertAfter: content => createMockJQueryElement(tempDiv.outerHTML),
-    insertBefore: content => createMockJQueryElement(tempDiv.outerHTML),
-    after: content => createMockJQueryElement(tempDiv.outerHTML),
-    before: content => createMockJQueryElement(tempDiv.outerHTML),
+    insertAfter: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
+    insertBefore: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
+    after: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
+    before: (/* content */) => createMockJQueryElement(tempDiv.outerHTML),
     // Add support for element filtering
-    filter: selector => createMockJQueryElement(tempDiv.outerHTML),
-    not: selector => createMockJQueryElement(tempDiv.outerHTML),
+    filter: (/* selector */) => createMockJQueryElement(tempDiv.outerHTML),
+    not: (/* selector */) => createMockJQueryElement(tempDiv.outerHTML),
     // Add support for element indexing
     index: () => 0,
-    eq: index => createMockJQueryElement(tempDiv.outerHTML),
+    eq: (/* index */) => createMockJQueryElement(tempDiv.outerHTML),
     // Add support for element content
     contents: () => createMockJQueryElement(tempDiv.innerHTML),
     // Add support for element attributes
@@ -548,7 +674,7 @@ function createMockJQueryElement(htmlContent) {
       return createMockJQueryElement(tempDiv.outerHTML);
     },
     // Add support for element properties
-    removeProp: propName => createMockJQueryElement(tempDiv.outerHTML),
+    removeProp: (/* propName */) => createMockJQueryElement(tempDiv.outerHTML),
     // Add support for element values
     val: value => {
       if (value !== undefined) {
@@ -618,7 +744,7 @@ global.EventTarget = class EventTarget {
     this.listeners = new Map();
   }
 
-  addEventListener(type, listener, options) {
+  addEventListener(type, listener /* options */) {
     if (!this.listeners.has(type)) {
       this.listeners.set(type, []);
     }
@@ -726,7 +852,7 @@ function loadClassFile(filePath) {
 
 /**
  * Helper function to load and setup Utils class for testing
- * @returns {Object} - Object containing utils instance and mockApp
+ * @returns {Object} - Object containing utils instance and testApp
  */
 function setupUtilsForTesting() {
   // Initialize G2T namespace for Utils class
@@ -784,10 +910,9 @@ function setupUtilsForTesting() {
  * Helper function to create real Utils methods for testing
  * This provides actual Utils implementations for string processing methods
  * instead of mocked versions, making tests more realistic
- * @param {Object} mockApp - Mock application object
- * @returns {Object} - Object with real Utils methods bound to the mock app
+ * @returns {Object} - Object with real Utils methods bound to the test app
  */
-function createRealUtilsMethods(mockApp) {
+function createRealUtilsMethods() {
   // Create a simple test app for Utils initialization
   const utilsTestApp = {
     utils: {
@@ -1008,11 +1133,6 @@ function clearAllMocks() {
     chrome.runtime.getURL.mockClear();
   }
 
-  // Clear global console mocks
-  console.log.mockClear();
-  console.error.mockClear();
-  console.warn.mockClear();
-
   // Clear window-specific mocks (from JSDOM setup)
   if (
     typeof window !== 'undefined' &&
@@ -1098,7 +1218,7 @@ function createMockJQuery(html = '') {
   const mockJQuery = {
     html: () => html,
     length: html ? 1 : 0,
-    find: jest.fn(selector => {
+    find: jest.fn((/* selector */) => {
       // Handle complex CSS selectors by returning a mock that can handle the chain
       const mockResult = createMockJQuery();
 
@@ -1309,7 +1429,7 @@ function createG2TNamespace(mockInstances) {
  * @returns {Object} - Object containing model instance and mock app
  */
 function setupModelForTesting() {
-  const mockApp = {
+  const testApp = {
     utils: {
       log: jest.fn(),
     },
@@ -1350,7 +1470,7 @@ function setupModelForTesting() {
     id: 'test-parent',
   };
 
-  const model = new G2T.Model({ parent: mockParent, app: mockApp });
+  const model = new G2T.Model({ parent: mockParent, app: testApp });
 
   // Initialize model properties to match expected state
   model.trelloAuthorized = false;
@@ -1361,8 +1481,571 @@ function setupModelForTesting() {
   model.members = [];
   model.labels = [];
 
-  return { model, mockApp };
+  return { model, testApp };
 }
+
+/**
+ * Internal element creator using Proxy pattern for property inheritance
+ * Creates JSDOM element upfront for realistic DOM testing
+ */
+function _element(elementData, parentName = 'common') {
+  // Create real DOM element upfront if we have outerHTML
+  let domElement = null;
+  if (elementData.outerHTML) {
+    try {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = elementData.outerHTML;
+      domElement = tempDiv.firstElementChild || tempDiv;
+    } catch (e) {
+      domElement = null;
+    }
+  }
+
+  return new Proxy(elementData, {
+    get(target, prop) {
+      // 1. Check specific element first
+      if (prop in target) {
+        return target[prop];
+      }
+
+      // 2. Check parent (g2t_element) for inheritance
+      const parent = g2t_element[parentName];
+      if (parent && prop in parent) {
+        return parent[prop];
+      }
+
+      // 3. Provide jQuery methods directly
+      if (prop === 'html') {
+        return jest.fn(() => {
+          if (domElement) {
+            console_log(
+              'DEBUG: _element html() using domElement.innerHTML:',
+              domElement.innerHTML,
+            );
+            return domElement.innerHTML;
+          }
+          const fallback =
+            target.outerHTML || (parent && parent.outerHTML) || '';
+          console_log('DEBUG: _element html() using fallback:', fallback);
+          return fallback;
+        });
+      }
+
+      if (prop === 'length') {
+        return 1; // Default length for jQuery objects
+      }
+
+      if (prop === 'find') {
+        return jest.fn(selector => {
+          if (domElement) {
+            console_log(
+              'DEBUG: _element find() using domElement.querySelectorAll for:',
+              selector,
+            );
+            const foundElements = Array.from(
+              domElement.querySelectorAll(selector),
+            );
+            return {
+              length: foundElements.length,
+              each: jest.fn(callback => {
+                foundElements.forEach((element, index) => {
+                  console_log(
+                    'DEBUG: _element find() callback with element href:',
+                    element.getAttribute('href'),
+                  );
+                  // Return a simple jQuery-like wrapper for each found element
+                  const elementWrapper = {
+                    attr: jest.fn(name => element.getAttribute(name) || ''),
+                    prop: jest.fn(name => {
+                      if (name === 'href') {
+                        return element.getAttribute('href') || '';
+                      }
+                      return element[name] || '';
+                    }),
+                    text: jest.fn(() => element.textContent),
+                    html: jest.fn(() => element.innerHTML),
+                  };
+                  callback(index, elementWrapper);
+                });
+              }),
+            };
+          }
+          return { length: 0, each: jest.fn() };
+        });
+      }
+
+      // 4. Expose the DOM element so global $ can use it
+      if (prop === '_domElement') {
+        return domElement;
+      }
+
+      // 5. Let other properties return undefined
+      return undefined;
+    },
+  });
+}
+
+/**
+ * Static test element definitions for clean, predictable testing
+ * Each element type has pre-defined properties and expected test results
+ * Usage: g2t_element.p, g2t_element.a, etc.
+ */
+const g2t_element = {
+  // Common defaults that all elements inherit
+  length: 1,
+  features: true,
+
+  p: _element({
+    textContent: 'Paragraph content',
+    innerHTML: '<p>Paragraph content</p>',
+    expected: {
+      markdownify: 'Paragraph content',
+    },
+  }),
+
+  a: _element({
+    href: 'https://example.com',
+    textContent: 'Example',
+    innerHTML: '<a href="https://example.com">Example</a>',
+    expected: {
+      markdownify: '[Example](<https://example.com>)',
+    },
+  }),
+
+  h1: _element({
+    textContent: 'h1 title',
+    innerHTML: '<h1>h1 title</h1>',
+    expected: {
+      markdownify: '# h1 title',
+    },
+  }),
+
+  mailto: _element({
+    href: 'mailto:test@example.com',
+    textContent: 'Contact us',
+    innerHTML: '<a href="mailto:test@example.com">Contact us</a>',
+    expected: {
+      markdownify: '[Contact us](<mailto:test@example.com>)',
+    },
+  }),
+
+  strong: _element({
+    textContent: 'bold',
+    innerHTML: '<strong>bold</strong>',
+    expected: {
+      markdownify: '**bold**',
+    },
+  }),
+
+  em: _element({
+    textContent: 'italic',
+    innerHTML: '<em>italic</em>',
+    expected: {
+      markdownify: '*italic*',
+    },
+  }),
+
+  h2: _element({
+    textContent: 'h2 title',
+    innerHTML: '<h2>h2 title</h2>',
+    expected: {
+      markdownify: '## h2 title',
+    },
+  }),
+
+  h3: _element({
+    textContent: 'h3 title',
+    innerHTML: '<h3>h3 title</h3>',
+    expected: {
+      markdownify: '### h3 title',
+    },
+  }),
+
+  h4: _element({
+    textContent: 'h4 title',
+    innerHTML: '<h4>h4 title</h4>',
+    expected: {
+      markdownify: '#### h4 title',
+    },
+  }),
+
+  h5: _element({
+    textContent: 'h5 title',
+    innerHTML: '<h5>h5 title</h5>',
+    expected: {
+      markdownify: '##### h5 title',
+    },
+  }),
+
+  h6: _element({
+    textContent: 'h6 title',
+    innerHTML: '<h6>h6 title</h6>',
+    expected: {
+      markdownify: '###### h6 title',
+    },
+  }),
+
+  p2: _element({
+    textContent: 'First paragraphSecond paragraph',
+    innerHTML: '<p>First paragraph</p><p>Second paragraph</p>',
+    expected: {
+      markdownify: 'First paragraph\n\nSecond paragraph',
+    },
+  }),
+
+  div2: _element({
+    textContent: 'First divSecond div',
+    innerHTML: '<div>First div</div><div>Second div</div>',
+    expected: {
+      markdownify: 'First div\n\nSecond div',
+    },
+  }),
+
+  hr: _element({
+    textContent: 'Text beforeText after',
+    innerHTML: '<p>Text before</p><hr><p>Text after</p>',
+    expected: {
+      markdownify: 'Text before\n\n---\n\nText after',
+    },
+  }),
+
+  hr2: _element({
+    textContent: 'BeforeAfter',
+    innerHTML: '<p>Before</p>----<p>After</p>',
+    expected: {
+      markdownify: 'Before\n\n---\n\nAfter',
+    },
+  }),
+
+  br: _element({
+    textContent: 'Line 1Line 2',
+    innerHTML: '<p>Line 1<br>Line 2</p>',
+    expected: {
+      markdownify: 'Line 1\nLine 2',
+    },
+  }),
+
+  br_attr: _element({
+    textContent: 'Line 1Line 2',
+    innerHTML: '<p>Line 1<br class="test">Line 2</p>',
+    expected: {
+      markdownify: 'Line 1\nLine 2',
+    },
+  }),
+
+  i: _element({
+    textContent: 'This is italic text',
+    innerHTML: '<p>This is <i>italic</i> text</p>',
+    expected: {
+      markdownify: 'This is *italic* text',
+    },
+  }),
+
+  u: _element({
+    textContent: 'This is underlined text',
+    innerHTML: '<p>This is <u>underlined</u> text</p>',
+    expected: {
+      markdownify: 'This is __underlined__ text',
+    },
+  }),
+
+  del: _element({
+    textContent: 'This is deleted text',
+    innerHTML: '<p>This is <del>deleted</del> text</p>',
+    expected: {
+      markdownify: 'This is ~~deleted~~ text',
+    },
+  }),
+
+  s: _element({
+    textContent: 'This is strikethrough text',
+    innerHTML: '<p>This is <s>strikethrough</s> text</p>',
+    expected: {
+      markdownify: 'This is ~~strikethrough~~ text',
+    },
+  }),
+
+  strike: _element({
+    textContent: 'This is strikethrough text',
+    innerHTML: '<p>This is <strike>strikethrough</strike> text</p>',
+    expected: {
+      markdownify: 'This is ~~strikethrough~~ text',
+    },
+  }),
+
+  strong_em: _element({
+    textContent: 'This is bold italic text',
+    innerHTML: '<p>This is <strong><em>bold italic</em></strong> text</p>',
+    expected: {
+      markdownify: 'This is *bold italic* text',
+    },
+  }),
+
+  a_title: _element({
+    textContent: 'Visit Example',
+    innerHTML:
+      '<p>Visit <a href="https://example.com" title="Example Site">Example</a></p>',
+    expected: {
+      markdownify: 'Visit [Example](<https://example.com>)',
+    },
+  }),
+
+  a_long: _element({
+    textContent: 'Visit This is a very long link text that should be converted',
+    innerHTML:
+      '<p>Visit <a href="https://example.com">This is a very long link text that should be converted</a></p>',
+    expected: {
+      markdownify:
+        'Visit [This is a very long link text that should be converted](<https://example.com>)',
+    },
+  }),
+
+  a_short: _element({
+    textContent: 'Visit Hi for more info',
+    innerHTML:
+      '<p>Visit <a href="https://example.com">Hi</a> for more info</p>',
+    expected: {
+      markdownify: 'Visit Hi for more info',
+    },
+  }),
+
+  a_multiple: _element({
+    outerHTML:
+      '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>',
+    expected: {
+      markdownify:
+        'Visit [Example 1](<https://example1.com>) and [Example 2](<https://example2.com>)',
+    },
+  }),
+
+  a_same: _element({
+    textContent: 'Visit https://example.com',
+    innerHTML:
+      '<p>Visit <a href="https://example.com">https://example.com</a></p>',
+    expected: {
+      markdownify: 'Visit <https://example.com>',
+    },
+  }),
+
+  bullet: _element({
+    textContent: '• Item 1• Item 2• Item 3',
+    innerHTML: '<p>• Item 1<br>• Item 2<br>• Item 3</p>',
+    expected: {
+      markdownify: '• Item 1\n• Item 2\n• Item 3',
+    },
+  }),
+
+  spaces: _element({
+    textContent: 'This    has    multiple    spaces',
+    innerHTML: '<p>This    has    multiple    spaces</p>',
+    expected: {
+      markdownify: 'This has multiple spaces',
+    },
+  }),
+
+  linebreaks: _element({
+    textContent: 'First lineSecond line',
+    innerHTML: '<p>First line</p>\n\n\n<p>Second line</p>',
+    expected: {
+      markdownify: 'First line\n\nSecond line',
+    },
+  }),
+
+  trim: _element({
+    textContent: 'Content',
+    innerHTML: '   <p>Content</p>   ',
+    expected: {
+      markdownify: 'Content',
+    },
+  }),
+
+  strong_simple: _element({
+    textContent: 'This is bold text',
+    innerHTML: '<p>This is <strong>bold</strong> text</p>',
+    expected: {
+      markdownify: 'This is **bold** text',
+    },
+  }),
+
+  empty_content: _element({
+    textContent: 'Content',
+    innerHTML: '<div><p></p><p>Content</p></div>',
+    expected: {
+      markdownify: 'Content',
+    },
+  }),
+
+  b: _element({
+    textContent: 'This is bold text',
+    innerHTML: '<p>This is <b>bold</b> text</p>',
+    expected: {
+      markdownify: 'This is **bold** text',
+    },
+  }),
+
+  em_text: _element({
+    textContent: 'This is italic text',
+    innerHTML: '<p>This is <em>italic</em> text</p>',
+    expected: {
+      markdownify: 'This is *italic* text',
+    },
+  }),
+
+  empty_input: _element({
+    textContent: '',
+    innerHTML: '',
+    expected: {
+      markdownify: '',
+    },
+  }),
+
+  whitespace_input: _element({
+    textContent: '   \n\t   ',
+    innerHTML: '   \n\t   ',
+    expected: {
+      markdownify: '',
+    },
+  }),
+
+  strong_em_both: _element({
+    textContent: 'This is bold and italic text',
+    innerHTML: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    expected: {
+      markdownify: 'This is **bold** and *italic* text',
+    },
+  }),
+
+  headers_spacing: _element({
+    textContent: 'TitleContentSubtitle',
+    innerHTML: '<h1>Title</h1><p>Content</p><h2>Subtitle</h2>',
+    expected: {
+      markdownify: '# Title\n\nContent\n\n## Subtitle',
+    },
+  }),
+
+  html_entities: _element({
+    textContent: 'This & that < > " \'',
+    innerHTML: '<p>This &amp; that &lt; &gt; &quot; &#39;</p>',
+    expected: {
+      markdownify: 'This & that < > " \'',
+    },
+  }),
+
+  numeric_entities: _element({
+    textContent: 'Copyright © 2023',
+    innerHTML: '<p>Copyright &#169; 2023</p>',
+    expected: {
+      markdownify: 'Copyright © 2023',
+    },
+  }),
+
+  bullet_chars: _element({
+    textContent: '• First item• Second item',
+    innerHTML: '<p>• First item<br>• Second item</p>',
+    expected: {
+      markdownify: '• First item\n• Second item',
+    },
+  }),
+
+  space_normalize: _element({
+    textContent: 'Text   with   multiple   spaces',
+    innerHTML: '<p>Text   with   multiple   spaces</p>',
+    expected: {
+      markdownify: 'Text with multiple spaces',
+    },
+  }),
+
+  features_disabled: _element({
+    textContent: 'This is bold and italic text',
+    innerHTML: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    features: false,
+    expected: {
+      markdownify: 'This is bold and italic text', // When features=false, formatting is stripped
+    },
+  }),
+
+  title_bold_italic_link: _element({
+    textContent: 'TitleThis is bold and italic text with link.',
+    innerHTML:
+      '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>',
+    expected: {
+      markdownify:
+        '# Title\n\nThis is **bold** and *italic* text with a [link](<https://example.com>) .',
+    },
+  }),
+
+  long_text: _element({
+    textContent: 'A'.repeat(10000),
+    innerHTML: 'A'.repeat(10000),
+    expected: {
+      markdownify: 'A'.repeat(10000),
+    },
+  }),
+
+  special_chars: _element({
+    textContent: 'Special chars: © ™ ® € £',
+    innerHTML: '<p>Special chars: &copy; &trade; &reg; &euro; &pound;</p>',
+    expected: {
+      markdownify: 'Special chars: © ™ ® € £',
+    },
+  }),
+
+  malformed_html: _element({
+    textContent: 'Unclosed tagBold textAnother paragraph',
+    innerHTML: '<p>Unclosed tag<strong>Bold text<p>Another paragraph',
+    expected: {
+      markdownify: 'Unclosed tagBold text\n\n**Another paragraph**',
+    },
+  }),
+
+  email_content: _element({
+    textContent:
+      "Meeting SummaryHello team,Here's what we discussed:• Project timeline• Budget concernsBest regards,John",
+    innerHTML:
+      "<div><h1>Meeting Summary</h1><p>Hello team,</p><p>Here's what we discussed:</p><ul><li>• Project timeline</li><li>• Budget concerns</li></ul><p>Best regards,<br>John</p></div>",
+    expected: {
+      markdownify:
+        "# Meeting Summary\n\nHello team,\n\nHere's what we discussed:\n\n• Project timeline• Budget concerns\n\nBest regards,\nJohn",
+    },
+  }),
+
+  features_strong_off_italic_on: _element({
+    textContent: 'This is bold and italic text',
+    innerHTML: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    features: { strong: false, em: true },
+    expected: {
+      markdownify: 'This is bold and *italic* text',
+    },
+  }),
+
+  tabs_whitespace: _element({
+    textContent: 'Line 1\twith\ttabsLine 2',
+    innerHTML: '<p>Line 1\twith\ttabs</p><p>Line 2</p>',
+    expected: {
+      markdownify: 'Line 1 with tabs\n\nLine 2',
+    },
+  }),
+
+  nested_html: _element({
+    textContent: 'Outer bold italic text',
+    innerHTML:
+      '<div><p>Outer <strong>bold <em>italic</em></strong> text</p></div>',
+    expected: {
+      markdownify: 'Outer **bold italic** text',
+    },
+  }),
+
+  consistent_test: _element({
+    textContent: 'Test bold content',
+    innerHTML: '<p>Test <strong>bold</strong> content</p>',
+    expected: {
+      markdownify: 'Test **bold** content',
+    },
+  }),
+
+  // Add specific variants only when common doesn't work
+  // (to be added as needed during testing)
+};
 
 module.exports = {
   loadClassFile,
@@ -1378,6 +2061,7 @@ module.exports = {
   setupModelForTesting,
   createMockJQueryElement,
   elementSuperSet,
+  g2t_element,
   injectJQueryAndMocks,
   console_log,
   TEST_CONFIG,

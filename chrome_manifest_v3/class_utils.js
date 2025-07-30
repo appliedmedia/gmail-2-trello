@@ -562,18 +562,23 @@ class Utils {
     // Clean up the body:
     replacements = [
       {
+        // Replace tab with space
+        pattern: new RegExp('\\t', 'g'),
+        repl: ' ',
+      },
+      {
         // Replace middle dot bullets with asterisks
-        pattern: new RegExp('[ \\t]*[\\n]+[ \\t]]*[·]\\s*', 'g'),
+        pattern: new RegExp(' *\\n+ *·\\s*', 'g'),
         repl: '\n\n* ',
-      }, // = [\u00B7\u2022]
+      },
       {
         // Replace remaining bullets with asterisks
-        pattern: new RegExp('[·]', 'g'),
+        pattern: new RegExp('·', 'g'),
         repl: '*',
       },
       {
         // Handle empty elements by ensuring they create spacing
-        pattern: new RegExp('\\n[ \\t]+\\n', 'g'),
+        pattern: new RegExp('\\n +\\n', 'g'),
         repl: '\n\n',
       },
       {
@@ -588,11 +593,10 @@ class Utils {
       context.body = context.body.replace(pattern, repl);
     });
 
-    // ORDER MATTERS FOR THIS NEXT SET
     replacements = [
       {
-        // (1) Replace 2 or more spaces (but not newlines) with just one
-        pattern: new RegExp('[ \\t]{2,}', 'g'),
+        // (1) Replace 2 or more spaces (but not newlines) with just one (should use RepeatReplace() for this)
+        pattern: new RegExp(' {2,}', 'g'),
         repl: ' ',
       },
       {
