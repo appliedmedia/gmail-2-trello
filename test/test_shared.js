@@ -21,20 +21,12 @@ global.$ = (selectorOrElement, context) => {
     typeof selectorOrElement,
     !!selectorOrElement?._domElement,
   );
-  if (selectorOrElement && typeof selectorOrElement === 'object') {
-    console_log(
-      'DEBUG: object keys:',
-      Object.keys(selectorOrElement).slice(0, 5),
-    );
-    console_log('DEBUG: has outerHTML:', !!selectorOrElement.outerHTML);
-    console_log('DEBUG: has nodeType:', !!selectorOrElement.nodeType);
-  }
 
   // PRIORITY CASE: $(g2t_element) - catch our _element proxy first
   if (
     selectorOrElement &&
     typeof selectorOrElement === 'object' &&
-    selectorOrElement.outerHTML &&
+    selectorOrElement.html &&
     typeof selectorOrElement.expected === 'object' // This is unique to our g2t_element objects
   ) {
     console_log('DEBUG: Returning _element proxy directly!');
@@ -52,9 +44,9 @@ global.$ = (selectorOrElement, context) => {
     ]);
   }
 
-  // Case 3: $(g2t_element) - element with outerHTML property (fallback)
-  if (selectorOrElement && selectorOrElement.outerHTML) {
-    const htmlContent = selectorOrElement.outerHTML;
+  // Case 3: $(g2t_element) - element with html property (fallback)
+  if (selectorOrElement && selectorOrElement.html) {
+    const htmlContent = selectorOrElement.html;
     try {
       // Create real DOM elements using JSDOM
       const tempDiv = document.createElement('div');
@@ -1810,8 +1802,7 @@ const g2t_element = {
   }),
 
   a_multiple: _element({
-    outerHTML:
-      '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>',
+    html: '<p>Visit <a href="https://example1.com">Example 1</a> and <a href="https://example2.com">Example 2</a></p>',
     expected: {
       markdownify:
         'Visit [Example 1](<https://example1.com>) and [Example 2](<https://example2.com>)',
