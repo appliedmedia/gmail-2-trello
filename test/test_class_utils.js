@@ -11,7 +11,7 @@ const {
   createRealUtilsMethods,
   _ts, // G2T_TestSuite instance
   createJQueryElement,
-  console_log,
+  debugOut,
 } = require('./test_shared');
 
 // Create Utils-specific test elements
@@ -340,7 +340,7 @@ describe('Utils Class', () => {
 
   // Simple test to verify setup is working
   test('basic setup test', () => {
-    console_log('Basic setup test running');
+    debugOut('Basic setup test running');
     expect(utils).toBeDefined();
     expect(app).toBeDefined();
   });

@@ -1,4 +1,4 @@
-const { loadSourceFile } = require('./test_shared');
+const { loadSourceFile, debugOut } = require('./test_shared');
 
 describe('loadSourceFile Test', () => {
   test('should load Utils class and make G2T.Utils available', () => {
@@ -17,6 +17,7 @@ describe('loadSourceFile Test', () => {
     const markdownResult = utils.markdownify('<p>Test</p>', true, {});
     expect(markdownResult).toBe('Test');
     
-    console.log('✅ loadSourceFile test passed!');
+    // ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use debugOut() instead of console.log() ⚠️
+    debugOut('✅ loadSourceFile test passed!');
   });
 }); 
