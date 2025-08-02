@@ -566,8 +566,8 @@ class Utils {
     // Clean up the body:
     replacements = [
       {
-        // Replace tab with space
-        pattern: new RegExp('\\t', 'g'),
+        // Replace tab with space (but preserve leading tabs for Markdown formatting)
+        pattern: new RegExp('(?!^\\t+)\\t', 'g'),
         repl: ' ',
       },
       {

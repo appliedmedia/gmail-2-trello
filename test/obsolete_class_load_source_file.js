@@ -17,6 +17,6 @@ describe('loadSourceFile Test', () => {
     const markdownResult = utils.markdownify('<p>Test</p>', true, {});
     expect(markdownResult).toBe('Test');
     
-    console_log('✅ loadSourceFile test passed!');
+    console.log('✅ loadSourceFile test passed!');
   });
 }); 

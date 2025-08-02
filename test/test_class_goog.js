@@ -498,7 +498,7 @@ describe('Goog Class', () => {
       }
 
       const endTime = Date.now();
-      expect(endTime - startTime).toBeLessThan(1000); // Should complete in under 1 second
+      expect(endTime - startTime).toBeLessThan(100); // Should complete in under 100ms
     });
 
     test('should handle error processing efficiently', () => {
@@ -512,7 +512,7 @@ describe('Goog Class', () => {
       }
 
       const endTime = Date.now();
-      expect(endTime - startTime).toBeLessThan(1000); // Should complete in under 1 second
+      expect(endTime - startTime).toBeLessThan(100); // Should complete in under 100ms
     });
   });
 
