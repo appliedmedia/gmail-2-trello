@@ -322,7 +322,8 @@ module.exports = {
   cleanupJSDOM: (...args) => _ts.cleanupJSDOM(...args),
   createRealUtilsMethods: (...args) => _ts.createRealUtilsMethods(...args),
   createJQueryElement: (...args) => _ts.asJQueryElement(...args),
-      debugOut,
+  createMockInstances: (...args) => _ts.createMockInstances(...args),
+  debugOut,
 };
 
 // end, test_shared.js
