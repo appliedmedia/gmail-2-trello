@@ -44,12 +44,13 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
     "jest": "latest",
+    "jest-environment-jsdom": "^30.0.5",
     "jquery": "latest",
     "jsdom": "latest",
     "prettier": "latest"
   },
   "jest": {
-    "testEnvironment": "node",
+    "testEnvironment": "jsdom",
     "verbose": false,
     "silent": false,
     "testMatch": [
@@ -58,7 +59,8 @@
       "**/test/test_class_app.js",
       "**/test/test_class_trel.js",
       "**/test/test_class_gmailView.js",
-      "**/test/test_class_goog.js"
+      "**/test/test_class_goog.js",
+      "**/test/test_class_load_source_file.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,

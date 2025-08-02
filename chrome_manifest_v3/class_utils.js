@@ -374,7 +374,11 @@ class Utils {
    * Process links during markdown processing
    */
   markdownify_onLinkEach(context) {
-    const href = (context.$element.prop('href') || '').trim(); // Was attr
+    const href = (
+      context.$element.attr('href') ||
+      context.$element.prop('href') ||
+      ''
+    ).trim(); // Note, prop DOM adds trailing slash to bare URLs changing the input sometimes
     if (href && context.element_meets_min_length) {
       context.toProcess[context.element_text.toLowerCase()] =
         context.self.anchorMarkdownify(context.element_text, href); // Intentionally overwrites duplicates

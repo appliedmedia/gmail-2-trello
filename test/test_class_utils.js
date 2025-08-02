@@ -5,68 +5,257 @@
 
 // Import shared test utilities
 const {
-  loadClassFile,
+  loadSourceFile,
   setupJSDOM,
   cleanupJSDOM,
-  setupUtilsForTesting,
-  createMockJQueryElement,
-  g2t_element,
-  injectJQueryAndMocks,
+  createRealUtilsMethods,
+  _ts, // G2T_TestSuite instance
+  createJQueryElement,
   console_log,
 } = require('./test_shared');
 
-// Load the Utils class using eval (for Chrome extension compatibility)
-const utilsCode = loadClassFile('chrome_manifest_v3/class_utils.js');
+// Create Utils-specific test elements
+const utils_e = {
+  p: _ts.e({
+    html: '<p>Paragraph content</p>',
+    expected: 'Paragraph content',
+  }),
 
-// Create mock constructors code
-const mockConstructorsCode = `
-// Inject mock constructors for testing
-G2T.Goog = function(args) {
-  if (!(this instanceof G2T.Goog)) {
-    return new G2T.Goog(args);
-  }
-  Object.assign(this, mockChrome);
-  return this;
-};
-G2T.EventTarget = function(args) {
-  if (!(this instanceof G2T.EventTarget)) {
-    return new G2T.EventTarget(args);
-  }
-  Object.assign(this, mockEventTarget);
-  return this;
-};
-G2T.Model = function(args) {
-  if (!(this instanceof G2T.Model)) {
-    return new G2T.Model(args);
-  }
-  Object.assign(this, mockModel);
-  return this;
-};
-G2T.GmailView = function(args) {
-  if (!(this instanceof G2T.GmailView)) {
-    return new G2T.GmailView(args);
-  }
-  Object.assign(this, mockGmailView);
-  return this;
-};
-G2T.PopupView = function(args) {
-  if (!(this instanceof G2T.PopupView)) {
-    return new G2T.PopupView(args);
-  }
-  Object.assign(this, mockPopupView);
-  return this;
-};
-G2T.Utils = function(args) {
-  if (!(this instanceof G2T.Utils)) {
-    return new G2T.Utils(args);
-  }
-  Object.assign(this, mockUtils);
-  return this;
-};`;
+  a: _ts.e({
+    html: '<a href="https://example.com">Example</a>',
+    expected: '[Example](<https://example.com>)',
+  }),
 
-// Use standardized injection function
-const injectedCode = injectJQueryAndMocks(utilsCode, mockConstructorsCode);
-eval(injectedCode);
+  h1: _ts.e({
+    html: '<h1>h1 title</h1>',
+    expected: '# h1 title',
+  }),
+
+  strong: _ts.e({
+    html: '<strong>bold</strong>',
+    expected: '**bold**',
+  }),
+
+  em: _ts.e({
+    html: '<em>italic</em>',
+    expected: '*italic*',
+  }),
+
+  // Add all the test elements that were previously in g2t_element
+  p2: _ts.e({
+    html: '<p>First paragraph</p><p>Second paragraph</p>',
+    expected: 'First paragraph\n\nSecond paragraph',
+  }),
+
+  div2: _ts.e({
+    html: '<div>First div</div><div>Second div</div>',
+    expected: 'First div\n\nSecond div',
+  }),
+
+  hr: _ts.e({
+    html: '<p>Text before</p><hr><p>Text after</p>',
+    expected: 'Text before\n\n---\n\nText after',
+  }),
+
+  hr2: _ts.e({
+    html: '<p>Before</p>----<p>After</p>',
+    expected: 'Before\n\n---\n\nAfter',
+  }),
+
+  br: _ts.e({
+    html: '<p>Line 1<br>Line 2</p>',
+    expected: 'Line 1\nLine 2',
+  }),
+
+  br_attr: _ts.e({
+    html: '<p>Line 1<br class="test">Line 2</p>',
+    expected: 'Line 1\nLine 2',
+  }),
+
+  b: _ts.e({
+    html: '<p>This is <b>bold</b> text</p>',
+    expected: 'This is **bold** text',
+  }),
+
+  em_text: _ts.e({
+    html: '<p>This is <em>italic</em> text</p>',
+    expected: 'This is *italic* text',
+  }),
+
+  i: _ts.e({
+    html: '<p>This is <i>italic</i> text</p>',
+    expected: 'This is *italic* text',
+  }),
+
+  u: _ts.e({
+    html: '<p>This is <u>underlined</u> text</p>',
+    expected: 'This is __underlined__ text',
+  }),
+
+  del: _ts.e({
+    html: '<p>This is <del>deleted</del> text</p>',
+    expected: 'This is ~~deleted~~ text',
+  }),
+
+  s: _ts.e({
+    html: '<p>This is <s>strikethrough</s> text</p>',
+    expected: 'This is ~~strikethrough~~ text',
+  }),
+
+  strike: _ts.e({
+    html: '<p>This is <strike>strikethrough</strike> text</p>',
+    expected: 'This is ~~strikethrough~~ text',
+  }),
+
+  strong_em: _ts.e({
+    html: '<p>This is <strong><em>bold italic</em></strong> text</p>',
+    expected: 'This is *bold italic* text',
+  }),
+
+  strong_em_both: _ts.e({
+    html: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    expected: 'This is **bold** and *italic* text',
+  }),
+
+  headers_spacing: _ts.e({
+    html: '<h1>Title</h1><p>Content</p><h2>Subtitle</h2>',
+    expected: '# Title\n\nContent\n\n## Subtitle',
+  }),
+
+  a_title: _ts.e({
+    html: '<p>Visit <a href="https://example.com" title="Example Site">Example</a></p>',
+    expected: 'Visit [Example](<https://example.com>)',
+  }),
+
+  a_long: _ts.e({
+    html: '<p>Visit <a href="https://example.com">This is a very long link text that should be converted</a></p>',
+    expected:
+      'Visit [This is a very long link text that should be converted](<https://example.com>)',
+  }),
+
+  a_short: _ts.e({
+    html: '<p>Visit <a href="https://example.com">Hi</a> for more info</p>',
+    expected: 'Visit Hi for more info',
+  }),
+
+  a_same: _ts.e({
+    html: '<p>Visit <a href="https://example.com">https://example.com</a></p>',
+    expected: 'Visit <https://example.com>',
+  }),
+
+  html_entities: _ts.e({
+    html: '<p>This &amp; that &lt; &gt; &quot; &#39;</p>',
+    expected: 'This & that < > " \'',
+  }),
+
+  numeric_entities: _ts.e({
+    html: '<p>Copyright &#169; 2023</p>',
+    expected: 'Copyright © 2023',
+  }),
+
+  bullet_chars: _ts.e({
+    html: '<p>• First item<br>• Second item</p>',
+    expected: '• First item\n• Second item',
+  }),
+
+  bullet: _ts.e({
+    html: '<p>• Item 1<br>• Item 2<br>• Item 3</p>',
+    expected: '• Item 1\n• Item 2\n• Item 3',
+  }),
+
+  spaces: _ts.e({
+    html: '<p>This    has    multiple    spaces</p>',
+    expected: 'This has multiple spaces',
+  }),
+
+  linebreaks: _ts.e({
+    html: '<p>First line</p>\n\n\n<p>Second line</p>',
+    expected: 'First line\n\nSecond line',
+  }),
+
+  trim: _ts.e({
+    html: '   <p>Content</p>   ',
+    expected: 'Content',
+  }),
+
+  space_normalize: _ts.e({
+    html: '<p>Text   with   multiple   spaces</p>',
+    expected: 'Text with multiple spaces',
+  }),
+
+  features_disabled: _ts.e({
+    html: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    features: false,
+    expected: 'This is bold and italic text', // When features=false, formatting is stripped
+  }),
+
+  features_strong_off_italic_on: _ts.e({
+    html: '<p>This is <strong>bold</strong> and <em>italic</em> text</p>',
+    features: { strong: false, em: true },
+    expected: 'This is bold and *italic* text',
+  }),
+
+  strong_simple: _ts.e({
+    html: '<p>This is <strong>bold</strong> text</p>',
+    expected: 'This is **bold** text',
+  }),
+
+  email_content: _ts.e({
+    html: "<div><h1>Meeting Summary</h1><p>Hello team,</p><p>Here's what we discussed:</p><ul><li>• Project timeline</li><li>• Budget concerns</li></ul><p>Best regards,<br>John</p></div>",
+    expected:
+      "# Meeting Summary\n\nHello team,\n\nHere's what we discussed:\n\n• Project timeline• Budget concerns\n\nBest regards,\nJohn",
+  }),
+
+  nested_html: _ts.e({
+    html: '<div><p>Outer <strong>bold <em>italic</em></strong> text</p></div>',
+    expected: 'Outer **bold italic** text',
+  }),
+
+  empty_input: _ts.e({
+    html: '',
+    expected: '',
+  }),
+
+  whitespace_input: _ts.e({
+    html: '   \n\t   ',
+    expected: '',
+  }),
+
+  malformed_html: _ts.e({
+    html: '<p>Unclosed tag<strong>Bold text<p>Another paragraph',
+    expected: 'Unclosed tagBold text\n\n**Another paragraph**',
+  }),
+
+  empty_content: _ts.e({
+    html: '<div><p></p><p>Content</p></div>',
+    expected: 'Content',
+  }),
+
+  special_chars: _ts.e({
+    html: '<p>Special chars: &copy; &trade; &reg; &euro; &pound;</p>',
+    expected: 'Special chars: © ™ ® € £',
+  }),
+
+  long_text: _ts.e({
+    html: 'A'.repeat(10000),
+    expected: 'A'.repeat(10000),
+  }),
+
+  consistent_test: _ts.e({
+    html: '<p>Test <strong>bold</strong> content</p>',
+    expected: 'Test **bold** content',
+  }),
+
+  title_bold_italic_link: _ts.e({
+    html: '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text with a <a href="https://example.com">link</a>.</p>',
+    expected:
+      '# Title\n\nThis is **bold** and *italic* text with a [link](<https://example.com>) .',
+  }),
+};
+
+// Load the Utils class using the new loadSourceFile function
+loadSourceFile('chrome_manifest_v3/class_utils.js');
+// The loadSourceFile function already executed the code and set global.G2T
 
 describe('Utils Class', () => {
   let dom, window, utils, testApp;
@@ -77,10 +266,10 @@ describe('Utils Class', () => {
     dom = jsdomSetup.dom;
     window = jsdomSetup.window;
 
-    // Setup Utils class using shared function
-    const utilsSetup = setupUtilsForTesting();
-    utils = utilsSetup.utils;
-    testApp = utilsSetup.testApp;
+    // Setup Utils class using real methods
+    const realUtils = createRealUtilsMethods();
+    utils = realUtils;
+    testApp = { utils: { log: jest.fn() } };
   });
 
   afterEach(() => {
@@ -708,46 +897,42 @@ describe('Utils Class', () => {
 
     // Generate tests for all simple markdownify elements
     simpleMarkdownifyTests.forEach(elementKey => {
-      const element = g2t_element[elementKey];
+      const element = utils_e[elementKey];
       test(`Markdownify Test "${elementKey}"`, () => {
         const result = utils.markdownify(element, element.features, {});
-        expect(result).toBe(element.expected.markdownify);
+        expect(result).toBe(element.expected);
       });
     });
 
     describe('Complex HTML to Markdown conversion', () => {
       test('converts multiple paragraphs with proper spacing', () => {
-        const result = utils.markdownify(
-          g2t_element.p2,
-          g2t_element.p2.features,
-          {},
-        );
-        expect(result).toBe(g2t_element.p2.expected.markdownify);
+        const result = utils.markdownify(utils_e.p2, utils_e.p2.features, {});
+        expect(result).toBe(utils_e.p2.expected);
       });
 
       test('converts div elements to paragraph spacing', () => {
-        const result = utils.markdownify(g2t_element.div2, true, {});
-        expect(result).toBe(g2t_element.div2.expected.markdownify);
+        const result = utils.markdownify(utils_e.div2, true, {});
+        expect(result).toBe(utils_e.div2.expected);
       });
 
       test('converts horizontal rule', () => {
-        const result = utils.markdownify(g2t_element.hr, true, {});
-        expect(result).toBe(g2t_element.hr.expected.markdownify);
+        const result = utils.markdownify(utils_e.hr, true, {});
+        expect(result).toBe(utils_e.hr.expected);
       });
 
       test('converts horizontal rule variations', () => {
-        const result = utils.markdownify(g2t_element.hr2, true, {});
-        expect(result).toBe(g2t_element.hr2.expected.markdownify);
+        const result = utils.markdownify(utils_e.hr2, true, {});
+        expect(result).toBe(utils_e.hr2.expected);
       });
 
       test('converts line breaks', () => {
-        const result = utils.markdownify(g2t_element.br, true, {});
-        expect(result).toBe(g2t_element.br.expected.markdownify);
+        const result = utils.markdownify(utils_e.br, true, {});
+        expect(result).toBe(utils_e.br.expected);
       });
 
       test('converts line breaks with attributes', () => {
-        const result = utils.markdownify(g2t_element.br_attr, true, {});
-        expect(result).toBe(g2t_element.br_attr.expected.markdownify);
+        const result = utils.markdownify(utils_e.br_attr, true, {});
+        expect(result).toBe(utils_e.br_attr.expected);
       });
     });
 
@@ -755,48 +940,48 @@ describe('Utils Class', () => {
       // Note: Simple strong/em tests moved to array-based approach above
 
       test('converts b bold text', () => {
-        const result = utils.markdownify(g2t_element.b, true, {});
-        expect(result).toBe(g2t_element.b.expected.markdownify);
+        const result = utils.markdownify(utils_e.b, true, {});
+        expect(result).toBe(utils_e.b.expected);
       });
 
       test('converts em italic text', () => {
-        const result = utils.markdownify(g2t_element.em_text, true, {});
-        expect(result).toBe(g2t_element.em_text.expected.markdownify);
+        const result = utils.markdownify(utils_e.em_text, true, {});
+        expect(result).toBe(utils_e.em_text.expected);
       });
 
       test('converts i italic text', () => {
-        const result = utils.markdownify(g2t_element.i, true, {});
-        expect(result).toBe(g2t_element.i.expected.markdownify);
+        const result = utils.markdownify(utils_e.i, true, {});
+        expect(result).toBe(utils_e.i.expected);
       });
 
       test('converts underline text', () => {
-        const result = utils.markdownify(g2t_element.u, true, {});
-        expect(result).toBe(g2t_element.u.expected.markdownify);
+        const result = utils.markdownify(utils_e.u, true, {});
+        expect(result).toBe(utils_e.u.expected);
       });
 
       test('converts strikethrough del text', () => {
-        const result = utils.markdownify(g2t_element.del, true, {});
-        expect(result).toBe(g2t_element.del.expected.markdownify);
+        const result = utils.markdownify(utils_e.del, true, {});
+        expect(result).toBe(utils_e.del.expected);
       });
 
       test('converts strikethrough s text', () => {
-        const result = utils.markdownify(g2t_element.s, true, {});
-        expect(result).toBe(g2t_element.s.expected.markdownify);
+        const result = utils.markdownify(utils_e.s, true, {});
+        expect(result).toBe(utils_e.s.expected);
       });
 
       test('converts strikethrough strike text', () => {
-        const result = utils.markdownify(g2t_element.strike, true, {});
-        expect(result).toBe(g2t_element.strike.expected.markdownify);
+        const result = utils.markdownify(utils_e.strike, true, {});
+        expect(result).toBe(utils_e.strike.expected);
       });
 
       test('handles nested formatting', () => {
-        const result = utils.markdownify(g2t_element.strong_em, true, {});
-        expect(result).toBe(g2t_element.strong_em.expected.markdownify);
+        const result = utils.markdownify(utils_e.strong_em, true, {});
+        expect(result).toBe(utils_e.strong_em.expected);
       });
 
       test('handles multiple formatting in same text', () => {
-        const result = utils.markdownify(g2t_element.strong_em_both, true, {});
-        expect(result).toBe(g2t_element.strong_em_both.expected.markdownify);
+        const result = utils.markdownify(utils_e.strong_em_both, true, {});
+        expect(result).toBe(utils_e.strong_em_both.expected);
       });
     });
 
@@ -806,8 +991,8 @@ describe('Utils Class', () => {
       // Note: h2, h3, h4, h5, h6 tests moved to array-based approach above
 
       test('handles headers with proper spacing', () => {
-        const result = utils.markdownify(g2t_element.headers_spacing, true, {});
-        expect(result).toBe(g2t_element.headers_spacing.expected.markdownify);
+        const result = utils.markdownify(utils_e.headers_spacing, true, {});
+        expect(result).toBe(utils_e.headers_spacing.expected);
       });
     });
 
@@ -815,25 +1000,25 @@ describe('Utils Class', () => {
       // Note: Simple link test moved to array-based approach above
 
       test('converts links with title attributes', () => {
-        const result = utils.markdownify(g2t_element.a_title, true, {});
-        expect(result).toBe(g2t_element.a_title.expected.markdownify);
+        const result = utils.markdownify(utils_e.a_title, true, {});
+        expect(result).toBe(utils_e.a_title.expected);
       });
 
       test('handles links with long text', () => {
-        const result = utils.markdownify(g2t_element.a_long, true, {});
-        expect(result).toBe(g2t_element.a_long.expected.markdownify);
+        const result = utils.markdownify(utils_e.a_long, true, {});
+        expect(result).toBe(utils_e.a_long.expected);
       });
 
       test('ignores links with short text (less than 4 characters)', () => {
-        const result = utils.markdownify(g2t_element.a_short, true, {});
-        expect(result).toBe(g2t_element.a_short.expected.markdownify);
+        const result = utils.markdownify(utils_e.a_short, true, {});
+        expect(result).toBe(utils_e.a_short.expected);
       });
 
       // Note: Multiple links test removed - requires simpler jQuery mock architecture
 
       test('handles same text and href', () => {
-        const result = utils.markdownify(g2t_element.a_same, true, {});
-        expect(result).toBe(g2t_element.a_same.expected.markdownify);
+        const result = utils.markdownify(utils_e.a_same, true, {});
+        expect(result).toBe(utils_e.a_same.expected);
       });
 
       // Note: Simple mailto test moved to array-based approach above
@@ -841,99 +1026,93 @@ describe('Utils Class', () => {
 
     describe('HTML entity decoding', () => {
       test('decodes common HTML entities', () => {
-        const result = utils.markdownify(g2t_element.html_entities, true, {});
-        expect(result).toBe(g2t_element.html_entities.expected.markdownify);
+        const result = utils.markdownify(utils_e.html_entities, true, {});
+        expect(result).toBe(utils_e.html_entities.expected);
       });
 
       test('decodes numeric HTML entities', () => {
-        const result = utils.markdownify(
-          g2t_element.numeric_entities,
-          true,
-          {},
-        );
-        expect(result).toBe(g2t_element.numeric_entities.expected.markdownify);
+        const result = utils.markdownify(utils_e.numeric_entities, true, {});
+        expect(result).toBe(utils_e.numeric_entities.expected);
       });
     });
 
     describe('Bullet and list handling', () => {
       test('converts bullet characters to asterisks', () => {
-        const result = utils.markdownify(g2t_element.bullet_chars, true, {});
-        expect(result).toBe(g2t_element.bullet_chars.expected.markdownify);
+        const result = utils.markdownify(utils_e.bullet_chars, true, {});
+        expect(result).toBe(utils_e.bullet_chars.expected);
       });
 
       test('handles bullet formatting with line breaks', () => {
-        const result = utils.markdownify(g2t_element.bullet, true, {});
-        expect(result).toBe(g2t_element.bullet.expected.markdownify);
+        const result = utils.markdownify(utils_e.bullet, true, {});
+        expect(result).toBe(utils_e.bullet.expected);
       });
     });
 
     describe('Whitespace and formatting cleanup', () => {
       test('handles multiple spaces in content', () => {
-        const result = utils.markdownify(g2t_element.spaces, true, {});
-        expect(result).toBe(g2t_element.spaces.expected.markdownify);
+        const result = utils.markdownify(utils_e.spaces, true, {});
+        expect(result).toBe(utils_e.spaces.expected);
       });
 
       test('normalizes multiple line breaks', () => {
-        const result = utils.markdownify(g2t_element.linebreaks, true, {});
-        expect(result).toBe(g2t_element.linebreaks.expected.markdownify);
+        const result = utils.markdownify(utils_e.linebreaks, true, {});
+        expect(result).toBe(utils_e.linebreaks.expected);
       });
 
       test('trims whitespace from beginning and end', () => {
-        const result = utils.markdownify(g2t_element.trim, true, {});
-        expect(result).toBe(g2t_element.trim.expected.markdownify);
+        const result = utils.markdownify(utils_e.trim, true, {});
+        expect(result).toBe(utils_e.trim.expected);
       });
 
       test('demonstrates actual space normalization', () => {
-        const result = utils.markdownify(g2t_element.space_normalize, true, {});
-        expect(result).toBe(g2t_element.space_normalize.expected.markdownify);
+        const result = utils.markdownify(utils_e.space_normalize, true, {});
+        expect(result).toBe(utils_e.space_normalize.expected);
       });
     });
 
     describe('Feature toggle functionality', () => {
       test('disables all features when features=false', () => {
         const result = utils.markdownify(
-          g2t_element.features_disabled,
-          g2t_element.features_disabled.features,
+          utils_e.features_disabled,
+          utils_e.features_disabled.features,
           {},
         );
-        expect(result).toBe(g2t_element.features_disabled.expected.markdownify);
+        expect(result).toBe(utils_e.features_disabled.expected);
       });
 
       test('allows selective feature disabling', () => {
         const result = utils.markdownify(
-          g2t_element.features_strong_off_italic_on,
-          g2t_element.features_strong_off_italic_on.features,
+          utils_e.features_strong_off_italic_on,
+          utils_e.features_strong_off_italic_on.features,
           {},
         );
-        expect(result).toBe(
-          g2t_element.features_strong_off_italic_on.expected.markdownify,
-        );
+        expect(result).toBe(utils_e.features_strong_off_italic_on.expected);
       });
 
       test('enables features by default', () => {
         const result = utils.markdownify(
-          g2t_element.strong_simple,
-          g2t_element.strong_simple.features,
+          utils_e.strong_simple,
+          utils_e.strong_simple.features,
           {},
         );
-        expect(result).toBe(g2t_element.strong_simple.expected.markdownify);
+        expect(result).toBe(utils_e.strong_simple.expected);
       });
     });
 
     describe('Complex real-world scenarios', () => {
       test('handles email-like content', () => {
-        const result = utils.markdownify(g2t_element.email_content, true, {});
-        expect(result).toBe(g2t_element.email_content.expected.markdownify);
+        const result = utils.markdownify(utils_e.email_content, true, {});
+        expect(result).toBe(utils_e.email_content.expected);
       });
 
       test('handles nested HTML structures', () => {
-        const result = utils.markdownify(g2t_element.nested_html, true, {});
-        expect(result).toBe(g2t_element.nested_html.expected.markdownify);
+        const result = utils.markdownify(utils_e.nested_html, true, {});
+        expect(result).toBe(utils_e.nested_html.expected);
       });
 
       test('handles large content efficiently', () => {
         const largeContent = '<p>' + 'Test content. '.repeat(1000) + '</p>';
-        const $element = createMockJQueryElement(largeContent);
+        const $element = createJQueryElement(largeContent);
 
         const startTime = Date.now();
         const result = utils.markdownify($element, true, {});
@@ -952,65 +1131,51 @@ describe('Utils Class', () => {
       });
 
       test('handles empty input', () => {
-        const result = utils.markdownify(g2t_element.empty_input, true, {});
-        expect(result).toBe(g2t_element.empty_input.expected.markdownify);
+        const result = utils.markdownify(utils_e.empty_input, true, {});
+        expect(result).toBe(utils_e.empty_input.expected);
       });
 
       test('handles input with only whitespace', () => {
-        const result = utils.markdownify(
-          g2t_element.whitespace_input,
-          true,
-          {},
-        );
-        expect(result).toBe(g2t_element.whitespace_input.expected.markdownify);
+        const result = utils.markdownify(utils_e.whitespace_input, true, {});
+        expect(result).toBe(utils_e.whitespace_input.expected);
       });
 
       test('handles malformed HTML gracefully', () => {
-        const result = utils.markdownify(g2t_element.malformed_html, true, {});
-        expect(result).toBe(g2t_element.malformed_html.expected.markdownify);
+        const result = utils.markdownify(utils_e.malformed_html, true, {});
+        expect(result).toBe(utils_e.malformed_html.expected);
       });
 
       test('handles elements with no text content', () => {
-        const result = utils.markdownify(g2t_element.empty_content, true, {});
-        expect(result).toBe(g2t_element.empty_content.expected.markdownify);
+        const result = utils.markdownify(utils_e.empty_content, true, {});
+        expect(result).toBe(utils_e.empty_content.expected);
       });
 
       test('handles special characters and unicode', () => {
-        const result = utils.markdownify(g2t_element.special_chars, true, {});
-        expect(result).toBe(g2t_element.special_chars.expected.markdownify);
+        const result = utils.markdownify(utils_e.special_chars, true, {});
+        expect(result).toBe(utils_e.special_chars.expected);
       });
 
       test('handles very long text content', () => {
-        const result = utils.markdownify(g2t_element.long_text, true, {});
-        expect(result).toBe(g2t_element.long_text.expected.markdownify);
+        const result = utils.markdownify(utils_e.long_text, true, {});
+        expect(result).toBe(utils_e.long_text.expected);
       });
     });
 
     describe('Integration and consistency tests', () => {
       test('produces consistent output for same input', () => {
-        const result1 = utils.markdownify(
-          g2t_element.consistent_test,
-          true,
-          {},
-        );
-        const result2 = utils.markdownify(
-          g2t_element.consistent_test,
-          true,
-          {},
-        );
+        const result1 = utils.markdownify(utils_e.consistent_test, true, {});
+        const result2 = utils.markdownify(utils_e.consistent_test, true, {});
 
         expect(result1).toBe(result2);
       });
 
       test('validates markdown output format', () => {
         const result = utils.markdownify(
-          g2t_element.title_bold_italic_link,
+          utils_e.title_bold_italic_link,
           true,
           {},
         );
-        expect(result).toBe(
-          g2t_element.title_bold_italic_link.expected.markdownify,
-        );
+        expect(result).toBe(utils_e.title_bold_italic_link.expected);
       });
     });
   });
