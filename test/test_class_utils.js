@@ -251,14 +251,57 @@ const utils_e = {
     expected:
       '# Title\n\nThis is **bold** and *italic* text with a [link](<https://example.com>) .',
   }),
+
+  // Missing elements causing test failures
+  mailto: _ts.e({
+    html: '<p>Contact <a href="mailto:test@example.com">us</a></p>',
+    expected: 'Contact us',
+  }),
+
+  h2: _ts.e({
+    html: '<h2>h2 title</h2>',
+    expected: '## h2 title',
+  }),
+
+  h3: _ts.e({
+    html: '<h3>h3 title</h3>',
+    expected: '### h3 title',
+  }),
+
+  h4: _ts.e({
+    html: '<h4>h4 title</h4>',
+    expected: '#### h4 title',
+  }),
+
+  h5: _ts.e({
+    html: '<h5>h5 title</h5>',
+    expected: '##### h5 title',
+  }),
+
+  h6: _ts.e({
+    html: '<h6>h6 title</h6>',
+    expected: '###### h6 title',
+  }),
+
+  a_multiple: _ts.e({
+    html: '<p><a href="https://example.com">First</a> and <a href="https://test.com">Second</a></p>',
+    expected: '[First](<https://example.com>) and [Second](<https://test.com>)',
+  }),
+
+  tabs_whitespace: _ts.e({
+    html: '<p>Content\twith\ttabs\tand   spaces</p>',
+    expected: 'Content with tabs and spaces',
+  }),
 };
 
-// Load the Utils class using the new loadSourceFile function
-loadSourceFile('chrome_manifest_v3/class_utils.js');
-// The loadSourceFile function already executed the code and set global.G2T
-
 describe('Utils Class', () => {
-  let dom, window, utils, testApp;
+  let dom, window, utils, app;
+
+  beforeAll(() => {
+    // Setup Utils class using real methods (only once)
+    // We'll pass app in beforeEach since it's created there
+    utils = null; // Will be set in beforeEach
+  });
 
   beforeEach(() => {
     // Setup JSDOM environment using shared function
@@ -266,10 +309,28 @@ describe('Utils Class', () => {
     dom = jsdomSetup.dom;
     window = jsdomSetup.window;
 
-    // Setup Utils class using real methods
-    const realUtils = createRealUtilsMethods();
-    utils = realUtils;
-    testApp = { utils: { log: jest.fn() } };
+    // Setup fresh app for each test with structure matching real Utils class
+    app = {
+      utils: { log: jest.fn() },
+      temp: {
+        log: {
+          count: 0,
+          debugMode: false,
+          max: 100,
+          memory: [],
+        },
+      },
+      persist: {
+        storageHashes: {},
+      },
+      goog: {
+        storageSyncGet: jest.fn(),
+        storageSyncSet: jest.fn(),
+      },
+    };
+
+    // Create Utils instance with our app
+    utils = createRealUtilsMethods(app);
   });
 
   afterEach(() => {
@@ -281,7 +342,7 @@ describe('Utils Class', () => {
   test('basic setup test', () => {
     console_log('Basic setup test running');
     expect(utils).toBeDefined();
-    expect(testApp).toBeDefined();
+    expect(app).toBeDefined();
   });
 
   // Simple test to see what $ returns
@@ -300,16 +361,16 @@ describe('Utils Class', () => {
   describe('Constructor and Initialization', () => {
     test('should create Utils instance with default settings', () => {
       expect(utils).toBeInstanceOf(global.G2T.Utils);
-      expect(utils.app).toBe(testApp);
+      expect(utils.app).toBe(app);
     });
 
     test('should create Utils instance with debug enabled', () => {
       const debugApp = {
-        ...testApp,
+        ...app,
         temp: {
-          ...testApp.temp,
+          ...app.temp,
           log: {
-            ...testApp.temp.log,
+            ...app.temp.log,
             debugMode: true,
           },
         },
@@ -325,15 +386,15 @@ describe('Utils Class', () => {
 
   describe('Debug and Logging', () => {
     test('log should output when debug is enabled', () => {
-      testApp.temp.log.debugMode = true;
+      app.temp.log.debugMode = true;
       utils.log('Test message');
-      expect(testApp.temp.log.memory.length).toBeGreaterThan(0);
+      expect(app.temp.log.memory.length).toBeGreaterThan(0);
     });
 
     test('log should not output when debug is disabled', () => {
-      testApp.temp.log.debugMode = false;
+      app.temp.log.debugMode = false;
       utils.log('Test message');
-      expect(testApp.temp.log.memory.length).toBeGreaterThan(0); // Still logs to memory
+      expect(app.temp.log.memory.length).toBeGreaterThan(0); // Still logs to memory
     });
 
     test('ck getter should return correct value', () => {
@@ -347,12 +408,12 @@ describe('Utils Class', () => {
 
   describe('Chrome Storage Operations', () => {
     test('loadFromChromeStorage should call goog.storageSyncGet', () => {
-      testApp.goog.storageSyncGet.mockImplementation((key, callback) => {
+      app.goog.storageSyncGet.mockImplementation((key, callback) => {
         callback({ testKey: JSON.stringify('testValue') });
       });
 
       utils.loadFromChromeStorage('testKey');
-      expect(testApp.goog.storageSyncGet).toHaveBeenCalledWith(
+      expect(app.goog.storageSyncGet).toHaveBeenCalledWith(
         'testKey',
         expect.any(Function),
       );
@@ -360,18 +421,18 @@ describe('Utils Class', () => {
 
     test('saveToChromeStorage should call goog.storageSyncSet', () => {
       utils.saveToChromeStorage('testKey', 'testValue');
-      expect(testApp.goog.storageSyncSet).toHaveBeenCalledWith({
+      expect(app.goog.storageSyncSet).toHaveBeenCalledWith({
         testKey: JSON.stringify('testValue'),
       });
     });
 
     test('loadFromChromeStorage should handle errors', () => {
-      testApp.goog.storageSyncGet.mockImplementation((key, callback) => {
+      app.goog.storageSyncGet.mockImplementation((key, callback) => {
         callback({});
       });
 
       utils.loadFromChromeStorage('nonexistentKey');
-      expect(testApp.goog.storageSyncGet).toHaveBeenCalledWith(
+      expect(app.goog.storageSyncGet).toHaveBeenCalledWith(
         'nonexistentKey',
         expect.any(Function),
       );

@@ -6,6 +6,10 @@
 const fs = require('fs');
 const path = require('path');
 
+// Polyfill TextEncoder/TextDecoder for JSDOM's internal dependencies
+global.TextEncoder = require('util').TextEncoder;
+global.TextDecoder = require('util').TextDecoder;
+
 const { JSDOM } = require('jsdom');
 
 // ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use console_log() instead of console.log() ⚠️
@@ -22,19 +26,24 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 window = dom.window;
 document = dom.window.document;
 
-// Polyfill TextEncoder/TextDecoder on window
-window.TextEncoder = require('util').TextEncoder;
-window.TextDecoder = require('util').TextDecoder;
-
 // Load jQuery into the environment
 const jqueryPath = path.join(
   __dirname,
   '../chrome_manifest_v3/lib/jquery-3.7.1.min.js',
 );
 const jqueryContent = fs.readFileSync(jqueryPath, 'utf8');
-const script = dom.window.document.createElement('script');
-script.textContent = jqueryContent;
-dom.window.document.head.appendChild(script);
+
+// Execute jQuery in the JSDOM context
+dom.window.eval(jqueryContent);
+
+// Wait for jQuery to be available
+if (!dom.window.$ || !dom.window.jQuery) {
+  throw new Error('jQuery failed to load in JSDOM environment');
+}
+
+// Make sure jQuery is available on our window reference
+window.$ = dom.window.$;
+window.jQuery = dom.window.jQuery;
 
 // Set up global mocks
 window.chrome = {
@@ -80,8 +89,9 @@ class G2T_TestSuite {
    * Load a source file using the DOM trick (script injection)
    * @param {string} filePath - Path to the source file
    */
-  loadSourceFile(filePath) {
-    const fullPath = path.join(__dirname, filePath);
+  static loadSourceFile(filePath) {
+    // Resolve paths relative to project root (go up one level from test/)
+    const fullPath = path.join(__dirname, '..', filePath);
 
     try {
       const fileContent = fs.readFileSync(fullPath, 'utf8');
@@ -140,11 +150,12 @@ class G2T_TestSuite {
 
   /**
    * Create real Utils methods for testing
+   * @param {Object} [app] - Optional app object to use instead of default
    * @returns {Object} - Real Utils instance
    */
-  createRealUtilsMethods() {
-    // Create a simple test app for Utils initialization
-    const utilsTestApp = {
+  createRealUtilsMethods(app = null) {
+    // Use provided app or create a simple test app for Utils initialization
+    const utilsTestApp = app || {
       utils: { log: console_log },
       persist: { storageHashes: {} },
       temp: {
@@ -152,8 +163,7 @@ class G2T_TestSuite {
       },
     };
 
-    // Load the Utils class using the new loadSourceFile function
-    this.loadSourceFile('../chrome_manifest_v3/class_utils.js');
+    // Utils class is already loaded at module level
 
     // Create and return the real Utils instance
     return new window.G2T.Utils({ app: utilsTestApp });
@@ -297,13 +307,16 @@ class G2T_TestSuite {
   }
 }
 
+// Load the Utils class at module level using static method
+G2T_TestSuite.loadSourceFile('chrome_manifest_v3/class_utils.js');
+
 // Create test suite instance
 const _ts = new G2T_TestSuite();
 
 // Export the test suite instance and individual functions for backward compatibility
 module.exports = {
   _ts,
-  loadSourceFile: (...args) => _ts.loadSourceFile(...args),
+  loadSourceFile: (...args) => G2T_TestSuite.loadSourceFile(...args),
   setupJSDOM: (...args) => _ts.setupJSDOM(...args),
   cleanupJSDOM: (...args) => _ts.cleanupJSDOM(...args),
   createRealUtilsMethods: (...args) => _ts.createRealUtilsMethods(...args),
