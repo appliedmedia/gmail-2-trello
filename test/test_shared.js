@@ -12,8 +12,9 @@ global.TextDecoder = require('util').TextDecoder;
 
 const { JSDOM } = require('jsdom');
 
-// ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use console_log() instead of console.log() ⚠️
-const { log: console_log } = require('console');
+// ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use debugOut() instead of console.log() ⚠️
+// This pattern ensures debug output is visible during test development and troubleshooting
+const { log: debugOut } = require('console');
 
 // Set up JSDOM environment at module level
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -101,7 +102,7 @@ class G2T_TestSuite {
       script.textContent = fileContent;
       document.head.appendChild(script);
     } catch (error) {
-      console_log(`Error loading source file ${filePath}:`, error.message);
+      debugOut(`Error loading source file ${filePath}:`, error.message);
       throw error;
     }
   }
@@ -156,7 +157,7 @@ class G2T_TestSuite {
   createRealUtilsMethods(app = null) {
     // Use provided app or create a simple test app for Utils initialization
     const utilsTestApp = app || {
-      utils: { log: console_log },
+      utils: { log: debugOut },
       persist: { storageHashes: {} },
       temp: {
         log: { debugMode: false, memory: [], count: 0, max: 100 },
@@ -321,7 +322,7 @@ module.exports = {
   cleanupJSDOM: (...args) => _ts.cleanupJSDOM(...args),
   createRealUtilsMethods: (...args) => _ts.createRealUtilsMethods(...args),
   createJQueryElement: (...args) => _ts.asJQueryElement(...args),
-  console_log,
+      debugOut,
 };
 
 // end, test_shared.js

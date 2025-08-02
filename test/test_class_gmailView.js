@@ -414,9 +414,24 @@ describe('GmailView Class', () => {
     });
 
     test('parseData_onImageEach should process image data', () => {
-      // Skip this test due to a bug in the original parseData_onImageEach method
-      // The method has a "string is not a function" error that needs to be fixed in the source code
-      expect(true).toBe(true);
+      // Create a mock image element with proper structure
+      const mockImageElement = elementSuperSet(`
+        <img src="https://example.com/test.jpg" alt="Test Image" type="image/jpeg">
+        <div dir="ltr">
+          <div class="T-I J-J5-Ji aQv T-I-ax7 L3 a5q" aria-label="Download attachment test.jpg"></div>
+        </div>
+      `);
+
+      // Initialize image object like parseData does
+      gmailView.image = {};
+
+      gmailView.parseData_onImageEach(0, mockImageElement);
+
+      // Verify the image data was processed correctly
+      expect(gmailView.image).toBeDefined();
+      expect(gmailView.image['https://example.com/test.jpg']).toBeDefined();
+      expect(gmailView.image['https://example.com/test.jpg'].name).toBeDefined();
+      expect(gmailView.image['https://example.com/test.jpg'].url).toBeDefined();
     });
 
     test('should handle multiple attachment processing', () => {

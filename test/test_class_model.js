@@ -145,7 +145,8 @@ describe('Model Class', () => {
     };
 
     // Create a fresh Model instance for each test
-    model = new G2T.Model({ parent: {}, app: mockApp });
+    const mockTrel = new G2T.Trel({ app: mockApp });
+    model = new G2T.Model({ parent: mockTrel, app: mockApp });
 
     // Clear all mocks
     clearAllMocks();
