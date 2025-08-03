@@ -111,7 +111,7 @@ class GmailView {
 
     // introduce a local variable instead of reassigning the `name` parameter
     let displayName = name;
-    if (!name.length) {
+    if (!name) {
       displayName = this.app.utils.splitEmailDomain(email)?.name || '';
     } else if (name.toUpperCase() === email.toUpperCase()) {
       // split out @domain when name and email match exactly
@@ -149,9 +149,9 @@ class GmailView {
     let name = ($(element).attr('name') || '').trim();
     // NOTE (Ace, 2021-01-04): Replacing NAME of "me" with Trello ID name (may want to confirm email match too?):
     if (name == 'me') {
-      if (this.fullName_k.length > 0) {
+      if (this.fullName_k) {
         name = this.fullName_k;
-      } else if (this.me_name.length > 0) {
+      } else if (this.me_name) {
         name = this.me_name;
       } else {
         this.me_email = email;
