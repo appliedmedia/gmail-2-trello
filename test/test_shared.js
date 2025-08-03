@@ -15,7 +15,7 @@ const { JSDOM } = require('jsdom');
 
 // ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use debugOut() instead of console.log() ⚠️
 // This pattern ensures debug output is visible during test development and troubleshooting
-const { log: debugOut } = require('console');
+const debugOut = jest.fn(require('console').log);
 
 // Step 2: Set up JSDOM environment with proper Node.js connection
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -31,7 +31,9 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 });
 
 // Make window and document available globally
+// eslint-disable-next-line no-global-assign
 window = dom.window;
+// eslint-disable-next-line no-global-assign
 document = dom.window.document;
 
 // Load jQuery into the environment
@@ -295,6 +297,213 @@ class G2T_TestSuite {
   }
 
   /**
+   * Create a complete App instance with nested mock classes for testing
+   * Uses real Utils instance with mocked dependencies
+   * @returns {Object} - Complete App instance ready for testing
+   */
+  createApp() {
+    // Define all mock classes using let to allow reassignment
+    let Goog = class {
+      constructor({ app }) {
+        this.app = app;
+        this.init = jest.fn();
+        this.runtimeSendMessage = jest.fn();
+        this.storageSyncGet = jest.fn();
+        this.storageSyncSet = jest.fn();
+      }
+    };
+
+    let EventTarget = class {
+      constructor({ app }) {
+        this.app = app;
+        this.addEventListener = jest.fn();
+        this.removeEventListener = jest.fn();
+        this.dispatchEvent = jest.fn();
+        this.addListener = jest.fn();
+        this.fire = jest.fn();
+        this.emit = jest.fn();
+      }
+    };
+
+    let Model = class {
+      constructor({ app }) {
+        this.app = app;
+        this.init = jest.fn();
+        this.trello = { user: { fullName: 'Test User' } };
+        this.gmail = {};
+      }
+    };
+
+    let GmailView = class {
+      constructor({ app }) {
+        this.app = app;
+        this.init = jest.fn();
+        this.bindData = jest.fn();
+        this.parseData = jest.fn(() => ({}));
+        this.forceRedraw = jest.fn();
+        this.parsingData = false;
+      }
+    };
+
+    let PopupForm = class {
+      constructor({ app }) {
+        this.app = app;
+        this.init = jest.fn();
+        this.bindEvents = jest.fn();
+        this.bindData = jest.fn();
+        this.bindGmailData = jest.fn();
+        this.validateData = jest.fn();
+        this.reset = jest.fn();
+        this.submit = jest.fn();
+      }
+    };
+
+    let PopupView = class {
+      constructor({ app }) {
+        this.app = app;
+        this.$toolBar = null;
+        this.finalCreatePopup = jest.fn();
+        this.displayExtensionInvalidReload = jest.fn();
+        this.init = jest.fn();
+        this.bindData = jest.fn();
+        this.bindGmailData = jest.fn();
+        this.forceRedraw = jest.fn();
+      }
+
+      static get ck() {
+        return { id: 'g2t_popupview' };
+      }
+
+      get ck() {
+        return PopupView.ck;
+      }
+    };
+
+    let MenuControl = class {
+      constructor({ app }) {
+        this.app = app;
+        this.reset = jest.fn();
+        this.bindEvents = jest.fn();
+        this.items = [];
+        this.nonexclusive = false;
+      }
+
+      static get ck() {
+        return { id: 'g2t_menuControl' };
+      }
+
+      get ck() {
+        return MenuControl.ck;
+      }
+    };
+
+    // Use the real Utils class directly - much simpler!
+
+    let WaitCounter = class {
+      constructor({ app }) {
+        this.app = app;
+        this.start = jest.fn();
+        this.stop = jest.fn();
+      }
+    };
+
+    let App = class {
+      constructor() {
+        // Create instances exactly like real App constructor
+        this.trelloApiKey = '21b411b1b5b549c54bd32f0e90738b41';
+        this.goog = new Goog({ app: this });
+        this.events = new EventTarget({ app: this });
+        this.model = new Model({ app: this });
+        this.gmailView = new GmailView({ app: this });
+        this.popupView = new PopupView({ app: this });
+        // Use real Utils class and override only the log method for testing
+        this.utils = new G2T.Utils({ app: this });
+        this.utils.log = debugOut;
+
+        // Set up default persistent state (matches App class defaults)
+        this.persist = {
+          layoutMode: 0,
+          trelloAuthorized: false,
+          user: null,
+          emailBoardListCardMap: [],
+          popupWidth: 700,
+          popupHeight: 464,
+          storageHashes: {},
+          boardId: null,
+          listId: null,
+          cardId: null,
+          useBackLink: true,
+          addCC: false,
+          labelsId: '',
+          membersId: '',
+        };
+
+        // Set up default temporary state (matches App class defaults)
+        this.temp = {
+          lastHash: '',
+          updatesPending: [],
+          comboInitialized: false,
+          pendingMessage: null,
+          description: '',
+          title: '',
+          attachment: [],
+          image: [],
+          boards: [],
+          lists: [],
+          cards: [],
+          members: [],
+          labels: [],
+          log: {
+            memory: [],
+            count: 0,
+            max: 100,
+            debugMode: false,
+          },
+        };
+
+        // Initialize flag
+        this.initialized = false;
+      }
+
+      // Add the static and instance ck getters
+      static get ck() {
+        return { id: 'g2t_app' };
+      }
+
+      get ck() {
+        return App.ck;
+      }
+    };
+
+    // Set up window.G2T namespace with all classes using iteration
+    if (!window.G2T) {
+      window.G2T = {};
+    }
+
+    // Set up all mock classes in window.G2T namespace
+    const classes = {
+      App,
+      EventTarget,
+      GmailView,
+      Goog,
+      MenuControl,
+      Model,
+      PopupForm,
+      PopupView,
+      WaitCounter,
+    };
+
+    // Note: Utils is NOT included here because we use the real G2T.Utils class
+    Object.entries(classes).forEach(([className, ClassConstructor]) => {
+      if (!window.G2T[className]) {
+        window.G2T[className] = ClassConstructor;
+      }
+    });
+
+    return new window.G2T.App();
+  }
+
+  /**
    * Clear all Jest mocks
    */
   clearAllMocks() {
@@ -305,14 +514,23 @@ class G2T_TestSuite {
 // Load the Utils class at module level using static method
 G2T_TestSuite.loadSourceFile('chrome_manifest_v3/class_utils.js');
 
+// Create actual Utils instance for use across all tests
+const utils = new G2T.Utils({ app: null });
+
 // Create test suite instance
 const _ts = new G2T_TestSuite();
+
+// Set up ALL mock classes immediately at module level
+// This creates the base mock environment that individual test files can override
+const testApp = _ts.createApp();
 
 // Export the test suite instance and class for direct access
 module.exports = {
   G2T_TestSuite,
   _ts,
+  utils,
   debugOut,
+  testApp, // Pre-created mock app with all dependencies
 };
 
 // end, test_shared.js
