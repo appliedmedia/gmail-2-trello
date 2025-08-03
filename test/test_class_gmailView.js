@@ -4,80 +4,18 @@
  */
 
 // Import shared test utilities
-const { _ts, utils } = require('./test_shared');
+const { _ts, utils, testApp } = require('./test_shared');
 
-// Set up mocks using centralized system
-const mockInstances = _ts.createMockInstances();
-
-// Load the GmailView class using centralized loader
+// Load the REAL GmailView class - this will override the mock version
+// The real GmailView will use the mock dependencies from testApp
 _ts.loadSourceFile('chrome_manifest_v3/views/class_gmailView.js');
 
-// Set up G2T namespace with mock constructors
-window.G2T = window.G2T || {};
-Object.assign(window.G2T, {
-  Goog: function (args) {
-    return Object.assign(this, mockInstances.mockChrome);
-  },
-  EventTarget: function (args) {
-    return Object.assign(this, mockInstances.mockEventTarget);
-  },
-  Model: function (args) {
-    return Object.assign(this, mockInstances.mockModel);
-  },
-  PopupView: function (args) {
-    return Object.assign(this, mockInstances.mockPopupView);
-  },
-  Utils: function (args) {
-    return Object.assign(this, mockInstances.mockUtils);
-  },
-  WaitCounter: function (args) {
-    return Object.assign(this, mockInstances.waitCounter);
-  },
-});
-
 describe('GmailView Class', () => {
-  let gmailView, testApp;
+  let gmailView;
 
   beforeEach(() => {
-    // Create test application for GmailView class with mock dependencies
-    testApp = {
-      utils: (() => {
-        // Use the actual utils instance but override log for testing
-        const testUtils = Object.create(Object.getPrototypeOf(utils));
-        Object.assign(testUtils, utils);
-        testUtils.log = jest.fn();
-        return testUtils;
-      })(),
-      events: {
-        emit: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-      },
-      persist: {
-        user: null,
-        layoutMode: 0,
-      },
-      temp: {
-        boards: [],
-        lists: [],
-        cards: [],
-        members: [],
-        labels: [],
-      },
-      popupView: {
-        $toolBar: null,
-        finalCreatePopup: jest.fn(),
-        displayExtensionInvalidReload: jest.fn(),
-      },
-      model: {
-        gmail: { mockData: true },
-      },
-      chrome: {
-        runtimeSendMessage: jest.fn(),
-      },
-    };
-
-    // Create a fresh GmailView instance for each test
+    // Create a fresh real GmailView instance with the pre-created mock app
+    // The real GmailView class was loaded above, overriding the mock version
     gmailView = new G2T.GmailView({ app: testApp });
 
     // Initialize properties that the GmailView methods expect

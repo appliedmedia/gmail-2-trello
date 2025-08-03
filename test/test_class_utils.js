@@ -5,7 +5,6 @@
 
 // Import shared test utilities
 const {
-  G2T_TestSuite,
   _ts, // G2T_TestSuite instance
   debugOut,
 } = require('./test_shared');
