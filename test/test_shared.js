@@ -6,7 +6,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Polyfill TextEncoder/TextDecoder for JSDOM's internal dependencies
+// Bridge Node.js and JSDOM environments properly
+// Step 1: Global polyfills for JSDOM's initial loading
 global.TextEncoder = require('util').TextEncoder;
 global.TextDecoder = require('util').TextDecoder;
 
@@ -16,11 +17,17 @@ const { JSDOM } = require('jsdom');
 // This pattern ensures debug output is visible during test development and troubleshooting
 const { log: debugOut } = require('console');
 
-// Set up JSDOM environment at module level
+// Step 2: Set up JSDOM environment with proper Node.js connection
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   runScripts: 'dangerously',
   resources: 'usable',
   url: 'http://localhost',
+  beforeParse(window) {
+    // Properly connect Node.js globals to JSDOM window environment
+    // This ensures any code running in the JSDOM context has access to these
+    window.TextEncoder = require('util').TextEncoder;
+    window.TextDecoder = require('util').TextDecoder;
+  },
 });
 
 // Make window and document available globally
@@ -108,6 +115,13 @@ class G2T_TestSuite {
   }
 
   /**
+   * Instance version of loadSourceFile
+   */
+  loadSourceFile(filePath) {
+    G2T_TestSuite.loadSourceFile(filePath);
+  }
+
+  /**
    * Create a jQuery element from HTML content with properties merged in
    * @param {string|Object} elementData - HTML string or object with html/outerHTML/innerHTML
    * @returns {Object} - jQuery object with all passed properties merged in
@@ -144,30 +158,10 @@ class G2T_TestSuite {
     const commonElementFields = {
       length: 1,
       features: true,
+      duration_max_ms: 300,
     };
     const merged = { ...commonElementFields, ...elementInput };
     return this.asJQueryElement(merged);
-  }
-
-  /**
-   * Create real Utils methods for testing
-   * @param {Object} [app] - Optional app object to use instead of default
-   * @returns {Object} - Real Utils instance
-   */
-  createRealUtilsMethods(app = null) {
-    // Use provided app or create a simple test app for Utils initialization
-    const utilsTestApp = app || {
-      utils: { log: debugOut },
-      persist: { storageHashes: {} },
-      temp: {
-        log: { debugMode: false, memory: [], count: 0, max: 100 },
-      },
-    };
-
-    // Utils class is already loaded at module level
-
-    // Create and return the real Utils instance
-    return new window.G2T.Utils({ app: utilsTestApp });
   }
 
   /**
@@ -314,14 +308,10 @@ G2T_TestSuite.loadSourceFile('chrome_manifest_v3/class_utils.js');
 // Create test suite instance
 const _ts = new G2T_TestSuite();
 
-// Export the test suite instance and individual functions for backward compatibility
+// Export the test suite instance and class for direct access
 module.exports = {
+  G2T_TestSuite,
   _ts,
-  loadSourceFile: (...args) => G2T_TestSuite.loadSourceFile(...args),
-  setupJSDOM: (...args) => _ts.setupJSDOM(...args),
-  cleanupJSDOM: (...args) => _ts.cleanupJSDOM(...args),
-  createRealUtilsMethods: (...args) => _ts.createRealUtilsMethods(...args),
-  createJQueryElement: (...args) => _ts.asJQueryElement(...args),
   debugOut,
 };
 
