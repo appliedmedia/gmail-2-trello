@@ -84,13 +84,25 @@ class GmailView {
   }
 
   displayNameAndEmail(name = '', email = '') {
-    return this.app.utils.addSpace(name, email.length > 0 ? `<${email}>` : '');
+    let display = '';
+
+    if (name) {
+      if (email) {
+        display = `${name} <${email}>`;
+      } else {
+        display = name;
+      }
+    } else if (email) {
+      display = `<${email}>`;
+    }
+
+    return display;
   }
 
   email_raw_md(name = '', email = '') {
     let raw = '',
       md = '';
-    if (!name.length && !email.length) {
+    if (!name && !email) {
       return {
         raw,
         md,
@@ -108,13 +120,13 @@ class GmailView {
 
     raw = this.displayNameAndEmail(displayName, email);
 
-    if (displayName.length > 0) {
-      if (email.length > 0) {
+    if (displayName) {
+      if (email) {
         md = `[${displayName}](${email})`;
       } else {
         md = displayName;
       }
-    } else if (email.length > 0) {
+    } else if (email) {
       md = email;
     }
 

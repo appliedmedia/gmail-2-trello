@@ -305,6 +305,9 @@ class G2T_TestSuite {
 // Load the Utils class at module level using static method
 G2T_TestSuite.loadSourceFile('chrome_manifest_v3/class_utils.js');
 
+// Create actual Utils instance for use across all tests
+const utils = new G2T.Utils({ app: null });
+
 // Create test suite instance
 const _ts = new G2T_TestSuite();
 
@@ -312,6 +315,7 @@ const _ts = new G2T_TestSuite();
 module.exports = {
   G2T_TestSuite,
   _ts,
+  utils,
   debugOut,
 };
 
