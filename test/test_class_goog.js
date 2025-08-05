@@ -17,26 +17,22 @@ describe('Goog Class', () => {
   let googInstance;
 
   beforeEach(() => {
-    // Mock window.location.reload to prevent JSDOM errors
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
-
-    // Mock window.confirm
-    window.confirm = jest.fn();
-
-    // Mock window.console.log
-    window.console.log = jest.fn();
-
+    // Clear all mocks before creating the instance
+    _ts.clearAllMocks();
+    
+    // Reset testApp state to ensure clean state between tests
+    testApp.temp.log.debugMode = false;
+    
+    // Ensure testApp.popupView is properly set up
+    if (!testApp.popupView) {
+      testApp.popupView = {
+        displayExtensionInvalidReload: jest.fn(),
+      };
+    }
+    
     // Create a fresh real Goog instance with the pre-created mock dependencies
     // The real Goog class was loaded above, and will use mock dependencies from testApp
     googInstance = new G2T.Goog({ app: testApp });
-
-    // Clear all mocks
-    _ts.clearAllMocks();
-  });
-
-  afterEach(() => {
-    // Restore mocks
-    jest.restoreAllMocks();
   });
 
   describe('Constructor and Initialization', () => {
@@ -52,6 +48,7 @@ describe('Goog Class', () => {
     });
 
     test('should bind events on construction', () => {
+      // The Goog constructor calls bindEvents(), which registers the storage listener
       expect(window.chrome.storage.onChanged.addListener).toHaveBeenCalled();
     });
 

@@ -17,16 +17,6 @@ describe('Trel Class', () => {
   let trelInstance;
 
   beforeEach(() => {
-    // Mock Trello API
-    global.Trello = {
-      setKey: jest.fn(),
-      authorize: jest.fn(),
-      deauthorize: jest.fn(),
-      rest: jest.fn(),
-      key: jest.fn(() => 'test-api-key'),
-      token: jest.fn(() => 'test-token'),
-    };
-
     // Create a fresh real Trel instance with the pre-created mock dependencies
     // The real Trel class was loaded above, and will use mock dependencies from testApp
     trelInstance = new G2T.Trel({ app: testApp });
@@ -63,11 +53,11 @@ describe('Trel Class', () => {
     test('setApiKey should set API key', () => {
       const apiKey = 'test-api-key';
       trelInstance.setApiKey(apiKey);
-      expect(Trello.setKey).toHaveBeenCalledWith(apiKey);
+      expect(window.Trello.setKey).toHaveBeenCalledWith(apiKey);
     });
 
     test('getApiKey should return stored API key', () => {
-      expect(trelInstance.getApiKey()).toBe('test-api-key');
+      expect(trelInstance.getApiKey()).toBe('21b411b1b5b549c54bd32f0e90738b41');
     });
 
     test('isAuthorized should return authorization status', () => {
@@ -82,7 +72,7 @@ describe('Trel Class', () => {
   describe('Authorization Methods', () => {
     test('authorize should call Trello.authorize', () => {
       trelInstance.authorize(true);
-      expect(Trello.authorize).toHaveBeenCalled();
+      expect(window.Trello.authorize).toHaveBeenCalled();
     });
 
     test('deauthorize should call Trello.deauthorize and update state', () => {
@@ -93,7 +83,7 @@ describe('Trel Class', () => {
 
       expect(testApp.persist.trelloAuthorized).toBe(false);
       expect(testApp.persist.trelloData).toBeNull();
-      expect(Trello.deauthorize).toHaveBeenCalled();
+      expect(window.Trello.deauthorize).toHaveBeenCalled();
     });
 
     test('deauthorize should update state even if Trello.deauthorize fails', () => {
@@ -101,7 +91,7 @@ describe('Trel Class', () => {
       testApp.persist.trelloData = { some: 'data' };
 
       // Mock Trello.deauthorize to throw
-      Trello.deauthorize.mockImplementation(() => {
+      window.Trello.deauthorize.mockImplementation(() => {
         throw new Error('Trello not defined');
       });
 
@@ -170,7 +160,7 @@ describe('Trel Class', () => {
       testApp.persist.trelloAuthorized = true;
 
       const error = new Error('API Error');
-      G2T.Trello.rest.mockImplementation(() => {
+      window.Trello.rest.mockImplementation(() => {
         throw error;
       });
 
@@ -197,7 +187,7 @@ describe('Trel Class', () => {
     test('getUser should call wrapApiCall with correct parameters', () => {
       trelInstance.getUser();
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         'members/me',
         {},
@@ -209,7 +199,7 @@ describe('Trel Class', () => {
     test('getBoards should call wrapApiCall with correct parameters', () => {
       trelInstance.getBoards();
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         'members/me/boards',
         {},
@@ -223,7 +213,7 @@ describe('Trel Class', () => {
 
       trelInstance.getLists(boardId);
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         `boards/${boardId}/lists`,
         {},
@@ -237,7 +227,7 @@ describe('Trel Class', () => {
 
       trelInstance.getCards(listId);
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         `lists/${listId}/cards`,
         {},
@@ -251,7 +241,7 @@ describe('Trel Class', () => {
 
       trelInstance.getMembers(boardId);
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         `boards/${boardId}/members`,
         {},
@@ -265,7 +255,7 @@ describe('Trel Class', () => {
 
       trelInstance.getLabels(boardId);
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'get',
         `boards/${boardId}/labels`,
         {},
@@ -279,7 +269,7 @@ describe('Trel Class', () => {
 
       trelInstance.createCard(cardData);
 
-      expect(G2T.Trello.rest).toHaveBeenCalledWith(
+      expect(window.Trello.rest).toHaveBeenCalledWith(
         'post',
         'cards',
         expect.any(Object),
@@ -328,7 +318,7 @@ describe('Trel Class', () => {
 
       // Make API call
       trelInstance.getUser();
-      expect(G2T.Trello.rest).toHaveBeenCalled();
+      expect(window.Trello.rest).toHaveBeenCalled();
 
       // Deauthorize
       trelInstance.deauthorize();
