@@ -110,7 +110,7 @@ class G2T_TestSuite {
    * @param {string} filePath - Path to the source file
    */
   static loadSourceFile(filePath) {
-    // Resolve paths relative to project root (go up one level from test/)
+    // Resolve paths relative to project root (go up one level from tests/)
     const fullPath = path.join(__dirname, '..', filePath);
 
     try {

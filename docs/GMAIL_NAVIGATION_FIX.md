@@ -71,6 +71,7 @@ Added debouncing to prevent excessive redraws:
 ### Gmail Navigation Selectors
 
 The extension detects navigation by monitoring clicks on elements with:
+
 - `role="navigation"`
 - Gmail's navigation classes (`.bq9`, `.bqA`, etc.)
 - Tooltip attributes containing navigation labels
@@ -98,17 +99,17 @@ When navigation is detected:
 
 ### Automated Testing
 
-Use the test functions in `test/navigation_test.js`:
+Use archived test functions:
 
 ```javascript
 // Check app initialization
-testAppInitialization()
+testAppInitialization();
 
 // Simulate navigation events
-testGmailNavigation()
+testGmailNavigation();
 
 // Manually trigger navigation detection
-testManualNavigationDetection()
+testManualNavigationDetection();
 ```
 
 ## Performance Considerations
@@ -136,7 +137,7 @@ testManualNavigationDetection()
 - `class_app.js`: Added navigation event detection and handling
 - `views/class_gmailView.js`: Added force redraw functionality
 - `views/class_popupView.js`: Added force redraw handling
-- `test/navigation_test.js`: Added testing utilities
+- Archived navigation test utilities
 
 ## Related Issues
 

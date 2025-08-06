@@ -223,8 +223,8 @@ uploadAttachment(cardId, attachmentData);
 
 - [x] **Step 7.1**: Create comprehensive tests
 
-  - [x] Create `test/test_class_trel.js` with all method tests
-  - [x] Update `test/test_class_model.js` to test new integration
+  - [x] Create `tests/test_class_trel.js` with all method tests
+  - [x] Update `tests/test_class_model.js` to test new integration
   - [x] Test: Verify all tests pass
 
 - [x] **Step 7.2**: Manual testing
@@ -256,12 +256,12 @@ uploadAttachment(cardId, attachmentData);
 
 ### Test Files:
 
-- `test/test_class_trel.js` - New test file for `class_trel` (23 tests)
-- `test/test_class_model.js` - Updated to test new integration (229 tests total across 4 suites)
-- `test/test_class_utils.js` - Utils tests
-- `test/test_class_app.js` - App tests
-- `test/test_shared.js` - Shared test utilities (not a test file itself)
-- `test/obsolete_*.js` - Obsolete test files renamed for future updates
+- `tests/test_class_trel.js` - New test file for `class_trel` (23 tests)
+- `tests/test_class_model.js` - Updated to test new integration (229 tests total across 4 suites)
+- `tests/test_class_utils.js` - Utils tests
+- `tests/test_class_app.js` - App tests
+- `tests/test_shared.js` - Shared test utilities (not a test file itself)
+- `tests/obsolete_*.js` - Obsolete test files renamed for future updates
 
 ### Test Scenarios:
 

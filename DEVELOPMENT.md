@@ -89,7 +89,7 @@ This guide provides detailed instructions for developing and contributing to the
 
 ### Automated Testing
 
-Tests are in the `test/` directory. Run with:
+Tests are in the `tests/` directory. Run with:
 
 ```zsh
 npm test

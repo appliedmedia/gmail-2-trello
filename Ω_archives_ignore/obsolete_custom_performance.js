@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Simple performance test for custom EventTarget implementation
-// Run with: node test/custom_performance_test.js
+// Run with: node tests/custom_performance_test.js
 
 // Current EventTarget implementation (copy from lib/eventTarget.js)
 class CustomEventTarget {

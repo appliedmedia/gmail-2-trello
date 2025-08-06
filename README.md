@@ -27,7 +27,7 @@ Gmail-2-Trello is a Chrome extension that allows you to easily create Trello car
 ├── chrome_manifest_v3/     # Main Chrome extension (Manifest V3)
 ├── firefox/               # Firefox extension
 ├── docs/                  # Documentation and assets
-├── test/                  # Test files
+├── tests/                 # Test files
 └── graveyard/            # Deprecated code
 ```
 
@@ -100,7 +100,7 @@ The extension automatically integrates with Gmail's interface. No additional con
 
 ## Testing
 
-Tests are located in the `test/` directory. Run them with:
+Tests are located in the `tests/` directory. Run them with:
 
 ```zsh
 npm test

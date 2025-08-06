@@ -212,12 +212,12 @@ const EventTarget =
 
 A comprehensive test suite has been created for the class\_\* implementations:
 
-**Files created:**
+**Files created (archived):**
 
-- `test/class_implementation_tests.js` - Test suite for class implementations
-- `test/class_implementation_tests.html` - Browser test runner
-- `test/eventTarget_performance.js` - Performance comparison tests
-- `test/eventTarget_performance.html` - Browser performance test runner
+- Archived class implementation test suite
+- Archived browser test runner
+- Archived performance comparison tests
+- Archived browser performance test runner
 
 **Test coverage:**
 
@@ -230,16 +230,7 @@ A comprehensive test suite has been created for the class\_\* implementations:
 
 ### Running Tests
 
-```bash
-# Run class implementation tests
-open test/class_implementation_tests.html
-
-# Run performance tests
-open test/eventTarget_performance.html
-
-# Run Node.js performance test
-node test/custom_performance_test.js
-```
+All test files have been archived. Current testing is handled by the main test suite in `/tests/test_class_*.js` files.
 
 ## Recommendations
 
@@ -272,11 +263,11 @@ The current EventTarget implementation is **highly performant** and **well-suite
 ### New Files
 
 - `chrome_manifest_v3/lib/eventTarget_native.js` - Native EventTarget wrapper
-- `test/class_implementation_tests.js` - Class implementation test suite
-- `test/class_implementation_tests.html` - Browser test runner
-- `test/eventTarget_performance.js` - Performance comparison tests
-- `test/eventTarget_performance.html` - Browser performance test runner
-- `test/custom_performance_test.js` - Node.js performance test
+- Archived class implementation test suite
+- Archived browser test runner
+- Archived performance comparison tests
+- Archived browser performance test runner
+- Archived Node.js performance test
 - `EVENTTARGET_ANALYSIS.md` - This analysis document
 
 ### Test Results

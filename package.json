@@ -7,8 +7,6 @@
     "dev": "echo '🚀 Development Setup: 1) Open chrome://extensions/ 2) Enable Developer mode 3) Load unpacked: chrome_manifest_v3/ 4) Go to Gmail to test'",
     "build": "cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
     "test": "jest",
-    "test:legacy": "node test/test_main.js",
-    "test:markdownify": "jest test/test_markdownify.js",
     "lint": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
     "lint:fix": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js --fix",
     "format": "prettier --write chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
@@ -54,13 +52,12 @@
     "verbose": false,
     "silent": false,
     "testMatch": [
-      "**/test/test_class_model.js",
-      "**/test/test_class_utils.js",
-      "**/test/test_class_app.js",
-      "**/test/test_class_trel.js",
-      "**/test/test_class_gmailView.js",
-      "**/test/test_class_goog.js",
-      "**/test/test_class_load_source_file.js"
+      "**/tests/test_class_model.js",
+      "**/tests/test_class_utils.js",
+      "**/tests/test_class_app.js",
+      "**/tests/test_class_trel.js",
+      "**/tests/test_class_gmailView.js",
+      "**/tests/test_class_goog.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,

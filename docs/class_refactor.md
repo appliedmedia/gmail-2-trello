@@ -229,18 +229,18 @@ global.$ = (selectorOrElement, context) => {
 
 **🔍 AUDIT RESULTS**: Found extensive usage across multiple files:
 
-1. **`test/test_shared.js`**:
+1. **`tests/test_shared.js`**:
    - **Function definition** (line 521) + **67+ internal calls** within the function itself
    - **Export** (line 2052) - making it available to other test files
    - **Heavy internal usage** for jQuery method chaining (show, hide, clone, wrap, etc.)
 
-2. **`test/test_class_utils.js`**:
+2. **`tests/test_class_utils.js`**:
    - **Import** (line 11) + **1 usage** (line 935) for large content testing
 
-3. **`test/test_class_goog.js`**:
+3. **`tests/test_class_goog.js`**:
    - **Import** (line 14) - imported but usage needs verification
 
-4. **`test/obsolete_markdownify.js`**:
+4. **Archived obsolete test files**:
    - **Import** + **50+ usages** throughout all markdownify tests
    - **NOTE**: This file is obsolete, so can be ignored
 
@@ -251,7 +251,7 @@ global.$ = (selectorOrElement, context) => {
 - ✅ `test_shared.js`: Heavy internal usage (67+ calls) - needs major refactoring
 - ✅ `test_class_utils.js`: Light usage (1 call) - easy to replace
 - ✅ `test_class_goog.js`: Import only - verify if actually used
-- ❌ `obsolete_markdownify.js`: Ignore (obsolete file)
+- ❌ Archived obsolete files
 
 **Phase 2: Replace External Usage First**
 
@@ -1009,22 +1009,22 @@ function setupModelForTesting() {
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
 1. **test_class_utils.js** (GOLD STANDARD)
-   - Command: `npm test -- test/test_class_utils.js`
+   - Command: `npm test -- tests/test_class_utils.js`
    - Expected: All 118 tests passing
    - Purpose: Ensure gold standard functionality is preserved
 
 2. **test_class_app.js** (SILVER STANDARD)
-   - Command: `npm test -- test/test_class_app.js`
+   - Command: `npm test -- tests/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
 
 3. **test_class_goog.js** (BRONZE STANDARD)
-   - Command: `npm test -- test/test_class_goog.js`
+   - Command: `npm test -- tests/test_class_goog.js`
    - Expected: All 39+ tests passing
    - Purpose: Ensure bronze standard functionality is preserved
 
 4. **test_class_model.js** (MODEL STANDARD - when applicable)
-   - Command: `npm test -- test/test_class_model.js`
+   - Command: `npm test -- tests/test_class_model.js`
    - Expected: All 60+ tests passing (after refactor)
    - Purpose: Ensure model standard functionality works
 
@@ -1433,19 +1433,20 @@ function setupChromeForTesting() {
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
 1. **test_class_app.js** (SILVER STANDARD)
-   - Command: `npm test -- test/test_class_app.js`
+   - Command: `npm test -- tests/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
 
 2. **test_class_utils.js** (BRONZE STANDARD)
-   - Command: `npm test -- test/test_class_utils.js`
+   - Command: `npm test -- tests/test_class_utils.js`
    - Expected: All 118 tests passing
    - Purpose: Ensure bronze standard functionality is preserved
 
-3. **test_class_chrome.js** (CHROME STANDARD - when applicable)
-   - Command: `npm test -- test/test_class_chrome.js`
-   - Expected: All 39+ tests passing (after refactor)
-   - Purpose: Ensure chrome standard functionality works
+3. **test_class_goog.js** (renamed from test_class_chrome.js - CHROME STANDARD)
+
+- Command: `npm test -- tests/test_class_goog.js`
+  - Expected: All 39+ tests passing (after refactor)
+  - Purpose: Ensure chrome standard functionality works
 
 ### Success Criteria for Each Phase
 
@@ -1980,18 +1981,17 @@ function setupUtilsForTesting() {
 
 Whenever `test_shared.js` is modified, the following tests MUST be run to ensure no regressions:
 
-1. **test_markdownify.js** (GOLD STANDARD)
-   - Command: `npm test -- test/test_markdownify.js`
+1. **Archived test_markdownify.js** (was GOLD STANDARD - now archived)
    - Expected: All 55 tests passing
    - Purpose: Ensure gold standard functionality is preserved
 
 2. **test_class_app.js** (SILVER STANDARD)
-   - Command: `npm test -- test/test_class_app.js`
+   - Command: `npm test -- tests/test_class_app.js`
    - Expected: All 46 tests passing
    - Purpose: Ensure silver standard functionality is preserved
 
 3. **test_class_utils.js** (BRONZE STANDARD - when applicable)
-   - Command: `npm test -- test/test_class_utils.js`
+   - Command: `npm test -- tests/test_class_utils.js`
    - Expected: All 118 tests passing (after refactor)
    - Purpose: Ensure bronze standard functionality works
 
