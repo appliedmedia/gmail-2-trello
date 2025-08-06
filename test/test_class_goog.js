@@ -5,119 +5,40 @@
 
 // Import shared test utilities
 const {
-  loadClassFile,
-  createMockInstances,
-  setupG2TMocks,
-  clearAllMocks,
-  createG2TNamespace,
-  setupJSDOM,
-  cleanupJSDOM,
-  createMockJQueryElement,
-  injectJQueryAndMocks,
+  _ts, // G2T_TestSuite instance
+  testApp, // Pre-created mock app with all dependencies
 } = require('./test_shared');
 
-// Set up mocks before loading the Goog class
-const mockInstances = createMockInstances();
-
-// Make mock objects globally available
-const mockChrome = mockInstances.mockChrome;
-const mockEventTarget = mockInstances.mockEventTarget;
-const mockModel = mockInstances.mockModel;
-const mockGmailView = mockInstances.mockGmailView;
-const mockPopupView = mockInstances.mockPopupView;
-const mockUtils = mockInstances.mockUtils;
-
-// Make mockInstances available to tests
-global.mockInstances = mockInstances;
-
-// Load the Goog class using eval (for Chrome extension compatibility)
-const googCode = loadClassFile('chrome_manifest_v3/class_goog.js');
-
-// Create mock constructors code
-const mockConstructorsCode = `
-// Inject mock constructors for testing
-G2T.Goog = function(args) {
-  if (!(this instanceof G2T.Goog)) {
-    return new G2T.Goog(args);
-  }
-  Object.assign(this, mockChrome);
-  return this;
-};
-G2T.EventTarget = function(args) {
-  if (!(this instanceof G2T.EventTarget)) {
-    return new G2T.EventTarget(args);
-  }
-  Object.assign(this, mockEventTarget);
-  return this;
-};
-G2T.Model = function(args) {
-  if (!(this instanceof G2T.Model)) {
-    return new G2T.Model(args);
-  }
-  Object.assign(this, mockModel);
-  return this;
-};
-G2T.GmailView = function(args) {
-  if (!(this instanceof G2T.GmailView)) {
-    return new G2T.GmailView(args);
-  }
-  Object.assign(this, mockGmailView);
-  return this;
-};
-G2T.PopupView = function(args) {
-  if (!(this instanceof G2T.PopupView)) {
-    return new G2T.PopupView(args);
-  }
-  Object.assign(this, mockPopupView);
-  return this;
-};
-G2T.Utils = function(args) {
-  if (!(this instanceof G2T.Utils)) {
-    return new G2T.Utils(args);
-  }
-  Object.assign(this, mockUtils);
-  return this;
-};`;
-
-// Use standardized injection function
-const injectedCode = injectJQueryAndMocks(googCode, mockConstructorsCode);
-eval(injectedCode);
+// Load the REAL Goog class - this will override the mock version
+// The real Goog will use the mock dependencies from testApp
+_ts.loadSourceFile('chrome_manifest_v3/class_goog.js');
 
 describe('Goog Class', () => {
-  let googInstance, dom, mockApp;
+  let googInstance;
 
   beforeEach(() => {
-    // Setup JSDOM environment using shared function
-    const jsdomSetup = setupJSDOM();
-    dom = jsdomSetup.dom;
-
-    // Create proper mock application for Goog class
-    mockApp = {
-      utils: {
-        refreshDebugMode: jest.fn(),
-        log: jest.fn(),
-      },
-      popupView: {
+    // Clear all mocks before creating the instance
+    _ts.clearAllMocks();
+    
+    // Reset testApp state to ensure clean state between tests
+    testApp.temp.log.debugMode = false;
+    
+    // Ensure testApp.popupView is properly set up
+    if (!testApp.popupView) {
+      testApp.popupView = {
         displayExtensionInvalidReload: jest.fn(),
-      },
-    };
-
-    // Create a fresh Goog instance for each test
-    googInstance = new G2T.Goog({ app: mockApp });
-
-    // Manually call bindEvents to ensure storage listener is registered
-    googInstance.bindEvents();
-  });
-
-  afterEach(() => {
-    // Clean up JSDOM environment using shared function
-    cleanupJSDOM(dom);
+      };
+    }
+    
+    // Create a fresh real Goog instance with the pre-created mock dependencies
+    // The real Goog class was loaded above, and will use mock dependencies from testApp
+    googInstance = new G2T.Goog({ app: testApp });
   });
 
   describe('Constructor and Initialization', () => {
     test('should create Goog instance with app dependency', () => {
       expect(googInstance).toBeInstanceOf(G2T.Goog);
-      expect(googInstance.app).toBe(mockApp);
+      expect(googInstance.app).toBe(testApp);
     });
 
     test('should handle constructor with no arguments', () => {
@@ -127,6 +48,7 @@ describe('Goog Class', () => {
     });
 
     test('should bind events on construction', () => {
+      // The Goog constructor calls bindEvents(), which registers the storage listener
       expect(window.chrome.storage.onChanged.addListener).toHaveBeenCalled();
     });
 
@@ -163,11 +85,11 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'sync';
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+      expect(testApp.temp.log.debugMode).toBe(false); // Initially false
 
       listener(changes, namespace);
 
-      expect(mockApp.temp.log.debugMode).toBe(true); // Should be set to true
+      expect(testApp.temp.log.debugMode).toBe(true); // Should be set to true
     });
 
     test('storage change listener should ignore non-sync namespace', () => {
@@ -177,11 +99,11 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'local';
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+      expect(testApp.temp.log.debugMode).toBe(false); // Initially false
 
       listener(changes, namespace);
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Should remain unchanged
+      expect(testApp.temp.log.debugMode).toBe(false); // Should remain unchanged
     });
 
     test('storage change listener should ignore non-debugMode changes', () => {
@@ -191,11 +113,11 @@ describe('Goog Class', () => {
       const changes = { otherSetting: { newValue: true } };
       const namespace = 'sync';
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+      expect(testApp.temp.log.debugMode).toBe(false); // Initially false
 
       listener(changes, namespace);
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Should remain unchanged
+      expect(testApp.temp.log.debugMode).toBe(false); // Should remain unchanged
     });
   });
 
@@ -305,7 +227,7 @@ describe('Goog Class', () => {
       googInstance.showContextInvalidMessage();
 
       expect(
-        mockApp.popupView.displayExtensionInvalidReload,
+        testApp.popupView.displayExtensionInvalidReload,
       ).toHaveBeenCalled();
     });
 
@@ -461,18 +383,18 @@ describe('Goog Class', () => {
       const changes = { debugMode: { newValue: true } };
       const namespace = 'sync';
 
-      expect(mockApp.temp.log.debugMode).toBe(false); // Initially false
+      expect(testApp.temp.log.debugMode).toBe(false); // Initially false
 
       listener(changes, namespace);
 
-      expect(mockApp.temp.log.debugMode).toBe(true); // Should be set correctly
+      expect(testApp.temp.log.debugMode).toBe(true); // Should be set correctly
     });
 
     test('should integrate with popup view correctly', () => {
       googInstance.showContextInvalidMessage();
 
       expect(
-        mockApp.popupView.displayExtensionInvalidReload,
+        testApp.popupView.displayExtensionInvalidReload,
       ).toHaveBeenCalled();
     });
 

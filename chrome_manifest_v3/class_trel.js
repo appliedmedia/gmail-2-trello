@@ -460,6 +460,12 @@ class Trel {
    * @param {object} cardData - Card data including name, desc, idList, idBoard, etc.
    */
   createCard(cardData) {
+    // Handle null or undefined cardData
+    if (!cardData) {
+      this.app.events.emit('invalidFormData', { data: cardData });
+      return;
+    }
+
     const data = {
       name: cardData.subject || 'No Subject',
       desc: cardData.body || '',

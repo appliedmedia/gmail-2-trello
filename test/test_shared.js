@@ -88,7 +88,17 @@ window.Trello = {
   post: jest.fn(),
   put: jest.fn(),
   del: jest.fn(),
+  rest: jest.fn(),
 };
+
+// Mock window.location.reload to prevent JSDOM errors
+window.location.reload = jest.fn();
+
+// Mock window.confirm
+window.confirm = jest.fn();
+
+// Mock window.console.log
+window.console.log = jest.fn();
 
 class G2T_TestSuite {
   constructor() {
@@ -425,7 +435,7 @@ class G2T_TestSuite {
           layoutMode: 0,
           trelloAuthorized: false,
           user: null,
-          emailBoardListCardMap: [],
+          eblcmArray: [],
           popupWidth: 700,
           popupHeight: 464,
           storageHashes: {},

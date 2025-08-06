@@ -25,7 +25,7 @@ class Goog {
    * Handle debug mode changes from Chrome storage
    */
   handleDebugModeChange(newDebugMode = null) {
-    if (typeof newDebugMode === 'boolean') {
+    if (typeof newDebugMode === 'boolean' && this.app?.temp?.log) {
       this.app.temp.log.debugMode = newDebugMode;
     }
   }
