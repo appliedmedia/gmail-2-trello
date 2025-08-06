@@ -356,15 +356,27 @@ class G2T_TestSuite {
     };
 
     let PopupForm = class {
-      constructor({ app }) {
+      constructor({ app, parent }) {
         this.app = app;
+        this.parent = parent;
+        this.isInitialized = false;
         this.init = jest.fn();
         this.bindEvents = jest.fn();
         this.bindData = jest.fn();
         this.bindGmailData = jest.fn();
-        this.validateData = jest.fn();
         this.reset = jest.fn();
         this.submit = jest.fn();
+        this.showMessage = (target, message) =>
+          debugOut('PopupForm showMessage:', { target, message });
+        this.hideMessage = () => debugOut('PopupForm hideMessage called');
+      }
+
+      static get ck() {
+        return { id: 'g2t_popupform' };
+      }
+
+      get ck() {
+        return PopupForm.ck;
       }
     };
 
@@ -372,6 +384,21 @@ class G2T_TestSuite {
       constructor({ app }) {
         this.app = app;
         this.$toolBar = null;
+        this.isInitialized = false;
+        this.dataDirty = true;
+        this.posDirty = false;
+        this.MAX_BODY_SIZE = 16384;
+        this.mouseDownTracker = {};
+        this.lastError = '';
+        this.intervalId = 0;
+        this.updatesPending = [];
+        this.comboInitialized = false;
+        this.size_k = {
+          width: { min: 700, max: window.innerWidth - 16 },
+          height: { min: 464, max: 1400 },
+          text: { min: 111 },
+        };
+        this.form = new PopupForm({ app, parent: this });
         this.finalCreatePopup = jest.fn();
         this.displayExtensionInvalidReload = jest.fn();
         this.init = jest.fn();

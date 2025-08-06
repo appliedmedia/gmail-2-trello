@@ -57,7 +57,9 @@
       "**/tests/test_class_app.js",
       "**/tests/test_class_trel.js",
       "**/tests/test_class_gmailView.js",
-      "**/tests/test_class_goog.js"
+      "**/tests/test_class_goog.js",
+      "**/tests/test_class_popupView.js",
+      "**/tests/test_class_popupForm.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,

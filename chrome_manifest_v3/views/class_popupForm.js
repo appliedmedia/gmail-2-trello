@@ -660,7 +660,7 @@ class PopupForm {
 
     // Attach hideMessage function to hideMsg class if in text:
     $('.hideMsg', this.parent.$popupMessage).on('click', () => {
-      parent.hideMessage();
+      this.hideMessage();
     });
 
     $(':button', this.parent.$popupMessage).on('click', event => {
@@ -772,7 +772,7 @@ class PopupForm {
           '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
 
-      this.parent.showMessage(this.app, errorHtml);
+      this.showMessage(this.app, errorHtml);
       this.parent.$popupContent.hide();
 
       // Handle reload button click for 400 errors
@@ -905,7 +905,7 @@ class PopupForm {
     if (this.parent.$popupContent) {
       this.parent.$popupContent.hide();
     }
-    this.parent.showMessage(this.parent, 'Submitting to Trello...');
+    this.showMessage(this.parent, 'Submitting to Trello...');
     this.app.events.emit('submit');
   }
 
@@ -931,7 +931,7 @@ class PopupForm {
   }
 
   handleCheckTrelloAuthorized() {
-    this.parent.showMessage(this.parent.app, 'Authorizing...');
+    this.showMessage(this.parent.app, 'Authorizing...');
     this.parent.app.model.checkTrelloAuthorized();
   }
 
