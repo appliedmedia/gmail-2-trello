@@ -304,78 +304,23 @@ const emailMappingTests = [
   },
 ];
 
-// Data-driven test cases for error handling scenarios
-const errorHandlingTests = [
-  {
-    name: 'null input',
-    input: null,
-    method: 'submit',
-    shouldThrow: false,
-  },
-  {
-    name: 'undefined input',
-    input: undefined,
-    method: 'submit',
-    shouldThrow: false,
-  },
-  {
-    name: 'empty object',
-    input: {},
-    method: 'submit',
-    shouldThrow: false,
-  },
-  {
-    name: 'null input for createCard',
-    input: null,
-    method: 'createCard',
-    shouldThrow: true,
-  },
-  {
-    name: 'undefined input for uploadAttachment',
-    input: undefined,
-    method: 'uploadAttachment',
-    shouldThrow: false,
-  },
-];
-
 // Data-driven test cases for performance scenarios
-const performanceTests = [
-  {
-    name: 'large boards dataset',
-    dataSize: 100,
-    dataType: 'boards',
-    methodName: 'loadTrelloBoards_success',
-    maxDuration: 100,
-  },
-  {
-    name: 'large lists dataset',
-    dataSize: 50,
-    dataType: 'lists',
-    methodName: 'loadTrelloLists_success',
-    maxDuration: 50,
-  },
-  {
-    name: 'large cards dataset',
-    dataSize: 200,
-    dataType: 'cards',
-    methodName: 'loadTrelloCards_success',
-    maxDuration: 100,
-  },
-  {
-    name: 'large members dataset',
-    dataSize: 75,
-    dataType: 'members',
-    methodName: 'loadTrelloMembers_success',
-    maxDuration: 75,
-  },
-  {
-    name: 'large labels dataset',
-    dataSize: 25,
-    dataType: 'labels',
-    methodName: 'loadTrelloLabels_success',
-    maxDuration: 25,
-  },
-];
+const performanceTests = {
+  defaults: { duration_max: 200 },
+  
+  Cards: { dataSize: 200 },
+  Boards: { dataSize: 100 },
+  Lists: { dataSize: 50 },
+  Members: { dataSize: 75 },
+  Labels: { dataSize: 25, duration_max: 50 },
+};
+
+function findKeyValueOrDefault(element, key) {
+  const useValue = element[key] !== undefined ? element[key] : performanceTests.defaults[key] !== undefined ? performanceTests.defaults[key] : '';
+  return useValue;
+}
+
+
 
 describe('Model Class', () => {
   let model;
@@ -764,45 +709,102 @@ describe('Model Class', () => {
   });
 
   describe('Error Handling', () => {
-    // Data-driven tests for error handling scenarios
-    errorHandlingTests.forEach(({ name, input, method, shouldThrow }) => {
-      test(`should handle ${name} for ${method}`, () => {
-        if (shouldThrow) {
-          expect(() => model[method](input)).toThrow();
-        } else {
-          expect(() => model[method](input)).not.toThrow();
-        }
-      });
+    let emitSpy;
+
+    beforeEach(() => {
+      emitSpy = jest.spyOn(model.app.events, 'emit');
+    });
+
+    test('submit should emit APIFail when not authorized', () => {
+      model.app.persist.trelloAuthorized = false;
+      const testData = { title: 'Test Card', boardId: 'board1', listId: 'list1' };
+      
+      model.submit(testData);
+      
+      expect(emitSpy).toHaveBeenCalledWith('APIFail', { data: testData });
+    });
+
+    test('submit should emit invalidFormData when missing boardId', () => {
+      model.app.persist.trelloAuthorized = true;
+      const invalidData = { title: 'Test Card', listId: 'list1' }; // missing boardId
+      
+      model.submit(invalidData);
+      
+      expect(emitSpy).toHaveBeenCalledWith('invalidFormData', { data: invalidData });
+    });
+
+    test('submit should emit invalidFormData when missing listId', () => {
+      model.app.persist.trelloAuthorized = true;
+      const invalidData = { title: 'Test Card', boardId: 'board1' }; // missing listId
+      
+      model.submit(invalidData);
+      
+      expect(emitSpy).toHaveBeenCalledWith('invalidFormData', { data: invalidData });
+    });
+
+    test('submit should emit invalidFormData when data is null', () => {
+      model.app.persist.trelloAuthorized = true;
+      
+      model.submit(null);
+      
+      expect(emitSpy).toHaveBeenCalledWith('invalidFormData', { data: null });
+    });
+
+    test('createCard should emit invalidFormData when data is null', () => {
+      model.createCard(null);
+      
+      expect(emitSpy).toHaveBeenCalledWith('invalidFormData', { data: null });
+    });
+
+    test('uploadAttachment should emit newCardUploadsComplete when no attachments', () => {
+      const dataWithoutAttachments = { title: 'Test' };
+      
+      model.uploadAttachment(dataWithoutAttachments);
+      
+      expect(emitSpy).toHaveBeenCalledWith('newCardUploadsComplete', { data: dataWithoutAttachments });
+    });
+
+    test('uploadAttachment should emit newCardUploadsComplete when empty attachments', () => {
+      const dataWithEmptyAttachments = { attachment: [] };
+      
+      model.uploadAttachment(dataWithEmptyAttachments);
+      
+      expect(emitSpy).toHaveBeenCalledWith('newCardUploadsComplete', { data: dataWithEmptyAttachments });
     });
   });
 
   describe('Performance Tests', () => {
     // Data-driven tests for performance scenarios
-    performanceTests.forEach(({ name, dataSize, dataType, methodName, maxDuration }) => {
-      test(`should handle ${name} efficiently`, () => {
-        const largeData = Array.from({ length: dataSize }, (_, i) => ({
-          id: `${dataType}-${i}`,
-          name: `${dataType.charAt(0).toUpperCase() + dataType.slice(1)} ${i}`,
-        }));
+    Object.entries(performanceTests)
+      .filter(([key]) => key !== 'defaults')
+      .forEach(([tag, element]) => {
+        const tag_lc = tag.toLowerCase();
+        const name = `large ${tag_lc} dataset`;
+        const dataSize = findKeyValueOrDefault(element, 'dataSize');
+        const methodName = `loadTrello${tag}_success`;
+        const duration_max = findKeyValueOrDefault(element, 'duration_max');
 
-        const startTime = Date.now();
-        
-        // Call the appropriate success method
-        expect(model[methodName]).toBeDefined();
-        model[methodName](largeData);
-        
-        const endTime = Date.now();
-        const duration = endTime - startTime;
+        test(`should handle ${name} efficiently`, () => {
+          const largeData = Array.from({ length: dataSize }, (_, i) => ({
+            id: `${tag_lc}-${i}`,
+            name: `${tag.charAt(0).toUpperCase() + tag.slice(1)} ${i}`,
+          }));
 
-        // Verify the data was set correctly
-        const expectedProperty = `app.temp.${dataType}`;
-        const actualData = expectedProperty.split('.').reduce((obj, key) => obj[key], model);
-        expect(actualData).toEqual(largeData);
-        
-        // Performance check
-        expect(duration).toBeLessThan(maxDuration);
+          const startTime = Date.now();
+          
+          expect(model[methodName]).toBeDefined();
+          model[methodName](largeData);
+          
+          const endTime = Date.now();
+          const duration = endTime - startTime;
+
+          const expectedProperty = `app.temp.${tag_lc}`;
+          const actualData = expectedProperty.split('.').reduce((obj, key) => obj[key], model);
+          expect(actualData).toEqual(largeData);
+          
+          expect(duration).toBeLessThan(duration_max);
+        });
       });
-    });
 
     test('should handle many event handlers efficiently', () => {
       const startTime = Date.now();
