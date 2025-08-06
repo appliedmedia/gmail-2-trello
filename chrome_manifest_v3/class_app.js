@@ -37,8 +37,7 @@ class App {
       trelloAuthorized: false,
       // Trello data (flattened)
       user: null,
-      emailBoardListCardMap: [],
-      eblcmArray: [], // Add this line
+      eblcmArray: [],
       // PopupView state
       popupWidth: 700,
       popupHeight: 464,

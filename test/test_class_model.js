@@ -351,10 +351,10 @@ describe('Model Class', () => {
         property: 'trel',
         expected: expect.any(G2T.Trel),
       },
-      'emailBoardListCardMap property': {
-        property: 'emailBoardListCardMap',
-        expected: expect.any(Object),
-      },
+              'emailBoardListCardMap property': {
+      property: 'emailBoardListCardMap',
+      expected: expect.any(Object),
+    },
     };
 
     Object.entries(constructorTests).forEach(
@@ -591,7 +591,7 @@ describe('Model Class', () => {
           timestamp: Date.now(),
         },
       ];
-      model.app.persist.emailBoardListCardMap = existingMap;
+      model.app.persist.eblcmArray = existingMap;
 
       const result = model.emailBoardListCardMapLookup({ email: 'test@example.com' });
       expect(result).toBeDefined();
@@ -603,7 +603,7 @@ describe('Model Class', () => {
 
     test('emailBoardListCardMapUpdate should add new mapping', () => {
       // Start with empty map
-      model.app.persist.emailBoardListCardMap = [];
+      model.app.persist.eblcmArray = [];
 
       const keyValue = {
         email: 'new@example.com',
@@ -633,7 +633,7 @@ describe('Model Class', () => {
           timestamp: Date.now(),
         },
       ];
-      model.app.persist.emailBoardListCardMap = existingMap;
+      model.app.persist.eblcmArray = existingMap;
 
       const keyValue = {
         email: 'update@example.com',
@@ -643,18 +643,18 @@ describe('Model Class', () => {
 
       expect(() => model.emailBoardListCardMapUpdate(keyValue)).not.toThrow();
       
-      // Verify that a new entry was added (the map doesn't update existing entries)
-      const results = model.app.persist.emailBoardListCardMap.filter(
+      // Verify that the existing entry was updated (the map updates existing entries)
+      const results = model.app.persist.eblcmArray.filter(
         entry => entry.email === 'update@example.com'
       );
-      expect(results.length).toBe(2); // Should have both old and new entries
+      expect(results.length).toBe(1); // Should have only one updated entry
       
-      // The lookup should return the first match (old entry)
+      // The lookup should return the updated entry
       const result = model.emailBoardListCardMapLookup({ email: 'update@example.com' });
       expect(result).toBeDefined();
       expect(result.email).toBe('update@example.com');
-      expect(result.boardId).toBe('old-board'); // First match in the array
-      expect(result.listId).toBe('old-list');
+      expect(result.boardId).toBe('new-board'); // Updated entry
+      expect(result.listId).toBe('new-list');
     });
   });
 

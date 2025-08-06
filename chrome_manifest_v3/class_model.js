@@ -224,7 +224,7 @@ class EmailBoardListCardMap {
   }
 
   find(key_value = {}) {
-    return this.app.persist.emailBoardListCardMap.find(entry => {
+    return this.app.persist.eblcmArray.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
     });
   }
@@ -235,11 +235,11 @@ class EmailBoardListCardMap {
   }
 
   makeRoom(index = -1) {
-    if (this.app.persist.emailBoardListCardMap.length >= this.maxSize) {
+    if (this.app.persist.eblcmArray.length >= this.maxSize) {
       if (index === -1) {
-        this.app.persist.emailBoardListCardMap.shift(); // Remove oldest
+        this.app.persist.eblcmArray.shift(); // Remove oldest
       } else {
-        this.app.persist.emailBoardListCardMap.splice(index, 1); // Remove specific index
+        this.app.persist.eblcmArray.splice(index, 1); // Remove specific index
       }
     }
   }
@@ -249,19 +249,19 @@ class EmailBoardListCardMap {
   }
 
   maxxed() {
-    return this.app.persist.emailBoardListCardMap.length >= this.maxSize;
+    return this.app.persist.eblcmArray.length >= this.maxSize;
   }
 
   oldest() {
-    if (this.app.persist.emailBoardListCardMap.length === 0) return null;
+    if (this.app.persist.eblcmArray.length === 0) return null;
 
-    let oldestEntry = this.app.persist.emailBoardListCardMap[0];
+    let oldestEntry = this.app.persist.eblcmArray[0];
     let oldestTime = oldestEntry.timestamp;
 
-    for (let i = 1; i < this.app.persist.emailBoardListCardMap.length; i++) {
-      if (this.app.persist.emailBoardListCardMap[i].timestamp < oldestTime) {
-        oldestTime = this.app.persist.emailBoardListCardMap[i].timestamp;
-        oldestEntry = this.app.persist.emailBoardListCardMap[i];
+    for (let i = 1; i < this.app.persist.eblcmArray.length; i++) {
+      if (this.app.persist.eblcmArray[i].timestamp < oldestTime) {
+        oldestTime = this.app.persist.eblcmArray[i].timestamp;
+        oldestEntry = this.app.persist.eblcmArray[i];
       }
     }
 
@@ -270,14 +270,14 @@ class EmailBoardListCardMap {
 
   push(entry = {}) {
     this.makeRoom();
-    this.app.persist.emailBoardListCardMap.push(entry);
+    this.app.persist.eblcmArray.push(entry);
   }
 
   remove(index = -1) {
     if (index === -1) {
-      this.app.persist.emailBoardListCardMap.pop();
+      this.app.persist.eblcmArray.pop();
     } else {
-      this.app.persist.emailBoardListCardMap.splice(index, 1);
+      this.app.persist.eblcmArray.splice(index, 1);
     }
   }
 }
@@ -556,7 +556,7 @@ class Model {
   }
 
   emailBoardListCardMapUpdate(key_value = {}) {
-    return this.emailBoardListCardMap.add(key_value);
+    return this.emailBoardListCardMap.update(key_value); // Changed from .add()
   }
 
   handleClassModelStateLoaded(event, params) {
@@ -569,8 +569,8 @@ class Model {
         this.app.persist.trelloData = params.trelloData;
       }
 
-      if (params.emailBoardListCardMap) {
-        this.app.persist.emailBoardListCardMap = params.emailBoardListCardMap;
+      if (params.eblcmArray) {
+        this.app.persist.eblcmArray = params.eblcmArray;
       }
     }
   }

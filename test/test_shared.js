@@ -435,7 +435,7 @@ class G2T_TestSuite {
           layoutMode: 0,
           trelloAuthorized: false,
           user: null,
-          emailBoardListCardMap: [],
+          eblcmArray: [],
           popupWidth: 700,
           popupHeight: 464,
           storageHashes: {},
