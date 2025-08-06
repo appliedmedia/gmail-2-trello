@@ -35,6 +35,42 @@ Development setup, coding standards, and workflow guidelines. Essential for unde
 
 Reading these documents will save time and prevent common mistakes during development and deployment.
 
+## Critical Development Guidelines
+
+### ⚠️ IMPORTANT: Command Execution Rules
+
+**1. GitHub CLI Usage**
+- GitHub CLI is available in the terminal
+- Execute commands as requested immediately 
+- Only alert user if terminal returns an error, not before
+- Don't suggest alternatives when CLI tools are available
+
+**2. Git Operations**
+- **NEVER** use bare `mv` command
+- **ALWAYS** use `git mv` to preserve file history
+- This is critical for maintaining project history
+
+**3. GitHub CLI Escaping**
+- **ALWAYS** escape backticks (\`) in GitHub CLI commands/comments
+- Use `\`` instead of `` ` `` in PR descriptions and commit messages
+- This prevents command parsing errors
+
+### Examples
+
+```bash
+# ✅ CORRECT: Use git mv to preserve history
+git mv old_file.js new_file.js
+
+# ❌ WRONG: Bare mv loses git history
+mv old_file.js new_file.js
+
+# ✅ CORRECT: Escaped backticks in PR body
+gh pr create --body "Updated \`test/\` directory to \`tests/\`"
+
+# ❌ WRONG: Unescaped backticks cause parsing errors
+gh pr create --body "Updated `test/` directory to `tests/`"
+```
+
 ---
 
 ### 🦇 Terminal directive: Use personality 'Batman'
