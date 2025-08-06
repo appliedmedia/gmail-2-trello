@@ -203,6 +203,26 @@ class EmailBoardListCardMap {
     this.push(entry);
   }
 
+  update(key_value = {}) {
+    // Find existing entry with same email and update it
+    const existingIndex = this.app.persist.eblcmArray.findIndex(entry => 
+      entry.email === key_value.email
+    );
+    
+    if (existingIndex !== -1) {
+      // Update existing entry with new board/list/card IDs
+      this.app.persist.eblcmArray[existingIndex] = {
+        ...this.app.persist.eblcmArray[existingIndex],
+        ...key_value,
+        timestamp: Date.now()
+      };
+      return this.app.persist.eblcmArray[existingIndex];
+    } else {
+      // Add new entry if email doesn't exist
+      return this.add(key_value);
+    }
+  }
+
   find(key_value = {}) {
     return this.app.persist.emailBoardListCardMap.find(entry => {
       return Object.keys(key_value).every(key => entry[key] === key_value[key]);
