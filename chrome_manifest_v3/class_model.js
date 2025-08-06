@@ -591,7 +591,7 @@ class Model {
 
     // Update the email-board-list-card mapping
     if (data.emailId && data.boardId && data.listId && data.cardId) {
-      this.emailBoardListCardMap.add({
+      this.emailBoardListCardMap.update({
         email: data.emailId,
         boardId: data.boardId,
         listId: data.listId,
