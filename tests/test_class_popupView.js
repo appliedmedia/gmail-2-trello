@@ -51,7 +51,7 @@ describe('PopupView Class', () => {
 
     test('should initialize size constraints', () => {
       expect(popupView.size_k.width.min).toBe(700);
-      expect(popupView.size_k.width.max).toBe(window.innerWidth - 16);
+      expect(popupView.size_k.width.max).toBe(1024 - 16); // Based on stubbed value
       expect(popupView.size_k.height.min).toBe(464);
       expect(popupView.size_k.height.max).toBe(1400);
       expect(popupView.size_k.text.min).toBe(111);
@@ -86,6 +86,7 @@ describe('PopupView Class', () => {
     });
 
     test('init should initialize the popup view', () => {
+      const originalInnerHTML = document.body.innerHTML;
       // Add necessary DOM structure for PopupView
       document.body.innerHTML = `
         <div id="g2tButton"></div>
@@ -94,13 +95,18 @@ describe('PopupView Class', () => {
       `;
       
       // Set up toolbar reference that PopupView expects
+      expect($).toBeDefined(); // Verify jQuery is available
       popupView.$toolBar = $('.toolbar');
 
       expect(() => popupView.init()).not.toThrow();
       expect(popupView.isInitialized).toBe(true);
+      
+      // Clean up
+      document.body.innerHTML = originalInnerHTML;
     });
 
     test('finalCreatePopup should create popup elements', () => {
+      const originalInnerHTML = document.body.innerHTML;
       // Add necessary DOM structure for PopupView
       document.body.innerHTML = `
         <div class="toolbar"></div>
@@ -112,9 +118,13 @@ describe('PopupView Class', () => {
       popupView.$toolBar = $('.toolbar');
 
       expect(() => popupView.finalCreatePopup()).not.toThrow();
+
+      // Clean up
+      document.body.innerHTML = originalInnerHTML;
     });
 
     test('centerPopup should center the popup on screen', () => {
+      const originalInnerHTML = document.body.innerHTML;
       // Add necessary DOM structure for PopupView
       document.body.innerHTML = `
         <div id="g2tButton" style="position: absolute; left: 100px; top: 50px; width: 50px; height: 30px;"></div>
@@ -125,6 +135,9 @@ describe('PopupView Class', () => {
       popupView.$g2tButton = $('#g2tButton');
 
       expect(() => popupView.centerPopup()).not.toThrow();
+
+      // Clean up
+      document.body.innerHTML = originalInnerHTML;
     });
   });
 
