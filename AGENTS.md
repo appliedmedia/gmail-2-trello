@@ -54,8 +54,9 @@ Reading these documents will save time and prevent common mistakes during develo
 
 #### 3. GitHub CLI Escaping
 
-- **ALWAYS** escape backticks (\`) in GitHub CLI commands/comments
-- Use `\`` instead of `` ` `` in PR descriptions and commit messages
+- **ALWAYS** escape backticks in GitHub CLI commands/comments
+- Use a **back-slash-escaped back-tick** (`\``) in PR descriptions and commit messages
+- Never include an unescaped back-tick (`` ` ``) in CLI-parsed text
 - This prevents command parsing errors
 
 #### 4. Testing with JSDOM
