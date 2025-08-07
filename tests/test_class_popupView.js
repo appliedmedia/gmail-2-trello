@@ -86,41 +86,43 @@ describe('PopupView Class', () => {
     });
 
     test('init should initialize the popup view', () => {
-      // Mock DOM elements
-      global.$ = jest.fn(() => ({
-        show: jest.fn(),
-        hide: jest.fn(),
-        on: jest.fn(),
-        off: jest.fn(),
-        append: jest.fn(),
-        find: jest.fn(() => ({ on: jest.fn() })),
-      }));
+      // Add necessary DOM structure for PopupView
+      document.body.innerHTML = `
+        <div id="g2tButton"></div>
+        <div id="g2tPopup"></div>
+        <div class="toolbar"></div>
+      `;
+      
+      // Set up toolbar reference that PopupView expects
+      popupView.$toolBar = $('.toolbar');
 
       expect(() => popupView.init()).not.toThrow();
       expect(popupView.isInitialized).toBe(true);
     });
 
     test('finalCreatePopup should create popup elements', () => {
-      // Mock DOM manipulation
-      global.$ = jest.fn(() => ({
-        append: jest.fn(),
-        show: jest.fn(),
-        hide: jest.fn(),
-        on: jest.fn(),
-        find: jest.fn(() => ({ on: jest.fn() })),
-      }));
+      // Add necessary DOM structure for PopupView
+      document.body.innerHTML = `
+        <div class="toolbar"></div>
+        <div id="g2tButton"></div>
+        <div id="g2tPopup"></div>
+      `;
+      
+      // Set up toolbar reference that PopupView expects
+      popupView.$toolBar = $('.toolbar');
 
       expect(() => popupView.finalCreatePopup()).not.toThrow();
     });
 
     test('centerPopup should center the popup on screen', () => {
-      // Mock window dimensions and DOM positioning
-      global.$ = jest.fn(() => ({
-        css: jest.fn(),
-        offset: jest.fn(() => ({ top: 0, left: 0 })),
-        outerWidth: jest.fn(() => 800),
-        outerHeight: jest.fn(() => 600),
-      }));
+      // Add necessary DOM structure for PopupView
+      document.body.innerHTML = `
+        <div id="g2tButton" style="position: absolute; left: 100px; top: 50px; width: 50px; height: 30px;"></div>
+        <div id="g2tPopup" style="position: absolute; width: 400px; height: 300px;"></div>
+      `;
+      
+      // Set up button reference that centerPopup expects
+      popupView.$g2tButton = $('#g2tButton');
 
       expect(() => popupView.centerPopup()).not.toThrow();
     });

@@ -58,6 +58,16 @@ Reading these documents will save time and prevent common mistakes during develo
 - Use `\`` instead of `` ` `` in PR descriptions and commit messages
 - This prevents command parsing errors
 
+#### 4. Testing with JSDOM
+
+- **NEVER** mock jQuery functions in tests
+- **ALWAYS** use real jQuery loaded in JSDOM environment
+- **ONLY** add necessary DOM structure using `document.body.innerHTML`
+- **NEVER** use `global.$ = jest.fn()` or similar jQuery mocking
+- The test environment already has real jQuery loaded via JSDOM
+- If tests fail, add missing DOM elements, don't mock jQuery methods
+- Example: `document.body.innerHTML = '<div id="g2tButton"></div>';`
+
 ### Examples
 
 ```bash

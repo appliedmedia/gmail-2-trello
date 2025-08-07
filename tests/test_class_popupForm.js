@@ -106,36 +106,39 @@ describe('PopupForm Class', () => {
     });
 
     test('bindData should bind data to form elements', () => {
-      // Mock jQuery and chrome.storage
-      global.$ = jest.fn(() => ({
-        each: jest.fn(),
-        on: jest.fn(),
-      }));
-      global.chrome = {
-        storage: {
-          sync: {
-            get: jest.fn((key, callback) => callback({ dueShortcuts: {} })),
-          },
-        },
-      };
+      // Add necessary DOM structure for PopupForm
+      document.body.innerHTML = `
+        <div class="header">
+          <a href="#">Test Link</a>
+        </div>
+        <div id="g2tSignOutButton"></div>
+      `;
 
       expect(() => popupForm.bindData()).not.toThrow();
     });
 
     test('reset should reset form state', () => {
-      // Mock form elements
-      global.$ = jest.fn(() => ({
-        val: jest.fn(),
-        prop: jest.fn(),
-        removeClass: jest.fn(),
-        addClass: jest.fn(),
-      }));
+      // Add necessary DOM structure for PopupForm
+      document.body.innerHTML = `
+        <input id="g2tTitle" value="Test Title" />
+        <input id="g2tDesc" value="Test Description" />
+        <select id="g2tPosition">
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+        </select>
+      `;
 
       expect(() => popupForm.reset()).not.toThrow();
     });
 
     test('submit should trigger form submission', () => {
-      // Mock form validation and submission
+      // Add necessary DOM structure for PopupForm
+      document.body.innerHTML = `
+        <input id="g2tTitle" value="Test Card" />
+        <textarea id="g2tDesc">Test Description</textarea>
+      `;
+
+      // Set up app state
       popupForm.app.temp = { title: 'Test Card' };
       popupForm.app.persist = { boardId: 'test-board', listId: 'test-list' };
 
