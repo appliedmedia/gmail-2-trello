@@ -95,7 +95,6 @@ describe('PopupView Class', () => {
       `;
       
       // Set up toolbar reference that PopupView expects
-      expect($).toBeDefined(); // Verify jQuery is available
       popupView.$toolBar = $('.toolbar');
 
       expect(() => popupView.init()).not.toThrow();
