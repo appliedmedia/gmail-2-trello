@@ -63,20 +63,32 @@ describe('PopupForm Class', () => {
     });
 
     test('bindEvents should bind event listeners to app.events', () => {
-      popupForm.bindEvents();
-      expect(testApp.events.addListener).toHaveBeenCalledWith(
+      const expectedEvents = [
         'submit',
-        expect.any(Function),
-      );
-      expect(testApp.events.addListener).toHaveBeenCalledWith(
+        'checkTrelloAuthorized',
+        'requestDeauthorizeTrello',
+        'loadTrelloLists_success',
+        'loadTrelloCards_success',
+        'loadTrelloLabels_success',
+        'loadTrelloMembers_success',
         'APIFail',
-        expect.any(Function),
-      );
-      // PopupForm binds 12 different event listeners:
-      // submit, checkTrelloAuthorized, requestDeauthorizeTrello, loadTrelloLists_success,
-      // loadTrelloCards_success, loadTrelloLabels_success, loadTrelloMembers_success,
-      // APIFail, newCardUploadsComplete, menuClick, gmailDataReady
-      expect(testApp.events.addListener).toHaveBeenCalledTimes(12);
+        'newCardUploadsComplete',
+        'menuClick',
+        'gmailDataReady',
+      ];
+
+      popupForm.bindEvents();
+
+      // Check that each expected event was registered
+      expectedEvents.forEach(eventName => {
+        expect(testApp.events.addListener).toHaveBeenCalledWith(
+          eventName,
+          expect.any(Function),
+        );
+      });
+
+      // Verify total count matches expected events
+      expect(testApp.events.addListener).toHaveBeenCalledTimes(expectedEvents.length);
     });
   });
 
