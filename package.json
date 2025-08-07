@@ -59,7 +59,11 @@
       "**/tests/test_class_gmailView.js",
       "**/tests/test_class_goog.js",
       "**/tests/test_class_popupView.js",
-      "**/tests/test_class_popupForm.js"
+      "**/tests/test_class_popupForm.js",
+      "**/tests/test_class_eventTarget.js",
+      "**/tests/test_class_implementation.js",
+      "**/tests/test_class_load_source_file.js",
+      "**/tests/test_class_menuControl.js"
     ],
     "setupFilesAfterEnv": [],
     "collectCoverage": true,

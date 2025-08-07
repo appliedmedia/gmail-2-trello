@@ -27,6 +27,10 @@ describe('PopupForm Class', () => {
         cardName: '',
         cardDescription: '',
       },
+      // Add required jQuery elements that PopupForm expects
+      $popup: $('<div id="g2tPopup"></div>'),
+      $popupMessage: $('<div id="g2tPopupMessage"></div>'),
+      $popupContent: $('<div id="g2tPopupContent"></div>'),
       // No showMessage delegation - all calls should use this.form.showMessage
     };
 
@@ -133,7 +137,7 @@ describe('PopupForm Class', () => {
       expect(() => popupForm.submit()).not.toThrow();
       
       // Verify submission actually happened
-      expect(testApp.events.emit).toHaveBeenCalledWith('submit', expect.any(Object));
+      expect(testApp.events.emit).toHaveBeenCalledWith('submit');
 
       // Clean up
       document.body.innerHTML = originalInnerHTML;
