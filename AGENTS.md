@@ -64,9 +64,11 @@ Reading these documents will save time and prevent common mistakes during develo
 - **ALWAYS** use real jQuery loaded in JSDOM environment
 - **ONLY** add necessary DOM structure using `document.body.innerHTML`
 - **NEVER** use `global.$ = jest.fn()` or similar jQuery mocking
-- The test environment already has real jQuery loaded via JSDOM
+- **USE `window` as top-level global**, not Node.js `global`
+- The test environment already has real jQuery loaded via JSDOM on `window.$`
 - If tests fail, add missing DOM elements, don't mock jQuery methods
 - Example: `document.body.innerHTML = '<div id="g2tButton"></div>';`
+- jQuery is available as `window.$` and `window.jQuery`, not `global.$`
 
 ### Examples
 
