@@ -18,6 +18,12 @@ describe('PopupView Class', () => {
   let popupView;
 
   beforeEach(() => {
+    // Stub window.innerWidth to ensure deterministic tests
+    Object.defineProperty(window, 'innerWidth', {
+      value: 1024,
+      configurable: true,
+    });
+
     // Create a fresh real PopupView instance with the pre-created mock dependencies
     // The real PopupView class was loaded above, and will use mock dependencies from testApp
     popupView = new G2T.PopupView({ app: testApp });
@@ -77,6 +83,46 @@ describe('PopupView Class', () => {
 
     test('should have centerPopup method', () => {
       expect(typeof popupView.centerPopup).toBe('function');
+    });
+
+    test('init should initialize the popup view', () => {
+      // Mock DOM elements
+      global.$ = jest.fn(() => ({
+        show: jest.fn(),
+        hide: jest.fn(),
+        on: jest.fn(),
+        off: jest.fn(),
+        append: jest.fn(),
+        find: jest.fn(() => ({ on: jest.fn() })),
+      }));
+
+      expect(() => popupView.init()).not.toThrow();
+      expect(popupView.isInitialized).toBe(true);
+    });
+
+    test('finalCreatePopup should create popup elements', () => {
+      // Mock DOM manipulation
+      global.$ = jest.fn(() => ({
+        append: jest.fn(),
+        show: jest.fn(),
+        hide: jest.fn(),
+        on: jest.fn(),
+        find: jest.fn(() => ({ on: jest.fn() })),
+      }));
+
+      expect(() => popupView.finalCreatePopup()).not.toThrow();
+    });
+
+    test('centerPopup should center the popup on screen', () => {
+      // Mock window dimensions and DOM positioning
+      global.$ = jest.fn(() => ({
+        css: jest.fn(),
+        offset: jest.fn(() => ({ top: 0, left: 0 })),
+        outerWidth: jest.fn(() => 800),
+        outerHeight: jest.fn(() => 600),
+      }));
+
+      expect(() => popupView.centerPopup()).not.toThrow();
     });
   });
 

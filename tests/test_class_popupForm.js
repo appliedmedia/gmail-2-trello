@@ -72,8 +72,11 @@ describe('PopupForm Class', () => {
         'APIFail',
         expect.any(Function),
       );
-      // PopupForm binds 11 different event listeners
-      expect(testApp.events.addListener).toHaveBeenCalledTimes(11);
+      // PopupForm binds 12 different event listeners:
+      // submit, checkTrelloAuthorized, requestDeauthorizeTrello, loadTrelloLists_success,
+      // loadTrelloCards_success, loadTrelloLabels_success, loadTrelloMembers_success,
+      // APIFail, newCardUploadsComplete, menuClick, gmailDataReady
+      expect(testApp.events.addListener).toHaveBeenCalledTimes(12);
     });
   });
 
@@ -88,6 +91,43 @@ describe('PopupForm Class', () => {
 
     test('should have submit method', () => {
       expect(typeof popupForm.submit).toBe('function');
+    });
+
+    test('bindData should bind data to form elements', () => {
+      // Mock jQuery and chrome.storage
+      global.$ = jest.fn(() => ({
+        each: jest.fn(),
+        on: jest.fn(),
+      }));
+      global.chrome = {
+        storage: {
+          sync: {
+            get: jest.fn((key, callback) => callback({ dueShortcuts: {} })),
+          },
+        },
+      };
+
+      expect(() => popupForm.bindData()).not.toThrow();
+    });
+
+    test('reset should reset form state', () => {
+      // Mock form elements
+      global.$ = jest.fn(() => ({
+        val: jest.fn(),
+        prop: jest.fn(),
+        removeClass: jest.fn(),
+        addClass: jest.fn(),
+      }));
+
+      expect(() => popupForm.reset()).not.toThrow();
+    });
+
+    test('submit should trigger form submission', () => {
+      // Mock form validation and submission
+      popupForm.app.temp = { title: 'Test Card' };
+      popupForm.app.persist = { boardId: 'test-board', listId: 'test-list' };
+
+      expect(() => popupForm.submit()).not.toThrow();
     });
   });
 

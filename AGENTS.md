@@ -39,18 +39,21 @@ Reading these documents will save time and prevent common mistakes during develo
 
 ### ⚠️ IMPORTANT: Command Execution Rules
 
-**1. GitHub CLI Usage**
+#### 1. GitHub CLI Usage
+
 - GitHub CLI is available in the terminal
-- Execute commands as requested immediately 
+- Execute commands as requested immediately
 - Only alert user if terminal returns an error, not before
 - Don't suggest alternatives when CLI tools are available
 
-**2. Git Operations**
+#### 2. Git Operations
+
 - **NEVER** use bare `mv` command
 - **ALWAYS** use `git mv` to preserve file history
 - This is critical for maintaining project history
 
-**3. GitHub CLI Escaping**
+#### 3. GitHub CLI Escaping
+
 - **ALWAYS** escape backticks (\`) in GitHub CLI commands/comments
 - Use `\`` instead of `` ` `` in PR descriptions and commit messages
 - This prevents command parsing errors
