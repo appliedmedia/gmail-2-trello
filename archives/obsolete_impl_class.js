@@ -1,10 +1,10 @@
 /**
- * This test file has been removed to prevent issues.
- * The individual classes are already tested in their respective test files:
- * - test_class_model.js
- * - test_class_eventTarget.js  
- * - test_class_utils.js
- * - test_class_app.js
+ * Archived: intentional no-op. This file contains no runnable tests.
+ * Classes are tested in their dedicated suites under tests/:
+ * - tests/test_class_model.js
+ * - tests/test_class_eventTarget.js
+ * - tests/test_class_utils.js
+ * - tests/test_class_app.js
  */
 
 // Empty test file - all tests moved to individual class test files

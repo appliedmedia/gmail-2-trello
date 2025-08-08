@@ -54,6 +54,9 @@ if (!dom.window.$ || !dom.window.jQuery) {
 // Make sure jQuery is available on our window reference
 window.$ = dom.window.$;
 window.jQuery = dom.window.jQuery;
+// Also expose jQuery on Node global for modules that reference free `jQuery`
+global.$ = window.$;
+global.jQuery = window.jQuery;
 
 // Set up global mocks
 window.chrome = {

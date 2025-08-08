@@ -2,7 +2,7 @@
  * Test for loadSourceFile utility function
  */
 
-const { _ts } = require('./test_shared');
+const { _ts } = require('../tests/test_shared');
 
 describe('loadSourceFile Test', () => {
   test('should have loadSourceFile function available', () => {
@@ -12,5 +12,6 @@ describe('loadSourceFile Test', () => {
 
   test('should have G2T namespace available', () => {
     expect(global.G2T).toBeDefined();
+    expect(typeof global.G2T).toBe('object');
   });
 }); 
