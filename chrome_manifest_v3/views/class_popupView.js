@@ -105,7 +105,7 @@ class PopupView {
         ) {
           img =
             '<img class="f tk3N6e-I-J3" height="20" width="20" src="' +
-            chrome.runtime.getURL('images/icon-48.png') +
+            this.app.chrome.runtimeGetURL('images/icon-48.png') +
             '" />';
           classAdd = 'asa ';
         }
@@ -275,7 +275,7 @@ class PopupView {
 
   bindPopupEvents() {
     // Bind chrome.runtime.onMessage for popup-specific messages
-    chrome.runtime.onMessage.addListener(this.handleRuntimeMessage.bind(this));
+    this.app.chrome.runtimeOnMessageAddListener(this.handleRuntimeMessage.bind(this));
   }
 
   showPopup() {

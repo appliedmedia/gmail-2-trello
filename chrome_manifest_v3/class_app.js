@@ -86,6 +86,18 @@ class App {
     this.temp.lastHash = window.location.hash;
   }
 
+  // Provide a chrome API wrapper for consistent access across classes
+  get chrome() {
+    return {
+      runtimeGetURL: (path) => this.goog.runtimeGetURL(path),
+      storageSyncGet: (keys, callback) => this.goog.storageSyncGet(keys, callback),
+      storageSyncSet: (items, callback) => this.goog.storageSyncSet(items, callback),
+      runtimeSendMessage: (message, callback) => this.goog.runtimeSendMessage(message, callback),
+      runtimeOnMessageAddListener: (listener) => chrome.runtime.onMessage.addListener(listener),
+      runtimeGetManifest: () => (chrome?.runtime?.getManifest?.() || null),
+    };
+  }
+
   persistLoad() {
     this.utils.loadFromChromeStorage(this.ck.id, 'classAppStateLoaded');
   }
