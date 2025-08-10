@@ -54,6 +54,9 @@ if (!dom.window.$ || !dom.window.jQuery) {
 // Make sure jQuery is available on our window reference
 window.$ = dom.window.$;
 window.jQuery = dom.window.jQuery;
+// Also expose jQuery on Node global for modules that reference free `jQuery`
+global.$ = window.$;
+global.jQuery = window.jQuery;
 
 // Set up global mocks
 window.chrome = {
@@ -99,6 +102,25 @@ window.confirm = jest.fn();
 
 // Mock window.console.log
 window.console.log = jest.fn();
+
+// Mock jQuery AJAX methods to prevent HTTP requests in tests
+window.$.get = jest.fn((url, callback) => {
+  // Return mock HTML content based on the URL
+  const mockContent = {
+    'views/popupView.html': '<div id="popupViewContent">Mock Popup View HTML</div>',
+    'views/signOut.html': '<div id="signOutContent">Mock Sign Out HTML</div>',
+    'views/versionUpdate.html': '<div id="versionUpdateContent">Mock Version Update HTML</div>',
+  };
+  
+  const content = mockContent[url] || '<div>Mock HTML Content</div>';
+  
+  // Simulate async callback
+  setTimeout(() => {
+    if (callback) callback(content);
+  }, 0);
+  
+  return { done: jest.fn(), fail: jest.fn() };
+});
 
 class G2T_TestSuite {
   constructor() {
@@ -456,6 +478,14 @@ class G2T_TestSuite {
         // Use real Utils class and override only the log method for testing
         this.utils = new G2T.Utils({ app: this });
         this.utils.log = debugOut;
+        
+        // Add chrome wrapper for compatibility with PopupView
+        this.chrome = {
+          runtimeGetURL: jest.fn((path) => `chrome-extension://test-id/${path}`),
+          storageSyncGet: jest.fn(),
+          storageSyncSet: jest.fn(),
+          runtimeSendMessage: jest.fn(),
+        };
 
         // Set up default persistent state (matches App class defaults)
         this.persist = {
