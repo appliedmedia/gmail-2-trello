@@ -763,7 +763,7 @@ class PopupForm {
     };
 
     // Load and display the comprehensive error template
-    this.app.utils.loadFile('views/error.html', dict_k, html => {
+    this.app.utils.loadFile({ path: 'views/error.html', dict: dict_k, callback: html => {
       let errorHtml = html;
 
       // Add reload button for 400 errors

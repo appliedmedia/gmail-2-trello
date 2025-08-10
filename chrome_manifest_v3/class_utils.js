@@ -106,54 +106,37 @@ class Utils {
 
   /**
    * Load a bundled file via chrome.runtime.getURL + fetch
-   * Args paradigm: loadFile(path, dict?, callback?)
+   * Args paradigm: loadFile({ path, dict?, callback? })
    * - path: string relative to extension root (e.g., 'views/popupView.html')
    * - dict: optional replacement dictionary for Utils.replacer
    * - callback: optional function(html) invoked with the loaded (and replaced) text
    * Returns: Promise<string> resolving to the loaded text
    */
-  loadFile(path, dict, callback) {
-    // Flexible args: (path, callback) or (path, dict, callback)
-    let replacementDict = dict;
-    let cb = callback;
-    if (typeof dict === 'function' && typeof callback === 'undefined') {
-      cb = dict;
-      replacementDict = undefined;
+  loadFile(args) {
+    const { path, dict, callback } = args || {};
+    if (!path || typeof path !== 'string') {
+      throw new Error('loadFile: invalid or missing path');
     }
 
-    try {
-      const url = this.app?.chrome?.runtimeGetURL
-        ? this.app.chrome.runtimeGetURL(path)
-        : (typeof chrome !== 'undefined' && chrome?.runtime?.getURL
-            ? chrome.runtime.getURL(path)
-            : path);
+    if (typeof fetch !== 'function') {
+      throw new Error('loadFile: fetch is not available');
+    }
 
-      return (typeof fetch === 'function'
-        ? fetch(url).then(res => res.text())
-        : new Promise((resolve, reject) => {
-            // Fallback to jQuery if fetch is not available (older environments)
-            if (typeof $ !== 'undefined' && $.get) {
-              $.get(url, data => resolve(data)).fail(err => reject(err));
-            } else {
-              reject(new Error('No fetch or $.get available'));
-            }
-          })
-      ).then(text => {
-        const finalText = replacementDict
-          ? this.replacer(text, replacementDict)
-          : text;
-        if (typeof cb === 'function') {
-          try { cb(finalText); } catch (e) { /* swallow callback errors */ }
+    const url = this.app?.chrome?.runtimeGetURL
+      ? this.app.chrome.runtimeGetURL(path)
+      : (typeof chrome !== 'undefined' && chrome?.runtime?.getURL
+          ? chrome.runtime.getURL(path)
+          : path);
+
+    return fetch(url)
+      .then(res => res.text())
+      .then(text => {
+        const finalText = dict ? this.replacer(text, dict) : text;
+        if (typeof callback === 'function') {
+          try { callback(finalText); } catch (_) { /* ignore callback errors */ }
         }
         return finalText;
       });
-    } catch (error) {
-      this.log(`loadFile ERROR: ${error?.message || error}`);
-      if (typeof cb === 'function') {
-        try { cb(''); } catch (_) { /* ignore */ }
-      }
-      return Promise.resolve('');
-    }
   }
 
   /**

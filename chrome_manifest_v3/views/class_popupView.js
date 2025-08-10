@@ -151,7 +151,7 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        this.app.utils.loadFile('views/popupView.html', html => {
+        this.app.utils.loadFile({ path: 'views/popupView.html', callback: html => {
           this.html['popup'] = html;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(html);
@@ -423,10 +423,10 @@ class PopupView {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            this.app.utils.loadFile(
-              'views/versionUpdate.html',
-              { version_old, version_new },
-              html => {
+            this.app.utils.loadFile({
+              path: 'views/versionUpdate.html',
+              dict: { version_old, version_new },
+              callback: html => {
                 this.form.showMessage(this, html);
               },
             );
@@ -439,7 +439,7 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    this.app.utils.loadFile('views/signOut.html', html => {
+    this.app.utils.loadFile({ path: 'views/signOut.html', callback: html => {
       this.form.showMessage(this, html);
     });
   }
