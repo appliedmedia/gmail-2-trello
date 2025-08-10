@@ -789,7 +789,6 @@ class PopupForm {
       if (resp?.status == 401) {
         this.app.events.emit('requestDeauthorizeTrello');
       }
-    });
   }
 
   // Form Components
