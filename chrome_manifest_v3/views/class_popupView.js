@@ -151,12 +151,16 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        this.app.utils.loadFile({ path: 'views/popupView.html', callback: html => {
+        function popupViewHtml_loadFile(html) {
           this.html['popup'] = html;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(html);
           this.app.events.emit('popupLoaded');
-        });
+        }
+        const path = 'views/popupView.html';
+        const callback = popupViewHtml_loadFile.bind(this);
+        const args = { path, callback };
+        this.app.utils.loadFile(args);
       }
     }
 
@@ -423,13 +427,14 @@ class PopupView {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            this.app.utils.loadFile({
-              path: 'views/versionUpdate.html',
-              dict: { version_old, version_new },
-              callback: html => {
-                this.form.showMessage(this, html);
-              },
-            );
+            function versionUpdateHtml_loadFile(html) {
+              this.form.showMessage(this, html);
+            }
+            const path = 'views/versionUpdate.html';
+            const dict = { version_old, version_new };
+            const callback = versionUpdateHtml_loadFile.bind(this);
+            const args = { path, dict, callback };
+            this.app.utils.loadFile(args);
           }
         } else {
           this.forceSetVersion();
@@ -439,9 +444,13 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    this.app.utils.loadFile({ path: 'views/signOut.html', callback: html => {
+    function signOutHtml_loadFile(html) {
       this.form.showMessage(this, html);
-    });
+    }
+    const path = 'views/signOut.html';
+    const callback = signOutHtml_loadFile.bind(this);
+    const args = { path, callback };
+    this.app.utils.loadFile(args);
   }
 
   // Select/de-select attachment and image based on first button's state:

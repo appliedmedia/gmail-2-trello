@@ -763,17 +763,19 @@ class PopupForm {
     };
 
     // Load and display the comprehensive error template
-    this.app.utils.loadFile({ path: 'views/error.html', dict: dict_k, callback: html => {
+    function errorHtml_loadFile(html) {
       let errorHtml = html;
-
-      // Add reload button for 400 errors
       if (resp?.status == 400) {
-        errorHtml +=
-          '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
+        errorHtml += '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
-
       this.parent.$popupContent.html(errorHtml);
       this.parent.showMessage(this.parent, '');
+    }
+    const path = 'views/error.html';
+    const dict = dict_k;
+    const callback = errorHtml_loadFile.bind(this);
+    const args = { path, dict, callback };
+    this.app.utils.loadFile(args);
 
       // Handle reload button click for 400 errors
       if (resp?.status == 400) {
