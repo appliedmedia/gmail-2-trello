@@ -103,6 +103,18 @@ window.confirm = jest.fn();
 // Mock window.console.log
 window.console.log = jest.fn();
 
+// Standard Google Analytics mock available globally
+window.analytics = {
+  getService: jest.fn().mockReturnValue({
+    getTracker: jest.fn().mockReturnValue({
+      sendAppView: jest.fn(),
+      sendEvent: jest.fn(),
+    }),
+  }),
+};
+// Also expose on Node global for any modules/tests that reference free `analytics`
+global.analytics = window.analytics;
+
 // Mock jQuery AJAX methods to prevent HTTP requests in tests
 window.$.get = jest.fn((url, callback) => {
   // Return mock HTML content based on the URL

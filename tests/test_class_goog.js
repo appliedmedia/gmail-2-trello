@@ -172,9 +172,9 @@ describe('Goog Class', () => {
     test('handleChromeError should handle context invalidation', () => {
       const error = new Error('Extension context invalidated');
       const confirm = jest.fn(() => true);
-      global.confirm = confirm;
-
-      googInstance.handleChromeError(error, 'test operation');
+      window.confirm = confirm;
+ 
+       googInstance.handleChromeError(error, 'test operation');
 
       expect(window.console.log).toHaveBeenCalledWith(
         'Error: Context invalidated during test operation. Extension needs to be reloaded.',
@@ -187,7 +187,7 @@ describe('Goog Class', () => {
     test('handleChromeError should handle context invalidation with user decline', () => {
       const error = new Error('Extension context invalidated');
       const confirm = jest.fn(() => false);
-      global.confirm = confirm;
+      window.confirm = confirm;
 
       googInstance.handleChromeError(error, 'test operation');
 
@@ -201,7 +201,7 @@ describe('Goog Class', () => {
       const error = new Error('Other API Error');
 
       // Reset confirm mock to ensure it's not called
-      global.confirm = jest.fn();
+      window.confirm = jest.fn();
 
       googInstance.handleChromeError(error, 'test operation');
 
@@ -233,10 +233,10 @@ describe('Goog Class', () => {
 
     test('showContextInvalidMessage should use confirm when popup not available', () => {
       googInstance.app.popupView = null;
-      const confirm = jest.fn(() => true);
-      global.confirm = confirm;
-
-      googInstance.showContextInvalidMessage();
+       const confirm = jest.fn(() => true);
+       window.confirm = confirm;
+ 
+       googInstance.showContextInvalidMessage();
 
       // The method should call confirm with the reload message
       expect(confirm).toHaveBeenCalledWith(
@@ -246,10 +246,10 @@ describe('Goog Class', () => {
 
     test('showContextInvalidMessage should use confirm when app is missing', () => {
       googInstance.app = null;
-      const confirm = jest.fn(() => true);
-      global.confirm = confirm;
-
-      googInstance.showContextInvalidMessage();
+       const confirm = jest.fn(() => true);
+       window.confirm = confirm;
+ 
+       googInstance.showContextInvalidMessage();
 
       // The method should call confirm with the reload message
       expect(confirm).toHaveBeenCalledWith(
@@ -353,10 +353,10 @@ describe('Goog Class', () => {
 
     test('should handle missing popup view gracefully', () => {
       googInstance.app.popupView = null;
-      const confirm = jest.fn(() => true);
-      global.confirm = confirm;
-
-      expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
+       const confirm = jest.fn(() => true);
+       window.confirm = confirm;
+ 
+       expect(() => googInstance.showContextInvalidMessage()).not.toThrow();
 
       // The method should call confirm with the reload message
       expect(confirm).toHaveBeenCalledWith(

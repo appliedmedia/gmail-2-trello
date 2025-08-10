@@ -17,15 +17,8 @@ _ts.loadSourceFile('chrome_manifest_v3/class_app.js');
 // NOTE: Using real Utils from createApp(). If App class has issues with real Utils results,
 // we may need to modify createApp() to provide mock Utils for App testing instead.
 
-// Mock analytics for Google Analytics
-global.analytics = {
-  getService: jest.fn().mockReturnValue({
-    getTracker: jest.fn().mockReturnValue({
-      sendAppView: jest.fn(),
-      sendEvent: jest.fn(),
-    }),
-  }),
-};
+// Use shared analytics mock on window (provided by test_shared.js)
+// window.analytics is already defined in shared setup
 
 describe('App Class', () => {
   let app;
@@ -214,7 +207,7 @@ describe('App Class', () => {
     });
 
     test('init should handle Google Analytics errors gracefully', () => {
-      global.analytics.getService.mockImplementation(() => {
+      window.analytics.getService.mockImplementation(() => {
         throw new Error('Analytics service not available');
       });
 
