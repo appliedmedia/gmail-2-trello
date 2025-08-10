@@ -769,26 +769,34 @@ class PopupForm {
         errorHtml += '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
       this.parent.$popupContent.html(errorHtml);
-      this.parent.showMessage(this.parent, '');
+      // Keep message area hidden when rendering full error content
+      if (this.parent.$popupMessage) {
+        this.parent.$popupMessage.hide();
+      }
+      // Bind reload handler after DOM injection
+      if (resp?.status == 400) {
+        $('#reloadTrelloBoards', this.parent.$popup)
+          .off('click')
+          .on('click', () => {
+            this.app.utils.log('User clicked reload Trello boards button');
+            this.app.model.loadTrelloUser();
+            this.parent.reset(); // Hide error message and show popup content
+          });
+      }
     }
     const path = 'views/error.html';
     const dict = dict_k;
     const callback = displayAPIFailedForm_loadFile.bind(this);
-    this.app.utils.loadFile({ path, dict, callback });
+    this.app.utils
+      .loadFile({ path, dict, callback })
+      .catch(err => {
+        this.app.utils.log(`displayAPIFailedForm: failed to load error.html: ${err?.message || err}`);
+      });
 
-      // Handle reload button click for 400 errors
-      if (resp?.status == 400) {
-        $('#reloadTrelloBoards').on('click', () => {
-          this.app.utils.log('User clicked reload Trello boards button');
-          this.app.model.loadTrelloUser();
-          this.parent.reset(); // Hide error message and show popup content
-        });
-      }
-
-      // Handle 401 errors (invalid token)
-      if (resp?.status == 401) {
-        this.app.events.emit('requestDeauthorizeTrello');
-      }
+    // Handle 401 errors (invalid token)
+    if (resp?.status == 401) {
+      this.app.events.emit('requestDeauthorizeTrello');
+    }
   }
 
   // Form Components
