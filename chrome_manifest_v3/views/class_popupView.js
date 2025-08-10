@@ -159,8 +159,7 @@ class PopupView {
         }
         const path = 'views/popupView.html';
         const callback = confirmPopup_loadFile.bind(this);
-        const args = { path, callback };
-        this.app.utils.loadFile(args);
+        this.app.utils.loadFile({ path, callback });
       }
     }
 
@@ -433,8 +432,7 @@ class PopupView {
             const path = 'views/versionUpdate.html';
             const dict = { version_old, version_new };
             const callback = periodicChecks_loadFile.bind(this);
-            const args = { path, dict, callback };
-            this.app.utils.loadFile(args);
+            this.app.utils.loadFile({ path, dict, callback });
           }
         } else {
           this.forceSetVersion();
@@ -449,8 +447,7 @@ class PopupView {
     }
     const path = 'views/signOut.html';
     const callback = showSignOutOptions_loadFile.bind(this);
-    const args = { path, callback };
-    this.app.utils.loadFile(args);
+    this.app.utils.loadFile({ path, callback });
   }
 
   // Select/de-select attachment and image based on first button's state:

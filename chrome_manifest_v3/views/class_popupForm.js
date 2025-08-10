@@ -774,8 +774,7 @@ class PopupForm {
     const path = 'views/error.html';
     const dict = dict_k;
     const callback = displayAPIFailedForm_loadFile.bind(this);
-    const args = { path, dict, callback };
-    this.app.utils.loadFile(args);
+    this.app.utils.loadFile({ path, dict, callback });
 
       // Handle reload button click for 400 errors
       if (resp?.status == 400) {
