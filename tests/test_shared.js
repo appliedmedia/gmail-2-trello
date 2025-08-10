@@ -115,6 +115,24 @@ window.analytics = {
 // Also expose on Node global for any modules/tests that reference free `analytics`
 global.analytics = window.analytics;
 
+// Provide fetch stub to serve local view HTMLs for Utils.loadFile
+window.fetch = jest.fn((url) => {
+  const urlStr = String(url || '');
+  const htmlByName = {
+    'views/popupView.html': '<div id="g2tPopup">Mock Popup View HTML</div>',
+    'views/signOut.html': '<div id="g2tSignOut">Mock Sign Out HTML</div>',
+    'views/versionUpdate.html': '<div id="g2tVersionUpdate">From %version_old% to %version_new%</div>',
+    'views/error.html': '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
+  };
+  let content = '<div>Mock HTML Content</div>';
+  Object.keys(htmlByName).forEach((name) => {
+    if (urlStr.includes(name)) {
+      content = htmlByName[name];
+    }
+  });
+  return Promise.resolve({ text: () => Promise.resolve(content) });
+});
+
 // Mock jQuery AJAX methods to prevent HTTP requests in tests
 window.$.get = jest.fn((url, callback) => {
   // Return mock HTML content based on the URL
