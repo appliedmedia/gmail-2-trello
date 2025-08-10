@@ -126,10 +126,7 @@ window.$.get = jest.fn((url, callback) => {
   
   const content = mockContent[url] || '<div>Mock HTML Content</div>';
   
-  // Simulate async callback
-  setTimeout(() => {
-    if (callback) callback(content);
-  }, 0);
+  if (callback) callback(content);
   
   return { done: jest.fn(), fail: jest.fn() };
 });
