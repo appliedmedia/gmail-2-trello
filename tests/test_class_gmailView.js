@@ -265,8 +265,9 @@ describe('GmailView Class', () => {
     });
 
     test('detectEmailOpeningMode_onEmailClick should start wait counter', () => {
+      const startSpy = jest.spyOn(gmailView.waitCounter, 'start');
       gmailView.detectEmailOpeningMode_onEmailClick();
-      expect(gmailView.waitCounter.start).toHaveBeenCalledWith(
+      expect(startSpy).toHaveBeenCalledWith(
         'emailclick',
         500,
         5,
