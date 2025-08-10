@@ -447,7 +447,11 @@ class PopupView {
     }
     const path = 'views/signOut.html';
     const callback = showSignOutOptions_loadFile.bind(this);
-    this.app.utils.loadFile({ path, callback });
+    this.app.utils
+      .loadFile({ path, callback })
+      .catch(() => {
+        this.app.utils.log('PopupView: failed to load signOut.html');
+      });
   }
 
   // Select/de-select attachment and image based on first button's state:

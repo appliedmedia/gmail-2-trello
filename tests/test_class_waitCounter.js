@@ -26,6 +26,12 @@ describe('WaitCounter Class', () => {
   });
 
   afterEach(() => {
+    try {
+      jest.runOnlyPendingTimers();
+    } catch (_) {
+      // no pending timers
+    }
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -89,9 +95,9 @@ describe('WaitCounter Class', () => {
       waitCounter.start('dup', 30, 2, callback);
       waitCounter.start('dup', 30, 2, callback);
 
+      // Total elapsed time covers at least two ticks, but should not exceed maxSteps once
       jest.advanceTimersByTime(100);
-      // Should only have executed up to maxSteps once
-      expect(callback.mock.calls.length).toBeGreaterThan(0);
+      expect(callback).toHaveBeenCalledTimes(2); // exactly maxSteps
       expect(waitCounter.items['dup'].busy).toBe(false);
     });
   });

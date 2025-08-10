@@ -130,24 +130,14 @@ window.fetch = jest.fn((url) => {
       content = htmlByName[name];
     }
   });
-  return Promise.resolve({ text: () => Promise.resolve(content) });
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    text: () => Promise.resolve(content),
+  });
 });
 
-// Mock jQuery AJAX methods to prevent HTTP requests in tests
-window.$.get = jest.fn((url, callback) => {
-  // Return mock HTML content based on the URL
-  const mockContent = {
-    'views/popupView.html': '<div id="popupViewContent">Mock Popup View HTML</div>',
-    'views/signOut.html': '<div id="signOutContent">Mock Sign Out HTML</div>',
-    'views/versionUpdate.html': '<div id="versionUpdateContent">Mock Version Update HTML</div>',
-  };
-  
-  const content = mockContent[url] || '<div>Mock HTML Content</div>';
-  
-  if (callback) callback(content);
-  
-  return { done: jest.fn(), fail: jest.fn() };
-});
+// Note: no $.get override; tests use Utils.loadFile() backed by fetch stub
 
 class G2T_TestSuite {
   constructor() {
