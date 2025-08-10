@@ -151,12 +151,10 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        $.get(this.app.chrome.runtimeGetURL('views/popupView.html'), data => {
-          // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
-          this.html['popup'] = data;
+        this.app.utils.loadFile('views/popupView.html', html => {
+          this.html['popup'] = html;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
-          this.$toolBar.append(data);
-          // Emit popupLoaded event after DOM is ready
+          this.$toolBar.append(html);
           this.app.events.emit('popupLoaded');
         });
       }
@@ -425,15 +423,11 @@ class PopupView {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            $.get(
-              this.app.chrome.runtimeGetURL('views/versionUpdate.html'),
-              data => {
-                const dict = {
-                  version_old,
-                  version_new,
-                };
-                data = this.app.utils.replacer(data, dict);
-                this.form.showMessage(this, data);
+            this.app.utils.loadFile(
+              'views/versionUpdate.html',
+              { version_old, version_new },
+              html => {
+                this.form.showMessage(this, html);
               },
             );
           }
@@ -445,8 +439,8 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    $.get(this.app.chrome.runtimeGetURL('views/signOut.html'), data_in => {
-      this.form.showMessage(this, data_in);
+    this.app.utils.loadFile('views/signOut.html', html => {
+      this.form.showMessage(this, html);
     });
   }
 

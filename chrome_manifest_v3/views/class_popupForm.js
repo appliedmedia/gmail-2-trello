@@ -763,8 +763,8 @@ class PopupForm {
     };
 
     // Load and display the comprehensive error template
-    $.get(this.app.chrome.runtimeGetURL('views/error.html'), data => {
-      let errorHtml = this.app.utils.replacer(data, dict_k);
+    this.app.utils.loadFile('views/error.html', dict_k, html => {
+      let errorHtml = html;
 
       // Add reload button for 400 errors
       if (resp?.status == 400) {
@@ -772,8 +772,8 @@ class PopupForm {
           '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
 
-      this.showMessage(this.app, errorHtml);
-      this.parent.$popupContent.hide();
+      this.parent.$popupContent.html(errorHtml);
+      this.parent.showMessage(this.parent, '');
 
       // Handle reload button click for 400 errors
       if (resp?.status == 400) {
