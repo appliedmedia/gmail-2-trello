@@ -484,13 +484,14 @@ class G2T_TestSuite {
     };
 
     // Use the real Utils class directly - much simpler!
-
+ 
+    // Minimal WaitCounter placeholder for constructing the mock app tree; real class will override
     let WaitCounter = class {
       constructor({ app }) {
         this.app = app;
-        this.start = jest.fn();
-        this.stop = jest.fn();
       }
+      start() {}
+      stop() {}
     };
 
     let App = class {
