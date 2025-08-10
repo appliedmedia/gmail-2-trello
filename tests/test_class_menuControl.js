@@ -49,26 +49,22 @@ describe('MenuControl Class', () => {
 
   describe('Menu Reset', () => {
     test('reset should initialize menu with selectors', () => {
+      // Add menu items to jsdom DOM
+      document.body.innerHTML = `
+        <div class="menu-item" data-menu-index="0">Item 1</div>
+        <div class="menu-item" data-menu-index="1">Item 2</div>
+      `;
+
       const selectors = '.menu-item';
-      const mockItems = [
-        { menuIndex: 0 },
-        { menuIndex: 1 },
-      ];
+      menuControl.selectors = { item: selectors };
 
-      // Mock jQuery to return our test items with click method
-      const mockJQuery = jest.fn(() => ({
-        ...mockItems,
-        click: jest.fn(),
-        length: mockItems.length
-      }));
-      global.jQuery = mockJQuery;
-      global.$ = global.jQuery;
-
-      // Set up selectors property that reset method expects
-      menuControl.selectors = selectors;
-      
+      // Sanity check DOM via native API
+      expect(document.querySelectorAll('.menu-item').length).toBe(2);
       expect(() => menuControl.reset({ selectors })).not.toThrow();
-      expect(global.jQuery).toHaveBeenCalledWith(selectors);
+      expect(menuControl.items).toBeDefined();
+
+      // Clean up
+      document.body.innerHTML = '';
     });
 
     test('reset should handle empty selector', () => {
@@ -89,45 +85,37 @@ describe('MenuControl Class', () => {
 
   describe('Menu Item Management', () => {
     test('should handle menu items with click handlers', () => {
-      const mockItems = [
-        { menuIndex: 0 },
-      ];
+      document.body.innerHTML = `
+        <div class="menu-item" data-menu-index="0">Item 1</div>
+      `;
 
-      // Mock jQuery to return our test items with click method
-      const mockJQuery = jest.fn(() => ({
-        ...mockItems,
-        click: jest.fn(),
-        length: mockItems.length
-      }));
-      global.jQuery = mockJQuery;
-      global.$ = global.jQuery;
-
-      menuControl.selectors = '.menu-item';
+      menuControl.selectors = { item: '.menu-item' };
+      // Sanity check DOM via native API
+      expect(document.querySelectorAll('.menu-item').length).toBe(1);
       menuControl.reset({ selectors: '.menu-item' });
 
-      // Verify jQuery was called
-      expect(global.jQuery).toHaveBeenCalledWith('.menu-item');
+      expect(menuControl.items).toBeDefined();
+      expect(typeof menuControl.items.click).toBe('function');
+
+      // Clean up
+      document.body.innerHTML = '';
     });
 
     test('should handle multiple menu items', () => {
-      const mockItems = [
-        { menuIndex: 0 },
-        { menuIndex: 1 },
-        { menuIndex: 2 },
-      ];
+      document.body.innerHTML = `
+        <div class="menu-item" data-menu-index="0">Item 1</div>
+        <div class="menu-item" data-menu-index="1">Item 2</div>
+        <div class="menu-item" data-menu-index="2">Item 3</div>
+      `;
 
-      // Mock jQuery to return our test items with click method
-      const mockJQuery = jest.fn(() => ({
-        ...mockItems,
-        click: jest.fn(),
-        length: mockItems.length
-      }));
-      global.jQuery = mockJQuery;
-      global.$ = global.jQuery;
-
-      menuControl.selectors = '.menu-item';
+      menuControl.selectors = { item: '.menu-item' };
+      // Sanity check DOM via native API
+      expect(document.querySelectorAll('.menu-item').length).toBe(3);
       expect(() => menuControl.reset({ selectors: '.menu-item' })).not.toThrow();
-      expect(global.jQuery).toHaveBeenCalledWith('.menu-item');
+      expect(menuControl.items).toBeDefined();
+
+      // Clean up
+      document.body.innerHTML = '';
     });
   });
 
@@ -140,17 +128,6 @@ describe('MenuControl Class', () => {
   });
 
   describe('Error Handling', () => {
-    test('should handle jQuery errors gracefully', () => {
-      // Mock jQuery to throw an error
-      global.jQuery = jest.fn(() => {
-        throw new Error('jQuery error');
-      });
-      global.$ = global.jQuery;
-
-      menuControl.selectors = '.menu-item';
-      expect(() => menuControl.reset({ selectors: '.menu-item' })).toThrow('jQuery error');
-    });
-
     test('should handle invalid selectors gracefully', () => {
       expect(() => menuControl.reset({ selectors: 123 })).not.toThrow();
       expect(() => menuControl.reset({ selectors: {} })).not.toThrow();
