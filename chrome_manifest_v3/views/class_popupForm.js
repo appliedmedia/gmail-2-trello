@@ -763,7 +763,7 @@ class PopupForm {
     };
 
     // Load and display the comprehensive error template
-    function errorHtml_loadFile(html) {
+    function displayAPIFailedForm_loadFile(html) {
       let errorHtml = html;
       if (resp?.status == 400) {
         errorHtml += '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
@@ -773,7 +773,7 @@ class PopupForm {
     }
     const path = 'views/error.html';
     const dict = dict_k;
-    const callback = errorHtml_loadFile.bind(this);
+    const callback = displayAPIFailedForm_loadFile.bind(this);
     const args = { path, dict, callback };
     this.app.utils.loadFile(args);
 

@@ -151,14 +151,14 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        function popupViewHtml_loadFile(html) {
+        function confirmPopup_loadFile(html) {
           this.html['popup'] = html;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
           this.$toolBar.append(html);
           this.app.events.emit('popupLoaded');
         }
         const path = 'views/popupView.html';
-        const callback = popupViewHtml_loadFile.bind(this);
+        const callback = confirmPopup_loadFile.bind(this);
         const args = { path, callback };
         this.app.utils.loadFile(args);
       }
@@ -427,12 +427,12 @@ class PopupView {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            function versionUpdateHtml_loadFile(html) {
+            function periodicChecks_loadFile(html) {
               this.form.showMessage(this, html);
             }
             const path = 'views/versionUpdate.html';
             const dict = { version_old, version_new };
-            const callback = versionUpdateHtml_loadFile.bind(this);
+            const callback = periodicChecks_loadFile.bind(this);
             const args = { path, dict, callback };
             this.app.utils.loadFile(args);
           }
@@ -444,11 +444,11 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    function signOutHtml_loadFile(html) {
+    function showSignOutOptions_loadFile(html) {
       this.form.showMessage(this, html);
     }
     const path = 'views/signOut.html';
-    const callback = signOutHtml_loadFile.bind(this);
+    const callback = showSignOutOptions_loadFile.bind(this);
     const args = { path, callback };
     this.app.utils.loadFile(args);
   }
