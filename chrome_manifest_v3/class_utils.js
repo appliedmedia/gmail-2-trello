@@ -105,6 +105,41 @@ class Utils {
   }
 
   /**
+   * Load a bundled file via chrome.runtime.getURL + fetch
+   * Args paradigm: loadFile({ path, dict?, callback? })
+   * - path: string relative to extension root (e.g., 'views/popupView.html')
+   * - dict: optional replacement dictionary for Utils.replacer
+   * - callback: optional function(html) invoked with the loaded (and replaced) text
+   * Returns: Promise<string> resolving to the loaded text
+   */
+  loadFile(args) {
+    const { path, dict, callback } = args || {};
+    if (!path || typeof path !== 'string') {
+      throw new Error('loadFile: invalid or missing path');
+    }
+
+    if (typeof fetch !== 'function') {
+      throw new Error('loadFile: fetch is not available');
+    }
+
+    const url = this.app?.chrome?.runtimeGetURL
+      ? this.app.chrome.runtimeGetURL(path)
+      : (typeof chrome !== 'undefined' && chrome?.runtime?.getURL
+          ? chrome.runtime.getURL(path)
+          : path);
+
+    return fetch(url)
+      .then(res => res.text())
+      .then(text => {
+        const finalText = dict ? this.replacer(text, dict) : text;
+        if (typeof callback === 'function') {
+          try { callback(finalText); } catch (_) { /* ignore callback errors */ }
+        }
+        return finalText;
+      });
+  }
+
+  /**
    * Load data from chrome storage
    */
   loadFromChromeStorage(keyId, emit_on_done = '') {

@@ -103,24 +103,41 @@ window.confirm = jest.fn();
 // Mock window.console.log
 window.console.log = jest.fn();
 
-// Mock jQuery AJAX methods to prevent HTTP requests in tests
-window.$.get = jest.fn((url, callback) => {
-  // Return mock HTML content based on the URL
-  const mockContent = {
-    'views/popupView.html': '<div id="popupViewContent">Mock Popup View HTML</div>',
-    'views/signOut.html': '<div id="signOutContent">Mock Sign Out HTML</div>',
-    'views/versionUpdate.html': '<div id="versionUpdateContent">Mock Version Update HTML</div>',
+// Standard Google Analytics mock available globally
+window.analytics = {
+  getService: jest.fn().mockReturnValue({
+    getTracker: jest.fn().mockReturnValue({
+      sendAppView: jest.fn(),
+      sendEvent: jest.fn(),
+    }),
+  }),
+};
+// Also expose on Node global for any modules/tests that reference free `analytics`
+global.analytics = window.analytics;
+
+// Provide fetch stub to serve local view HTMLs for Utils.loadFile
+window.fetch = jest.fn((url) => {
+  const urlStr = String(url || '');
+  const htmlByName = {
+    'views/popupView.html': '<div id="g2tPopup">Mock Popup View HTML</div>',
+    'views/signOut.html': '<div id="g2tSignOut">Mock Sign Out HTML</div>',
+    'views/versionUpdate.html': '<div id="g2tVersionUpdate">From %version_old% to %version_new%</div>',
+    'views/error.html': '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
   };
-  
-  const content = mockContent[url] || '<div>Mock HTML Content</div>';
-  
-  // Simulate async callback
-  setTimeout(() => {
-    if (callback) callback(content);
-  }, 0);
-  
-  return { done: jest.fn(), fail: jest.fn() };
+  let content = '<div>Mock HTML Content</div>';
+  Object.keys(htmlByName).forEach((name) => {
+    if (urlStr.includes(name)) {
+      content = htmlByName[name];
+    }
+  });
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    text: () => Promise.resolve(content),
+  });
 });
+
+// Note: no $.get override; tests use Utils.loadFile() backed by fetch stub
 
 class G2T_TestSuite {
   constructor() {
@@ -457,13 +474,14 @@ class G2T_TestSuite {
     };
 
     // Use the real Utils class directly - much simpler!
-
+ 
+    // Minimal WaitCounter placeholder for constructing the mock app tree; real class will override
     let WaitCounter = class {
       constructor({ app }) {
         this.app = app;
-        this.start = jest.fn();
-        this.stop = jest.fn();
       }
+      start() {}
+      stop() {}
     };
 
     let App = class {

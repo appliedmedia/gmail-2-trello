@@ -325,15 +325,15 @@ describe('Utils Class', () => {
     expect(result.length).toBeDefined();
   });
 
-  // Test if global $ is available
-  test('global $ availability test', () => {
-    expect(global.$).toBeDefined();
-    expect(typeof global.$).toBe('function');
+  // Test if $ is available on window
+  test('window $ availability test', () => {
+    expect(window.$).toBeDefined();
+    expect(typeof window.$).toBe('function');
   });
 
   describe('Constructor and Initialization', () => {
     test('should create Utils instance with default settings', () => {
-      expect(utils).toBeInstanceOf(global.G2T.Utils);
+      expect(utils).toBeInstanceOf(window.G2T.Utils);
       expect(utils.app).toBe(app);
     });
 
