@@ -116,7 +116,7 @@ window.analytics = {
 global.analytics = window.analytics;
 
 // Provide fetch stub to serve local view HTMLs for Utils.loadFile
-window.fetch = jest.fn((url) => {
+window.fetch = jest.fn(url => {
   const urlStr = String(url || '');
   const htmlByName = {
     'views/popupView.html': '<div id="g2tPopup">Mock Popup View HTML</div>',
@@ -125,7 +125,7 @@ window.fetch = jest.fn((url) => {
     'views/error.html': '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
   };
   let content = '<div>Mock HTML Content</div>';
-  Object.keys(htmlByName).forEach((name) => {
+  Object.keys(htmlByName).forEach(name => {
     if (urlStr.includes(name)) {
       content = htmlByName[name];
     }
@@ -138,6 +138,8 @@ window.fetch = jest.fn((url) => {
 });
 
 // Note: no $.get override; tests use Utils.loadFile() backed by fetch stub
+
+// No $.get override needed; Utils.loadFile uses fetch stub above
 
 class G2T_TestSuite {
   constructor() {
@@ -359,6 +361,9 @@ class G2T_TestSuite {
         this.runtimeSendMessage = jest.fn();
         this.storageSyncGet = jest.fn();
         this.storageSyncSet = jest.fn();
+        this.runtimeGetURL = jest.fn(
+          path => `chrome-extension://test-id/${path}`,
+        );
       }
     };
 
@@ -496,14 +501,8 @@ class G2T_TestSuite {
         // Use real Utils class and override only the log method for testing
         this.utils = new G2T.Utils({ app: this });
         this.utils.log = debugOut;
-        
-        // Add chrome wrapper for compatibility with PopupView
-        this.chrome = {
-          runtimeGetURL: jest.fn((path) => `chrome-extension://test-id/${path}`),
-          storageSyncGet: jest.fn(),
-          storageSyncSet: jest.fn(),
-          runtimeSendMessage: jest.fn(),
-        };
+
+        // No separate chrome alias; source now calls app.goog.* directly
 
         // Set up default persistent state (matches App class defaults)
         this.persist = {

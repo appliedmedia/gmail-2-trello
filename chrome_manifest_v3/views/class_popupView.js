@@ -105,7 +105,7 @@ class PopupView {
         ) {
           img =
             '<img class="f tk3N6e-I-J3" height="20" width="20" src="' +
-            this.app.chrome.runtimeGetURL('images/icon-48.png') +
+            this.app.goog.runtimeGetURL('images/icon-48.png') +
             '" />';
           classAdd = 'asa ';
         }
@@ -410,7 +410,7 @@ class PopupView {
     const dict_k = {
       [version_storage_k]: version_new,
     };
-    this.app.chrome.storageSyncSet(dict_k);
+    this.app.goog.storageSyncSet(dict_k);
   }
 
   periodicChecks() {
@@ -422,7 +422,7 @@ class PopupView {
     const version_new = this.getManifestVersion();
 
     if (version_new > '0') {
-      this.app.chrome.storageSyncGet(version_storage_k, response => {
+      this.app.goog.storageSyncGet(version_storage_k, response => {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
