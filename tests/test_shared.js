@@ -95,7 +95,9 @@ window.Trello = {
 };
 
 // Mock window.location.reload to prevent JSDOM errors
-window.location.reload = jest.fn();
+window.location.reload = jest.fn(() => {
+  console.log('Reload requested.');
+});
 
 // Mock window.confirm
 window.confirm = jest.fn();
@@ -121,8 +123,10 @@ window.fetch = jest.fn(url => {
   const htmlByName = {
     'views/popupView.html': '<div id="g2tPopup">Mock Popup View HTML</div>',
     'views/signOut.html': '<div id="g2tSignOut">Mock Sign Out HTML</div>',
-    'views/versionUpdate.html': '<div id="g2tVersionUpdate">From %version_old% to %version_new%</div>',
-    'views/error.html': '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
+    'views/versionUpdate.html':
+      '<div id="g2tVersionUpdate">From %version_old% to %version_new%</div>',
+    'views/error.html':
+      '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
   };
   let content = '<div>Mock HTML Content</div>';
   Object.keys(htmlByName).forEach(name => {
@@ -479,7 +483,7 @@ class G2T_TestSuite {
     };
 
     // Use the real Utils class directly - much simpler!
- 
+
     // Minimal WaitCounter placeholder for constructing the mock app tree; real class will override
     let WaitCounter = class {
       constructor({ app }) {
