@@ -500,8 +500,7 @@ class G2T_TestSuite {
         this.utils = new G2T.Utils({ app: this });
         this.utils.log = debugOut;
 
-        // Consolidate chrome wrapper to use Goog instance methods
-        this.chrome = this.goog;
+        // No separate chrome alias; source now calls app.goog.* directly
 
         // Set up default persistent state (matches App class defaults)
         this.persist = {

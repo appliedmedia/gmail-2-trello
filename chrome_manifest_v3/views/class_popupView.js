@@ -105,7 +105,7 @@ class PopupView {
         ) {
           img =
             '<img class="f tk3N6e-I-J3" height="20" width="20" src="' +
-            this.app.chrome.runtimeGetURL('images/icon-48.png') +
+            this.app.goog.runtimeGetURL('images/icon-48.png') +
             '" />';
           classAdd = 'asa ';
         }
@@ -151,15 +151,14 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        function confirmPopup_loadFile(html) {
-          this.html['popup'] = html;
+        $.get(this.app.goog.runtimeGetURL('views/popupView.html'), data => {
+          // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
+          this.html['popup'] = data;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
-          this.$toolBar.append(html);
+          this.$toolBar.append(data);
+          // Emit popupLoaded event after DOM is ready
           this.app.events.emit('popupLoaded');
-        }
-        const path = 'views/popupView.html';
-        const callback = confirmPopup_loadFile.bind(this);
-        this.app.utils.loadFile({ path, callback });
+        });
       }
     }
 
@@ -410,7 +409,7 @@ class PopupView {
     const dict_k = {
       [version_storage_k]: version_new,
     };
-    this.app.chrome.storageSyncSet(dict_k);
+    this.app.goog.storageSyncSet(dict_k);
   }
 
   periodicChecks() {
@@ -422,17 +421,21 @@ class PopupView {
     const version_new = this.getManifestVersion();
 
     if (version_new > '0') {
-      this.app.chrome.storageSyncGet(version_storage_k, response => {
+      this.app.goog.storageSyncGet(version_storage_k, response => {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            function periodicChecks_loadFile(html) {
-              this.form.showMessage(this, html);
-            }
-            const path = 'views/versionUpdate.html';
-            const dict = { version_old, version_new };
-            const callback = periodicChecks_loadFile.bind(this);
-            this.app.utils.loadFile({ path, dict, callback });
+            $.get(
+              this.app.goog.runtimeGetURL('views/versionUpdate.html'),
+              data => {
+                const dict = {
+                  version_old,
+                  version_new,
+                };
+                data = this.app.utils.replacer(data, dict);
+                this.form.showMessage(this, data);
+              },
+            );
           }
         } else {
           this.forceSetVersion();
@@ -442,16 +445,9 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    function showSignOutOptions_loadFile(html) {
-      this.form.showMessage(this, html);
-    }
-    const path = 'views/signOut.html';
-    const callback = showSignOutOptions_loadFile.bind(this);
-    this.app.utils
-      .loadFile({ path, callback })
-      .catch(() => {
-        this.app.utils.log('PopupView: failed to load signOut.html');
-      });
+    $.get(this.app.goog.runtimeGetURL('views/signOut.html'), data_in => {
+      this.form.showMessage(this, data_in);
+    });
   }
 
   // Select/de-select attachment and image based on first button's state:

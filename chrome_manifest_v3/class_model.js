@@ -90,7 +90,7 @@ class Uploader {
       url_upload: `${trello_url_k}${property}`,
     };
 
-    this.app.chrome.runtimeSendMessage(dict, callback); // Background script handles file uploads
+    this.app.goog.runtimeSendMessage(dict, callback); // Background script handles file uploads
   }
 
   upload(data) {
