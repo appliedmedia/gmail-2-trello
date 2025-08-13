@@ -151,14 +151,15 @@ class PopupView {
         needInit = true;
       } else {
         needInit = false;
-        $.get(this.app.goog.runtimeGetURL('views/popupView.html'), data => {
-          // data = this.app.utils.replacer(data, {'jquery-ui-css': chrome.runtime.getURL('lib/jquery-ui-1.12.1.min.css')}); // OBSOLETE (Ace@2017.06.09): Already loaded by manifest
-          this.html['popup'] = data;
+        function confirmPopup_loadFile(html) {
+          this.html['popup'] = html;
           this.app.utils.log('PopupView:confirmPopup: creating popup');
-          this.$toolBar.append(data);
-          // Emit popupLoaded event after DOM is ready
+          this.$toolBar.append(html);
           this.app.events.emit('popupLoaded');
-        });
+        }
+        const path = 'views/popupView.html';
+        const callback = confirmPopup_loadFile.bind(this);
+        this.app.utils.loadFile({ path, callback });
       }
     }
 
@@ -425,17 +426,13 @@ class PopupView {
         const version_old = response?.[version_storage_k] || '0';
         if (version_old > '0') {
           if (version_old !== version_new) {
-            $.get(
-              this.app.goog.runtimeGetURL('views/versionUpdate.html'),
-              data => {
-                const dict = {
-                  version_old,
-                  version_new,
-                };
-                data = this.app.utils.replacer(data, dict);
-                this.form.showMessage(this, data);
-              },
-            );
+            function periodicChecks_loadFile(html) {
+              this.form.showMessage(this, html);
+            }
+            const path = 'views/versionUpdate.html';
+            const dict = { version_old, version_new };
+            const callback = periodicChecks_loadFile.bind(this);
+            this.app.utils.loadFile({ path, dict, callback });
           }
         } else {
           this.forceSetVersion();
@@ -445,9 +442,16 @@ class PopupView {
   }
 
   showSignOutOptions(data) {
-    $.get(this.app.goog.runtimeGetURL('views/signOut.html'), data_in => {
-      this.form.showMessage(this, data_in);
-    });
+    function showSignOutOptions_loadFile(html) {
+      this.form.showMessage(this, html);
+    }
+    const path = 'views/signOut.html';
+    const callback = showSignOutOptions_loadFile.bind(this);
+    this.app.utils
+      .loadFile({ path, callback })
+      .catch(() => {
+        this.app.utils.log('PopupView: failed to load signOut.html');
+      });
   }
 
   // Select/de-select attachment and image based on first button's state:

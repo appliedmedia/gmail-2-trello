@@ -139,6 +139,8 @@ window.fetch = jest.fn(url => {
 
 // Note: no $.get override; tests use Utils.loadFile() backed by fetch stub
 
+// No $.get override needed; Utils.loadFile uses fetch stub above
+
 class G2T_TestSuite {
   constructor() {
     this.dom = null;
