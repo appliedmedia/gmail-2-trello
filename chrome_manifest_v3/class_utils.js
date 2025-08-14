@@ -122,18 +122,18 @@ class Utils {
       throw new Error('loadFile: fetch is not available');
     }
 
-    const url = this.app?.chrome?.runtimeGetURL
-      ? this.app.chrome.runtimeGetURL(path)
-      : (typeof chrome !== 'undefined' && chrome?.runtime?.getURL
-          ? chrome.runtime.getURL(path)
-          : path);
+    const url = this.app.goog.runtimeGetURL(path);
 
     return fetch(url)
       .then(res => res.text())
       .then(text => {
         const finalText = dict ? this.replacer(text, dict) : text;
         if (typeof callback === 'function') {
-          try { callback(finalText); } catch (_) { /* ignore callback errors */ }
+          try {
+            callback(finalText);
+          } catch (_) {
+            /* ignore callback errors */
+          }
         }
         return finalText;
       });
