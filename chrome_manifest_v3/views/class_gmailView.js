@@ -267,19 +267,8 @@ class GmailView {
   preDetect() {
     // this.app.utils.log('GmailView:preDetect');
 
-    /* // OBSOLETE (Ace, 2020-02-15): .find is always returning false, don't think detecting split needed any more
-      const $activeGroup = $('.BltHke[role="main"]');
-
-      if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
-          // this.app.utils.log('detect: Detected SplitLayout');
-
-          this.app.persist.layoutMode = this.LAYOUT_SPLIT;
-          this.$root = $activeGroup;
-      } else {
-  */
     this.app.persist.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = $('body');
-    //  }
 
     return this.detectToolbar();
   }

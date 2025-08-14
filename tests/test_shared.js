@@ -3,12 +3,12 @@
  * Contains common mocks and utilities used across multiple test files
  */
 
+const fs = require('fs');
+const path = require('path');
+
 var window = window || {};
 var document = document || {};
 var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
-
-const fs = require('fs');
-const path = require('path');
 
 // Bridge Node.js and JSDOM environments properly
 // Step 1: Global polyfills for JSDOM's initial loading
