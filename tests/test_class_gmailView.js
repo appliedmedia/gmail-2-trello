@@ -185,7 +185,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'John Doe <john@example.com>',
-          md: '[John Doe](john@example.com)',
+          md: '[John Doe](<john@example.com>)',
         },
       },
       'John Doe, empty email': {
@@ -198,7 +198,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'john <john@example.com>',
-          md: '[john](john@example.com)',
+          md: '[john](<john@example.com>)',
         },
       },
       'matching name and email': {
@@ -206,7 +206,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'john <john@example.com>',
-          md: '[john](john@example.com)',
+          md: '[john](<john@example.com>)',
         },
       },
     };
