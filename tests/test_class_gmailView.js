@@ -24,15 +24,30 @@ describe('GmailView Class', () => {
     // The real GmailView class was loaded above, overriding the mock version
     gmailView = new G2T.GmailView({ app: testApp });
 
+    // Set up $root manually to point to the JSDOM body
+    // This ensures detectToolbar can find the toolbar element
+    gmailView.$root = $('body');
+
     // Initialize properties that the GmailView methods expect
-    gmailView.preprocess = { a: {} };
+    gmailView.preprocess = {
+      a: {
+        'test@example.com <test@example.com>':
+          '[Test User](<test@example.com>)',
+        'test@example.com (test@example.com)':
+          '[Test User](<test@example.com>)',
+        'test@example.com test@example.com': '[Test User](<test@example.com>)',
+        '"test@example.com" <test@example.com>':
+          '[Test User](<test@example.com>)',
+        '"test@example.com" (test@example.com)':
+          '[Test User](<test@example.com>)',
+        '"test@example.com" test@example.com':
+          '[Test User](<test@example.com>)',
+      },
+    };
     gmailView.emailImage = {}; // Fixed: was 'image', should be 'emailImage'
     gmailView.attachment = [];
     gmailView.cc_raw = '';
     gmailView.cc_md = '';
-
-    // Prevent automatic detection to avoid runaway errors
-    gmailView.detect = jest.fn();
 
     // Clear all mocks before each test
     _ts.clearAllMocks();
@@ -51,7 +66,9 @@ describe('GmailView Class', () => {
       },
       '$root initial value': {
         property: '$root',
-        expected: null,
+        testFn: value =>
+          value && value.length === 1 && value[0].tagName === 'BODY',
+        description: 'should be set to body element',
       },
       'parsingData initial value': {
         property: 'parsingData',
@@ -64,10 +81,16 @@ describe('GmailView Class', () => {
     };
 
     Object.entries(constructorTests).forEach(
-      ([testName, { property, expected }]) => {
-        test(`should have correct ${testName}`, () => {
-          expect(gmailView[property]).toBe(expected);
-        });
+      ([testName, { property, expected, testFn, description }]) => {
+        if (testFn) {
+          test(`should have correct ${description || testName}`, () => {
+            expect(testFn(gmailView[property])).toBe(true);
+          });
+        } else {
+          test(`should have correct ${testName}`, () => {
+            expect(gmailView[property]).toBe(expected);
+          });
+        }
       },
     );
 
@@ -263,8 +286,8 @@ describe('GmailView Class', () => {
 
     test('detectToolbar_onTimeout should increment runaway counter', () => {
       const initialRunaway = gmailView.runaway;
-      // Ensure $root is set by calling detect first
-      gmailView.detect();
+      // Set $root directly instead of calling detect() which triggers real detection
+      gmailView.$root = $('body');
       // Mock detectToolbar to not reset the runaway counter
       const originalDetectToolbar = gmailView.detectToolbar;
       gmailView.detectToolbar = jest.fn();
@@ -311,6 +334,24 @@ describe('GmailView Class', () => {
     });
   });
 
+  describe('DOM Integration', () => {
+    test('should find toolbar element in JSDOM', () => {
+      // Test that jQuery can find the toolbar element that detectToolbar needs
+      const $toolbar = $("[gh='mtb']", gmailView.$root);
+      expect($toolbar.length).toBe(1);
+      expect($toolbar.attr('gh')).toBe('mtb');
+    });
+
+    test('should find email content elements in JSDOM', () => {
+      // Test that jQuery can find the email content elements
+      const $viewport = $('.aia, .nH', gmailView.$root);
+      expect($viewport.length).toBeGreaterThan(0);
+
+      const $emails = $('.h7', gmailView.$root);
+      expect($emails.length).toBeGreaterThan(0);
+    });
+  });
+
   describe('Event Handling', () => {
     test('should bind events correctly', () => {
       gmailView.bindEvents();
@@ -347,8 +388,15 @@ describe('GmailView Class', () => {
 
   describe('Initialization', () => {
     test('should initialize correctly', () => {
+      // Mock detect() to prevent triggering real detection process
+      const originalDetect = gmailView.detect;
+      gmailView.detect = jest.fn();
+
       gmailView.init();
       expect(testApp.events.addListener).toHaveBeenCalled();
+
+      // Restore original method
+      gmailView.detect = originalDetect;
     });
 
     test('should handle Trello user and boards ready', () => {

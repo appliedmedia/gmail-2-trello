@@ -479,7 +479,7 @@ class Utils {
   /**
    * Markdownify a text block
    */
-  markdownify($emailBody, features /* , preprocess */) {
+  markdownify($emailBody, features, preprocess) {
     if (!$emailBody || $emailBody.length < 1) {
       this.log('markdownify: Require emailBody!');
       return '';
@@ -493,7 +493,7 @@ class Utils {
 
       // State variables
       count: 0,
-      replacer_dict: {},
+      replacer_dict: preprocess || {}, // Use preprocess data if provided
       $html: $emailBody,
       body: $emailBody.html() || '',
       toProcess: {},

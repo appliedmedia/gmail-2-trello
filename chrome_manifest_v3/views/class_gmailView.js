@@ -329,8 +329,6 @@ class GmailView {
   }
 
   detectToolbar() {
-    // this.app.utils.log('GmailView:detectToolbar');
-
     let $toolBar = $("[gh='mtb']", this.$root) || null;
 
     while ($($toolBar).children().length === 1) {
@@ -343,9 +341,10 @@ class GmailView {
 
     if (!haveToolBar_k) {
       setTimeout(() => this.detectToolbar_onTimeout(), 2000);
+    } else {
+      // Only reset runaway when we successfully find the toolbar
+      this.runaway = 0;
     }
-
-    this.runaway = 0;
 
     return haveToolBar_k;
   }
