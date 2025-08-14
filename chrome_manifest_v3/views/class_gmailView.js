@@ -228,7 +228,7 @@ class GmailView {
     const type_k = ($(element).prop('type') || 'text/link').trim(); // Was attr
     if (href_k.length > 0 && display_k.length > 0) {
       // Will store as key/value pairs to automatically overide duplicates
-      this.image[href_k] = {
+      this.emailImage[href_k] = {
         mimeType: type_k,
         name: display_k,
         url: this.url_with_filename(href_k, name_k),
