@@ -20,16 +20,10 @@ describe('GmailView Class', () => {
 
     // Initialize properties that the GmailView methods expect
     gmailView.preprocess = { a: {} };
-    gmailView.image = {};
+    gmailView.emailImage = {}; // Fixed: was 'image', should be 'emailImage'
     gmailView.attachment = [];
     gmailView.cc_raw = '';
     gmailView.cc_md = '';
-
-    // Mock problematic methods to avoid complex DOM interactions
-    gmailView.detectToolbar = jest.fn();
-    gmailView.detectEmailOpeningMode = jest.fn();
-    gmailView.detect = jest.fn();
-    gmailView.parseData = jest.fn(() => ({ mockData: true }));
 
     // Clear all mocks before each test
     _ts.clearAllMocks();

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gmail Test DOM</title>
+</head>
+<body>
+  <!-- Gmail Toolbar - this prevents the runaway error -->
+  <div gh="mtb">
+    <div>
+      <div>Toolbar Content</div>
+    </div>
+  </div>
+
+  <!-- Main Gmail Content Area -->
+  <div class="BltHke" role="main">
+    <!-- Viewport for email content -->
+    <div class="aia nH">
+      <!-- Email Thread -->
+      <div class="h7" g2t_event="1">
+        <!-- Email Content Structure -->
+        <div class="adn ads">
+          <div class="gs">
+            <!-- Email Body -->
+            <div class="a3s aiL">
+              <p>Test email content</p>
+              <p>This is a test email for GmailView testing</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Email CC -->
+        <span class="g2" email="test@example.com" name="Test User">
+          Test User &lt;test@example.com&gt;
+        </span>
+        
+        <!-- Email From -->
+        <span class="gD">
+          Test User &lt;test@example.com&gt;
+        </span>
+        
+        <!-- Email Attachments -->
+        <span class="aZo" download_url="text/plain:test.txt:https://example.com/test.txt">
+          test.txt
+        </span>
+        
+        <!-- Email Images -->
+        <img src="https://ci3.googleusercontent.com/mail-sig/AIorK4wY5pBVFMy6pCKYkT0Ul2KAJ2-y86_99tFGtZ6DtN8MgUuP7VxessYhhwFQlXnHqA5Q0tIQRVk" 
+             alt="Test Image" 
+             type="image/jpeg">
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Subject (above the primary email) -->
+  <div class="hP">Test Subject</div>
+
+  <!-- Email Timestamp -->
+  <div class="gH">
+    <div class="gK">
+      <div class="g3">12:00 PM</div>
+    </div>
+  </div>
+
+  <!-- G2T Button (if it exists) -->
+  <div id="g2tButton" style="display: none;"></div>
+
+  <!-- G2T Popup (if it exists) -->
+  <div id="g2tPopup" style="display: none;"></div>
+</body>
+</html>

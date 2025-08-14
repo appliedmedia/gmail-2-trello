@@ -18,6 +18,7 @@ const { JSDOM } = require('jsdom');
 const debugOut = jest.fn(require('console').log);
 
 // Step 2: Set up JSDOM environment with proper Node.js connection
+// Create blank JSDOM first, then inject the Gmail test DOM
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   runScripts: 'dangerously',
   resources: 'usable',
@@ -29,6 +30,11 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
     window.TextDecoder = require('util').TextDecoder;
   },
 });
+
+// Load the Gmail test DOM structure into JSDOM
+const gmailTestHTMLPath = path.join(__dirname, 'test_jsdom.html');
+const gmailTestHTML = fs.readFileSync(gmailTestHTMLPath, 'utf8');
+dom.window.document.documentElement.innerHTML = gmailTestHTML;
 
 // Make window and document available globally
 // eslint-disable-next-line no-global-assign
@@ -75,7 +81,7 @@ window.chrome = {
   },
   runtime: {
     sendMessage: jest.fn(),
-    getURL: jest.fn(),
+    getURL: jest.fn(path => `chrome-extension://test-id/${path}`),
   },
 };
 
@@ -91,21 +97,16 @@ window.Trello = {
   post: jest.fn(),
   put: jest.fn(),
   del: jest.fn(),
-  rest: jest.fn(),
 };
 
-// Mock window.location.reload to prevent JSDOM errors
-window.location.reload = jest.fn(() => {
-  console.log('Reload requested.');
-});
+// Mock window functions
+window.location.reload = jest.fn();
+window.confirm = jest.fn(() => false);
 
-// Mock window.confirm
-window.confirm = jest.fn();
+// Mock console to use debugOut for test visibility
+window.console.log = debugOut;
 
-// Mock window.console.log
-window.console.log = jest.fn();
-
-// Standard Google Analytics mock available globally
+// Mock analytics
 window.analytics = {
   getService: jest.fn().mockReturnValue({
     getTracker: jest.fn().mockReturnValue({
@@ -114,32 +115,58 @@ window.analytics = {
     }),
   }),
 };
-// Also expose on Node global for any modules/tests that reference free `analytics`
-global.analytics = window.analytics;
 
-// Provide fetch stub to serve local view HTMLs for Utils.loadFile
-window.fetch = jest.fn(url => {
-  const urlStr = String(url || '');
-  const htmlByName = {
-    'views/popupView.html': '<div id="g2tPopup">Mock Popup View HTML</div>',
-    'views/signOut.html': '<div id="g2tSignOut">Mock Sign Out HTML</div>',
-    'views/versionUpdate.html':
-      '<div id="g2tVersionUpdate">From %version_old% to %version_new%</div>',
-    'views/error.html':
-      '<div class="g2t-error">%title% - %status% - %statusText%<pre>%responseText%</pre></div>',
-  };
-  let content = '<div>Mock HTML Content</div>';
-  Object.keys(htmlByName).forEach(name => {
-    if (urlStr.includes(name)) {
-      content = htmlByName[name];
-    }
-  });
+// Mock other common browser APIs
+window.localStorage = {
+  getItem: jest.fn(() => null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+window.sessionStorage = {
+  getItem: jest.fn(() => null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+// Mock fetch API
+window.fetch = jest.fn(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
-    text: () => Promise.resolve(content),
+    text: () => Promise.resolve('<div>Mock HTML Content</div>'),
   });
 });
+
+// Mock XMLHttpRequest
+window.XMLHttpRequest = jest.fn(() => ({
+  open: jest.fn(),
+  send: jest.fn(),
+  setRequestHeader: jest.fn(),
+  readyState: 4,
+  status: 200,
+  responseText: '',
+  response: {},
+}));
+
+// Mock setTimeout and setInterval
+window.setTimeout = jest.fn(() => 1);
+window.setInterval = jest.fn(() => 1);
+window.clearTimeout = jest.fn();
+window.clearInterval = jest.fn();
+
+// Mock addEventListener and removeEventListener
+window.addEventListener = jest.fn();
+window.removeEventListener = jest.fn();
+
+// Also expose on Node global for any modules/tests that reference free `analytics`
+global.analytics = window.analytics;
+
+// Gmail DOM elements are now defined in test_jsdom.html
+
+// Fetch mock is now set up above with the other global mocks
 
 // Note: no $.get override; tests use Utils.loadFile() backed by fetch stub
 
@@ -151,31 +178,38 @@ class G2T_TestSuite {
   }
 
   /**
-   * Load a source file using the DOM trick (script injection)
-   * @param {string} filePath - Path to the source file
+   * Load a source file and optionally inject it into the DOM
+   * @param {string} filePath - Path to the source file relative to project root
+   * @param {boolean} scriptInject - Whether to inject as script (default: true)
+   * @returns {string} - File content (always returned)
    */
-  static loadSourceFile(filePath) {
+  static loadSourceFile(filePath, scriptInject = true) {
+    let fileContent = '';
+
     // Resolve paths relative to project root (go up one level from tests/)
     const fullPath = path.join(__dirname, '..', filePath);
 
     try {
-      const fileContent = fs.readFileSync(fullPath, 'utf8');
+      fileContent = fs.readFileSync(fullPath, 'utf8');
 
-      // Create a script element and inject the code
-      const script = document.createElement('script');
-      script.textContent = fileContent;
-      document.head.appendChild(script);
+      if (scriptInject) {
+        // Create a script element and inject the code
+        const script = document.createElement('script');
+        script.textContent = fileContent;
+        document.head.appendChild(script);
+      }
     } catch (error) {
       debugOut(`Error loading source file ${filePath}:`, error.message);
-      throw error;
     }
+
+    return fileContent;
   }
 
   /**
    * Instance version of loadSourceFile
    */
-  loadSourceFile(filePath) {
-    G2T_TestSuite.loadSourceFile(filePath);
+  loadSourceFile(filePath, scriptInject = true) {
+    return G2T_TestSuite.loadSourceFile(filePath, scriptInject);
   }
 
   /**
@@ -221,57 +255,7 @@ class G2T_TestSuite {
     return this.asJQueryElement(merged);
   }
 
-  /**
-   * Set up JSDOM environment for testing
-   * @returns {Object} - Object containing dom and window references
-   */
-  setupJSDOM() {
-    // Create JSDOM instance with script execution enabled
-    this.dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-      runScripts: 'dangerously',
-      resources: 'usable',
-      url: 'http://localhost',
-    });
-
-    this.window = this.dom.window;
-
-    // Set up global mocks on the JSDOM window
-    this.window.chrome = {
-      storage: {
-        local: {
-          get: jest.fn(),
-          set: jest.fn(),
-        },
-        sync: {
-          get: jest.fn(),
-          set: jest.fn(),
-        },
-        onChanged: {
-          addListener: jest.fn(),
-        },
-      },
-      runtime: {
-        sendMessage: jest.fn(),
-        getURL: jest.fn(),
-      },
-    };
-
-    this.window.Trello = {
-      key: jest.fn(() => 'test-key'),
-      token: jest.fn(() => 'test-token'),
-      setKey: jest.fn(),
-      setToken: jest.fn(),
-      authorize: jest.fn(),
-      deauthorize: jest.fn(),
-      authorized: jest.fn(() => false),
-      get: jest.fn(),
-      post: jest.fn(),
-      put: jest.fn(),
-      del: jest.fn(),
-    };
-
-    return { dom: this.dom, window: this.dom.window };
-  }
+  // JSDOM environment is now set up at module level in test_jsdom.html
 
   /**
    * Load all required source files
@@ -284,72 +268,9 @@ class G2T_TestSuite {
     this.loadSourceFile('../chrome_manifest_v3/class_eventTarget.js');
   }
 
-  /**
-   * Clean up JSDOM environment after testing
-   */
-  cleanupJSDOM() {
-    if (this.dom && this.dom.window) {
-      this.dom.window.close();
-    }
-  }
+  // JSDOM cleanup is handled automatically by Jest
 
-  /**
-   * Create mock instances for G2T classes
-   * @returns {Object} - Object containing mock instances
-   */
-  createMockInstances() {
-    return {
-      mockChrome: {
-        init: jest.fn(),
-        runtimeSendMessage: jest.fn(),
-        storageSyncGet: jest.fn(),
-        storageSyncSet: jest.fn(),
-      },
-      mockEventTarget: {
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        dispatchEvent: jest.fn(),
-        addListener: jest.fn(),
-        fire: jest.fn(),
-        emit: jest.fn(),
-      },
-      mockModel: {
-        init: jest.fn(),
-        trello: { user: { fullName: 'Test User' } },
-        gmail: {},
-      },
-      mockGmailView: {
-        init: jest.fn(),
-        bindData: jest.fn(),
-        parseData: jest.fn(() => ({})),
-        forceRedraw: jest.fn(),
-        parsingData: false,
-      },
-      mockPopupView: {
-        init: jest.fn(),
-        bindData: jest.fn(),
-        bindGmailData: jest.fn(),
-      },
-      mockUtils: {
-        init: jest.fn(),
-        loadFromChromeStorage: jest.fn(),
-        saveToChromeStorage: jest.fn(),
-        log: jest.fn(),
-        djb2Hash: jest.fn(() => 'mock-hash'),
-        escapeRegExp: jest.fn(str =>
-          str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-        ),
-        anchorMarkdownify: jest.fn(),
-        markdownify: jest.fn(),
-        markdownify_sortByLength: jest.fn(),
-        markdownify_featureEnabled: jest.fn(),
-      },
-      waitCounter: {
-        start: jest.fn(),
-        stop: jest.fn(),
-      },
-    };
-  }
+  // Mock instances are created in createApp() method and global mocks
 
   /**
    * Create a complete App instance with nested mock classes for testing
