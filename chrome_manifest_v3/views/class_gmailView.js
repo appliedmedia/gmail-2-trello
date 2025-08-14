@@ -122,7 +122,7 @@ class GmailView {
 
     if (displayName) {
       if (email) {
-        md = `[${displayName}](${email})`;
+        md = `[${displayName}](<${email}>)`;
       } else {
         md = displayName;
       }
