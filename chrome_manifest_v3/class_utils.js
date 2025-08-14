@@ -479,7 +479,7 @@ class Utils {
   /**
    * Markdownify a text block
    */
-  markdownify($emailBody, features, preprocess) {
+  markdownify($emailBody, features /* , preprocess */) {
     if (!$emailBody || $emailBody.length < 1) {
       this.log('markdownify: Require emailBody!');
       return '';
@@ -684,7 +684,7 @@ class Utils {
       bkColorReturn = bkColorLight; // RegExp failed, assume dark color
     }
 
-    return 'inherit'; // Use: bkColorReturn if you want to adjust background based on text perceived brightness
+    return 'inherit' || bkColorReturn; // Use: bkColorReturn if you want to adjust background based on text perceived brightness
   }
 
   /**

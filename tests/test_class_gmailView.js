@@ -4,7 +4,13 @@
  */
 
 // Import shared test utilities
-const { _ts, utils, testApp } = require('./test_shared');
+const {
+  document, // JSDOM document - needed for DOM queries
+  G2T, // G2T namespace with all classes
+  testApp, // Pre-created mock app with all dependencies
+  // window, // JSDOM window - uncomment if needed for window.foo access
+  _ts, // Test suite utilities
+} = require('./test_shared');
 
 // Load the REAL GmailView class - this will override the mock version
 // The real GmailView will use the mock dependencies from testApp
@@ -24,6 +30,9 @@ describe('GmailView Class', () => {
     gmailView.attachment = [];
     gmailView.cc_raw = '';
     gmailView.cc_md = '';
+
+    // Prevent automatic detection to avoid runaway errors
+    gmailView.detect = jest.fn();
 
     // Clear all mocks before each test
     _ts.clearAllMocks();
@@ -254,8 +263,17 @@ describe('GmailView Class', () => {
 
     test('detectToolbar_onTimeout should increment runaway counter', () => {
       const initialRunaway = gmailView.runaway;
+      // Ensure $root is set by calling detect first
+      gmailView.detect();
+      // Mock detectToolbar to not reset the runaway counter
+      const originalDetectToolbar = gmailView.detectToolbar;
+      gmailView.detectToolbar = jest.fn();
+
       gmailView.detectToolbar_onTimeout();
       expect(gmailView.runaway).toBe(initialRunaway + 1);
+
+      // Restore original method
+      gmailView.detectToolbar = originalDetectToolbar;
     });
 
     test('detectEmailOpeningMode_onEmailClick should start wait counter', () => {
@@ -284,6 +302,12 @@ describe('GmailView Class', () => {
 
       const selected = document.querySelector('.test-class');
       expect(selected).toBe(element);
+    });
+
+    test('should have Gmail toolbar element loaded from test_jsdom.html', () => {
+      const toolbar = document.querySelector('[gh="mtb"]');
+      expect(toolbar).toBeDefined();
+      expect(toolbar.tagName).toBe('DIV');
     });
   });
 
@@ -330,9 +354,25 @@ describe('GmailView Class', () => {
     test('should handle Trello user and boards ready', () => {
       testApp.persist.user = { fullName: 'Test User' };
       gmailView.handleTrelloUserAndBoardsReady();
-      expect(testApp.events.emit).toHaveBeenCalledWith('gmailDataReady', {
-        gmail: { mockData: true },
-      });
+
+      // Check that the event was emitted
+      expect(testApp.events.emit).toHaveBeenCalledWith(
+        'gmailDataReady',
+        expect.any(Object),
+      );
+
+      // Get the actual call arguments
+      const emitCall = testApp.events.emit.mock.calls.find(
+        call => call[0] === 'gmailDataReady',
+      );
+      expect(emitCall).toBeDefined();
+
+      const gmailData = emitCall[1].gmail;
+      expect(gmailData).toBeDefined();
+      expect(gmailData.subject).toBe('Test Subject');
+      expect(gmailData.time).toBe('2025-01-01 12:00 PM');
+      expect(Array.isArray(gmailData.attachment)).toBe(true);
+      expect(Array.isArray(gmailData.image)).toBe(true);
     });
   });
 

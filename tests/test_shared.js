@@ -3,6 +3,10 @@
  * Contains common mocks and utilities used across multiple test files
  */
 
+var window = window || {};
+var document = document || {};
+var G2T = G2T || {}; // must be var to guarantee correct scope - do not alter this line
+
 const fs = require('fs');
 const path = require('path');
 
@@ -18,29 +22,81 @@ const { JSDOM } = require('jsdom');
 const debugOut = jest.fn(require('console').log);
 
 // Step 2: Set up JSDOM environment with proper Node.js connection
-// Create blank JSDOM first, then inject the Gmail test DOM
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
-  runScripts: 'dangerously',
-  resources: 'usable',
-  url: 'http://localhost',
-  beforeParse(window) {
-    // Properly connect Node.js globals to JSDOM window environment
-    // This ensures any code running in the JSDOM context has access to these
-    window.TextEncoder = require('util').TextEncoder;
-    window.TextDecoder = require('util').TextDecoder;
-  },
-});
-
-// Load the Gmail test DOM structure into JSDOM
+// Load the entire HTML file directly into JSDOM
 const gmailTestHTMLPath = path.join(__dirname, 'test_jsdom.html');
 const gmailTestHTML = fs.readFileSync(gmailTestHTMLPath, 'utf8');
-dom.window.document.documentElement.innerHTML = gmailTestHTML;
 
-// Make window and document available globally
+// Debug: Check if HTML is being read
+debugOut('HTML file path:', gmailTestHTMLPath);
+debugOut('HTML content length:', gmailTestHTML.length);
+debugOut('HTML content preview:', gmailTestHTML.substring(0, 200));
+
+let dom;
+try {
+  dom = new JSDOM(gmailTestHTML, {
+    runScripts: 'dangerously',
+    resources: 'usable',
+    url: 'http://localhost',
+    beforeParse(window) {
+      // Properly connect Node.js globals to JSDOM window environment
+      // This ensures any code running in the JSDOM context has access to these
+      window.TextEncoder = require('util').TextEncoder;
+      window.TextDecoder = require('util').TextDecoder;
+    },
+  });
+  debugOut('JSDOM created successfully');
+} catch (error) {
+  debugOut('JSDOM creation failed:', error.message);
+  debugOut("We're fucked for the DOM");
+  throw new Error(`JSDOM creation failed: ${error.message}`);
+}
+
+// Test what's happening with window and document references
+debugOut('Before assignment - window type:', typeof window);
+debugOut('Before assignment - document type:', typeof document);
+
+// Make JSDOM window and document the global window and document
 // eslint-disable-next-line no-global-assign
 window = dom.window;
 // eslint-disable-next-line no-global-assign
 document = dom.window.document;
+
+debugOut('After assignment - window type:', typeof window);
+debugOut('After assignment - document type:', typeof document);
+debugOut('After assignment - window === dom.window:', window === dom.window);
+debugOut(
+  'After assignment - document === dom.window.document:',
+  document === dom.window.document,
+);
+
+// Test if we can access DOM elements through the assigned references
+debugOut('DOM document title:', window.document.title);
+debugOut(
+  'DOM body children count:',
+  window.document.body ? window.document.body.children.length : 'no body',
+);
+debugOut(
+  'DOM body HTML:',
+  window.document.body
+    ? window.document.body.innerHTML.substring(0, 200)
+    : 'no body',
+);
+debugOut(
+  'window.document.querySelector test:',
+  window.document.querySelector
+    ? window.document.querySelector('[gh="mtb"]')
+      ? 'Found'
+      : 'Not found'
+    : 'no querySelector',
+);
+debugOut(
+  'document.querySelector test:',
+  document.querySelector
+    ? document.querySelector('[gh="mtb"]')
+      ? 'Found'
+      : 'Not found'
+    : 'no querySelector',
+);
 
 // Load jQuery into the environment
 const jqueryPath = path.join(
@@ -50,21 +106,59 @@ const jqueryPath = path.join(
 const jqueryContent = fs.readFileSync(jqueryPath, 'utf8');
 
 // Execute jQuery in the JSDOM context
-dom.window.eval(jqueryContent);
+window.eval(jqueryContent);
+
+// Load the class files into the JSDOM environment
+const utilsPath = path.join(__dirname, '../chrome_manifest_v3/class_utils.js');
+const utilsContent = fs.readFileSync(utilsPath, 'utf8');
+window.eval(utilsContent);
+
+// Debug: Check what's in the JSDOM window context
+debugOut('After loading class_utils.js - window.G2T exists:', !!window.G2T);
+debugOut(
+  'After loading class_utils.js - window.G2T.Utils exists:',
+  !!(window.G2T && window.G2T.Utils),
+);
+
+// Now make G2T namespace and classes available in the Node.js context
+if (window.G2T) {
+  G2T = window.G2T;
+  debugOut('G2T namespace copied to Node.js context');
+} else {
+  debugOut('ERROR: window.G2T not found after loading class_utils.js');
+}
+
+// Also load the GmailView class into the JSDOM environment
+const gmailViewPath = path.join(
+  __dirname,
+  '../chrome_manifest_v3/views/class_gmailView.js',
+);
+const gmailViewContent = fs.readFileSync(gmailViewPath, 'utf8');
+window.eval(gmailViewContent);
+
+// Debug: Check if GmailView class is available
+debugOut(
+  'After loading class_gmailView.js - window.G2T.GmailView exists:',
+  !!(window.G2T && window.G2T.GmailView),
+);
+
+// Debug: Check if G2T is available in Node.js context
+debugOut('G2T variable in Node.js context:', typeof G2T);
+debugOut('G2T.GmailView in Node.js context:', !!(G2T && G2T.GmailView));
+
+// Export G2T namespace so other test files can access it
+module.exports.G2T = G2T;
 
 // Wait for jQuery to be available
-if (!dom.window.$ || !dom.window.jQuery) {
+if (!window.$ || !window.jQuery) {
   throw new Error('jQuery failed to load in JSDOM environment');
 }
 
-// Make sure jQuery is available on our window reference
-window.$ = dom.window.$;
-window.jQuery = dom.window.jQuery;
-// Also expose jQuery on Node global for modules that reference free `jQuery`
+// Make jQuery available on Node global for modules that reference free `jQuery`
 global.$ = window.$;
 global.jQuery = window.jQuery;
 
-// Set up global mocks
+// Set up mocks on the global window
 window.chrome = {
   storage: {
     local: {
@@ -97,6 +191,7 @@ window.Trello = {
   post: jest.fn(),
   put: jest.fn(),
   del: jest.fn(),
+  rest: jest.fn(),
 };
 
 // Mock window functions
@@ -152,8 +247,18 @@ window.XMLHttpRequest = jest.fn(() => ({
 }));
 
 // Mock setTimeout and setInterval
-window.setTimeout = jest.fn(() => 1);
-window.setInterval = jest.fn(() => 1);
+window.setTimeout = jest.fn((callback /* , delay */) => {
+  if (typeof callback === 'function') {
+    callback();
+  }
+  return 1;
+});
+window.setInterval = jest.fn((callback /* , delay */) => {
+  if (typeof callback === 'function') {
+    callback();
+  }
+  return 1;
+});
 window.clearTimeout = jest.fn();
 window.clearInterval = jest.fn();
 
@@ -174,7 +279,7 @@ global.analytics = window.analytics;
 
 class G2T_TestSuite {
   constructor() {
-    this.dom = null;
+    // No need to store dom reference since window and document are now global
   }
 
   /**
@@ -523,9 +628,6 @@ class G2T_TestSuite {
 // Load the Utils class at module level using static method
 G2T_TestSuite.loadSourceFile('chrome_manifest_v3/class_utils.js');
 
-// Create actual Utils instance for use across all tests
-const utils = new G2T.Utils({ app: null });
-
 // Create test suite instance
 const _ts = new G2T_TestSuite();
 
@@ -537,9 +639,11 @@ const testApp = _ts.createApp();
 module.exports = {
   G2T_TestSuite,
   _ts,
-  utils,
   debugOut,
   testApp, // Pre-created mock app with all dependencies
+  G2T, // Export the G2T namespace so other test files can access it
+  window, // Export the JSDOM window so other test files can access it
+  document, // Export the JSDOM document so other test files can access it
 };
 
 // end, test_shared.js
