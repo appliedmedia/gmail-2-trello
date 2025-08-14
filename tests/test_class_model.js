@@ -4,7 +4,11 @@
  */
 
 // Import shared test utilities
-const { _ts, testApp } = require('./test_shared');
+const {
+  G2T, // G2T namespace
+  testApp, // Pre-created mock app with all dependencies
+  _ts, // Test suite utilities
+} = require('./test_shared');
 
 // Load the REAL Trel class first - this will override the mock version
 // The real Trel will use the mock dependencies from testApp

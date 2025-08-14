@@ -4,8 +4,9 @@
 
 // Import shared test utilities
 const {
-  _ts, // G2T_TestSuite instance
+  G2T, // G2T namespace
   testApp, // Pre-created mock app with all dependencies
+  _ts, // G2T_TestSuite instance
 } = require('./test_shared');
 
 // Load the REAL WaitCounter class - this will override any mock version
