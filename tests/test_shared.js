@@ -211,6 +211,17 @@ window.analytics = {
   }),
 };
 
+// Mock Trello API
+window.Trello = {
+  rest: jest.fn(),
+  authorize: jest.fn(),
+  deauthorize: jest.fn(),
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+};
+
 // Mock other common browser APIs
 window.localStorage = {
   getItem: jest.fn(() => null),
@@ -369,6 +380,14 @@ class G2T_TestSuite {
     // Load jQuery into the environment
     this.loadSourceFile('../chrome_manifest_v3/lib/jquery-3.7.1.min.js');
 
+    // Mock jQuery plugins that tests might need
+    if (window.$ && window.$.fn) {
+      window.$.fn.combobox = jest.fn();
+      window.$.fn.button = jest.fn();
+      window.$.fn.tooltip = jest.fn();
+      window.$.fn.popover = jest.fn();
+    }
+
     // Load EventTarget class
     this.loadSourceFile('../chrome_manifest_v3/class_eventTarget.js');
   }
@@ -519,6 +538,35 @@ class G2T_TestSuite {
       stop() {}
     };
 
+    let Trel = class {
+      constructor({ app }) {
+        this.app = app;
+        this.authorized = false;
+        this.user = null;
+        this.boards = [];
+        this.lists = [];
+        this.cards = [];
+        this.members = [];
+        this.labels = [];
+      }
+      getMembers(boardId) {
+        return Promise.resolve([]);
+      }
+      getLabels(boardId) {
+        return Promise.resolve([]);
+      }
+      createCard(cardData) {
+        return Promise.resolve({ id: 'test-card-id' });
+      }
+      getUser() {
+        return Promise.resolve({ id: 'test-user-id', fullName: 'Test User' });
+      }
+      deauthorize() {
+        this.authorized = false;
+        this.user = null;
+      }
+    };
+
     let App = class {
       constructor() {
         // Create instances exactly like real App constructor
@@ -528,6 +576,7 @@ class G2T_TestSuite {
         this.model = new Model({ app: this });
         this.gmailView = new GmailView({ app: this });
         this.popupView = new PopupView({ app: this });
+        this.trel = new Trel({ app: this });
         // Use real Utils class and override only the log method for testing
         this.utils = new G2T.Utils({ app: this });
         this.utils.log = debugOut;
@@ -604,6 +653,7 @@ class G2T_TestSuite {
       Model,
       PopupForm,
       PopupView,
+      Trel,
       WaitCounter,
     };
 
