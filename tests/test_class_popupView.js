@@ -35,7 +35,7 @@ describe('PopupView Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create PopupView instance with app dependency', () => {
-      expect(popupView).toBeInstanceOf(window.G2T.PopupView);
+      expect(popupView).toBeInstanceOf(G2T.PopupView);
       expect(popupView.app).toBe(testApp);
     });
 
@@ -59,13 +59,13 @@ describe('PopupView Class', () => {
     });
 
     test('should create PopupForm instance', () => {
-      expect(popupView.form).toBeInstanceOf(window.G2T.PopupForm);
+      expect(popupView.form).toBeInstanceOf(G2T.PopupForm);
       expect(popupView.form.parent).toBe(popupView);
       expect(popupView.form.app).toBe(testApp);
     });
 
     test('ck static getter should return correct value', () => {
-      expect(window.G2T.PopupView.ck).toEqual({ id: 'g2t_popupview' });
+      expect(G2T.PopupView.ck).toEqual({ id: 'g2t_popupview' });
     });
 
     test('ck getter should return correct value', () => {
@@ -94,7 +94,7 @@ describe('PopupView Class', () => {
         <div id="g2tPopup"></div>
         <div class="toolbar"></div>
       `;
-      
+
       // Set up toolbar reference that PopupView expects
       popupView.$toolBar = $('.toolbar');
       popupView.$g2tButton = $('#g2tButton');
@@ -103,7 +103,7 @@ describe('PopupView Class', () => {
       expect(() => popupView.init()).not.toThrow();
       // Note: The real PopupView.init() doesn't set isInitialized to true
       // This is expected behavior based on the actual implementation
-      
+
       // Clean up
       document.body.innerHTML = originalInnerHTML;
     });
@@ -116,7 +116,7 @@ describe('PopupView Class', () => {
         <div id="g2tButton"></div>
         <div id="g2tPopup"></div>
       `;
-      
+
       // Set up toolbar reference that PopupView expects
       popupView.$toolBar = $('.toolbar');
       popupView.$g2tButton = $('#g2tButton');
@@ -135,29 +135,27 @@ describe('PopupView Class', () => {
         <div id="g2tButton" style="position: absolute; left: 100px; top: 50px; width: 50px; height: 30px;"></div>
         <div id="g2tPopup" style="position: absolute; width: 400px; height: 300px;"></div>
       `;
-      
+
       // Set up button reference that centerPopup expects
       popupView.$g2tButton = $('#g2tButton');
       popupView.$popup = $('#g2tPopup'); // Use $popup, not $g2tPopup
-      
+
       // Ensure the properties are properly set
       expect(popupView.$g2tButton).toBeDefined();
       expect(popupView.$popup).toBeDefined();
-      
+
       // Mock jQuery position and offsetParent methods
       popupView.$g2tButton.position = jest.fn(() => ({ left: 100, top: 50 }));
       popupView.$g2tButton.width = jest.fn(() => 50);
       popupView.$g2tButton.outerWidth = jest.fn(() => 50);
       popupView.$g2tButton.offsetParent = jest.fn(() => ({
         position: jest.fn(() => ({ left: 0, top: 0 })),
-        width: jest.fn(() => 1024)
+        width: jest.fn(() => 1024),
       }));
       popupView.$popup.position = jest.fn(() => ({ left: 200, top: 100 }));
       popupView.$popup.width = jest.fn(() => 400);
       popupView.$popup.css = jest.fn();
 
-
-      
       expect(() => popupView.centerPopup()).not.toThrow();
 
       // Clean up
@@ -172,7 +170,7 @@ describe('PopupView Class', () => {
     });
 
     test('should integrate with form correctly', () => {
-      expect(popupView.form).toBeInstanceOf(window.G2T.PopupForm);
+      expect(popupView.form).toBeInstanceOf(G2T.PopupForm);
       expect(popupView.form.parent).toBe(popupView);
       expect(popupView.form.app).toBe(testApp);
     });

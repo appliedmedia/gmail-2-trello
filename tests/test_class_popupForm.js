@@ -20,6 +20,16 @@ describe('PopupForm Class', () => {
   let mockParent;
 
   beforeEach(() => {
+    // Set up the g2t_combobox mock for this test
+    if ($.fn && !$.fn.g2t_combobox) {
+      $.fn.g2t_combobox = jest.fn(function (method, ...args) {
+        if (method === 'setInputValue') {
+          return this;
+        }
+        return this;
+      });
+    }
+
     // Create mock parent with basic state interface
     mockParent = {
       state: {
@@ -32,6 +42,12 @@ describe('PopupForm Class', () => {
       $popup: $('<div id="g2tPopup"></div>'),
       $popupMessage: $('<div id="g2tPopupMessage"></div>'),
       $popupContent: $('<div id="g2tPopupContent"></div>'),
+      // Add size_k property that set_max_autocomplete_size needs
+      size_k: {
+        text: {
+          min: 100,
+        },
+      },
       // No showMessage delegation - all calls should use this.form.showMessage
     };
 
@@ -45,7 +61,7 @@ describe('PopupForm Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create PopupForm instance with dependencies', () => {
-      expect(popupForm).toBeInstanceOf(window.G2T.PopupForm);
+      expect(popupForm).toBeInstanceOf(G2T.PopupForm);
       expect(popupForm.parent).toBe(mockParent);
       expect(popupForm.app).toBe(testApp);
     });
@@ -55,7 +71,7 @@ describe('PopupForm Class', () => {
     });
 
     test('ck static getter should return correct value', () => {
-      expect(window.G2T.PopupForm.ck).toEqual({ id: 'g2t_popupform' });
+      expect(G2T.PopupForm.ck).toEqual({ id: 'g2t_popupform' });
     });
 
     test('ck getter should return correct value', () => {
@@ -136,7 +152,7 @@ describe('PopupForm Class', () => {
       popupForm.app.persist = { boardId: 'test-board', listId: 'test-list' };
 
       expect(() => popupForm.submit()).not.toThrow();
-      
+
       // Verify submission actually happened
       expect(testApp.events.emit).toHaveBeenCalledWith('submit');
 

@@ -310,7 +310,7 @@ describe('Utils Class', () => {
     };
 
     // Create Utils instance from shared window where it's loaded at module level
-    utils = new window.G2T.Utils({ app });
+    utils = new G2T.Utils({ app });
   });
 
   // Simple test to verify setup is working
@@ -335,7 +335,7 @@ describe('Utils Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create Utils instance with default settings', () => {
-      expect(utils).toBeInstanceOf(window.G2T.Utils);
+      expect(utils).toBeInstanceOf(G2T.Utils);
       expect(utils.app).toBe(app);
     });
 

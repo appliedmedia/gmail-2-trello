@@ -29,7 +29,7 @@ describe('EventTarget Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create EventTarget instance with app dependency', () => {
-      expect(eventTarget).toBeInstanceOf(window.G2T.EventTarget);
+      expect(eventTarget).toBeInstanceOf(G2T.EventTarget);
       expect(eventTarget.app).toBe(testApp);
     });
 
@@ -39,12 +39,12 @@ describe('EventTarget Class', () => {
 
     test('should handle constructor with no arguments', () => {
       const defaultEventTarget = new G2T.EventTarget({});
-      expect(defaultEventTarget).toBeInstanceOf(window.G2T.EventTarget);
+      expect(defaultEventTarget).toBeInstanceOf(G2T.EventTarget);
       expect(defaultEventTarget.app).toBeUndefined();
     });
 
     test('ck static getter should return correct value', () => {
-      expect(window.G2T.EventTarget.ck).toEqual({ id: 'g2t_eventtarget' });
+      expect(G2T.EventTarget.ck).toEqual({ id: 'g2t_eventtarget' });
     });
 
     test('ck getter should return correct value', () => {
@@ -130,8 +130,14 @@ describe('EventTarget Class', () => {
       eventTarget.addListener('testEvent', listener2);
       eventTarget.emit('testEvent', eventData);
 
-      expect(listener1).toHaveBeenCalledWith({ type: 'testEvent', target: eventTarget }, eventData);
-      expect(listener2).toHaveBeenCalledWith({ type: 'testEvent', target: eventTarget }, eventData);
+      expect(listener1).toHaveBeenCalledWith(
+        { type: 'testEvent', target: eventTarget },
+        eventData,
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        { type: 'testEvent', target: eventTarget },
+        eventData,
+      );
     });
 
     test('emit should handle event type with no listeners', () => {
@@ -145,7 +151,10 @@ describe('EventTarget Class', () => {
       eventTarget.addListener('testEvent', listener);
       eventTarget.emit('testEvent', eventData);
 
-      expect(listener).toHaveBeenCalledWith({ type: 'testEvent', target: eventTarget }, eventData);
+      expect(listener).toHaveBeenCalledWith(
+        { type: 'testEvent', target: eventTarget },
+        eventData,
+      );
     });
 
     test('emit should handle multiple event types independently', () => {
@@ -158,8 +167,14 @@ describe('EventTarget Class', () => {
       eventTarget.emit('event1', { data: 'event1' });
       eventTarget.emit('event2', { data: 'event2' });
 
-      expect(listener1).toHaveBeenCalledWith({ type: 'event1', target: eventTarget }, { data: 'event1' });
-      expect(listener2).toHaveBeenCalledWith({ type: 'event2', target: eventTarget }, { data: 'event2' });
+      expect(listener1).toHaveBeenCalledWith(
+        { type: 'event1', target: eventTarget },
+        { data: 'event1' },
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        { type: 'event2', target: eventTarget },
+        { data: 'event2' },
+      );
       expect(listener1).toHaveBeenCalledTimes(1);
       expect(listener2).toHaveBeenCalledTimes(1);
     });
@@ -176,11 +191,11 @@ describe('EventTarget Class', () => {
     });
 
     test('emit should throw error for event without type', () => {
-      expect(() => eventTarget.emit({})).toThrow("Event object missing 'type' property.");
+      expect(() => eventTarget.emit({})).toThrow(
+        "Event object missing 'type' property.",
+      );
     });
   });
-
-
 
   describe('Integration Tests', () => {
     test('should integrate with app correctly', () => {
@@ -203,9 +218,18 @@ describe('EventTarget Class', () => {
       eventTarget.emit('event2', { data: 'event2' });
 
       // Verify listeners were called
-      expect(listener1).toHaveBeenCalledWith({ type: 'event1', target: eventTarget }, { data: 'event1' });
-      expect(listener2).toHaveBeenCalledWith({ type: 'event2', target: eventTarget }, { data: 'event2' });
-      expect(listener3).toHaveBeenCalledWith({ type: 'event2', target: eventTarget }, { data: 'event2' });
+      expect(listener1).toHaveBeenCalledWith(
+        { type: 'event1', target: eventTarget },
+        { data: 'event1' },
+      );
+      expect(listener2).toHaveBeenCalledWith(
+        { type: 'event2', target: eventTarget },
+        { data: 'event2' },
+      );
+      expect(listener3).toHaveBeenCalledWith(
+        { type: 'event2', target: eventTarget },
+        { data: 'event2' },
+      );
 
       // Remove one listener
       eventTarget.removeListener('event2', listener2);
@@ -215,7 +239,10 @@ describe('EventTarget Class', () => {
 
       // Verify only remaining listener was called
       expect(listener2).toHaveBeenCalledTimes(1);
-      expect(listener3).toHaveBeenCalledWith({ type: 'event2', target: eventTarget }, { data: 'event2_updated' });
+      expect(listener3).toHaveBeenCalledWith(
+        { type: 'event2', target: eventTarget },
+        { data: 'event2_updated' },
+      );
     });
   });
 
@@ -236,7 +263,9 @@ describe('EventTarget Class', () => {
 
     test('should handle null or undefined listeners gracefully', () => {
       expect(() => eventTarget.addListener('testEvent', null)).not.toThrow();
-      expect(() => eventTarget.addListener('testEvent', undefined)).not.toThrow();
+      expect(() =>
+        eventTarget.addListener('testEvent', undefined),
+      ).not.toThrow();
     });
   });
 });

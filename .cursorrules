@@ -1,1 +1,6 @@
 Read all of AGENTS.md and follow and read all its links and do everything it says.
+
+# Editor Settings for Consistent Indentation
+editor.tabSize: 2
+editor.insertSpaces: true
+editor.detectIndentation: false

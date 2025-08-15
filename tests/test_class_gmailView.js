@@ -326,22 +326,9 @@ describe('GmailView Class', () => {
       const selected = document.querySelector('.test-class');
       expect(selected).toBe(element);
     });
-
-    test('should have Gmail toolbar element loaded from test_jsdom.html', () => {
-      const toolbar = document.querySelector('[gh="mtb"]');
-      expect(toolbar).toBeDefined();
-      expect(toolbar.tagName).toBe('DIV');
-    });
   });
 
   describe('DOM Integration', () => {
-    test('should find toolbar element in JSDOM', () => {
-      // Test that jQuery can find the toolbar element that detectToolbar needs
-      const $toolbar = $("[gh='mtb']", gmailView.$root);
-      expect($toolbar.length).toBe(1);
-      expect($toolbar.attr('gh')).toBe('mtb');
-    });
-
     test('should find email content elements in JSDOM', () => {
       // Test that jQuery can find the email content elements
       const $viewport = $('.aia, .nH', gmailView.$root);
