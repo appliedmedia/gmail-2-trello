@@ -122,7 +122,7 @@ class GmailView {
 
     if (displayName) {
       if (email) {
-        md = `[${displayName}](${email})`;
+        md = `[${displayName}](<${email}>)`;
       } else {
         md = displayName;
       }
@@ -228,7 +228,7 @@ class GmailView {
     const type_k = ($(element).prop('type') || 'text/link').trim(); // Was attr
     if (href_k.length > 0 && display_k.length > 0) {
       // Will store as key/value pairs to automatically overide duplicates
-      this.image[href_k] = {
+      this.emailImage[href_k] = {
         mimeType: type_k,
         name: display_k,
         url: this.url_with_filename(href_k, name_k),
@@ -267,19 +267,8 @@ class GmailView {
   preDetect() {
     // this.app.utils.log('GmailView:preDetect');
 
-    const $activeGroup = $('.BltHke[role="main"]');
-
-    /* // OBSOLETE (Ace, 2020-02-15): .find is always returning false, don't think detecting split needed any more
-      if ($activeGroup.find('.apv, .apN').length > 0) { // .apv = old gmail, .apN = new gmail
-          // this.app.utils.log('detect: Detected SplitLayout');
-
-          this.app.persist.layoutMode = this.LAYOUT_SPLIT;
-          this.$root = $activeGroup;
-      } else {
-  */
     this.app.persist.layoutMode = this.LAYOUT_DEFAULT;
     this.$root = $('body');
-    //  }
 
     return this.detectToolbar();
   }
@@ -329,8 +318,6 @@ class GmailView {
   }
 
   detectToolbar() {
-    // this.app.utils.log('GmailView:detectToolbar');
-
     let $toolBar = $("[gh='mtb']", this.$root) || null;
 
     while ($($toolBar).children().length === 1) {
@@ -343,9 +330,10 @@ class GmailView {
 
     if (!haveToolBar_k) {
       setTimeout(() => this.detectToolbar_onTimeout(), 2000);
+    } else {
+      // Only reset runaway when we successfully find the toolbar
+      this.runaway = 0;
     }
-
-    this.runaway = 0;
 
     return haveToolBar_k;
   }

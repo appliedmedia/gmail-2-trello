@@ -122,18 +122,18 @@ class Utils {
       throw new Error('loadFile: fetch is not available');
     }
 
-    const url = this.app?.chrome?.runtimeGetURL
-      ? this.app.chrome.runtimeGetURL(path)
-      : (typeof chrome !== 'undefined' && chrome?.runtime?.getURL
-          ? chrome.runtime.getURL(path)
-          : path);
+    const url = this.app.goog.runtimeGetURL(path);
 
     return fetch(url)
       .then(res => res.text())
       .then(text => {
         const finalText = dict ? this.replacer(text, dict) : text;
         if (typeof callback === 'function') {
-          try { callback(finalText); } catch (_) { /* ignore callback errors */ }
+          try {
+            callback(finalText);
+          } catch (_) {
+            /* ignore callback errors */
+          }
         }
         return finalText;
       });
@@ -493,7 +493,7 @@ class Utils {
 
       // State variables
       count: 0,
-      replacer_dict: {},
+      replacer_dict: preprocess || {}, // Use preprocess data if provided
       $html: $emailBody,
       body: $emailBody.html() || '',
       toProcess: {},
@@ -684,7 +684,7 @@ class Utils {
       bkColorReturn = bkColorLight; // RegExp failed, assume dark color
     }
 
-    return 'inherit'; // Use: bkColorReturn if you want to adjust background based on text perceived brightness
+    return 'inherit' || bkColorReturn; // Use: bkColorReturn if you want to adjust background based on text perceived brightness
   }
 
   /**

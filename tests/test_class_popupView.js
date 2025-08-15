@@ -5,9 +5,10 @@
 
 // Import shared test utilities
 const {
+  G2T, // G2T namespace
+  testApp, // Pre-created mock app with all dependencies
   _ts, // G2T_TestSuite instance
   /* debugOut, */
-  testApp, // Pre-created mock app with all dependencies
 } = require('./test_shared');
 
 // Load the REAL PopupView class - this will override the mock version

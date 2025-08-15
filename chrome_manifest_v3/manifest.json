@@ -66,6 +66,7 @@
         "class_waitCounter.js",
         "class_eventTarget.js",
         "class_goog.js",
+        "class_trel.js",
         "views/class_gmailView.js",
         "views/class_popupForm.js",
         "views/class_popupView.js",

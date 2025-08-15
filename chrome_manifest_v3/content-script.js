@@ -45,7 +45,11 @@ function getGmailObject() {
   for (const item of scripts_to_inject) {
     try {
       const script = document.createElement('script');
-      script.src = window.g2t_app.chrome.runtimeGetURL(item);
+      // Use the app's goog wrapper if available, otherwise fall back to direct call
+      const scriptUrl = window.g2t_app?.goog?.runtimeGetURL
+        ? window.g2t_app.goog.runtimeGetURL(item)
+        : chrome.runtime.getURL(item);
+      script.src = scriptUrl;
       (document.head || document.documentElement).appendChild(script);
       script.onload = function () {
         script.parentNode.removeChild(script);
@@ -87,7 +91,12 @@ function requestHandler(request, sender, sendResponse) {
 
 // Register Handler
 try {
-  chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
+  // Use the app's goog wrapper if available, otherwise fall back to direct call
+  if (window.g2t_app?.goog?.runtimeOnMessageAddListener) {
+    window.g2t_app.goog.runtimeOnMessageAddListener(requestHandler);
+  } else {
+    chrome.runtime.onMessage.addListener(requestHandler); // Was: chrome.extension.onMessage.addListener
+  }
 } catch (error) {
   console.error(
     `requestHandler ERROR: extension context invalidated - failed "chrome.runtime.onMessage.addListener"`,

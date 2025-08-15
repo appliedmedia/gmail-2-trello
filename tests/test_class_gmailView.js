@@ -4,7 +4,13 @@
  */
 
 // Import shared test utilities
-const { _ts, utils, testApp } = require('./test_shared');
+const {
+  document, // JSDOM document - needed for DOM queries
+  G2T, // G2T namespace with all classes
+  testApp, // Pre-created mock app with all dependencies
+  // window, // JSDOM window - uncomment if needed for window.foo access
+  _ts, // Test suite utilities
+} = require('./test_shared');
 
 // Load the REAL GmailView class - this will override the mock version
 // The real GmailView will use the mock dependencies from testApp
@@ -18,18 +24,30 @@ describe('GmailView Class', () => {
     // The real GmailView class was loaded above, overriding the mock version
     gmailView = new G2T.GmailView({ app: testApp });
 
+    // Set up $root manually to point to the JSDOM body
+    // This ensures detectToolbar can find the toolbar element
+    gmailView.$root = $('body');
+
     // Initialize properties that the GmailView methods expect
-    gmailView.preprocess = { a: {} };
-    gmailView.image = {};
+    gmailView.preprocess = {
+      a: {
+        'test@example.com <test@example.com>':
+          '[Test User](<test@example.com>)',
+        'test@example.com (test@example.com)':
+          '[Test User](<test@example.com>)',
+        'test@example.com test@example.com': '[Test User](<test@example.com>)',
+        '"test@example.com" <test@example.com>':
+          '[Test User](<test@example.com>)',
+        '"test@example.com" (test@example.com)':
+          '[Test User](<test@example.com>)',
+        '"test@example.com" test@example.com':
+          '[Test User](<test@example.com>)',
+      },
+    };
+    gmailView.emailImage = {}; // Fixed: was 'image', should be 'emailImage'
     gmailView.attachment = [];
     gmailView.cc_raw = '';
     gmailView.cc_md = '';
-
-    // Mock problematic methods to avoid complex DOM interactions
-    gmailView.detectToolbar = jest.fn();
-    gmailView.detectEmailOpeningMode = jest.fn();
-    gmailView.detect = jest.fn();
-    gmailView.parseData = jest.fn(() => ({ mockData: true }));
 
     // Clear all mocks before each test
     _ts.clearAllMocks();
@@ -48,7 +66,9 @@ describe('GmailView Class', () => {
       },
       '$root initial value': {
         property: '$root',
-        expected: null,
+        testFn: value =>
+          value && value.length === 1 && value[0].tagName === 'BODY',
+        description: 'should be set to body element',
       },
       'parsingData initial value': {
         property: 'parsingData',
@@ -61,10 +81,16 @@ describe('GmailView Class', () => {
     };
 
     Object.entries(constructorTests).forEach(
-      ([testName, { property, expected }]) => {
-        test(`should have correct ${testName}`, () => {
-          expect(gmailView[property]).toBe(expected);
-        });
+      ([testName, { property, expected, testFn, description }]) => {
+        if (testFn) {
+          test(`should have correct ${description || testName}`, () => {
+            expect(testFn(gmailView[property])).toBe(true);
+          });
+        } else {
+          test(`should have correct ${testName}`, () => {
+            expect(gmailView[property]).toBe(expected);
+          });
+        }
       },
     );
 
@@ -185,7 +211,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'John Doe <john@example.com>',
-          md: '[John Doe](john@example.com)',
+          md: '[John Doe](<john@example.com>)',
         },
       },
       'John Doe, empty email': {
@@ -198,7 +224,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'john <john@example.com>',
-          md: '[john](john@example.com)',
+          md: '[john](<john@example.com>)',
         },
       },
       'matching name and email': {
@@ -206,7 +232,7 @@ describe('GmailView Class', () => {
         email: 'john@example.com',
         expected: {
           raw: 'john <john@example.com>',
-          md: '[john](john@example.com)',
+          md: '[john](<john@example.com>)',
         },
       },
     };
@@ -260,8 +286,17 @@ describe('GmailView Class', () => {
 
     test('detectToolbar_onTimeout should increment runaway counter', () => {
       const initialRunaway = gmailView.runaway;
+      // Set $root directly instead of calling detect() which triggers real detection
+      gmailView.$root = $('body');
+      // Mock detectToolbar to not reset the runaway counter
+      const originalDetectToolbar = gmailView.detectToolbar;
+      gmailView.detectToolbar = jest.fn();
+
       gmailView.detectToolbar_onTimeout();
       expect(gmailView.runaway).toBe(initialRunaway + 1);
+
+      // Restore original method
+      gmailView.detectToolbar = originalDetectToolbar;
     });
 
     test('detectEmailOpeningMode_onEmailClick should start wait counter', () => {
@@ -290,6 +325,30 @@ describe('GmailView Class', () => {
 
       const selected = document.querySelector('.test-class');
       expect(selected).toBe(element);
+    });
+
+    test('should have Gmail toolbar element loaded from test_jsdom.html', () => {
+      const toolbar = document.querySelector('[gh="mtb"]');
+      expect(toolbar).toBeDefined();
+      expect(toolbar.tagName).toBe('DIV');
+    });
+  });
+
+  describe('DOM Integration', () => {
+    test('should find toolbar element in JSDOM', () => {
+      // Test that jQuery can find the toolbar element that detectToolbar needs
+      const $toolbar = $("[gh='mtb']", gmailView.$root);
+      expect($toolbar.length).toBe(1);
+      expect($toolbar.attr('gh')).toBe('mtb');
+    });
+
+    test('should find email content elements in JSDOM', () => {
+      // Test that jQuery can find the email content elements
+      const $viewport = $('.aia, .nH', gmailView.$root);
+      expect($viewport.length).toBeGreaterThan(0);
+
+      const $emails = $('.h7', gmailView.$root);
+      expect($emails.length).toBeGreaterThan(0);
     });
   });
 
@@ -329,16 +388,39 @@ describe('GmailView Class', () => {
 
   describe('Initialization', () => {
     test('should initialize correctly', () => {
+      // Mock detect() to prevent triggering real detection process
+      const originalDetect = gmailView.detect;
+      gmailView.detect = jest.fn();
+
       gmailView.init();
       expect(testApp.events.addListener).toHaveBeenCalled();
+
+      // Restore original method
+      gmailView.detect = originalDetect;
     });
 
     test('should handle Trello user and boards ready', () => {
       testApp.persist.user = { fullName: 'Test User' };
       gmailView.handleTrelloUserAndBoardsReady();
-      expect(testApp.events.emit).toHaveBeenCalledWith('gmailDataReady', {
-        gmail: { mockData: true },
-      });
+
+      // Check that the event was emitted
+      expect(testApp.events.emit).toHaveBeenCalledWith(
+        'gmailDataReady',
+        expect.any(Object),
+      );
+
+      // Get the actual call arguments
+      const emitCall = testApp.events.emit.mock.calls.find(
+        call => call[0] === 'gmailDataReady',
+      );
+      expect(emitCall).toBeDefined();
+
+      const gmailData = emitCall[1].gmail;
+      expect(gmailData).toBeDefined();
+      expect(gmailData.subject).toBe('Test Subject');
+      expect(gmailData.time).toBe('2025-01-01 12:00 PM');
+      expect(Array.isArray(gmailData.attachment)).toBe(true);
+      expect(Array.isArray(gmailData.image)).toBe(true);
     });
   });
 

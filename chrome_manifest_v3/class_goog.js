@@ -50,10 +50,10 @@ class Goog {
     try {
       return apiCall(callback);
     } catch (error) {
-      window.console.log(
-        `${this.ck.errorPrefix} ${operation} failed: ${error.message}`,
-      );
-      throw error;
+      // Handle the error instead of re-throwing it
+      this.handleChromeError(error, operation);
+      // Return a safe fallback value instead of throwing
+      return null;
     }
   }
 
@@ -137,6 +137,21 @@ class Goog {
     return this.wrapApiCall(
       () => chrome.runtime.getURL(path),
       `runtime.getURL(${path})`,
+    );
+  }
+
+  runtimeOnMessageAddListener(listener) {
+    return this.wrapApiCall(
+      cb => chrome.runtime.onMessage.addListener(cb),
+      'runtime.onMessage.addListener',
+      listener,
+    );
+  }
+
+  runtimeGetManifest() {
+    return this.wrapApiCall(
+      () => chrome.runtime.getManifest(),
+      'runtime.getManifest',
     );
   }
 }

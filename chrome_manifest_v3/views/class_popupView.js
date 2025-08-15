@@ -276,7 +276,9 @@ class PopupView {
 
   bindPopupEvents() {
     // Bind chrome.runtime.onMessage for popup-specific messages
-    this.app.chrome.runtimeOnMessageAddListener(this.handleRuntimeMessage.bind(this));
+    this.app.goog.runtimeOnMessageAddListener(
+      this.handleRuntimeMessage.bind(this),
+    );
   }
 
   showPopup() {
@@ -447,11 +449,9 @@ class PopupView {
     }
     const path = 'views/signOut.html';
     const callback = showSignOutOptions_loadFile.bind(this);
-    this.app.utils
-      .loadFile({ path, callback })
-      .catch(() => {
-        this.app.utils.log('PopupView: failed to load signOut.html');
-      });
+    this.app.utils.loadFile({ path, callback }).catch(() => {
+      this.app.utils.log('PopupView: failed to load signOut.html');
+    });
   }
 
   // Select/de-select attachment and image based on first button's state:
