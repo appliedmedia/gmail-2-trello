@@ -3,6 +3,8 @@
  * Contains common mocks and utilities used across multiple test files
  */
 
+const _DEBUG = false; // Set to true to see debug output
+
 const fs = require('fs');
 const path = require('path');
 
@@ -19,17 +21,16 @@ const { JSDOM } = require('jsdom');
 
 // ⚠️ CONSOLE.LOG IS OVERRIDEN BY JEST! Use debugOut() instead of console.log() ⚠️
 // This pattern ensures debug output is visible during test development and troubleshooting
-const debugOut = jest.fn(require('console').log);
+const debugOut = jest.fn((...args) => {
+  if (_DEBUG) {
+    require('console').log(...args);
+  }
+});
 
 // Step 2: Set up JSDOM environment with proper Node.js connection
 // Load the entire HTML file directly into JSDOM
 const gmailTestHTMLPath = path.join(__dirname, 'test_jsdom.html');
 const gmailTestHTML = fs.readFileSync(gmailTestHTMLPath, 'utf8');
-
-// Debug: Check if HTML is being read
-debugOut('HTML file path:', gmailTestHTMLPath);
-debugOut('HTML content length:', gmailTestHTML.length);
-debugOut('HTML content preview:', gmailTestHTML.substring(0, 200));
 
 let dom;
 try {
@@ -44,59 +45,16 @@ try {
       window.TextDecoder = require('util').TextDecoder;
     },
   });
-  debugOut('JSDOM created successfully');
+  // JSDOM created successfully
 } catch (error) {
-  debugOut('JSDOM creation failed:', error.message);
-  debugOut("We're fucked for the DOM");
   throw new Error(`JSDOM creation failed: ${error.message}`);
 }
-
-// Test what's happening with window and document references
-debugOut('Before assignment - window type:', typeof window);
-debugOut('Before assignment - document type:', typeof document);
 
 // Make JSDOM window and document the global window and document
 // eslint-disable-next-line no-global-assign
 window = dom.window;
 // eslint-disable-next-line no-global-assign
 document = dom.window.document;
-
-debugOut('After assignment - window type:', typeof window);
-debugOut('After assignment - document type:', typeof document);
-debugOut('After assignment - window === dom.window:', window === dom.window);
-debugOut(
-  'After assignment - document === dom.window.document:',
-  document === dom.window.document,
-);
-
-// Test if we can access DOM elements through the assigned references
-debugOut('DOM document title:', window.document.title);
-debugOut(
-  'DOM body children count:',
-  window.document.body ? window.document.body.children.length : 'no body',
-);
-debugOut(
-  'DOM body HTML:',
-  window.document.body
-    ? window.document.body.innerHTML.substring(0, 200)
-    : 'no body',
-);
-debugOut(
-  'window.document.querySelector test:',
-  window.document.querySelector
-    ? window.document.querySelector('[gh="mtb"]')
-      ? 'Found'
-      : 'Not found'
-    : 'no querySelector',
-);
-debugOut(
-  'document.querySelector test:',
-  document.querySelector
-    ? document.querySelector('[gh="mtb"]')
-      ? 'Found'
-      : 'Not found'
-    : 'no querySelector',
-);
 
 // Load jQuery into the environment
 const jqueryPath = path.join(
@@ -113,19 +71,11 @@ const utilsPath = path.join(__dirname, '../chrome_manifest_v3/class_utils.js');
 const utilsContent = fs.readFileSync(utilsPath, 'utf8');
 window.eval(utilsContent);
 
-// Debug: Check what's in the JSDOM window context
-debugOut('After loading class_utils.js - window.G2T exists:', !!window.G2T);
-debugOut(
-  'After loading class_utils.js - window.G2T.Utils exists:',
-  !!(window.G2T && window.G2T.Utils),
-);
-
 // Now make G2T namespace and classes available in the Node.js context
 if (window.G2T) {
   G2T = window.G2T;
-  debugOut('G2T namespace copied to Node.js context');
 } else {
-  debugOut('ERROR: window.G2T not found after loading class_utils.js');
+  throw new Error('window.G2T not found after loading class_utils.js');
 }
 
 // Also load the GmailView class into the JSDOM environment
@@ -141,6 +91,11 @@ debugOut(
   'After loading class_gmailView.js - window.G2T.GmailView exists:',
   !!(window.G2T && window.G2T.GmailView),
 );
+
+// Spy on detectToolbar to prevent runaway errors during tests
+if (window.G2T && window.G2T.GmailView) {
+  window.G2T.GmailView.prototype.detectToolbar = jest.fn(() => true);
+}
 
 // Debug: Check if G2T is available in Node.js context
 debugOut('G2T variable in Node.js context:', typeof G2T);
@@ -211,6 +166,42 @@ window.analytics = {
   }),
 };
 
+// Mock Trello API
+window.Trello = {
+  rest: jest.fn(),
+  authorize: jest.fn(),
+  deauthorize: jest.fn(),
+  authorized: jest.fn(() => false),
+  get: jest.fn(),
+  post: jest.fn(),
+  put: jest.fn(),
+  delete: jest.fn(),
+};
+
+// Mock Chrome Extension APIs
+window.chrome = {
+  storage: {
+    sync: {
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+    onChanged: {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+  },
+  runtime: {
+    sendMessage: jest.fn(),
+    getURL: jest.fn(path => `chrome-extension://mock-id/${path}`),
+  },
+  // Method to simulate "Extension context invalidated" error
+  simulateContextInvalidation: function () {
+    const error = new Error('Extension context invalidated');
+    error.message = 'Extension context invalidated';
+    return error;
+  },
+};
+
 // Mock other common browser APIs
 window.localStorage = {
   getItem: jest.fn(() => null),
@@ -266,8 +257,14 @@ window.clearInterval = jest.fn();
 window.addEventListener = jest.fn();
 window.removeEventListener = jest.fn();
 
+// Mock confirm function
+window.confirm = jest.fn(() => false);
+
 // Also expose on Node global for any modules/tests that reference free `analytics`
 global.analytics = window.analytics;
+
+// Also expose Chrome API globally for any modules/tests that reference free `chrome`
+global.chrome = window.chrome;
 
 // Gmail DOM elements are now defined in test_jsdom.html
 
@@ -367,10 +364,37 @@ class G2T_TestSuite {
    */
   loadSources() {
     // Load jQuery into the environment
-    this.loadSourceFile('../chrome_manifest_v3/lib/jquery-3.7.1.min.js');
+    this.loadSourceFile('chrome_manifest_v3/lib/jquery-3.7.1.min.js');
 
-    // Load EventTarget class
-    this.loadSourceFile('../chrome_manifest_v3/class_eventTarget.js');
+    // Load jQuery UI (provides $.widget)
+    this.loadSourceFile('chrome_manifest_v3/lib/jquery-ui-1.14.1.min.js');
+
+    // Load the real combobox implementation
+    this.loadSourceFile('chrome_manifest_v3/lib/combo.js');
+
+    // Mock other jQuery plugins that tests might need
+    if (window.$ && window.$.fn) {
+      window.$.fn.button = jest.fn();
+      window.$.fn.tooltip = jest.fn();
+      window.$.fn.popover = jest.fn();
+
+      // Mock the g2t_combobox widget for tests
+      window.$.fn.g2t_combobox = jest.fn(function (method, ...args) {
+        if (method === 'setInputValue') {
+          // Handle setInputValue method
+          return this;
+        }
+        // Default behavior - just return the jQuery object for chaining
+        return this;
+      });
+    }
+
+    // EventTarget class will be loaded by individual test files as needed
+
+    // Redirect console.log to debugOut for cleaner test output
+    if (window.console) {
+      window.console.log = debugOut;
+    }
   }
 
   // JSDOM cleanup is handled automatically by Jest
@@ -383,6 +407,9 @@ class G2T_TestSuite {
    * @returns {Object} - Complete App instance ready for testing
    */
   createApp() {
+    // Load sources and set up jQuery plugin mocks
+    this.loadSources();
+
     // Define all mock classes using let to allow reassignment
     let Goog = class {
       constructor({ app }) {
@@ -426,6 +453,7 @@ class G2T_TestSuite {
         this.parseData = jest.fn(() => ({}));
         this.forceRedraw = jest.fn();
         this.parsingData = false;
+        this.preDetect = jest.fn(() => true);
       }
     };
 
@@ -519,6 +547,35 @@ class G2T_TestSuite {
       stop() {}
     };
 
+    let Trel = class {
+      constructor({ app }) {
+        this.app = app;
+        this.authorized = false;
+        this.user = null;
+        this.boards = [];
+        this.lists = [];
+        this.cards = [];
+        this.members = [];
+        this.labels = [];
+      }
+      getMembers(boardId) {
+        return Promise.resolve([]);
+      }
+      getLabels(boardId) {
+        return Promise.resolve([]);
+      }
+      createCard(cardData) {
+        return Promise.resolve({ id: 'test-card-id' });
+      }
+      getUser() {
+        return Promise.resolve({ id: 'test-user-id', fullName: 'Test User' });
+      }
+      deauthorize() {
+        this.authorized = false;
+        this.user = null;
+      }
+    };
+
     let App = class {
       constructor() {
         // Create instances exactly like real App constructor
@@ -528,6 +585,7 @@ class G2T_TestSuite {
         this.model = new Model({ app: this });
         this.gmailView = new GmailView({ app: this });
         this.popupView = new PopupView({ app: this });
+        this.trel = new Trel({ app: this });
         // Use real Utils class and override only the log method for testing
         this.utils = new G2T.Utils({ app: this });
         this.utils.log = debugOut;
@@ -589,12 +647,7 @@ class G2T_TestSuite {
       }
     };
 
-    // Set up window.G2T namespace with all classes using iteration
-    if (!window.G2T) {
-      window.G2T = {};
-    }
-
-    // Set up all mock classes in window.G2T namespace
+    // Set up all mock classes in the G2T namespace
     const classes = {
       App,
       EventTarget,
@@ -604,17 +657,16 @@ class G2T_TestSuite {
       Model,
       PopupForm,
       PopupView,
+      Trel,
       WaitCounter,
     };
 
-    // Note: Utils is NOT included here because we use the real G2T.Utils class
+    // Assign all classes to G2T namespace
     Object.entries(classes).forEach(([className, ClassConstructor]) => {
-      if (!window.G2T[className]) {
-        window.G2T[className] = ClassConstructor;
-      }
+      G2T[className] = ClassConstructor;
     });
 
-    return new window.G2T.App();
+    return new App();
   }
 
   /**

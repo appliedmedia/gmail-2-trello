@@ -766,7 +766,8 @@ class PopupForm {
     function displayAPIFailedForm_loadFile(html) {
       let errorHtml = html;
       if (resp?.status == 400) {
-        errorHtml += '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
+        errorHtml +=
+          '<br><button id="reloadTrelloBoards" class="g2t-button">Reload Trello Boards</button>';
       }
       this.parent.$popupContent.html(errorHtml);
       // Keep message area hidden when rendering full error content
@@ -787,11 +788,11 @@ class PopupForm {
     const path = 'views/error.html';
     const dict = dict_k;
     const callback = displayAPIFailedForm_loadFile.bind(this);
-    this.app.utils
-      .loadFile({ path, dict, callback })
-      .catch(err => {
-        this.app.utils.log(`displayAPIFailedForm: failed to load error.html: ${err?.message || err}`);
-      });
+    this.app.utils.loadFile({ path, dict, callback }).catch(err => {
+      this.app.utils.log(
+        `displayAPIFailedForm: failed to load error.html: ${err?.message || err}`,
+      );
+    });
 
     // Handle 401 errors (invalid token)
     if (resp?.status == 401) {
@@ -822,14 +823,14 @@ class PopupForm {
         this.parent.comboInitialized = true;
         setJQueryVals();
         Object.entries($jVals).forEach(([key, $value]) => {
-          $value.combobox();
+          $value.g2t_combobox();
         });
         set_max_autocomplete_size();
       }, 1000);
     } else if (this.parent.comboInitialized) {
       setJQueryVals();
       Object.entries($jVals).forEach(([key, $value]) => {
-        $value.combobox(
+        $value.g2t_combobox(
           'setInputValue',
           $value.children('option:selected').text(),
         );

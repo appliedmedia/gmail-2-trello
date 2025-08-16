@@ -1,5 +1,5 @@
 (() => {
-  $.widget('custom.combobox', {
+  $.widget('g2t_combobox', {
     _create: function () {
       this.wrapper = $('<div>')
         .addClass('g2t-custom-combobox')
@@ -103,7 +103,7 @@
     _source: function (request, response) {
       var matcher = new RegExp(
         $.ui.autocomplete.escapeRegex(request.term),
-        'i'
+        'i',
       );
       response(
         this.element.children('option').map(function () {
@@ -114,7 +114,7 @@
               value: text,
               option: this,
             };
-        })
+        }),
       );
     },
 

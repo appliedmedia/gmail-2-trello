@@ -72,7 +72,7 @@ class Goog {
       );
       // Show alert directly instead of firing event that might not be handled
       if (
-        confirm(
+        window.confirm(
           'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
         )
       ) {
@@ -99,7 +99,7 @@ class Goog {
 
     // Fallback: Use confirm dialog like other parts of the extension
     if (
-      confirm(
+      window.confirm(
         'Gmail-2-Trello extension needs to be reloaded to work correctly.\n\nReload now?',
       )
     ) {

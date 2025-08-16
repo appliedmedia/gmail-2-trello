@@ -17,7 +17,7 @@ _ts.loadSourceFile('chrome_manifest_v3/class_menuControl.js');
 
 describe('MenuControl Class', () => {
   let menuControl;
-  
+
   beforeEach(() => {
     // Create a fresh real MenuControl instance with the pre-created mock dependencies
     // The real MenuControl class was loaded above, and will use mock dependencies from testApp
@@ -29,18 +29,18 @@ describe('MenuControl Class', () => {
 
   describe('Constructor and Initialization', () => {
     test('should create MenuControl instance with app dependency', () => {
-      expect(menuControl).toBeInstanceOf(window.G2T.MenuControl);
+      expect(menuControl).toBeInstanceOf(G2T.MenuControl);
       expect(menuControl.app).toBe(testApp);
     });
 
     test('should handle constructor with no arguments', () => {
       const defaultMenuControl = new G2T.MenuControl({});
-      expect(defaultMenuControl).toBeInstanceOf(window.G2T.MenuControl);
+      expect(defaultMenuControl).toBeInstanceOf(G2T.MenuControl);
       expect(defaultMenuControl.app).toBeUndefined();
     });
 
     test('ck static getter should return correct value', () => {
-      expect(window.G2T.MenuControl.ck).toEqual({ id: 'g2t_menuControl' });
+      expect(G2T.MenuControl.ck).toEqual({ id: 'g2t_menuControl' });
     });
 
     test('ck getter should return correct value', () => {
@@ -112,7 +112,9 @@ describe('MenuControl Class', () => {
       menuControl.selectors = { item: '.menu-item' };
       // Sanity check DOM via native API
       expect(document.querySelectorAll('.menu-item').length).toBe(3);
-      expect(() => menuControl.reset({ selectors: '.menu-item' })).not.toThrow();
+      expect(() =>
+        menuControl.reset({ selectors: '.menu-item' }),
+      ).not.toThrow();
       expect(menuControl.items).toBeDefined();
 
       // Clean up
