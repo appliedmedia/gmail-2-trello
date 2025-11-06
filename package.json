@@ -7,14 +7,17 @@
     "dev": "echo '🚀 Development Setup: 1) Open chrome://extensions/ 2) Enable Developer mode 3) Load unpacked: chrome_manifest_v3/ 4) Go to Gmail to test'",
     "build": "cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
     "test": "jest",
-    "lint": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
-    "lint:fix": "eslint chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js --fix",
-    "format": "prettier --write chrome_manifest_v3/*.js chrome_manifest_v3/views/*.js",
+    "lint": "eslint chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js",
+    "lint:fix": "eslint chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js --fix",
+    "format": "prettier --write chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js",
+    "format:check": "prettier --check chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js",
+    "check": "npm run lint && npm run format:check",
     "clean": "rm -rf node_modules package-lock.json",
     "install-deps": "npm install",
     "deploy": "node scripts/deploy.js",
     "deploy:setup": "node scripts/setup-chrome-api.js",
-    "deploy:manual": "npm run build && echo '📦 Extension built. Upload manually to Chrome Web Store.'"
+    "deploy:manual": "npm run build && echo '📦 Extension built. Upload manually to Chrome Web Store.'",
+    "prebuild": "npm run lint:fix && npm run format"
   },
   "keywords": [
     "chrome-extension",
