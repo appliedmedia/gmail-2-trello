@@ -5,7 +5,7 @@
   "main": "chrome_manifest_v3/app.js",
   "scripts": {
     "dev": "echo '🚀 Development Setup: 1) Open chrome://extensions/ 2) Enable Developer mode 3) Load unpacked: chrome_manifest_v3/ 4) Go to Gmail to test'",
-    "build": "cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
+    "build": "npm run lint:fix && npm run format && npm audit --audit-level=moderate && cd chrome_manifest_v3 && zip -r ../gmail-2-trello-$(node -p \"require('./manifest.json').version\").zip .",
     "test": "jest",
     "lint": "eslint chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js",
     "lint:fix": "eslint chrome_manifest_v3/**/*.js chrome_manifest_v3/views/**/*.js --fix",
@@ -16,8 +16,7 @@
     "install-deps": "npm install",
     "deploy": "node scripts/deploy.js",
     "deploy:setup": "node scripts/setup-chrome-api.js",
-    "deploy:manual": "npm run build && echo '📦 Extension built. Upload manually to Chrome Web Store.'",
-    "prebuild": "npm run lint:fix && npm run format"
+    "deploy:manual": "npm run build && echo '📦 Extension built. Upload manually to Chrome Web Store.'"
   },
   "keywords": [
     "chrome-extension",
