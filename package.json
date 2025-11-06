@@ -44,6 +44,7 @@
     "eslint": "latest",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
+    "globals": "^16.5.0",
     "jest": "latest",
     "jest-environment-jsdom": "^30.0.5",
     "jquery": "latest",
