@@ -891,6 +891,7 @@ Add tests for:
 
 ### Manual Testing Checklist
 
+**Core Functionality:**
 - [ ] Position dropdown is removed from UI
 - [ ] Card dropdown shows icon by default (arrow to card)
 - [ ] Pressing Shift/Alt/Option while clicking card dropdown switches icon (arrow below card)
@@ -901,6 +902,27 @@ Add tests for:
 - [ ] Mode resets to 'to' when changing lists
 - [ ] Visual indicators (border colors) update correctly
 - [ ] Tooltip shows correct help text
+
+**Accessibility Testing:**
+- [ ] Screen reader announces current mode (NVDA on Windows, JAWS, VoiceOver on macOS)
+- [ ] Keyboard navigation through card dropdown announces mode in accessible text
+- [ ] ARIA labels/roles present on mode indicators
+- [ ] Focus management correct when mode changes
+- [ ] High contrast mode shows visual indicators clearly
+
+**Cross-Browser & OS Testing:**
+- [ ] Chrome on Windows: Shift/Alt work correctly
+- [ ] Chrome on macOS: Shift/Option/Cmd work correctly
+- [ ] Firefox on Windows: Modifier keys detected properly
+- [ ] Firefox on macOS: Modifier keys detected properly
+- [ ] Safari on macOS: Modifier keys detected properly
+- [ ] Edge on Windows: Modifier keys detected properly
+
+**Mobile & Touch Testing:**
+- [ ] iOS Safari: Document limitation or provide alternative UI
+- [ ] Android Chrome: Document limitation or provide alternative UI
+- [ ] iPad/tablet: Test if external keyboard modifier keys work
+- [ ] Consider adding explicit toggle button for touch devices
 
 ## Migration Notes
 
@@ -1025,18 +1047,61 @@ If issues arise:
 - Modifier key detection (may have edge cases across browsers/OS)
 - Mode state management
 
+### Medium-High Risk (Accessibility & Compatibility)
+
+**Accessibility Concerns:**
+- Modifier key interaction not discoverable for mouse-only users without visible UI
+- Screen readers won't announce mode changes unless explicitly handled with ARIA
+- Keyboard users can discover AFTER mode via tooltip, but may not read it
+- Requires explicit testing with screen readers (NVDA, JAWS, VoiceOver)
+
+**Browser & OS Compatibility:**
+- Modifier key behavior varies across platforms:
+  - macOS: Cmd (⌘) vs Alt/Option behave differently than Windows/Linux
+  - Safari, Firefox, Chrome may handle key events inconsistently
+  - `event.metaKey` maps to Cmd on macOS, Windows key on Windows
+- Need cross-platform key detection mapping and normalization
+
+**Mobile & Touch Devices:**
+- Modifier keys don't exist on iOS/Android touch interfaces
+- Current plan provides no way for mobile users to access AFTER mode
+- Touch interactions need explicit fallback UI (toggle button or menu option)
+
+**Mitigation Required:**
+- Add ARIA live region to announce mode changes to screen readers
+- Add visible mode indicator (not just icon in dropdown)
+- Test key detection across Chrome/Firefox/Safari on macOS/Windows/Linux
+- Consider fallback explicit toggle button for touch devices
+- Document mobile limitations if touch support deferred
+
 ### High Risk  
 - Trello API parameter changes (`idCardSource` vs `pos`)
 - Card positioning logic (needs careful testing)
 
 ## Success Criteria
 
+**Functionality:**
 1. ✅ Position dropdown removed from UI
 2. ✅ Default behavior: Cards added using `idCardSource` (TO mode)
 3. ✅ Modifier key press enables AFTER mode with correct positioning
 4. ✅ Visual indicators clearly show current mode
 5. ✅ No regression in existing card creation functionality
 6. ✅ User testing confirms intuitive behavior
+
+**Accessibility:**
+7. ✅ ARIA live region announces mode changes to screen readers
+8. ✅ Keyboard-accessible discoverable control or focusable help text explains modifier key behavior
+9. ✅ Visual mode indicator visible to sighted users (not just icon in closed dropdown)
+10. ✅ Works with high contrast modes
+
+**Compatibility:**
+11. ✅ Modifier key detection tested on Chrome, Firefox, Safari
+12. ✅ Cross-platform testing on macOS, Windows, Linux
+13. ✅ Key mapping correctly handles Cmd/Meta vs Alt/Option differences
+
+**Mobile:**
+14. ⚠️ Mobile/touch behavior documented (modifier keys unavailable)
+15. ⚠️ Optional: Fallback toggle button for touch devices (if prioritized)
 
 ---
 
