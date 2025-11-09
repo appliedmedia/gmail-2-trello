@@ -373,9 +373,10 @@ If PNG icons are too complex, use Unicode characters with plain rectangles:
 **Recommendation**: Use **Option A** if you want arrow coming from right side. The plain vertical rectangle `▯` looks clean and clearly represents a card in outline form.
 
 **PNG vs Unicode Tradeoff:**
-- **Unicode**: Instant, no design work, works everywhere
-- **PNG**: More polished, fully custom, requires design time (~2-3 hours)
-- **Suggested**: Start with Unicode Option A, upgrade to PNG later if desired
+- **Unicode**: Instant, no design work, works everywhere (just text prefix)
+- **PNG**: More polished, fully custom, requires design + CSS (~2-3 hours)
+- **CSS Styling**: Works perfectly since `g2t_combobox` uses custom HTML elements (not native `<option>` tags)
+- **Suggested**: Start with Unicode Option A (simplest), upgrade to PNG via CSS later if desired
 
 ## Implementation Plan
 
@@ -775,99 +776,75 @@ this.app.temp.newCard = {
 - Colors: Arrow in #ff9f1a (Trello orange), card in #c4c9cc (gray)
 ```
 
-#### 5.2 Add CSS for Icon Display
+#### 5.2 Add CSS for Icon Display (PNG or Unicode)
 
 **File**: `chrome_manifest_v3/style.css`
 
-Add styles for mode indicator icons:
+The `g2t_combobox` widget creates custom `.ui-menu-item` elements (not native `<option>` tags), so background images work perfectly!
+
+**Option A: PNG Icons** (if you create them)
 
 ```css
-/* Card insert mode indicators using PNG icons */
-#g2tCard option {
-  padding-left: 24px;  /* Space for icon */
+/* Card insert mode indicators using PNG icons on combobox dropdown items */
+.ui-autocomplete .ui-menu-item-wrapper {
+  padding-left: 24px;
   background-repeat: no-repeat;
   background-position: 2px center;
   background-size: 16px 16px;
 }
 
 /* TO mode - show "add to card" icon */
-#g2tCard[data-mode="to"] option {
+#combo_g2tCard[data-mode="to"] ~ .ui-autocomplete .ui-menu-item-wrapper {
   background-image: url('../images/icon-add-to-card-16.png');
 }
 
 /* Retina support for TO mode */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  #g2tCard[data-mode="to"] option {
+  #combo_g2tCard[data-mode="to"] ~ .ui-autocomplete .ui-menu-item-wrapper {
     background-image: url('../images/icon-add-to-card-32.png');
   }
 }
 
 /* AFTER mode - show "add after card" icon */
-#g2tCard[data-mode="after"] option {
+#combo_g2tCard[data-mode="after"] ~ .ui-autocomplete .ui-menu-item-wrapper {
   background-image: url('../images/icon-add-after-card-16.png');
 }
 
 /* Retina support for AFTER mode */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  #g2tCard[data-mode="after"] option {
+  #combo_g2tCard[data-mode="after"] ~ .ui-autocomplete .ui-menu-item-wrapper {
     background-image: url('../images/icon-add-after-card-32.png');
   }
 }
+```
 
-/* Optional: Add border color for additional visual feedback */
-#g2tCard[data-mode="to"] {
+**Option B: Unicode Characters** (simpler, no images needed)
+
+Just use the Unicode prefix in the card name (already in updateCards() code). No additional CSS needed beyond optional border colors:
+
+```css
+/* Optional: Add border color for visual feedback */
+#combo_g2tCard[data-mode="to"] {
   border-left: 3px solid #61bd4f; /* Green for "add to" */
 }
 
-#g2tCard[data-mode="after"] {
+#combo_g2tCard[data-mode="after"] {
   border-left: 3px solid #ff9f1a; /* Orange for "add after" */
-}
-
-/* Remove text prefix if using icons */
-#g2tCard[data-mode="to"] option::before,
-#g2tCard[data-mode="after"] option::before {
-  content: none; /* Remove any text arrows if present */
 }
 ```
 
-**Note**: Some browsers don't support background images on `<option>` elements. If this is an issue, alternative approaches:
-1. Use custom dropdown (jQuery UI selectmenu) - already in use with `g2t_combobox`
-2. Add icon to the card name text (current Unicode approach)
-3. Show icon indicator outside the dropdown next to it
-
-#### 5.3 Update Card Dropdown with Data Attribute
+#### 5.3 Update Combobox with Data Attribute
 
 **File**: `chrome_manifest_v3/views/class_popupForm.js`
 
-In `updateCards()`, add data attribute:
+In `updateCards()`, add data attribute to the combobox wrapper (not the hidden select):
 
 ```javascript
 const $g2t = $('#g2tCard', this.parent.$popup);
-$g2t.attr('data-mode', mode);  // Add this line
+const $combo = $('#combo_g2tCard', this.parent.$popup);
+$combo.attr('data-mode', mode);  // Add mode to combobox wrapper
 $g2t.html(new_k);
 ```
-
-#### 5.4 Test Icon Display
-
-Since `<option>` background images have limited browser support, verify the approach works in Chrome. If not:
-
-**Fallback Approach**: Use the existing combobox widget (jQuery UI) which creates custom HTML and DOES support background images:
-
-```javascript
-// In comboBox initialization, add icon styling
-$value.g2t_combobox({
-  // existing options...
-  create: function() {
-    // Add icons to combobox dropdown items
-    const mode = this.app.temp.cardInsertMode || 'to';
-    $('.ui-menu-item', this).each(function() {
-      $(this).addClass(`g2t-card-mode-${mode}`);
-    });
-  }
-});
-```
-
-Then style `.ui-menu-item.g2t-card-mode-to` and `.ui-menu-item.g2t-card-mode-after` with background images.
 
 ### Phase 6: User Feedback
 
