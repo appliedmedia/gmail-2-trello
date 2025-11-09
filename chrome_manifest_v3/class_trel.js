@@ -510,6 +510,15 @@ class Trel {
       data.due = cardData.dueDate;
     }
 
+    // Validate required Trello API fields
+    if (!data.idList || !data.idBoard) {
+      this.app.utils.log(
+        `${this.ck.errorPrefix} Missing required fields - listId: ${data.idList}, boardId: ${data.idBoard}`,
+      );
+      this.app.events.emit('invalidFormData', { data: cardData });
+      return;
+    }
+
     this.wrapApiCall(
       'post',
       'cards',
