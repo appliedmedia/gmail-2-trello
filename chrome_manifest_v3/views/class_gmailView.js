@@ -27,6 +27,10 @@ class GmailView {
     // Create WaitCounter instance
     this.waitCounter = new G2T.WaitCounter({ app: this.app });
 
+    // MutationObserver for toolbar changes
+    this.toolbarObserver = null;
+    this.observerDebounceTimer = null;
+
     this.selectors = {
       // OBSOLETE (Ace, 2021-02-27): Missing too much context having it all here, and needed to process many of them, so moved into context of where code used them
       // selectors mapping, modify here when gmail's markup changes:
@@ -636,10 +640,109 @@ class GmailView {
     this.app.events.emit('gmailDataReady', { gmail: this.app.model.gmail });
   }
 
+  /**
+   * Set up MutationObserver to watch for Gmail toolbar changes
+   * This provides instant detection when Gmail replaces the toolbar DOM
+   */
+  setupToolbarObserver() {
+    // Don't set up multiple observers
+    if (this.toolbarObserver) {
+      return;
+    }
+
+    const config = {
+      childList: true, // Watch for nodes being added/removed
+      subtree: true, // Watch the entire subtree
+      attributes: false, // Don't care about attribute changes
+    };
+
+    const callback = mutationsList => {
+      // Check if any mutations involve the toolbar
+      let toolbarChanged = false;
+
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          // Check removed nodes
+          for (const node of mutation.removedNodes) {
+            if (
+              node.nodeType === 1 &&
+              (node.matches?.('[gh="mtb"]') ||
+                node.querySelector?.('[gh="mtb"]'))
+            ) {
+              toolbarChanged = true;
+              break;
+            }
+          }
+
+          // Check added nodes
+          if (!toolbarChanged) {
+            for (const node of mutation.addedNodes) {
+              if (
+                node.nodeType === 1 &&
+                (node.matches?.('[gh="mtb"]') ||
+                  node.querySelector?.('[gh="mtb"]'))
+              ) {
+                toolbarChanged = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (toolbarChanged) break;
+      }
+
+      if (toolbarChanged) {
+        // Debounce rapid changes - Gmail might do multiple DOM updates
+        if (this.observerDebounceTimer) {
+          clearTimeout(this.observerDebounceTimer);
+        }
+
+        this.observerDebounceTimer = setTimeout(() => {
+          this.app.utils.log(
+            'GmailView: Toolbar mutation detected via MutationObserver',
+          );
+          this.forceRedraw();
+          this.observerDebounceTimer = null;
+        }, 250); // Wait 250ms for Gmail to finish its updates
+      }
+    };
+
+    try {
+      this.toolbarObserver = new MutationObserver(callback);
+      this.toolbarObserver.observe(document.body, config);
+      this.app.utils.log('GmailView: MutationObserver initialized');
+    } catch (error) {
+      this.app.utils.log(
+        'GmailView: Failed to setup MutationObserver:',
+        error,
+      );
+    }
+  }
+
+  /**
+   * Disconnect the MutationObserver
+   * Call this if you need to stop observing (e.g., extension cleanup)
+   */
+  disconnectToolbarObserver() {
+    if (this.toolbarObserver) {
+      this.toolbarObserver.disconnect();
+      this.toolbarObserver = null;
+      this.app.utils.log('GmailView: MutationObserver disconnected');
+    }
+
+    if (this.observerDebounceTimer) {
+      clearTimeout(this.observerDebounceTimer);
+      this.observerDebounceTimer = null;
+    }
+  }
+
   init() {
     this.bindEvents();
     // Start detection
     this.detect();
+    // Set up MutationObserver for instant toolbar change detection
+    this.setupToolbarObserver();
   }
 }
 
