@@ -936,7 +936,33 @@ class PopupForm {
   }
 
   handleSubmit() {
-    this.parent.app.model.submit(this.app.persist);
+    // Build the submission data object from app state
+    const newCard = {
+      emailId: this.app.temp.emailId,
+      boardId: this.app.persist.boardId,
+      listId: this.app.persist.listId,
+      cardId: this.app.persist.cardId,
+      cardPos: this.app.temp.cardPos,
+      cardMembers: this.app.temp.cardMembers,
+      cardLabels: this.app.temp.cardLabels,
+      labelsId: this.app.persist.labelsId,
+      membersId: this.app.persist.membersId,
+      dueDate: this.app.temp.dueDate,
+      dueTime: this.app.temp.dueTime,
+      title: this.app.temp.title,
+      description: this.app.temp.description,
+      attachment: this.app.temp.attachment || [],
+      image: this.app.temp.image || [],
+      useBackLink: this.app.persist.useBackLink,
+      addCC: this.app.persist.addCC,
+      markdown: this.app.persist.markdown,
+      popupWidth: this.app.persist.popupWidth,
+      position: this.app.temp.position,
+      timeStamp: this.app.temp.timeStamp,
+    };
+
+    // Pass the complete data object to model.submit
+    this.parent.app.model.submit(newCard);
   }
 
   handleCheckTrelloAuthorized() {
