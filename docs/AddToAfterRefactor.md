@@ -132,14 +132,34 @@ When creating a card via `POST /1/cards`:
 - **Usage**: Prefix card names to show "add to this card"
 - **Example**: `→ Existing Card Name`
 
-### "AFTER" Mode Indicator: ↳
-- **Character**: `↳` (U+21B3 DOWNWARDS ARROW WITH TIP RIGHTWARDS)
-- **Alternative**: `↴` (U+21B4 RIGHTWARDS ARROW WITH CORNER DOWNWARDS)
-- **Alternative**: `⤷` (U+2937 ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS)
-- **Usage**: Prefix card names to show "create new card after this one"
-- **Example**: `↳ Existing Card Name`
+### "AFTER" Mode Indicator Options
 
-**Recommendation**: Use `↳` (U+21B3) as it clearly shows "below and to the right" direction.
+**Diagonal/Southeast Arrows (Most Distinct):**
+- **`↘`** (U+2198 SOUTH EAST ARROW) - Simple diagonal SE arrow
+- **`⬊`** (U+2B0A SOUTH EAST WHITE ARROW) - Outlined version
+- **`⤵`** (U+2935 ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS) - Down then curves right
+
+**Downward Arrows (Clearest for "Below"):**
+- **`↓`** (U+2193 DOWNWARDS ARROW) - Simple downward
+- **`⬇`** (U+2B07 BLACK DOWNWARDS ARROW) - Heavier/bolder version
+- **`⤓`** (U+2913 DOWNWARDS ARROW WITH TAIL) - Down with emphasis
+
+**Corner/Curved Arrows (Original consideration):**
+- **`↳`** (U+21B3 DOWNWARDS ARROW WITH TIP RIGHTWARDS) - Down then right tip
+- **`↴`** (U+21B4 RIGHTWARDS ARROW WITH CORNER DOWNWARDS) - Right then down corner
+- **`⤷`** (U+2937 ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS) - Curved version
+
+**Usage**: Prefix card names to show "create new card after this one"
+
+**Visual Comparison:**
+- TO mode: `→ Existing Card Name`
+- AFTER mode options:
+  - `↘ Existing Card Name` (diagonal SE)
+  - `⤵ Existing Card Name` (down-curve-right)
+  - `↓ Existing Card Name` (simple down)
+  - `⬇ Existing Card Name` (bold down)
+
+**Recommendation**: Use **`↘`** (U+2198 SOUTH EAST ARROW) for maximum visual distinction from the rightward arrow. The diagonal clearly communicates "down and forward" without ambiguity.
 
 ## Implementation Plan
 
@@ -216,7 +236,7 @@ updateCards(tempId = 0) {
     
     // Get current mode
     const mode = this.app.temp.cardInsertMode || 'to';
-    const modeIcon = mode === 'to' ? '→ ' : '↳ ';
+    const modeIcon = mode === 'to' ? '→ ' : '↘ ';
     
     array_k.forEach(item => {
         const id_k = item.id;
@@ -439,7 +459,7 @@ Update card dropdown label area to include help text:
 
 ```html
 <select id="g2tCard" class="g2tWhere" next-select="addToTrello" 
-        title="Default: Add TO selected card (→). Hold Shift/Alt/Option: Create AFTER selected card (↳)">
+        title="Default: Add TO selected card (→). Hold Shift/Alt/Option: Create AFTER selected card (↘)">
   <option value="">...please pick a list...</option>
 </select>
 ```
@@ -468,7 +488,7 @@ Add tests for:
 
 - [ ] Position dropdown is removed from UI
 - [ ] Card dropdown shows → prefix by default
-- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches to ↳ prefix
+- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches to ↘ prefix
 - [ ] Releasing modifier key switches back to → prefix
 - [ ] Cards are created with correct Trello API parameters:
   - [ ] Default: Uses `idCardSource` parameter
@@ -489,7 +509,7 @@ Add tests for:
 Update documentation/help to explain:
 - New default behavior (always add TO card)
 - How to use modifier keys for AFTER mode
-- Visual indicators (→ vs ↳)
+- Visual indicators (→ vs ↘)
 
 ## Rollback Plan
 
@@ -507,9 +527,9 @@ If issues arise:
 1. **Persistent Mode Preference**: Remember user's last-used mode per board/list
 2. **Keyboard Shortcuts**: Add dedicated keyboard shortcut to toggle mode
 3. **Visual Mode Toggle**: Add explicit toggle button instead of modifier keys only
-4. **Advanced Positioning**: Allow inserting BEFORE selected card (↰ character)
+4. **Advanced Positioning**: Allow inserting BEFORE selected card (↖ or ↑ character)
 5. **Mode Indicator in Submit Button**: Change button text based on mode
-   - "→ Add to Card" vs "↳ Add New Card"
+   - "→ Add to Card" vs "↘ Add New Card"
 
 ## Files to Modify
 
