@@ -224,9 +224,11 @@ POST /1/cards
 
 ## Visual Indicators (Custom PNG Icons)
 
-### Design Approach: Icon Column
+### Design Approach: Icon Column with jQuery UI
 
-Instead of Unicode characters, use custom PNG icons in a leftmost column that visually demonstrates the card positioning behavior.
+You're using jQuery UI combobox (`g2t_combobox`) which creates custom HTML - perfect for background images! The combobox renders as `.ui-autocomplete` with `.ui-menu-item` elements, giving full CSS control.
+
+Instead of trying to style native `<option>` elements (limited), we style the jQuery UI menu items that get created.
 
 ### "TO" Mode Icon Design
 
@@ -277,26 +279,36 @@ Visual representation:
 Arrow points to space directly below the card
 ```
 
-### Icon Placement in UI
+### Icon Placement in jQuery UI Combobox
 
-**In Card Dropdown Options**:
-```
-<option value="card123">
-  [icon as background-image or inline img] Card Name Goes Here
-</option>
+Your combobox widget creates this HTML structure:
+```html
+<ul class="ui-autocomplete ui-menu">
+  <li class="ui-menu-item">
+    <div class="ui-menu-item-wrapper">Card Name</div>
+  </li>
+</ul>
 ```
 
-Or better, as a CSS column using `::before` pseudo-element:
+Perfect for background images on `.ui-menu-item-wrapper`:
 
 ```css
-#g2tCard[data-mode="to"] option {
-  background: url('images/icon-add-to-card-16.png') no-repeat left center;
-  padding-left: 20px;
+/* Target the card dropdown's autocomplete menu items */
+.ui-autocomplete[id*="g2tCard"] .ui-menu-item-wrapper {
+  padding-left: 24px;
+  background-repeat: no-repeat;
+  background-position: 4px center;
+  background-size: 16px 16px;
 }
 
-#g2tCard[data-mode="after"] option {
-  background: url('images/icon-add-after-card-16.png') no-repeat left center;
-  padding-left: 20px;
+/* TO mode icon */
+.ui-autocomplete[id*="g2tCard"].g2t-mode-to .ui-menu-item-wrapper {
+  background-image: url('../images/icon-add-to-card-16.png');
+}
+
+/* AFTER mode icon */
+.ui-autocomplete[id*="g2tCard"].g2t-mode-after .ui-menu-item-wrapper {
+  background-image: url('../images/icon-add-after-card-16.png');
 }
 ```
 
@@ -451,17 +463,13 @@ updateCards(tempId = 0) {
     const $g2t = $('#g2tCard', this.parent.$popup);
     $g2t.html(new_k);
     
-    // Get current mode
+    // Get current mode - NO text prefix needed with PNG icons
     const mode = this.app.temp.cardInsertMode || 'to';
-    // Unicode with plain rectangle (Option A: arrows from right)
-    const modeIcon = mode === 'to' ? '▯← ' : '▯⤵ ';
-    // Alternative Option B: const modeIcon = mode === 'to' ? '→▯ ' : '⤵▯ ';
-    // Alternative Option C: const modeIcon = mode === 'to' ? '▯→ ' : '▯↓ ';
     
     array_k.forEach(item => {
         const id_k = item.id;
-        // Add mode icon prefix to card name
-        const display_k = modeIcon + this.app.utils.truncate(item.name, 80, '...');
+        // Icons shown via CSS, no text prefix needed
+        const display_k = this.app.utils.truncate(item.name, 80, '...');
         const selected_k = id_k == restoreId_k;
         $g2t.append(
             $('<option>')
@@ -884,9 +892,9 @@ Add tests for:
 ### Manual Testing Checklist
 
 - [ ] Position dropdown is removed from UI
-- [ ] Card dropdown shows ▯← prefix by default (arrow into card)
-- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches to ▯⤵ prefix (below card)
-- [ ] Releasing modifier key switches back to ▯← prefix
+- [ ] Card dropdown shows icon by default (arrow to card)
+- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches icon (arrow below card)
+- [ ] Releasing modifier key switches back to default icon
 - [ ] Cards are created with correct Trello API parameters:
   - [ ] Default: Uses `idCardSource` parameter
   - [ ] With modifier: Uses `pos` parameter with correct value
@@ -976,20 +984,15 @@ If issues arise:
 
 ## Estimated Effort
 
-### With Unicode Characters (Recommended)
+### Complete Implementation (PNG Icons)
 - **Phase 1-4 (Core functionality)**: 4-6 hours
-- **Phase 5 (Unicode indicators with ▯)**: 0.5 hours
+- **Phase 5a (Icon design)**: 1-2 hours
+- **Phase 5b (CSS implementation)**: 1 hour (easy with jQuery UI)
 - **Phase 6 (User feedback/polish)**: 1 hour
 - **Testing & Documentation**: 2-3 hours
-- **Total**: ~7.5-10.5 hours
+- **Total**: ~9-13 hours
 
-### Optional PNG Icon Upgrade (Future Enhancement)
-- **Icon design**: 1-2 hours
-- **CSS implementation**: 1-2 hours
-- **Testing**: 1 hour
-- **Additional time**: ~3-5 hours
-
-**Recommended approach**: Ship with Unicode first (fast, clean), upgrade to PNG later only if users request more visual polish.
+**jQuery UI Advantage**: The combobox widget makes PNG icons trivial to implement via standard CSS. No browser compatibility issues since we're styling custom HTML, not native `<option>` elements.
 
 ## Questions/Decisions Needed
 
@@ -997,10 +1000,10 @@ If issues arise:
    - **Decision**: Shift, Alt/Option, or Command/Meta (any of them triggers AFTER mode)
 
 2. ✅ **Visual indicator approach?**
-   - **Decision**: Unicode characters with plain rectangle (simpler than PNG)
-   - TO mode: `▯←` (arrow into card from right)
-   - AFTER mode: `▯⤵` (from card, curve down below)
-   - Alternative: Can upgrade to PNG icons later if desired
+   - **Decision**: PNG icons via CSS on jQuery UI combobox menu items
+   - TO mode: Arrow pointing to card →[▭]
+   - AFTER mode: Arrow pointing below elevated card
+   - Clean implementation - jQuery UI gives full CSS control
 
 3. ❓ **Should mode persist across list changes?**
    - **Recommendation**: No, always reset to 'to' mode for safety
