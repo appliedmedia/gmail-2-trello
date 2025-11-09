@@ -466,12 +466,36 @@ class Trel {
       return;
     }
 
+    // Determine card position from cardPos or position field
+    // cardPos is the Trello card position value (e.g., "top", "bottom", numeric position)
+    // position indicates whether to add to top or bottom (e.g., "above", "below")
+    let pos = 'top'; // default
+
+    if (cardData.cardPos) {
+      // If cardPos is provided, use it directly (for updating existing card's position)
+      pos = cardData.cardPos;
+    } else if (cardData.position) {
+      // If position is provided, map it to Trello position
+      // "above" or "top" -> "top"
+      // "below" or "bottom" -> "bottom"
+      const positionLower = String(cardData.position).toLowerCase();
+      if (
+        positionLower === 'below' ||
+        positionLower === 'bottom' ||
+        positionLower === 'down'
+      ) {
+        pos = 'bottom';
+      } else {
+        pos = 'top';
+      }
+    }
+
     const data = {
-      name: cardData.subject || 'No Subject',
-      desc: cardData.body || '',
+      name: cardData.title || cardData.subject || 'No Subject',
+      desc: cardData.description || cardData.body || '',
       idList: cardData.listId,
       idBoard: cardData.boardId,
-      pos: 'top',
+      pos: pos,
     };
 
     if (cardData.labels && cardData.labels.length > 0) {
