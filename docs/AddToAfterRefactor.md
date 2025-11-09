@@ -125,41 +125,91 @@ When creating a card via `POST /1/cards`:
    - Creates new card positioned after selected card
    - Do NOT use `idCardSource`
 
-## Visual Indicators (Unicode Characters)
+## Visual Indicators (Custom PNG Icons)
 
-### "TO" Mode Indicator: →
-- **Character**: `→` (U+2192 RIGHTWARDS ARROW)
-- **Usage**: Prefix card names to show "add to this card"
-- **Example**: `→ Existing Card Name`
+### Design Approach: Icon Column
 
-### "AFTER" Mode Indicator Options
+Instead of Unicode characters, use custom PNG icons in a leftmost column that visually demonstrates the card positioning behavior.
 
-**Diagonal/Southeast Arrows (Most Distinct):**
-- **`↘`** (U+2198 SOUTH EAST ARROW) - Simple diagonal SE arrow
-- **`⬊`** (U+2B0A SOUTH EAST WHITE ARROW) - Outlined version
-- **`⤵`** (U+2935 ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS) - Down then curves right
+### "TO" Mode Icon Design
 
-**Downward Arrows (Clearest for "Below"):**
-- **`↓`** (U+2193 DOWNWARDS ARROW) - Simple downward
-- **`⬇`** (U+2B07 BLACK DOWNWARDS ARROW) - Heavier/bolder version
-- **`⤓`** (U+2913 DOWNWARDS ARROW WITH TAIL) - Down with emphasis
+**Concept**: Arrow pointing directly AT a card rectangle
 
-**Corner/Curved Arrows (Original consideration):**
-- **`↳`** (U+21B3 DOWNWARDS ARROW WITH TIP RIGHTWARDS) - Down then right tip
-- **`↴`** (U+21B4 RIGHTWARDS ARROW WITH CORNER DOWNWARDS) - Right then down corner
-- **`⤷`** (U+2937 ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS) - Curved version
+```
+Visual representation:
+  →[▭]
+  
+Arrow points directly to the card, indicating "add TO this card"
+```
 
-**Usage**: Prefix card names to show "create new card after this one"
+**Design Specs**:
+- Size: 16x16px or 20x20px (retina: 32x32 or 40x40)
+- Arrow: Simple rightward arrow
+- Rectangle: Thin vertical rectangle representing a card
+- Spacing: Arrow tip touches or nearly touches the card rectangle
+- Colors: Match existing UI (consider using Trello's green #61bd4f for the arrow)
 
-**Visual Comparison:**
-- TO mode: `→ Existing Card Name`
-- AFTER mode options:
-  - `↘ Existing Card Name` (diagonal SE)
-  - `⤵ Existing Card Name` (down-curve-right)
-  - `↓ Existing Card Name` (simple down)
-  - `⬇ Existing Card Name` (bold down)
+### "AFTER" Mode Icon Design
 
-**Recommendation**: Use **`↘`** (U+2198 SOUTH EAST ARROW) for maximum visual distinction from the rightward arrow. The diagonal clearly communicates "down and forward" without ambiguity.
+**Concept**: Arrow curves around and points BELOW an elevated card rectangle
+
+```
+Visual representation:
+    [▭]  ← card positioned higher
+   ↓
+  →╰
+  
+Arrow curves downward and right, pointing to space below the card
+```
+
+**Design Specs**:
+- Size: 16x16px or 20x20px (retina: 32x32 or 40x40)
+- Card rectangle: Positioned in upper portion of icon
+- Arrow: Curves from left, goes down, points to space below card
+- Alternative: Straight arrow pointing diagonally down-right below the card
+- Colors: Consider using Trello's orange #ff9f1a for distinction from TO mode
+
+### Alternative "AFTER" Mode Design (Simpler)
+
+```
+Visual representation:
+  [▭]
+  ↓
+  →
+  
+Arrow points to space directly below the card
+```
+
+### Icon Placement in UI
+
+**In Card Dropdown Options**:
+```
+<option value="card123">
+  [icon as background-image or inline img] Card Name Goes Here
+</option>
+```
+
+Or better, as a CSS column using `::before` pseudo-element:
+
+```css
+#g2tCard[data-mode="to"] option {
+  background: url('images/icon-add-to-card-16.png') no-repeat left center;
+  padding-left: 20px;
+}
+
+#g2tCard[data-mode="after"] option {
+  background: url('images/icon-add-after-card-16.png') no-repeat left center;
+  padding-left: 20px;
+}
+```
+
+### Fallback Unicode Characters
+
+For quick prototyping or if PNG implementation is delayed:
+- **TO mode**: `→` (U+2192 RIGHTWARDS ARROW)
+- **AFTER mode**: `↘` (U+2198 SOUTH EAST ARROW)
+
+**Recommendation**: Create custom PNG icons as described above for maximum clarity and professional appearance. Start with Unicode fallback for rapid development, then replace with PNG icons.
 
 ## Implementation Plan
 
@@ -236,6 +286,7 @@ updateCards(tempId = 0) {
     
     // Get current mode
     const mode = this.app.temp.cardInsertMode || 'to';
+    // Using Unicode for now, will be replaced by CSS background icons
     const modeIcon = mode === 'to' ? '→ ' : '↘ ';
     
     array_k.forEach(item => {
@@ -413,21 +464,76 @@ this.app.temp.newCard = {
 };
 ```
 
-### Phase 5: CSS Styling
+### Phase 5: Icon Design & CSS Styling
 
-#### 5.1 Add Visual Distinction for Mode Icons
+#### 5.1 Create PNG Icons
+
+**Location**: `chrome_manifest_v3/images/`
+
+**Files to create**:
+- `icon-add-to-card-16.png` (16x16 standard)
+- `icon-add-to-card-32.png` (32x32 retina)
+- `icon-add-after-card-16.png` (16x16 standard)
+- `icon-add-after-card-32.png` (32x32 retina)
+
+**Design Tool**: Use existing image editor or online tool (Figma, Sketch, Photoshop, or even GIMP)
+
+**TO Icon** (`icon-add-to-card`):
+```
+16x16 canvas
+- Arrow (pixels 2-10): → pointing right
+- Card rectangle (pixels 11-14): thin vertical rectangle [▭]
+- Colors: Arrow in #61bd4f (Trello green), card in #c4c9cc (gray)
+```
+
+**AFTER Icon** (`icon-add-after-card`):
+```
+16x16 canvas
+- Card rectangle (pixels 2-5, top): thin vertical rectangle [▭]
+- Arrow (pixels 6-14): curves or points down-right
+- Colors: Arrow in #ff9f1a (Trello orange), card in #c4c9cc (gray)
+```
+
+#### 5.2 Add CSS for Icon Display
 
 **File**: `chrome_manifest_v3/style.css`
 
-Add styles for mode indicators:
+Add styles for mode indicator icons:
 
 ```css
-/* Card insert mode indicators */
+/* Card insert mode indicators using PNG icons */
 #g2tCard option {
-  padding-left: 0.5em;
+  padding-left: 24px;  /* Space for icon */
+  background-repeat: no-repeat;
+  background-position: 2px center;
+  background-size: 16px 16px;
 }
 
-/* Optional: Add color coding */
+/* TO mode - show "add to card" icon */
+#g2tCard[data-mode="to"] option {
+  background-image: url('../images/icon-add-to-card-16.png');
+}
+
+/* Retina support for TO mode */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  #g2tCard[data-mode="to"] option {
+    background-image: url('../images/icon-add-to-card-32.png');
+  }
+}
+
+/* AFTER mode - show "add after card" icon */
+#g2tCard[data-mode="after"] option {
+  background-image: url('../images/icon-add-after-card-16.png');
+}
+
+/* Retina support for AFTER mode */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  #g2tCard[data-mode="after"] option {
+    background-image: url('../images/icon-add-after-card-32.png');
+  }
+}
+
+/* Optional: Add border color for additional visual feedback */
 #g2tCard[data-mode="to"] {
   border-left: 3px solid #61bd4f; /* Green for "add to" */
 }
@@ -435,9 +541,20 @@ Add styles for mode indicators:
 #g2tCard[data-mode="after"] {
   border-left: 3px solid #ff9f1a; /* Orange for "add after" */
 }
+
+/* Remove text prefix if using icons */
+#g2tCard[data-mode="to"] option::before,
+#g2tCard[data-mode="after"] option::before {
+  content: none; /* Remove any text arrows if present */
+}
 ```
 
-#### 5.2 Update Card Dropdown with Data Attribute
+**Note**: Some browsers don't support background images on `<option>` elements. If this is an issue, alternative approaches:
+1. Use custom dropdown (jQuery UI selectmenu) - already in use with `g2t_combobox`
+2. Add icon to the card name text (current Unicode approach)
+3. Show icon indicator outside the dropdown next to it
+
+#### 5.3 Update Card Dropdown with Data Attribute
 
 **File**: `chrome_manifest_v3/views/class_popupForm.js`
 
@@ -448,6 +565,28 @@ const $g2t = $('#g2tCard', this.parent.$popup);
 $g2t.attr('data-mode', mode);  // Add this line
 $g2t.html(new_k);
 ```
+
+#### 5.4 Test Icon Display
+
+Since `<option>` background images have limited browser support, verify the approach works in Chrome. If not:
+
+**Fallback Approach**: Use the existing combobox widget (jQuery UI) which creates custom HTML and DOES support background images:
+
+```javascript
+// In comboBox initialization, add icon styling
+$value.g2t_combobox({
+  // existing options...
+  create: function() {
+    // Add icons to combobox dropdown items
+    const mode = this.app.temp.cardInsertMode || 'to';
+    $('.ui-menu-item', this).each(function() {
+      $(this).addClass(`g2t-card-mode-${mode}`);
+    });
+  }
+});
+```
+
+Then style `.ui-menu-item.g2t-card-mode-to` and `.ui-menu-item.g2t-card-mode-after` with background images.
 
 ### Phase 6: User Feedback
 
@@ -544,8 +683,12 @@ If issues arise:
 ### JavaScript - State
 - [x] `chrome_manifest_v3/class_app.js` - Add cardInsertMode to temp state (if needed)
 
-### CSS
+### CSS & Images
 - [x] `chrome_manifest_v3/style.css` - Add mode indicator styles
+- [ ] `chrome_manifest_v3/images/icon-add-to-card-16.png` - TO mode icon (standard)
+- [ ] `chrome_manifest_v3/images/icon-add-to-card-32.png` - TO mode icon (retina)
+- [ ] `chrome_manifest_v3/images/icon-add-after-card-16.png` - AFTER mode icon (standard)
+- [ ] `chrome_manifest_v3/images/icon-add-after-card-32.png` - AFTER mode icon (retina)
 
 ### Tests
 - [ ] `tests/test_class_popupForm.js` - Add mode switching tests
@@ -557,28 +700,49 @@ If issues arise:
 
 ## Implementation Sequence
 
-1. **Phase 1**: State management (low risk)
-2. **Phase 2**: HTML changes (visible but non-functional)
-3. **Phase 3**: Event handlers (makes mode switching work)
-4. **Phase 4**: Card creation logic (makes it actually work)
-5. **Phase 5**: CSS polish (nice-to-have)
-6. **Phase 6**: User feedback improvements (nice-to-have)
-7. **Testing**: Throughout each phase
+### Quick Start (Unicode Fallback)
+1. **Phase 1**: State management
+2. **Phase 2**: HTML changes  
+3. **Phase 3**: Event handlers
+4. **Phase 4**: Card creation logic
+5. **Phase 5a**: Unicode character indicators (→ and ↘)
+6. **Testing**: Verify core functionality
+
+### Polish (PNG Icons)
+7. **Phase 5b**: Design and create PNG icons
+8. **Phase 5c**: Implement CSS icon display
+9. **Phase 6**: User feedback improvements
+10. **Testing**: Verify icon display across browsers
+
+**Recommended**: Start with Unicode fallback (Phase 1-5a) to get working functionality quickly, then upgrade to PNG icons (Phase 5b-c) for better UX.
 
 ## Estimated Effort
 
+### Quick Start (Unicode)
 - **Phase 1-4 (Core functionality)**: 4-6 hours
-- **Phase 5-6 (Polish)**: 2-3 hours
+- **Phase 5a (Unicode indicators)**: 0.5 hours
 - **Testing & Documentation**: 2-3 hours
-- **Total**: ~8-12 hours
+- **Subtotal**: ~6.5-9.5 hours
+
+### Polish (PNG Icons)
+- **Phase 5b (Icon design)**: 1-2 hours
+- **Phase 5c (CSS implementation)**: 1-2 hours
+- **Phase 6 (User feedback)**: 1 hour
+- **Testing icon display**: 1 hour
+- **Subtotal**: ~4-5 hours
+
+**Total with icons**: ~10.5-14.5 hours
+**Total without icons** (Unicode only): ~6.5-9.5 hours
 
 ## Questions/Decisions Needed
 
 1. ✅ **Which modifier keys to support?** 
    - **Decision**: Shift, Alt/Option, or Command/Meta (any of them triggers AFTER mode)
 
-2. ✅ **Which Unicode character for "after" mode?**
-   - **Decision**: `↳` (U+21B3 DOWNWARDS ARROW WITH TIP RIGHTWARDS)
+2. ✅ **Visual indicator approach?**
+   - **Decision**: Custom PNG icons (with Unicode fallback)
+   - TO mode: Arrow pointing to card →[▭]
+   - AFTER mode: Arrow pointing below elevated card
 
 3. ❓ **Should mode persist across list changes?**
    - **Recommendation**: No, always reset to 'to' mode for safety
