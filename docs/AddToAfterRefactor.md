@@ -300,13 +300,82 @@ Or better, as a CSS column using `::before` pseudo-element:
 }
 ```
 
-### Fallback Unicode Characters
+### Unicode Character Options (Simpler Alternative to PNG)
 
-For quick prototyping or if PNG implementation is delayed:
-- **TO mode**: `→` (U+2192 RIGHTWARDS ARROW)
-- **AFTER mode**: `↘` (U+2198 SOUTH EAST ARROW)
+If PNG icons are too complex, use Unicode characters with plain rectangles:
 
-**Recommendation**: Create custom PNG icons as described above for maximum clarity and professional appearance. Start with Unicode fallback for rapid development, then replace with PNG icons.
+#### Rectangle Characters (Plain/Outline Options)
+- **`▯`** (U+25AF WHITE VERTICAL RECTANGLE) - Tall, outline
+- **`▭`** (U+25AD WHITE RECTANGLE) - Wide, outline  
+- **`□`** (U+25A1 WHITE SQUARE) - Square, outline
+- **`▢`** (U+25A2 WHITE SQUARE WITH ROUNDED CORNERS) - Rounded, outline
+- **`▱`** (U+25B1 WHITE PARALLELOGRAM) - Angled, outline
+
+**Best for card representation**: `▯` (vertical rectangle, plain outline)
+
+#### "TO" Mode Options (Add to Card)
+
+**Approach 1 - Arrow from right into card:**
+```
+▯← (card with arrow going in from right)
+```
+
+**Approach 2 - Arrow from left to card:**
+```
+→▯ (arrow pointing to card from left)
+```
+
+**Approach 3 - Card as target:**
+```
+▯→ (card with indicator it's the target)
+```
+
+**Visual examples:**
+- `▯← Existing Card Name` (arrow INTO card from right)
+- `→▯ Existing Card Name` (arrow TO card from left)
+
+#### "AFTER" Mode Options (Create Card Below)
+
+**Approach 1 - Curve down from card:**
+```
+▯⤵ (from card, curve down)
+```
+
+**Approach 2 - Down arrow then card:**
+```
+⤵▯ (down arrow, then position)
+```
+
+**Approach 3 - Card elevated, arrow below:**
+```
+▯↓ (card with down indicator)
+```
+
+**Visual examples:**
+- `▯⤵ Existing Card Name` (from card, go below)
+- `⤵▯ Existing Card Name` (position below card)
+- `▯↓ Existing Card Name` (card with below indicator)
+
+#### Recommended Combinations
+
+**Option A (Arrow from right):**
+- TO mode: `▯← Existing Card Name` 
+- AFTER mode: `▯⤵ Existing Card Name`
+
+**Option B (Simple arrows):**
+- TO mode: `→▯ Existing Card Name`
+- AFTER mode: `⤵▯ Existing Card Name`
+
+**Option C (Directional indicators):**
+- TO mode: `▯→ Existing Card Name` (card is target)
+- AFTER mode: `▯↓ Existing Card Name` (below this card)
+
+**Recommendation**: Use **Option A** if you want arrow coming from right side. The plain vertical rectangle `▯` looks clean and clearly represents a card in outline form.
+
+**PNG vs Unicode Tradeoff:**
+- **Unicode**: Instant, no design work, works everywhere
+- **PNG**: More polished, fully custom, requires design time (~2-3 hours)
+- **Suggested**: Start with Unicode Option A, upgrade to PNG later if desired
 
 ## Implementation Plan
 
@@ -383,8 +452,10 @@ updateCards(tempId = 0) {
     
     // Get current mode
     const mode = this.app.temp.cardInsertMode || 'to';
-    // Using Unicode for now, will be replaced by CSS background icons
-    const modeIcon = mode === 'to' ? '→ ' : '↘ ';
+    // Unicode with plain rectangle (Option A: arrows from right)
+    const modeIcon = mode === 'to' ? '▯← ' : '▯⤵ ';
+    // Alternative Option B: const modeIcon = mode === 'to' ? '→▯ ' : '⤵▯ ';
+    // Alternative Option C: const modeIcon = mode === 'to' ? '▯→ ' : '▯↓ ';
     
     array_k.forEach(item => {
         const id_k = item.id;
@@ -808,7 +879,7 @@ Update card dropdown label area to include help text:
 
 ```html
 <select id="g2tCard" class="g2tWhere" next-select="addToTrello" 
-        title="Default: Add TO selected card (→). Hold Shift/Alt/Option: Create AFTER selected card (↘)">
+        title="Default: Add TO selected card (▯←). Hold Shift/Alt/Option: Create AFTER selected card (▯⤵)">
   <option value="">...please pick a list...</option>
 </select>
 ```
@@ -836,9 +907,9 @@ Add tests for:
 ### Manual Testing Checklist
 
 - [ ] Position dropdown is removed from UI
-- [ ] Card dropdown shows → prefix by default
-- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches to ↘ prefix
-- [ ] Releasing modifier key switches back to → prefix
+- [ ] Card dropdown shows ▯← prefix by default (arrow into card)
+- [ ] Pressing Shift/Alt/Option while clicking card dropdown switches to ▯⤵ prefix (below card)
+- [ ] Releasing modifier key switches back to ▯← prefix
 - [ ] Cards are created with correct Trello API parameters:
   - [ ] Default: Uses `idCardSource` parameter
   - [ ] With modifier: Uses `pos` parameter with correct value
@@ -858,7 +929,7 @@ Add tests for:
 Update documentation/help to explain:
 - New default behavior (always add TO card)
 - How to use modifier keys for AFTER mode
-- Visual indicators (→ vs ↘)
+- Visual indicators (▯← vs ▯⤵) where ▯ represents a card
 
 ## Rollback Plan
 
@@ -928,21 +999,20 @@ If issues arise:
 
 ## Estimated Effort
 
-### Quick Start (Unicode)
+### With Unicode Characters (Recommended)
 - **Phase 1-4 (Core functionality)**: 4-6 hours
-- **Phase 5a (Unicode indicators)**: 0.5 hours
+- **Phase 5 (Unicode indicators with ▯)**: 0.5 hours
+- **Phase 6 (User feedback/polish)**: 1 hour
 - **Testing & Documentation**: 2-3 hours
-- **Subtotal**: ~6.5-9.5 hours
+- **Total**: ~7.5-10.5 hours
 
-### Polish (PNG Icons)
-- **Phase 5b (Icon design)**: 1-2 hours
-- **Phase 5c (CSS implementation)**: 1-2 hours
-- **Phase 6 (User feedback)**: 1 hour
-- **Testing icon display**: 1 hour
-- **Subtotal**: ~4-5 hours
+### Optional PNG Icon Upgrade (Future Enhancement)
+- **Icon design**: 1-2 hours
+- **CSS implementation**: 1-2 hours
+- **Testing**: 1 hour
+- **Additional time**: ~3-5 hours
 
-**Total with icons**: ~10.5-14.5 hours
-**Total without icons** (Unicode only): ~6.5-9.5 hours
+**Recommended approach**: Ship with Unicode first (fast, clean), upgrade to PNG later only if users request more visual polish.
 
 ## Questions/Decisions Needed
 
@@ -950,9 +1020,10 @@ If issues arise:
    - **Decision**: Shift, Alt/Option, or Command/Meta (any of them triggers AFTER mode)
 
 2. ✅ **Visual indicator approach?**
-   - **Decision**: Custom PNG icons (with Unicode fallback)
-   - TO mode: Arrow pointing to card →[▭]
-   - AFTER mode: Arrow pointing below elevated card
+   - **Decision**: Unicode characters with plain rectangle (simpler than PNG)
+   - TO mode: `▯←` (arrow into card from right)
+   - AFTER mode: `▯⤵` (from card, curve down below)
+   - Alternative: Can upgrade to PNG icons later if desired
 
 3. ❓ **Should mode persist across list changes?**
    - **Recommendation**: No, always reset to 'to' mode for safety
