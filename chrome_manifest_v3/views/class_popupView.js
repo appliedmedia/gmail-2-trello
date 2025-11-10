@@ -415,8 +415,70 @@ class PopupView {
     this.app.goog.storageSyncSet(dict_k);
   }
 
+  /**
+   * Validate button state - check if button exists, is attached, and has event listeners
+   * This catches cases where Gmail's DOM changes orphan our button
+   */
+  validateButtonState() {
+    const $button = $('#g2tButton');
+
+    // No button at all - handleDetectButton will create it
+    if ($button.length === 0) {
+      return;
+    }
+
+    // Check 1: Is button attached to the document?
+    if (!$.contains(document.documentElement, $button[0])) {
+      this.app.utils.log(
+        'periodicChecks: Button exists but is detached from DOM. Removing orphan...',
+      );
+      $button.remove();
+      $('#g2tPopup').remove(); // Remove popup too
+      return;
+    }
+
+    // Check 2: Is button in the correct toolbar?
+    const $toolbar = $("[gh='mtb']").first();
+    if ($toolbar.length > 0) {
+      const $buttonInToolbar = $toolbar.find('#g2tButton');
+      if ($buttonInToolbar.length === 0) {
+        this.app.utils.log(
+          'periodicChecks: Button exists but not in active toolbar. Re-injecting...',
+        );
+        $button.remove();
+        $('#g2tPopup').remove();
+        this.handleDetectButton();
+        return;
+      }
+    }
+
+    // Check 3: Does button have event binding marker?
+    // Use marker attribute instead of jQuery internals
+    if (!$button.attr('data-g2t-bound')) {
+      this.app.utils.log(
+        'periodicChecks: Button missing event binding marker. Re-binding...',
+      );
+      // Re-bind events by calling handlePopupLoaded
+      if (this.isInitialized) {
+        this.handlePopupLoaded();
+      }
+      return;
+    }
+
+    // Check 4: Is button visible?
+    if (!$button.is(':visible')) {
+      this.app.utils.log(
+        'periodicChecks: Button exists but not visible. May be in wrong location...',
+      );
+      // Don't remove - might be intentionally hidden, but log for debugging
+    }
+  }
+
   periodicChecks() {
-    // Check for button detection
+    // Enhanced button validation - check if button exists and is functional
+    this.validateButtonState();
+
+    // Check for button detection (creates button if missing)
     this.handleDetectButton();
 
     // Check for version updates
@@ -489,6 +551,25 @@ class PopupView {
       this.$toolBar = this.app.gmailView.$toolBar;
       this.finalCreatePopup(); // Moved from init() to here
     }
+  }
+
+  /**
+   * Handle force redraw request from GmailView
+   * Called when Gmail navigation causes toolbar replacement
+   */
+  handleForceRedraw() {
+    this.app.utils.log('PopupView: Force redraw requested');
+
+    // Clear cached HTML to force recreation
+    if (this.html && this.html['add_to_trello']) {
+      this.html['add_to_trello'] = '';
+    }
+
+    // Reset toolbar reference
+    this.$toolBar = null;
+
+    // The actual redraw will happen via handleDetectButton in next periodic check
+    // or immediately if detect is called
   }
 
   handleBeforeAuthorize() {
@@ -566,7 +647,8 @@ class PopupView {
       })
       .on('mouseleave', function () {
         $(this).removeClass('T-I-JW');
-      });
+      })
+      .attr('data-g2t-bound', '1'); // Mark as bound
 
     const $board = $('#g2tBoard', this.$popup);
     $board.off('change').on('change', () => {
@@ -853,7 +935,7 @@ class PopupView {
 
     this.intervalId = setInterval(() => {
       this.periodicChecks();
-    }, 10000); // Reduced frequency from 3s to 10s
+    }, 5000); // Check every 5 seconds for button state
   }
 }
 
