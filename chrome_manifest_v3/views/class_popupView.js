@@ -452,12 +452,11 @@ class PopupView {
       }
     }
 
-    // Check 3: Does button have event listeners?
-    // jQuery stores event data in internal data structure
-    const events = $._data($button[0], 'events');
-    if (!events || !events.mousedown) {
+    // Check 3: Does button have event binding marker?
+    // Use marker attribute instead of jQuery internals
+    if (!$button.attr('data-g2t-bound')) {
       this.app.utils.log(
-        'periodicChecks: Button missing event listeners. Re-binding...',
+        'periodicChecks: Button missing event binding marker. Re-binding...',
       );
       // Re-bind events by calling handlePopupLoaded
       if (this.isInitialized) {
@@ -648,7 +647,8 @@ class PopupView {
       })
       .on('mouseleave', function () {
         $(this).removeClass('T-I-JW');
-      });
+      })
+      .attr('data-g2t-bound', '1'); // Mark as bound
 
     const $board = $('#g2tBoard', this.$popup);
     $board.off('change').on('change', () => {

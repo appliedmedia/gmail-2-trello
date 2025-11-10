@@ -32,11 +32,18 @@ class Observer {
       content: null,
     };
 
+    // Connected state flags (prevent callbacks after disconnect)
+    this.connected = {
+      toolbar: false,
+      content: false,
+    };
+
     // Configuration
     this.config = {
       toolbar: {
         debounceMs: 250, // Wait for Gmail to finish updates
         selector: '[gh="mtb"]', // Gmail toolbar selector
+        scopeSelector: '[role="main"]', // Narrow observation scope
       },
       content: {
         debounceMs: 500,
@@ -75,9 +82,23 @@ class Observer {
     };
 
     try {
+      // Narrow observation scope to reduce noise
+      // Try to find toolbar container first, fall back to document.body
+      const scopeSelector = this.config.toolbar.scopeSelector;
+      const observationTarget =
+        document.querySelector(scopeSelector) || document.body;
+
       this.observers.toolbar = new MutationObserver(callback);
-      this.observers.toolbar.observe(document.body, config);
-      this.app.utils.log('Observer: Toolbar observer initialized');
+      this.observers.toolbar.observe(observationTarget, config);
+      this.connected.toolbar = true;
+
+      const targetDesc =
+        observationTarget === document.body
+          ? 'document.body (fallback)'
+          : scopeSelector;
+      this.app.utils.log(
+        `Observer: Toolbar observer initialized on ${targetDesc}`,
+      );
     } catch (error) {
       this.app.utils.log('Observer: Failed to setup toolbar observer:', error);
     }
@@ -88,6 +109,16 @@ class Observer {
    * @private
    */
   handleToolbarMutations(mutationsList) {
+    // Guard: Skip if disconnected
+    if (!this.connected.toolbar) {
+      return;
+    }
+
+    // Verify app is still available
+    if (!this.app || !this.app.events || !this.app.utils) {
+      return;
+    }
+
     const selector = this.config.toolbar.selector;
     let toolbarChanged = false;
 
@@ -123,6 +154,10 @@ class Observer {
 
     if (toolbarChanged) {
       this.debounceEvent('toolbar', () => {
+        // Double-check still connected
+        if (!this.connected.toolbar) return;
+        if (!this.app || !this.app.events || !this.app.utils) return;
+
         this.app.utils.log('Observer: Toolbar mutation detected');
         this.app.events.emit('toolbarChanged');
       });
@@ -169,9 +204,23 @@ class Observer {
    * @private
    */
   handleContentMutations(mutationsList) {
+    // Guard: Skip if disconnected
+    if (!this.connected.content) {
+      return;
+    }
+
+    // Verify app is still available
+    if (!this.app || !this.app.events || !this.app.utils) {
+      return;
+    }
+
     // Only emit if significant changes detected
     if (mutationsList.length > 0) {
       this.debounceEvent('content', () => {
+        // Double-check still connected
+        if (!this.connected.content) return;
+        if (!this.app || !this.app.events || !this.app.utils) return;
+
         this.app.utils.log('Observer: Content area mutation detected');
         this.app.events.emit('contentChanged');
       });
@@ -200,6 +249,11 @@ class Observer {
    * Disconnect a specific observer
    */
   disconnect(type) {
+    // Set flag first to prevent callbacks from running
+    if (this.connected[type] !== undefined) {
+      this.connected[type] = false;
+    }
+
     if (this.observers[type]) {
       this.observers[type].disconnect();
       this.observers[type] = null;
