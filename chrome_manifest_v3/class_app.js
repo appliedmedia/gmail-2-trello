@@ -24,6 +24,7 @@ class App {
     this.trelloApiKey = '21b411b1b5b549c54bd32f0e90738b41'; // Was: "c50413b23ee49ca49a5c75ccf32d0459"
     this.goog = new G2T.Goog({ app: this });
     this.events = new G2T.EventTarget({ app: this });
+    this.obs = new G2T.Observer({ app: this });
     this.model = new G2T.Model({ app: this });
     this.gmailView = new G2T.GmailView({ app: this });
     this.popupView = new G2T.PopupView({ app: this });
@@ -153,6 +154,7 @@ class App {
   init() {
     // this.utils.log('App:initialize');
     this.bindEvents();
+    this.obs.init();
     this.model.init();
     this.gmailView.init();
     this.popupView.init();

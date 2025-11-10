@@ -42,26 +42,33 @@ if (!$button.is(':visible')) {
 
 ---
 
-### 2. MutationObserver (`class_gmailView.js`)
+### 2. Observer Class (`class_observer.js`) - NEW FILE
 
-**New Method: `setupToolbarObserver()`** (lines 647-721)
+**New Class: `G2T.Observer`**
 
-Watches for toolbar DOM changes in real-time:
+Centralized MutationObserver management, consistent with app architecture:
 
 ```javascript
-// Watches document.body for:
-new MutationObserver(mutations => {
-  // Detects when [gh='mtb'] element is added/removed
-  if (toolbarChanged) {
-    // Debounce 250ms (Gmail does multiple updates)
-    setTimeout(() => forceRedraw(), 250);
-  }
-});
+// In app.constructor():
+this.obs = new G2T.Observer({ app: this });
+
+// In gmailView.init():
+this.app.obs.observeToolbar();
+
+// Events fire to app.events:
+this.app.events.emit('toolbarChanged');
 ```
 
-**Debouncing**: Prevents multiple rapid redraws during Gmail's async updates
+**Methods**:
+- `observeToolbar()` - Watch for toolbar DOM changes
+- `observeContent()` - Watch for content area changes (available)
+- `disconnect(type)` - Stop specific observer
+- `disconnectAll()` - Stop all observers
+- `getStatus()` - Check observer status
 
-**Auto-initialized**: Called from `gmailView.init()` (line 745)
+**Debouncing**: Built-in, configurable per observer (250ms default)
+
+**Auto-initialized**: Called from `app.init()` and `gmailView.init()`
 
 ---
 
@@ -205,6 +212,16 @@ chrome.storage.sync.set({ debugMode: true });
 
 ## Files Modified
 
+### `chrome_manifest_v3/class_observer.js` - NEW FILE
+- Created Observer class for centralized DOM observation
+- Methods: `observeToolbar()`, `observeContent()`, `disconnect()`, `disconnectAll()`
+- Emits: `'toolbarChanged'` and `'contentChanged'` events
+- Configurable debouncing per observer type
+
+### `chrome_manifest_v3/class_app.js`
+- Added `this.obs = new G2T.Observer({ app: this })`
+- Added `this.obs.init()` to `init()` method
+
 ### `chrome_manifest_v3/views/class_popupView.js`
 - Added `validateButtonState()` method
 - Enhanced `periodicChecks()` to call validation first
@@ -212,10 +229,13 @@ chrome.storage.sync.set({ debugMode: true });
 - Added `handleForceRedraw()` method
 
 ### `chrome_manifest_v3/views/class_gmailView.js`
-- Added `toolbarObserver` and `observerDebounceTimer` properties
-- Added `setupToolbarObserver()` method
-- Added `disconnectToolbarObserver()` method
-- Called `setupToolbarObserver()` from `init()`
+- Removed ~100 lines of observer code (moved to Observer class)
+- Added `handleToolbarChanged()` method
+- Added `'toolbarChanged'` event listener in `bindEvents()`
+- Calls `this.app.obs.observeToolbar()` from `init()`
+
+### `chrome_manifest_v3/manifest.json`
+- Added `class_observer.js` to content_scripts array
 
 ---
 

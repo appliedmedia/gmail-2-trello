@@ -64,6 +64,7 @@
         "class_menuControl.js",
         "class_waitCounter.js",
         "class_eventTarget.js",
+        "class_observer.js",
         "class_goog.js",
         "class_trel.js",
         "views/class_gmailView.js",
