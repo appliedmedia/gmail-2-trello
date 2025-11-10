@@ -50,6 +50,7 @@ class App {
       cardId: null,
       useBackLink: true,
       addCC: false,
+      markdown: true,
       // User preferences (persisted)
       labelsId: '',
       membersId: '',
@@ -111,6 +112,10 @@ class App {
     Object.assign(this.persist, params);
 
     this.initialized = true;
+
+    if (this.popupView?.handlePersistLoaded) {
+      this.popupView.handlePersistLoaded();
+    }
   }
 
   // Handle Gmail navigation changes

@@ -281,6 +281,12 @@ class PopupView {
     );
   }
 
+  handlePersistLoaded() {
+    if (this.form?.onPersistReady) {
+      this.form.onPersistReady();
+    }
+  }
+
   showPopup() {
     if (this.$g2tButton && this.$popup) {
       $(document)
@@ -623,6 +629,10 @@ class PopupView {
     // DOM event bindings moved from bindEvents()
     this.resetDragResize();
 
+    if (this.form?.onDomReady) {
+      this.form.onDomReady();
+    }
+
     $('#close-button', this.$popup)
       .off('click')
       .on('click', () => {
@@ -843,32 +853,6 @@ class PopupView {
       .off('click')
       .on('click', () => {
         this.form.submit();
-      });
-
-    // Handle checkbox changes for persistent state
-    $('#chkBackLink', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.app.persist.useBackLink = $('#chkBackLink', this.$popup).is(
-          ':checked',
-        );
-        this.form.updateBody(); // Update description when useBackLink changes
-      });
-
-    $('#chkCC', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.app.persist.addCC = $('#chkCC', this.$popup).is(':checked');
-        this.form.updateBody(); // Update description when addCC changes
-      });
-
-    $('#chkMarkdown', this.$popup)
-      .off('change')
-      .on('change', () => {
-        this.app.persist.markdown = $('#chkMarkdown', this.$popup).is(
-          ':checked',
-        );
-        this.form.updateBody(); // Update description when markdown changes
       });
 
     // Temp data handlers

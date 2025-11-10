@@ -17,6 +17,13 @@ class PopupForm {
     this.parent = args.parent;
     this.app = args.app;
     this.isInitialized = false;
+    this.domReady = false;
+    this.persistReady = false;
+    this.checkboxHandlersBound = false;
+    this.accessibilityHandlersBound = false;
+    this.dataBound = false;
+    this.pendingGmailData = null;
+    this.lastGmailData = null;
   }
 
   init() {
@@ -24,20 +31,125 @@ class PopupForm {
     this.bindEvents();
   }
 
+  onDomReady() {
+    this.domReady = true;
+    this.dataBound = false;
+    this.bindCheckboxHandlers();
+    this.bindCheckboxAccessibilityHandlers();
+    this.syncCheckboxesFromPersist();
+    if (!this.pendingGmailData && this.lastGmailData) {
+      this.pendingGmailData = this.lastGmailData;
+    }
+    this.maybeHydrateGmail();
+  }
+
+  onPersistReady() {
+    this.persistReady = true;
+    this.syncCheckboxesFromPersist();
+    this.maybeHydrateGmail();
+  }
+
+  bindCheckboxHandlers() {
+    const $popup = this.parent?.$popup;
+    if (!$popup || !$popup.length) {
+      return;
+    }
+
+    const bindToggle = (selector, key) => {
+      const $element = $(selector, $popup);
+      if (!$element.length) {
+        return;
+      }
+      $element
+        .off('change.g2tPopupForm')
+        .on('change.g2tPopupForm', () => {
+          this.app.persist[key] = $element.is(':checked');
+          this.updateBody();
+        });
+    };
+
+    bindToggle('#chkBackLink', 'useBackLink');
+    bindToggle('#chkCC', 'addCC');
+    bindToggle('#chkMarkdown', 'markdown');
+
+    this.checkboxHandlersBound = true;
+  }
+
+  bindCheckboxAccessibilityHandlers() {
+    if (this.accessibilityHandlersBound) {
+      return;
+    }
+
+    $(document)
+      .off('keyup.g2tCheckbox', '.g2t-checkbox')
+      .on('keyup.g2tCheckbox', '.g2t-checkbox', evt => {
+        if (evt.which === 13 || evt.which === 32) {
+          $(evt.target).trigger('click');
+        }
+      });
+
+    $(document)
+      .off('keydown.g2tCheckbox', '.g2t-checkbox')
+      .on('keydown.g2tCheckbox', '.g2t-checkbox', evt => {
+        if (evt.which === 13 || evt.which === 32) {
+          $(evt.target).trigger('mousedown');
+        }
+      });
+
+    this.accessibilityHandlersBound = true;
+  }
+
+  syncCheckboxesFromPersist() {
+    if (!this.domReady) {
+      return;
+    }
+    const $popup = this.parent?.$popup;
+    if (!$popup || !$popup.length) {
+      return;
+    }
+
+    const setChecked = (selector, value) => {
+      if (value === undefined) {
+        return;
+      }
+      $(selector, $popup).prop('checked', !!value);
+    };
+
+    const { useBackLink, addCC, markdown } = this.app.persist;
+    setChecked('#chkBackLink', useBackLink);
+    setChecked('#chkCC', addCC);
+    setChecked('#chkMarkdown', markdown);
+  }
+
+  maybeHydrateGmail() {
+    if (!this.domReady || !this.persistReady || !this.pendingGmailData) {
+      return;
+    }
+
+    this.syncCheckboxesFromPersist();
+
+    const gmailData = this.pendingGmailData;
+    this.pendingGmailData = null;
+
+    if (!this.dataBound) {
+      this.bindData();
+      this.dataBound = true;
+    }
+
+    this.bindGmailData(gmailData);
+    this.lastGmailData = gmailData;
+    this.updateBoards();
+
+    if (this.parent.$popupContent) {
+      this.parent.$popupContent.show();
+    }
+    this.hideMessage();
+  }
+
   handleGmailDataReady(event, params) {
     // Both Trello and Gmail data are ready - do final assembly
-    const gmailData = params?.gmail || this.app.model.gmail;
-
-    // Bind all the data
-    this.bindData(); // Bind Trello user data
-    this.bindGmailData(gmailData); // Bind Gmail data
-
-    // Update UI components
-    this.updateBoards(); // Populate the boards dropdown
-
-    // Show the completed popup
-    this.parent.$popupContent.show();
-    this.hideMessage();
+    this.pendingGmailData = params?.gmail || this.app.model.gmail;
+    this.maybeHydrateGmail();
   }
 
   /** This is what we'd submit originally for update to trello:
@@ -187,31 +299,6 @@ class PopupForm {
     $('#g2tUsername', this.parent.$popup)
       .attr('href', me.url)
       .text(me.username || '?');
-
-    if (this.app.persist.useBackLink !== undefined) {
-      $('#chkBackLink', this.parent.$popup).prop(
-        'checked',
-        this.app.persist.useBackLink,
-      );
-    }
-
-    if (this.app.persist.addCC !== undefined) {
-      $('#chkCC', this.parent.$popup).prop('checked', this.app.persist.addCC);
-    }
-
-    $(document).on('keyup', '.g2t-checkbox', evt => {
-      if (evt.which == 13 || evt.which == 32) {
-        $(evt.target).trigger('click');
-      }
-    });
-    $(document).on('keydown', '.g2t-checkbox', evt => {
-      if (evt.which == 13 || evt.which == 32) {
-        $(evt.target).trigger('mousedown');
-      }
-    });
-
-    // Note: markdown, dueDate, dueTime are not currently in app.persist
-    // They may need to be added if they should be persisted
 
     // Attach reportError function to report id if in text:
     $('#report', this.parent.$popup).on('click', () => {
