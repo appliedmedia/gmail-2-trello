@@ -482,6 +482,14 @@ class G2T_TestSuite {
       }
     };
 
+    let Observer = class {
+      constructor({ app }) {
+        this.app = app;
+      }
+      init() {}
+      observeToolbar() {}
+    };
+
     let PopupView = class {
       constructor({ app }) {
         this.app = app;
@@ -585,6 +593,7 @@ class G2T_TestSuite {
         this.model = new Model({ app: this });
         this.gmailView = new GmailView({ app: this });
         this.popupView = new PopupView({ app: this });
+        this.obs = new Observer({ app: this });
         this.trel = new Trel({ app: this });
         // Use real Utils class and override only the log method for testing
         this.utils = new G2T.Utils({ app: this });
@@ -606,6 +615,7 @@ class G2T_TestSuite {
           cardId: null,
           useBackLink: true,
           addCC: false,
+          markdown: true,
           labelsId: '',
           membersId: '',
         };
@@ -653,6 +663,7 @@ class G2T_TestSuite {
       EventTarget,
       GmailView,
       Goog,
+      Observer,
       MenuControl,
       Model,
       PopupForm,

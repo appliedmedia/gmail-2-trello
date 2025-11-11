@@ -264,7 +264,11 @@ describe('Trel Class', () => {
     });
 
     test('createCard should call wrapApiCall with card data', () => {
-      const cardData = { name: 'Test Card', listId: 'list123' };
+      const cardData = {
+        name: 'Test Card',
+        listId: 'list123',
+        boardId: 'board123',
+      };
       const spy = jest.spyOn(trelInstance, 'wrapApiCall');
 
       trelInstance.createCard(cardData);
