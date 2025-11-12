@@ -32,6 +32,14 @@ class PopupForm {
   }
 
   onDomReady() {
+    if (this.domReady) {
+      return;
+    }
+    const $popup = this.parent?.$popup;
+    if (!$popup || !$popup.length) {
+      return;
+    }
+
     this.domReady = true;
     this.dataBound = false;
     this.bindCheckboxHandlers();
@@ -44,12 +52,18 @@ class PopupForm {
   }
 
   onPersistReady() {
+    if (this.persistReady) {
+      return;
+    }
     this.persistReady = true;
     this.syncCheckboxesFromPersist();
     this.maybeHydrateGmail();
   }
 
   bindCheckboxHandlers() {
+    if (this.checkboxHandlersBound) {
+      return;
+    }
     const $popup = this.parent?.$popup;
     if (!$popup || !$popup.length) {
       return;
@@ -79,8 +93,12 @@ class PopupForm {
     if (this.accessibilityHandlersBound) {
       return;
     }
+    const $popup = this.parent?.$popup;
+    if (!$popup || !$popup.length) {
+      return;
+    }
 
-    $(document)
+    $popup
       .off('keyup.g2tCheckbox', '.g2t-checkbox')
       .on('keyup.g2tCheckbox', '.g2t-checkbox', evt => {
         if (evt.which === 13 || evt.which === 32) {
@@ -88,7 +106,7 @@ class PopupForm {
         }
       });
 
-    $(document)
+    $popup
       .off('keydown.g2tCheckbox', '.g2t-checkbox')
       .on('keydown.g2tCheckbox', '.g2t-checkbox', evt => {
         if (evt.which === 13 || evt.which === 32) {
@@ -125,8 +143,6 @@ class PopupForm {
     if (!this.domReady || !this.persistReady || !this.pendingGmailData) {
       return;
     }
-
-    this.syncCheckboxesFromPersist();
 
     const gmailData = this.pendingGmailData;
     this.pendingGmailData = null;
