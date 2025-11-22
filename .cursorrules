@@ -4,3 +4,9 @@ Read all of AGENTS.md and follow and read all its links and do everything it say
 editor.tabSize: 2
 editor.insertSpaces: true
 editor.detectIndentation: false
+
+# Background Agent Branch Cleanup
+When a background agent task completes:
+- If the branch has no commits beyond the base branch: delete both local and remote branches
+- Check with: git rev-list --count HEAD ^main (if 0, delete the branch)
+- Delete with: git checkout main && git branch -D <branch> && git push origin --delete <branch> 2>/dev/null || true
